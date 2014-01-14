@@ -10,7 +10,7 @@ import utils
 import secrets
 
 # Enable debug errors
-cgitb.enable()
+# cgitb.enable()
 
 request = cgi.parse()
 
