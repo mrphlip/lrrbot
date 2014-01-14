@@ -32,3 +32,7 @@ except ValueError:
 config['notifyuser'] = config.get('notifyuser', 'twitchnotify').lower()
 # commandprefix - symbol to prefix all bot commands
 config.setdefault('commandprefix', '!')
+# siteurl - root of web site
+config.setdefault('siteurl', 'http://lrrbot.mrphlip.com/')
+# apipass - secret string needed to communicate with web site
+config.setdefault('apipass', None)

@@ -1,3 +1,4 @@
 lrrbot.conf
 *.pyc
 __pycache__
+*~

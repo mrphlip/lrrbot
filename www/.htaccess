@@ -1,2 +1,9 @@
 Options +ExecCGI
-RewriteRule ^update$ update.py [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^([^./]+)$ $1.html [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.py -f
+RewriteRule ^([^./]+)$ $1.py [L,QSA]

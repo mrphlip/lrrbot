@@ -1,0 +1,71 @@
+body
+{
+	font: 100% sans-serif;
+}
+
+#notificationlist, #notificationlist li
+{
+	margin: 0;
+	border: none;
+	list-style: none;
+}
+#notificationlist
+{
+	padding: 0;
+}
+#notificationlist li
+{
+	padding: 0.5em;
+	border: 1px outset grey;
+	background: grey;
+	color: black;
+	text-align: center;
+}
+#notificationlist li.even
+{
+	border-color: #CCC;
+	background: #CCC;
+}
+#notificationlist li.odd
+{
+	border-color: #EEE;
+	background: #EEE;
+}
+#notificationlist li.new
+{
+	cursor: pointer;
+}
+#notificationlist li.even.new
+{
+	border-color: #3F3;
+	background: #CEC;
+}
+#notificationlist li.odd.new
+{
+	border-color: #8F8;
+	background: #DFD;
+}
+#notificationlist .duration
+{
+	color: #666;
+	font: italic 80% sans-serif;
+	float: right;
+}
+#notificationlist .channel
+{
+	color: #666;
+	font: italic 80% sans-serif;
+	float: left;
+}
+#notificationlist .user a
+{
+	color: black;
+	font-weight: bold;
+	text-decoration: none;
+}
+#notificationlist .user img
+{
+	height: 64px;
+	width: 64px;
+	vertical-align: middle;
+}
