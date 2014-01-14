@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Dependencies:
-#   easy_install irc oauth
+#   easy_install irc
 
 import re
 import time
