@@ -79,7 +79,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				else:
 					respond_to = source.nick
 				if command == "help":
-					conn.privmsg(respond_to, "TODO: Help messages")
+					conn.privmsg(respond_to, "http://pastebin.com/zsC8HgXN")
+				if command == "fliptable":
+					conn.privmsg(respond_to, "(╯°□°）╯︵ ┻━┻")
+				if command == "fixtable":
+					conn.privmsg(respond_to, "┬─┬ノ( º _ ºノ)")
+				if command == "XCAM":
+					conn.privmsg(respond_to, "The xcam list is http://bit.ly/CamXCOM")
+                                
+                                        
 
 def init_logging():
 	# TODO: something more sophisticated
