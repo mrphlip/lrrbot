@@ -55,7 +55,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			subscribe_match = self.re_subscription.match(event.arguments[0])
 			if subscribe_match:
 				notifyparams['subuser'] = subscribe_match.group(1)
-				# TODO: get channel info for this user and set notifyparams['avatar']
+				try:
+					channel_info = twitch.getInfo(subscribe_match.group(1))
+				except:
+					pass
+				else:
+					if channel_info.get('logo'):
+						notifyparams['avatar'] = channel_info['logo']
 			# Send the information to the server
 			log.info(urllib.parse.urlencode(notifyparams))
 			res = urllib.request.urlopen(
