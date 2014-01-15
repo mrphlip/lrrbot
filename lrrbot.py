@@ -98,7 +98,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					conn.privmsg(respond_to, "(╯°□°）╯︵ ┻━┻")
 				if command == "fixtable":
 					conn.privmsg(respond_to, "┬─┬ノ( º _ ºノ)")
-				if command == "XCAM":
+				if command == "xcam":
 					conn.privmsg(respond_to, "The xcam list is http://bit.ly/CamXCOM")
 				if command == "game":#This whole thing will be obsolete once twitch api get integrated... hopefully
 					game = GameINI[str(currentGame)]
