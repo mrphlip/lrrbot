@@ -94,7 +94,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				else:
 					respond_to = source.nick
 				if command == "help": #might try to find way to not hard code this for easier modification by LRR, once bot is functional
-					conn.privmsg(respond_to, "http://pastebin.com/zsC8HgXN")
+					conn.privmsg(respond_to, "Help: http://lrrbot.mrphlip.com/")
 				if command == "fliptable":#can't be that hard for static messages
 					conn.privmsg(respond_to, random.choose([
 						"(╯°□°）╯︵ ┻━┻",

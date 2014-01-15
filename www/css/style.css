@@ -3,6 +3,24 @@ body
 	font: 100% sans-serif;
 }
 
+h1, h2, h3, h4, p
+{
+	margin: 0 0 0.25em;
+	padding: 0;
+}
+h2
+{
+	margin-top: 1em;
+}
+p.lastupdated
+{
+	color: grey;
+}
+p.author
+{
+	font-size: 90%;
+}
+
 #notificationlist, #notificationlist li
 {
 	margin: 0;
