@@ -5,6 +5,7 @@
 
 import re
 import time
+import random
 import urllib.request, urllib.parse
 import json
 import logging
@@ -95,14 +96,19 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				if command == "help": #might try to find way to not hard code this for easier modification by LRR, once bot is functional
 					conn.privmsg(respond_to, "http://pastebin.com/zsC8HgXN")
 				if command == "fliptable":#can't be that hard for static messages
-					conn.privmsg(respond_to, "(╯°□°）╯︵ ┻━┻")
+					conn.privmsg(respond_to, random.choose([
+						"(╯°□°）╯︵ ┻━┻",
+						"(╯°□°）╯︵ ┻━┻", # Make the classic a bit more likely
+						"(╯°Д°）╯︵ ┻━┻",
+						"(ﾉಠ益ಠ）ﾉ 彡ㅑ",
+					]))
 				if command == "fixtable":
 					conn.privmsg(respond_to, "┬─┬ノ( º _ ºノ)")
 				if command == "xcam":
 					conn.privmsg(respond_to, "The xcam list is http://bit.ly/CamXCOM")
 				if command == "game":#This whole thing will be obsolete once twitch api get integrated... hopefully
 					game = GameINI[str(currentGame)]
-					conn.privmsg(respond_to, game['Title']) # Doesn't handle multiple arguments like "Current game selected is:%s" dame['Title']
+					conn.privmsg(respond_to, "Current game selected is: %s" % (game['Title']))
 				#if command == "death":
                                 #        game = GameINI[config['currentgame']]
                                 #        game[''] += 1
