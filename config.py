@@ -20,7 +20,7 @@ config.setdefault('password', None)
 config.setdefault('channel', 'loadingreadyrun')
 # debug - boolean option
 config.setdefault('debug', False)
-config['debug'] = str(config['debug']).lower() != 'FALSE'
+config['debug'] = str(config['debug']).lower() != 'false'
 # loglevel - either a number or a level name, default depends on debug setting
 try:
 	config['loglevel'] = int(config.get('loglevel', logging.DEBUG if config['debug'] else logging.INFO))
