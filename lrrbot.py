@@ -9,11 +9,15 @@ import json
 import logging
 import irc.bot, irc.client
 from config import config
+import configparser
 
 def main():
 	init_logging()
 
 	log.debug("Initialising connection")
+	global GameINI
+	GameINI = configparser.ConfigParser()
+	GameINI.read("Game.ini")
 	LRRBot().start()
 
 class LRRBot(irc.bot.SingleServerIRCBot):
@@ -35,6 +39,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.re_botcommand = re.compile(r"^\s*%s\s*(\w+)\b\s*(.*?)\s*$" % re.escape(config['commandprefix']))
 		self.re_subscription = re.compile("^(.*) just subscribed!")
+
+		global currentGame
+		currentGame = 0
 
 	def _on_connect(self, conn, event):
 		conn.join("#%s" % config['channel'])
@@ -84,8 +91,23 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					respond_to = event.target
 				else:
 					respond_to = source.nick
-				if command == "help":
-					conn.privmsg(respond_to, "TODO: Help messages")
+				if command == "help": #might try to find way to not hard code this for easier modification by LRR, once bot is functional
+					conn.privmsg(respond_to, "http://pastebin.com/zsC8HgXN")
+				if command == "fliptable":#can't be that hard for static messages
+					conn.privmsg(respond_to, "(╯°□°）╯︵ ┻━┻")
+				if command == "fixtable":
+					conn.privmsg(respond_to, "┬─┬ノ( º _ ºノ)")
+				if command == "XCAM":
+					conn.privmsg(respond_to, "The xcam list is http://bit.ly/CamXCOM")
+				if command == "game":#This whole thing will be obsolete once twitch api get integrated... hopefully
+					game = GameINI[str(currentGame)]
+					conn.privmsg(respond_to, game['Title']) # Doesn't handle multiple arguments like "Current game selected is:%s" dame['Title']
+				#if command == "death":
+                                #        game = GameINI[config['currentgame']]
+                                #        game[''] += 1
+                                #        conn.privmsg(respond_to, game['Title'])
+                                        
+																				
 
 def init_logging():
 	# TODO: something more sophisticated
