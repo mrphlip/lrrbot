@@ -1,0 +1,200 @@
+;;;;;;;;;;;;;;;;;;;;
+;legacy script of lrrbot
+;Very basic bot to facilitate stat tracking for LoadingReadyLive
+;Creator Laurent Dufresne
+;;;;;;;;;;;;;;;;;;;;
+On *:Connect:{
+  set %currentGame $= 0
+
+}
+
+on *:TEXT:!link:#: { 
+  if ((%flood) || ($($+(%,flood.,$nick),2))) { return }
+  set -u10 %flood On
+  set -u30 %flood. $+ $nick On
+  msg # Loading Ready Run http://loadingreadyrun.com/
+}
+
+on *:TEXT:!commands:#: { 
+  if ((%flood) || ($($+(%,flood.,$nick),2))) { return }
+  set -u30 %flood. $+ $nick On
+  msg # http://pastebin.com/zsC8HgXN
+}
+
+on *:TEXT:!help:#: { 
+  if ((%flood) || ($($+(%,flood.,$nick),2))) { return }
+  set -u10 %flood On
+  set -u30 %flood. $+ $nick On
+  msg # http://pastebin.com/zsC8HgXN
+}
+
+on *:TEXT:!tableflip:#: { 
+  if ($($+(%,flood.,$nick),2)) { return }
+  set -u30 %flood. $+ $nick On
+  msg # (?°?°)?? ???
+}
+
+on *:TEXT:!fixtable:#: { 
+  if ($($+(%,flood.,$nick),2)) { return }
+  set -u10 %flood On
+  set -u30 %flood. $+ $nick On
+  msg # ---?( º _ º?)
+}
+
+on *:TEXT:!XCAM:#: { 
+  if ((%flood) || ($($+(%,flood.,$nick),2))) { return }
+  set -u10 %flood On
+  set -u30 %flood. $+ $nick On
+  msg # The xcam list is http://bit.ly/CamXCOM
+}
+
+on $*:text:!game:#:{
+  if ($($+(%,flood.,$nick),2)) { return }
+  set -u15 %flood. $+ $nick On
+  msg # Currently selected: $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Title)
+}
+
+on $*:text:/!game (list|play)/Si:#:{
+  if ($nick !isop # && $nick != d3fr0st5) { return }
+  if ($2 == play) {
+    $scanIni($3)
+  }
+  elseif ($2 == list) {
+    msg # list
+    $listIni
+  }
+  else {
+    msg # O_O
+  }
+}
+
+alias scanIni {
+  set %x 0
+  While ($readini(D:\Dropbox\LRR\Game.ini,$+(%x), Deaths) isnum) {
+    if ($readini(D:\Dropbox\LRR\Game.ini,$+(%x), Title) == $1) {
+      msg # Now playing $1
+      %currentGame = %x
+      return $true
+    }
+    inc %x
+  }
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%x) Deaths 0
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%x) Title $1
+  msg # New game added $1
+  %currentGame = %x
+  return $false
+}
+
+alias listIni {
+  var %y 0
+  While ($readini(D:\Dropbox\LRR\Game.ini,$+(%y), Deaths) isnum) {
+    msg # %y - $readini(D:\Dropbox\LRR\Game.ini,$+(%y), Title)
+    inc %y
+  }
+  return $false
+}
+
+on $*:text:/!death (add|remove)/Si:#:{
+  if ($nick !isop # && $nick != d3fr0st5) { return } 
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) Deaths $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame), Deaths) $iif($2 == add,+,-) $iif($3 isnum,$3, 1))
+  msg # Current deathcount for $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Title) is $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Deaths)
+}
+
+on $*:text:!death:#:{
+  if (%flood) { 
+    msg # $nick a death has been registered recently already
+    return 
+  }
+  set -u10 %flood On
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) Deaths $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame), Deaths) + 1)
+  msg # Current deathcount for $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Title) is $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Deaths)
+}
+
+on $*:text:/!diamond (add|remove)/Si:#:{
+  if ((%flood) || $($+(%,flood.,$nick),2)) { return }
+  set -u15 %flood. $+ $nick On
+  set -u5 %flood On
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) Diamonds $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame), Diamonds) $iif($2 == add,+,-) $iif($3 isnum,$3, 1))
+  msg # Current diamond counter for $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Title) is $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Diamonds)
+}
+
+on *:text:!deathCount:#:{
+  if ($($+(%,flood.,$nick),2)) { return }
+  set -u15 %flood. $+ $nick On
+  msg # Current deathcount for $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Title) is $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Deaths) 
+}
+
+on *:text:!totalDeath:#:{
+  if ($($+(%,flood.,$nick),2)) { return }
+  set -u15 %flood. $+ $nick On
+  msg # Total LRR deaths is $calcDeath 
+}
+
+alias calcDeath {
+  var %z 0
+  var %z1 0
+  While ($readini(D:\Dropbox\LRR\Game.ini,$+(%z), Deaths) isnum) {
+    %z1 = $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%z), Deaths) + %z1)
+    inc %z
+  }
+  return %z1
+}
+
+on *:text:!diamondCount:#:{
+  if ($($+(%,flood.,$nick),2)) { return }
+  set -u15 %flood. $+ $nick On
+  msg # Current diamond counter for $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Title) is $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Diamonds) 
+}
+
+on *:text:!flungeCount:#:{
+  if ($($+(%,flood.,$nick),2)) { return }
+  set -u15 %flood. $+ $nick On
+  msg # Current flunge counter for $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Title) is $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),flunge) 
+}
+
+on $*:text:/!flunge (add|remove)/Si:#:{ 
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) flunge $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame), flunge) $iif($2 == add,+,-) $iif($3 isnum,$3, 1))
+  msg # Current flunge counter for $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Title) is $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),flunge)
+}
+
+on $*:text:!flunge:#:{ 
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) flunge $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame), flunge) + $iif($3 isnum,$3, 1))
+  msg # Current flunge counter for $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),Title) is $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),flunge)
+}
+
+on *:text:!matchresult:#:{
+  if ($($+(%,flood.,$nick),2)) { return }
+  set -u15 %flood. $+ $nick On
+  msg # Current record is: $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchwin) : $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchlose)
+}
+
+on $*:text:!matchlose:#:{
+  if ($nick !isop # && $nick != d3fr0st5) { return } 
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) matchlose $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame), matchlose) + $iif($3 isnum,$3, 1))
+  msg # Current record is: $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchwin) : $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchlose)
+}
+
+on $*:text:/!matchlose (add|remove)/Si:#:{
+  if ($nick !isop # && $nick != d3fr0st5) { return } 
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) matchlose $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame), matchlose) + $iif($3 isnum,$3, 1))
+  msg # Current record is: $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchwin) : $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchlose)
+}
+
+on $*:text:/!matchwin (add|remove)/Si:#:{
+  if ($nick !isop # && $nick != d3fr0st5) { return } 
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) matchwin $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame), matchwin) $iif($2 == add,+,-) $iif($3 isnum,$3, 1))
+  msg # Current record is: $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchwin) : $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchlose)
+}
+
+on $*:text:!matchwin:#:{
+  if ($nick !isop # && $nick != d3fr0st5) { return } 
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) matchwin $calc($readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame), matchwin) + $iif($3 isnum,$3, 1))
+  msg # Current record is: $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchwin) : $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchlose)
+}
+
+on $*:text:!matchreset:#:{
+  if ($nick !isop # && $nick != d3fr0st5) { return } 
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) matchwin 0
+  writeini -n D:\Dropbox\LRR\Game.ini $+(%currentGame) matchlose 0
+  msg # Current record is: $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchwin) : $readini(D:\Dropbox\LRR\Game.ini,$+(%currentGame),matchlose)
+}
