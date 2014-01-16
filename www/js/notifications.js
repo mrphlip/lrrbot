@@ -78,10 +78,11 @@ function updateSuccess(data)
 		{
 			$('<div class="message">').text(this.message).appendTo(newRow);
 		}
-		newRow.click(function(){$(this).removeClass("new");});
+		newRow.click(function(){$(this).removeClass("new"); updateTitle();});
 		newRow.hide();
 		$("#notificationlist").prepend(newRow);
 		newRow.slideDown();
+		updateTitle();
 
 		if (this.key > window.maxkey)
 			window.maxkey = this.key;
@@ -105,4 +106,13 @@ function updateSuccess(data)
 function updateError(xhr, status, err)
 {
 	setTimeout(update, window.UPDATE_INTERVAL);
+}
+
+function updateTitle()
+{
+	var newcount = $('#notificationlist li.new').length;
+	if (newcount)
+		document.title = "(" + newcount + ") Twitch notifications";
+	else
+		document.title = "Twitch notifications";
 }
