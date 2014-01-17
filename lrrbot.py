@@ -46,6 +46,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		currentGame = 0
 
 	def _on_connect(self, conn, event):
+		log.info("Connected to server")
 		conn.join("#%s" % config['channel'])
 
 	def _on_message(self, conn, event):
@@ -73,17 +74,21 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 						notifyparams['avatar'] = channel_info['logo']
 			# Send the information to the server
 			log.info(urllib.parse.urlencode(notifyparams))
-			res = urllib.request.urlopen(
-				config['siteurl'] + "notifications",
-				urllib.parse.urlencode(notifyparams).encode('ascii'),
-			).read().decode("utf-8")
 			try:
-				res = json.loads(res)
+				res = urllib.request.urlopen(
+					config['siteurl'] + "notifications",
+					urllib.parse.urlencode(notifyparams).encode('ascii'),
+				).read().decode("utf-8")
 			except:
-				log.exception("Error parsing notification server response: " + res)
+				log.exception("Error sending notification to server")
 			else:
-				if 'success' not in res:
-					log.error("Error sending notification to server")
+				try:
+					res = json.loads(res)
+				except:
+					log.exception("Error parsing notification server response: " + res)
+				else:
+					if 'success' not in res:
+						log.error("Error sending notification to server")
 		else:
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
