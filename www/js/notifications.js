@@ -1,6 +1,6 @@
-window.UPDATE_INTERVAL = 3*1000;
+window.UPDATE_INTERVAL = 10*1000;
 window.HEARTBEAT_INTERVAL = 5*60*1000;
-window.MAXIMUM_AGE = 54*60*60*1000;
+window.MAXIMUM_AGE = 2*60*60*1000;
 
 window.rowToggle = false;
 
