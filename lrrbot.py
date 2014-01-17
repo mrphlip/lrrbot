@@ -114,10 +114,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				if command == "game":#This whole thing will be obsolete once twitch api get integrated... hopefully
 					game = GameINI[str(currentGame)]
 					conn.privmsg(respond_to, "Current game selected is: %s" % (game['Title']))
-				#if command == "death":
-                                #        game = GameINI[config['currentgame']]
-                                #        game[''] += 1
-                                #        conn.privmsg(respond_to, game['Title'])
+				if command == "death": #got to add timer so that the command can only be called once every ~15 seconds
+					game = GameINI[str(currentGame)]
+					game['Deaths'] = str(int(game['Deaths']) + 1) #Does this seem redundant? Also not writing to file properly will fix tomorrow
+					conn.privmsg(respond_to, "Current deathcount for %s" % (game['Deaths']))
                                         
 																				
 
