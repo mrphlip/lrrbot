@@ -33,7 +33,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			server_list=[server],
 			realname=config['username'],
 			nickname=config['username'],
+			reconnection_interval=15,
 		)
+
+		# Send a keep-alive message every minute, to catch network dropouts
+		# self.connection has a set_keepalive method, but it crashes
+		# if it triggers while the connection is down, so do this instead
+		self.connection.irclibobj.execute_every(period=60, function=self._do_keepalive)
 
 		self.ircobj.add_global_handler('welcome', self._on_connect)
 		self.ircobj.add_global_handler('pubmsg', self._on_message)
@@ -48,6 +54,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def _on_connect(self, conn, event):
 		log.info("Connected to server")
 		conn.join("#%s" % config['channel'])
+
+	def _do_keepalive(self):
+		try:
+			self.connection.ping("keep-alive")
+		except irc.client.ServerNotConnectedError:
+			pass
 
 	def _on_message(self, conn, event):
 		source = irc.client.NickMask(event.source)
