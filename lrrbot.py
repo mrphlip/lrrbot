@@ -52,10 +52,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		currentGame = 0
 
 	def _on_connect(self, conn, event):
+		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
 		conn.join("#%s" % config['channel'])
 
 	def _do_keepalive(self):
+		"""Send a ping to the server, to ensure our connection stays alive, or to detect when it drops out."""
 		try:
 			self.connection.ping("keep-alive")
 		except irc.client.ServerNotConnectedError:
@@ -64,74 +66,97 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def _on_message(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		if (source.nick.lower() == config['notifyuser']):
-			# Notification from Twitch - send details up to the 
-			log.info("Notification: %s" % event.arguments[0])
-			notifyparams = {
-				'mode': 'newmessage',
-				'apipass': config['apipass'],
-				'message': event.arguments[0],
-				'eventtime': time.time(),
-			}
-			if irc.client.is_channel(event.target):
-				notifyparams['channel'] = event.target[1:]
-			subscribe_match = self.re_subscription.match(event.arguments[0])
-			if subscribe_match:
-				notifyparams['subuser'] = subscribe_match.group(1)
-				try:
-					channel_info = twitch.getInfo(subscribe_match.group(1))
-				except:
-					pass
-				else:
-					if channel_info.get('logo'):
-						notifyparams['avatar'] = channel_info['logo']
-			# Send the information to the server
-			log.info(urllib.parse.urlencode(notifyparams))
-			try:
-				res = urllib.request.urlopen(
-					config['siteurl'] + "notifications",
-					urllib.parse.urlencode(notifyparams).encode('ascii'),
-				).read().decode("utf-8")
-			except:
-				log.exception("Error sending notification to server")
-			else:
-				try:
-					res = json.loads(res)
-				except:
-					log.exception("Error parsing notification server response: " + res)
-				else:
-					if 'success' not in res:
-						log.error("Error sending notification to server")
+			self._on_notification(conn, event)
 		else:
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
 				command, params = command_match.groups()
-				command = command.lower()
+
+				# If the message was sent to a channel, respond in the channel
+				# If it was sent via PM, respond via PM
 				if irc.client.is_channel(event.target):
 					respond_to = event.target
 				else:
 					respond_to = source.nick
-				if command == "help": #might try to find way to not hard code this for easier modification by LRR, once bot is functional
-					conn.privmsg(respond_to, "Help: http://lrrbot.mrphlip.com/")
-				if command == "fliptable":#can't be that hard for static messages
-					conn.privmsg(respond_to, random.choose([
-						"(╯°□°）╯︵ ┻━┻",
-						"(╯°□°）╯︵ ┻━┻", # Make the classic a bit more likely
-						"(╯°Д°）╯︵ ┻━┻",
-						"(ﾉಠ益ಠ）ﾉ 彡ㅑ",
-					]))
-				if command == "fixtable":
-					conn.privmsg(respond_to, "┳━┳ ノ(º_ºノ)")
-				if command == "xcam":
-					conn.privmsg(respond_to, "The xcam list is http://bit.ly/CamXCOM")
-				if command == "game":#This whole thing will be obsolete once twitch api get integrated... hopefully
-					game = GameINI[str(currentGame)]
-					conn.privmsg(respond_to, "Current game selected is: %s" % (game['Title']))
-				if command == "death": #got to add timer so that the command can only be called once every ~15 seconds
-					game = GameINI[str(currentGame)]
-					game['Deaths'] = str(int(game['Deaths']) + 1) #Does this seem redundant? Also not writing to file properly will fix tomorrow
-					conn.privmsg(respond_to, "Current deathcount for %s" % (game['Deaths']))
-                                        
-																				
+
+				# Find the command procedure for this command
+				try:
+					command_proc = getattr(self, '_on_command_%s' % command.lower())
+				except:
+					self._on_fallback_command(conn, event, command, params, respond_to)
+				else:
+					command_proc(conn, event, params, respond_to)
+
+	def _on_notification(self, conn, event):
+		"""Handle notification messages from Twitch, sending the message up to the web"""
+		log.info("Notification: %s" % event.arguments[0])
+		notifyparams = {
+			'mode': 'newmessage',
+			'apipass': config['apipass'],
+			'message': event.arguments[0],
+			'eventtime': time.time(),
+		}
+		if irc.client.is_channel(event.target):
+			notifyparams['channel'] = event.target[1:]
+		subscribe_match = self.re_subscription.match(event.arguments[0])
+		if subscribe_match:
+			notifyparams['subuser'] = subscribe_match.group(1)
+			try:
+				channel_info = twitch.getInfo(subscribe_match.group(1))
+			except:
+				pass
+			else:
+				if channel_info.get('logo'):
+					notifyparams['avatar'] = channel_info['logo']
+		# Send the information to the server
+		try:
+			res = urllib.request.urlopen(
+				config['siteurl'] + "notifications",
+				urllib.parse.urlencode(notifyparams).encode('ascii'),
+			).read().decode("utf-8")
+		except:
+			log.exception("Error sending notification to server")
+		else:
+			try:
+				res = json.loads(res)
+			except:
+				log.exception("Error parsing notification server response: " + res)
+			else:
+				if 'success' not in res:
+					log.error("Error sending notification to server")
+
+	def _on_command_help(self, conn, event, params, respond_to):
+		conn.privmsg(respond_to, "Help: http://lrrbot.mrphlip.com/")
+
+	def _on_command_fliptable(self, conn, event, params, respond_to):
+		conn.privmsg(respond_to, random.choose([
+			"(╯°□°）╯︵ ┻━┻",
+			"(╯°□°）╯︵ ┻━┻", # Make the classic a bit more likely
+			"(╯°Д°）╯︵ ┻━┻",
+			"(ﾉಠ益ಠ）ﾉ 彡ㅑ",
+		]))
+
+	def _on_command_fixtable(self, conn, event, params, respond_to):
+		conn.privmsg(respond_to, "┳━┳ ノ(º_ºノ)")
+
+	def _on_command_xcam(self, conn, event, params, respond_to):
+		conn.privmsg(respond_to, "The XCam list is http://bit.ly/CamXCOM")
+
+	def _on_command_game(self, conn, event, params, respond_to):
+		#This whole thing will be obsolete once twitch api get integrated... hopefully
+		game = GameINI[str(currentGame)]
+		conn.privmsg(respond_to, "Current game selected is: %s" % (game['Title']))
+
+	def _on_command_death(self, conn, event, params, respond_to):
+		#got to add timer so that the command can only be called once every ~15 seconds
+		game = GameINI[str(currentGame)]
+		game['Deaths'] = str(int(game['Deaths']) + 1) #Does this seem redundant? Also not writing to file properly will fix tomorrow
+		conn.privmsg(respond_to, "Current deathcount for %s" % (game['Deaths']))
+
+	def _on_fallback_command(self, conn, event, command, params, respond_to):
+		"""Handle dynamic commands that can't have their own named procedure"""
+		# None yet... eventually, all the "stats" commands (death, flunge, etc) will be here
+		pass
 
 def init_logging():
 	# TODO: something more sophisticated
