@@ -19,7 +19,7 @@ def getInfo(username=None):
 	res = urllib.request.urlopen("https://api.twitch.tv/kraken/channels/%s" % username).read().decode()
 	return json.loads(res)
 
-def getGame(name):
+def getGame(name, all=False):
 	"""
 	Get the game information for a particular game.
 
@@ -35,10 +35,13 @@ def getGame(name):
 	}
 	res = urllib.request.urlopen("https://api.twitch.tv/kraken/search/games?" + urllib.parse.urlencode(search_opts)).read().decode()
 	res = json.loads(res)
-	for game in res['games']:
-		if game['name'] == name:
-			return game
-	return None
+	if all:
+		return res['games']
+	else:
+		for game in res['games']:
+			if game['name'] == name:
+				return game
+		return None
 
 def getGamePlaying(username=None):
 	"""
