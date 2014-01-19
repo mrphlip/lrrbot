@@ -15,53 +15,43 @@
 <dl>
 	<dt><code>!commands</code> or <code>!help</code></dt>
 	<dd>Post a link to the command list</dd>
-	<dt><code>!linkhelp</code></dt>
+	<dt><code>!link</code></dt>
 	<dd>Post a link to <a href="http://loadingreadyrun.com/">loadingreadyrun.com</a></dd>
 	<dt><code>!XCAM</code></dt>
 	<dd>Post a link to Cam's <a href="http://bit.ly/CamXCOM">subs' soldiers spreadsheet</a></dd>
 	<dt><code>!game</code></dt>
 	<dd>Post the game currently being played</dd>
+	<dt><code>!game override </code><i>name</i></dt>
+	<dd>(mod only) Override what game is being played (eg when the current game isn't in the Twitch database)</dd>
+	<dt><code>!game override off</code></dt>
+	<dd>(mod only) Disable override, go back to getting current game from Twitch stream settings</dd>
 	<dt><code>!tableflip</code></dt>
 	<dd><code>(╯°□°）╯︵ ┻━┻</code></dd>
 	<dt><code>!fixtable</code></dt>
 	<dd><code>┳━┳ ノ(º_ºノ)</code></dd>
 </dl>
 <h3>Stats tracking</h3>
-<h4>Death counts</h4>
+<p>The system can track several stats for each game. The stats available are:</p>
+<ul>
+	<li><code>death</code></li>
+	<li><code>diamond</code> (Minecraft)</li>
+	<li><code>flunge</code> (Magic)</li>
+<ul>
 <dl>
-	<dt><code>!death</code></dt>
-	<dd>Adds 1 death to counter for the current game</dd>
-	<dt><code>!death add </code><i>#</i></dt>
-	<dd>(mod only) Adds # deaths to counter for the current game</dd>
-	<dt><code>!death remove </code><i>#</i></dt>
-	<dd>(mod only) Removes # deaths from counter for the current game</dd>
-	<dt><code>!deathCount</code></dt>
-	<dd>Post total deaths for the current game</dd>
-	<dt><code>!totalDeath</code></dt>
-	<dd>Post total deaths for every game</dd>
+	<dt><code>!</code><i>stat</i></dt>
+	<dd>Adds 1 to the stat counter for the current game</dd>
+	<dt><code>!</code><i>stat</i><code> add </code><i>#</i></dt>
+	<dd>(mod only) Adds # to counter for the current game</dd>
+	<dt><code>!</code><i>stat</i><code> remove </code><i>#</i></dt>
+	<dd>(mod only) Removes # from counter for the current game</dd>
+	<dt><code>!</code><i>stat</i><code> set </code><i>#</i></dt>
+	<dd>(mod only) Resets the counter to the specified number for the current game</dd>
+	<dt><code>!</code><i>stat</i><code>Count</code></dt>
+	<dd>Post total count for the current game</dd>
+	<dt><code>!total</code><i>stat</i><code></code></dt>
+	<dd>Post total count for every game</dd>
 </dl>
-<h4>Diamond counts (Minecraft)</h4>
-<dl>
-	<dt><code>!diamond</code></dt>
-	<dd>Adds 1 diamond to counter for the current game</dd>
-	<dt><code>!diamond add </code><i>#</i></dt>
-	<dd>(mod only) Adds # diamonds to counter for the current game</dd>
-	<dt><code>!diamond remove </code><i>#</i></dt>
-	<dd>(mod only) Removes # diamonds from counter for the current game</dd>
-	<dt><code>!diamondCount</code></dt>
-	<dd>Post total diamonds for the current game</dd>
-</dl>
-<h4>Flunge counts (Magic)</h4>
-<dl>
-	<dt><code>!flunge</code></dt>
-	<dd>Adds 1 flunge to counter for the current game</dd>
-	<dt><code>!flunge add </code><i>#</i></dt>
-	<dd>(mod only) Adds # flunges to counter for the current game</dd>
-	<dt><code>!flunge remove </code><i>#</i></dt>
-	<dd>(mod only) Removes # flunges from counter for the current game</dd>
-	<dt><code>!flungeCount</code></dt>
-	<dd>Post total flunges for the current game</dd>
-</dl>
+<!--
 <h4>Tournament record</h4>
 <dl>
 	<dt><code>!matchwin</code></dt>
@@ -77,6 +67,7 @@
 	<dt><code>!matchreset</code></dt>
 	<dd>(mod only) resets match counters</dd>
 </dl>
+-->
 <h2>Contact</h2>
 <p>If you have issues, contact:</p>
 <p>Twitter: <a href="http://twitter.com/d3fr0st">@d3fr0st</a> / <a href="http://twitter.com/mrphlip">@mrphlip</a></p>

@@ -43,3 +43,6 @@ config.setdefault('commandprefix', '!')
 config.setdefault('siteurl', 'http://lrrbot.mrphlip.com/')
 # apipass - secret string needed to communicate with web site
 config.setdefault('apipass', None)
+
+# mods - comma-separated list of moderators for the bot, in addition to people with chanop privileges
+config['mods'] = set(i.strip().lower() for i in config.get('mods', 'd3fr0st5,mrphlip').split(','))
