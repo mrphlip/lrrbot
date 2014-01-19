@@ -12,7 +12,7 @@ data = {
 		},
 	},
 	'games': { # Games we have tracked stats for
-		<id>: { # id is the Twitch game ID (an int) or a string for non-Twitch override games
+		<id>: { # id is the Twitch game ID, or the game name for non-Twitch override games
 			'name': '<name>', # Official game name as Twitch recognises it - to aid matching
 			'display': '<display name>' # Display name, defaults to the same as name. For games with LRL nicknames
 			'stats': {
@@ -83,27 +83,27 @@ def load_fallback():
 			},
 		},
 		'games': {
-			15921: {
+			'15921': {
 				'name': "Prince of Persia: Warrior Within",
 				'ininame': "PoP:WarriorWithin",
 			},
-			15442: {
+			'15442': {
 				'name': "Shin Megami Tensei: Nocturne",
 				'ininame': "SMT:Nocturne",
 			},
-			313553: {
+			'313553': {
 				'name': "XCOM: Enemy Within",
 				'ininame': "XCOM",
 			},
-			27471: {
+			'27471': {
 				'name': "Minecraft",
 				'ininame': "minecraft",
 			},
-			2748: {
+			'2748': {
 				'name': "Magic: The Gathering",
 				'ininame': "MTG",
 			},
-			33437: {
+			'33437': {
 				'name': "Resident Evil 6",
 				'display': "Resident Evil: Man Fellating Giraffe",
 				'ininame': "RE6-Man_Fellating_Giraffe",
@@ -112,11 +112,11 @@ def load_fallback():
 				'name': "Dark",
 				'ininame': "dark",
 			},
-			10775: {
+			'10775': {
 				'name': "S.T.A.L.K.E.R.: Shadow of Chernobyl",
 				'ininame': "STALKER_ShadowsOfChernobyl",
 			},
-			666: {
+			'666': {
 				'name': "Metal Gear 2: Solid Snake",
 				'ininame': "MG2:SS",
 			},
