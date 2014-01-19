@@ -60,17 +60,10 @@ def find_game(game):
 	"""
 	Look up a game by ID or by name, and keep game data up-to-date if names
 	or IDs change in Twitch's database.
-
-	Parameter can either be a string for the name of a game (if the game has been
-	overridden), or a game object as returned by twitch.get_game_playing().
 	"""
-	# Allow this to be called with just a string, to indicate an overridden game
-	# instead of picking up the game from Twitch
+	# Allow this to be called with just a string, for simplicity
 	if isinstance(game, str):
-		is_override = True
-		game = {'_id': game, 'name': game}
-	else:
-		is_override = False
+		game = {'_id': game, 'name': game, 'is_override': True}
 
 	# First try to find the game using the Twitch ID
 	if str(game['_id']) in data['games']:
@@ -85,7 +78,7 @@ def find_game(game):
 	for gameid, gamedata in data['games'].items():
 		if gamedata['name'] == game['name']:
 			# If this is from Twitch, fix the ID
-			if not is_override:
+			if not game.get('is_override'):
 				del data['games'][gameid]
 				data['games'][str(game['_id'])] = gamedata
 				save()
