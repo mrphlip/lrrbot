@@ -47,7 +47,7 @@ def get_game_playing(username=None):
 	"""
 	Get the game information for the game the stream is currently playing
 	"""
-	channel_data = getInfo(username)
+	channel_data = get_info(username)
 	if channel_data['game'] is not None:
-		return getGame(name=channel_data['game'])
+		return get_game(name=channel_data['game'])
 	return None
