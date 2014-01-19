@@ -3,7 +3,7 @@ import json
 import time
 from config import config
 
-def getInfo(username=None):
+def get_info(username=None):
 	"""
 	Get the Twitch info for a particular user or channel.
 
@@ -19,7 +19,7 @@ def getInfo(username=None):
 	res = urllib.request.urlopen("https://api.twitch.tv/kraken/channels/%s" % username).read().decode()
 	return json.loads(res)
 
-def getGame(name, all=False):
+def get_game(name, all=False):
 	"""
 	Get the game information for a particular game.
 
@@ -43,7 +43,7 @@ def getGame(name, all=False):
 				return game
 		return None
 
-def getGamePlaying(username=None):
+def get_game_playing(username=None):
 	"""
 	Get the game information for the game the stream is currently playing
 	"""
