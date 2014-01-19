@@ -56,6 +56,50 @@ def save():
 		# Save with pretty-printing enabled, as we probably want it to be editable
 		json.dump(data, fp, indent=2)
 
+def find_game(game):
+	"""
+	Look up a game by ID or by name, and keep game data up-to-date if names
+	or IDs change in Twitch's database.
+
+	Parameter can either be a string for the name of a game (if the game has been
+	overridden), or a game object as returned by twitch.get_game_playing().
+	"""
+	# Allow this to be called with just a string, to indicate an overridden game
+	# instead of picking up the game from Twitch
+	if isinstance(game, str):
+		is_override = True
+		game = {'_id': game, 'name': game}
+	else:
+		is_override = False
+
+	# First try to find the game using the Twitch ID
+	if str(game['_id']) in data['games']:
+		gamedata = data['games'][str(game['_id'])]
+		# Check if the name has changed
+		if gamedata['name'] != game['name']:
+			gamedata['name'] = game['name']
+			save()
+		return gamedata
+
+	# Next try to find the game using the name
+	for gameid, gamedata in data['games'].items():
+		if gamedata['name'] == game['name']:
+			# If this is from Twitch, fix the ID
+			if not is_override:
+				del data['games'][gameid]
+				data['games'][str(game['_id'])] = gamedata
+				save()
+			return gamedata
+
+	# This is a new game
+	gamedata = {
+		'name': game['name'],
+		'stats': {},
+	}
+	data['games'][str(game['_id'])] = gamedata
+	save()
+	return gamedata
+
 def load_fallback():
 	"""
 	Load data from old Game.ini storage
