@@ -1,11 +1,11 @@
 import configparser
 import logging
+from commandline import argv
 
-CONFIG_FILENAME = 'lrrbot.conf' # TODO: override-able from command line?
 COFNIG_SECTION = 'lrrbot'
 
 config = configparser.ConfigParser()
-config.read(CONFIG_FILENAME)
+config.read(argv.conf)
 config = dict(config.items(COFNIG_SECTION))
 
 # hostname - server to connect to (default Twitch)
