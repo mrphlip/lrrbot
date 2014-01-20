@@ -121,6 +121,7 @@ def load_fallback():
 	    'busstop': {
 	      'singular': "bus-stop",
 	      'plural': "bus-stops",
+	      'ininame': "busstop",
 	    },
 		},
 		'games': {
