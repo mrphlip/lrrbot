@@ -11,7 +11,9 @@ function init()
 	$("#notificationlist li").each(function()
 	{
 		var li = $(this);
-		li.data('timestamp', new Date(li.data('timestamp') * 1000));
+		var timestamp = new Date(li.data('timestamp') * 1000);
+		li.data('timestamp', timestamp);
+		li.find(".duration").attr('title', timestamp.toLocaleString());
 	});
 
 	window.timesrun = 1;
@@ -60,8 +62,9 @@ function updateSuccess(data)
 		window.rowToggle = !window.rowToggle;
 		if (this.time)
 		{
-			newRow.data('timestamp', new Date(this.time * 1000));
-			newRow.append('<div class="duration">');
+			var timestamp = new Date(this.time * 1000);
+			newRow.data('timestamp', timestamp);
+			$('<div class="duration">').attr('title', timestamp.toLocaleString()).appendTo(newRow);
 		}
 		if (this.channel)
 			$('<div class="channel">').text(this.channel).appendTo(newRow);
