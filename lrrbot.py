@@ -50,6 +50,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# Precompile regular expressions
 		self.re_botcommand = re.compile(r"^\s*%s\s*(\w+)\b\s*(.*?)\s*$" % re.escape(config['commandprefix']), re.IGNORECASE)
 		self.re_subscription = re.compile(r"^(.*) just subscribed!", re.IGNORECASE)
+		self.re_game_display = re.compile(r"\s*display\b\s*(.*?)\s*$", re.IGNORECASE)
 		self.re_game_override = re.compile(r"\s*override\b\s*(.*?)\s*$", re.IGNORECASE)
 		self.re_addremove = re.compile(r"\s*(add|remove|set)\s*(\d*)\d*$", re.IGNORECASE)
 
@@ -164,6 +165,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.subcommand_game_current(conn, event, respond_to)
 			return
 
+		matches = self.re_game_display.match(params)
+		if matches: # "!game display xyz" - change game display
+			self.subcommand_game_display(conn, event, respond_to, matches.group(1))
+			return
+
 		matches = self.re_game_override.match(params)
 		if matches: # "!game override xyz" - set game override
 			self.subcommand_game_override(conn, event, respond_to, matches.group(1))
@@ -176,6 +182,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if self.game_override is not None:
 			message += " (overridden)"
 		conn.privmsg(respond_to, message)
+
+	@utils.mod_only
+	def subcommand_game_display(self, conn, event, respond_to, name):
+		game = self.get_current_game()
+		game['display'] = name
+		storage.save()
+		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (game['name'], game['display']))
 
 	@utils.mod_only
 	def subcommand_game_override(self, conn, event, respond_to, param):
