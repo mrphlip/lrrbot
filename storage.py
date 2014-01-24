@@ -84,6 +84,12 @@ def find_game(game):
 				save()
 			return gamedata
 
+	# Look up the game by display name as a fallback
+	for gameid, gamedata in data['games'].items():
+		if gamedata['display'] == game['name']:
+			# Don't try to keep things aligned here...
+			return gamedata
+
 	# This is a new game
 	gamedata = {
 		'name': game['name'],
