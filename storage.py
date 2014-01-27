@@ -86,7 +86,7 @@ def find_game(game):
 
 	# Look up the game by display name as a fallback
 	for gameid, gamedata in data['games'].items():
-		if gamedata['display'] == game['name']:
+		if 'display' in gamedata and gamedata['display'] == game['name']:
 			# Don't try to keep things aligned here...
 			return gamedata
 
