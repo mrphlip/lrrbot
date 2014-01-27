@@ -172,6 +172,10 @@ def load_fallback():
 				'name': "Prayer Warriors: A.o.f.G.",
 				'ininame': "Prayer_Warriors",
 			},
+			'67540': {
+				'name': "Payday: The Heist 2",
+				'ininame': "Payday_2:The_Heist",
+			}
 		},
 	}
 
