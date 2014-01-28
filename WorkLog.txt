@@ -1,0 +1,20 @@
+DONE:
+-Access twitch API
+-Handle simple text commands
+-Keeps track of stats by user input
+-Manually add games not in twitch database
+-Now playing command
+-Counters as conditions instead of being functions
+BUG:
+-Dunno gotta do some more testing before release
+
+TO-DO:
+-??? Had ton of work and not sure what's still to do for V2 to be completed
+-Port stats from current file to new format
+-(minor) Match counter mostly for mtg
+-??? Announce that a stat has recently modified to acknoledge user input
+
+IDEAS:
+-Handle text command in a way that can be edited without changing the code (text file?)
+-Once we get the bot on the clouds have an live page displaying stats for every games
+-Once we get the bot on the clouds have an live page displaying log for relevant entries
