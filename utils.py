@@ -65,7 +65,7 @@ def log_errors(func):
 		try:
 			return func(*args, **kwargs)
 		except:
-			log.exception("Exception in " + func.name)
+			log.exception("Exception in " + func.__name__)
 			raise
 	return wrapper
 
@@ -76,7 +76,7 @@ def swallow_errors(func):
 		try:
 			return func(*args, **kwargs)
 		except:
-			log.exception("Exception in " + func.name)
+			log.exception("Exception in " + func.__name__)
 			return None
 	return wrapper
 
