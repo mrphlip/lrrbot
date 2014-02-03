@@ -15,6 +15,8 @@ import storage
 import twitch
 import utils
 
+log = logging.getLogger('lrrbot')
+
 def main():
 	init_logging()
 
@@ -64,6 +66,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		log.info("Connected to server")
 		conn.join("#%s" % config['channel'])
 
+	@utils.swallow_errors
 	def do_keepalive(self):
 		"""Send a ping to the server, to ensure our connection stays alive, or to detect when it drops out."""
 		try:
@@ -71,6 +74,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		except irc.client.ServerNotConnectedError:
 			pass
 
+	@utils.swallow_errors
 	def on_message(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		if (source.nick.lower() == config['notifyuser']):
@@ -307,8 +311,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 def init_logging():
 	# TODO: something more sophisticated
 	logging.basicConfig(level=config['loglevel'])
-	global log
-	log = logging.getLogger('lrrbot')
 
 if __name__ == '__main__':
 	main()

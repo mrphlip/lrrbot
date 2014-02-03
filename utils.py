@@ -1,6 +1,10 @@
 import functools
 import time
+import logging
 import irc.client
+import urllib.request
+
+log = logging.getLogger('utils')
 
 DEFAULT_THROTTLE = 15
 
@@ -50,5 +54,27 @@ def mod_only(func):
 			return func(self, conn, event, *args, **kwargs)
 		else:
 			mod_complaint(conn, event)
+			return None
+	return wrapper
+
+def log_errors(func):
+	"""Log any errors thrown by a function"""
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		try:
+			return func(*args, **kwargs)
+		except:
+			log.exception("Exception in " + func.name)
+			raise
+	return wrapper
+
+def swallow_errors(func):
+	"""Log and absorb any errors thrown by a function"""
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		try:
+			return func(*args, **kwargs)
+		except:
+			log.exception("Exception in " + func.name)
 			return None
 	return wrapper
