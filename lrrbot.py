@@ -183,7 +183,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.throttle()
 	def subcommand_game_current(self, conn, event, respond_to):
 		game = self.get_current_game()
-		message = "Currently playing: %s" % self.game_name(game)
+		if game is None:
+			message = "Not currently playing any game"
+		else:
+			message = "Currently playing: %s" % self.game_name(game)
 		if self.game_override is not None:
 			message += " (overridden)"
 		conn.privmsg(respond_to, message)
@@ -191,6 +194,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.mod_only
 	def subcommand_game_display(self, conn, event, respond_to, name):
 		game = self.get_current_game()
+		if game is None:
+			conn.privmsg(respond_to, "Not currently playing any game")
+			return
 		game['display'] = name
 		storage.save()
 		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (game['name'], game['display']))
@@ -204,7 +210,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.game_override = param
 			operation = "enabled"
 		game = self.get_current_game()
-		conn.privmsg(respond_to, "Override %s. Currently playing: %s" % (operation, self.game_name(game)))
+		if game is None:
+			conn.privmsg(respond_to, "Override %s. Not currently playing any game" % operation)
+		else:
+			conn.privmsg(respond_to, "Override %s. Currently playing: %s" % (operation, self.game_name(game)))
 
 	def on_fallback_command(self, conn, event, command, params, respond_to):
 		"""Handle dynamic commands that can't have their own named procedure"""
@@ -216,7 +225,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				return
 			matches = self.re_addremove.match(params)
 			if matches: # eg "!death remove", "!death add 5" or "!death set 0"
-				subcommand_stat_edit(conn, event, respond_to, command, matches.group(1), matches.group(2))
+				self.subcommand_stat_edit(conn, event, respond_to, command, matches.group(1), matches.group(2))
 				return
 
 		if command[-5:] == "count" and command[:-5] in storage.data['stats']: # eg "!deathcount"
@@ -232,6 +241,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.throttle(30)
 	def subcommand_stat_increment(self, conn, event, respond_to, stat):
 		game = self.get_current_game()
+		if game is None:
+			conn.privmsg(respond_to, "Not currently playing any game")
+			return
 		game.setdefault('stats', {}).setdefault(stat, 0)
 		game['stats'][stat] += 1
 		storage.save()
@@ -253,6 +265,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			# default to 1 for add and remove
 			value = 1
 		game = self.get_current_game()
+		if game is None:
+			conn.privmsg(respond_to, "Not currently playing any game")
+			return
 		game.setdefault('stats', {}).setdefault(stat, 0)
 		if operation == "add":
 			game['stats'][stat] += value
@@ -288,11 +303,16 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def game_name(self, game=None):
 		if game is None:
 			game = self.get_current_game()
+			if game is None:
+				return "Not currently playing any game"
 		return game.get('display', game['name'])
 
 	def print_stat(self, conn, respond_to, stat, game=None):
 		if game is None:
 			game = self.get_current_game()
+			if game is None:
+				conn.privmsg(respond_to, "Not currently playing any game")
+				return
 		count = game.get('stats', {}).get(stat, 0)
 		display = storage.data['stats'][stat]
 		display = display.get('singular', stat) if count == 1 else display.get('plural', stat + "s")

@@ -61,6 +61,9 @@ def find_game(game):
 	Look up a game by ID or by name, and keep game data up-to-date if names
 	or IDs change in Twitch's database.
 	"""
+	if game is None:
+		return None
+
 	# Allow this to be called with just a string, for simplicity
 	if isinstance(game, str):
 		game = {'_id': game, 'name': game, 'is_override': True}
