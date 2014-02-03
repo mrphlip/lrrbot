@@ -1,6 +1,6 @@
-import urllib.request, urllib.parse
 import json
 import time
+import utils
 from config import config
 
 def get_info(username=None):
@@ -16,7 +16,7 @@ def get_info(username=None):
 	"""
 	if username is None:
 		username = config['channel']
-	res = urllib.request.urlopen("https://api.twitch.tv/kraken/channels/%s" % username).read().decode()
+	res = utils.http_request("https://api.twitch.tv/kraken/channels/%s" % username)
 	return json.loads(res)
 
 def get_game(name, all=False):
@@ -33,7 +33,7 @@ def get_game(name, all=False):
 		'type': 'suggest',
 		'live': 'false',
 	}
-	res = urllib.request.urlopen("https://api.twitch.tv/kraken/search/games?" + urllib.parse.urlencode(search_opts)).read().decode()
+	res = utils.http_request("https://api.twitch.tv/kraken/search/games", search_opts)
 	res = json.loads(res)
 	if all:
 		return res['games']

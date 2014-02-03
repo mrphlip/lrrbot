@@ -2,7 +2,8 @@ import functools
 import time
 import logging
 import irc.client
-import urllib.request
+import urllib.request, urllib.parse
+import sys
 
 log = logging.getLogger('utils')
 
@@ -78,3 +79,30 @@ def swallow_errors(func):
 			log.exception("Exception in " + func.name)
 			return None
 	return wrapper
+
+def http_request(url, data=None, method='GET', maxtries=3, **kwargs):
+	"""Download a webpage, with retries on failure."""
+	if data:
+		if isinstance(data, dict):
+			data = urllib.parse.urlencode(data)
+		if method == 'GET':
+			url = '%s?%s' % (url, data)
+			args = (url,)
+		else:
+			args = (url, data.encode("utf-8"))
+	else:
+		args = (url,)
+
+	firstex = None
+	while True:
+		try:
+			return urllib.request.urlopen(*args, **kwargs).read().decode("utf-8")
+		except Exception as e:
+			maxtries -= 1
+			if firstex is None:
+				firstex = e
+			if maxtries > 0:
+				log.info("Downloading %s failed: %s, retrying..." % (url, e))
+			else:
+				break
+	raise firstex

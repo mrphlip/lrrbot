@@ -121,10 +121,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					notifyparams['avatar'] = channel_info['logo']
 		# Send the information to the server
 		try:
-			res = urllib.request.urlopen(
+			res = utils.http_request(
 				config['siteurl'] + "notifications",
-				urllib.parse.urlencode(notifyparams).encode('ascii'),
-			).read().decode("utf-8")
+				notifyparams,
+				'POST'
+			)
 		except:
 			log.exception("Error sending notification to server")
 		else:
