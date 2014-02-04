@@ -155,6 +155,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.throttle()
 	def on_command_link(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "Visit LoadingReadyRun: http://loadingreadyrun.com/")
+	on_command_lrr = on_command_link
 
 	@utils.throttle(5) # throttle can be a little shorter on this one
 	def on_command_fliptable(self, conn, event, params, respond_to):
@@ -181,6 +182,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.throttle()
 	def on_command_xcam(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "The XCam list is http://bit.ly/CamXCOM")
+	on_command_xcom = on_command_xcam
 
 	def on_command_game(self, conn, event, params, respond_to):
 		params = params.strip()
@@ -326,6 +328,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			conn.privmsg(respond_to, "Next scheduled stream: %s at %s (%s from now)" % (event_name, nice_time, nice_duration))
 		else:
 			conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
+	on_command_schedule = on_command_next
+	on_command_sched = on_command_next
+	on_command_nextstream = on_command_next
 
 	def get_current_game(self):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
