@@ -34,6 +34,10 @@ except ValueError:
 	config['loglevel'] = logging.getLevelName(config['loglevel'])
 	# This assert fails if the entered value is neither a number nor a recognised level name
 	assert isinstance(config['loglevel'], int)
+# logfile - either blank a filename to log to, or blank to indicate logging to stderr only
+config.setdefault('logfile', None)
+if config['logfile'] == "":
+	config['logfile'] = None
 
 # notifyuser - user to watch for notifications
 config['notifyuser'] = config.get('notifyuser', 'twitchnotify').lower()

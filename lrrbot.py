@@ -20,8 +20,13 @@ log = logging.getLogger('lrrbot')
 def main():
 	init_logging()
 
-	log.debug("Initialising connection")
-	LRRBot().start()
+	try:
+		log.debug("Initialising connection")
+		LRRBot().start()
+	except (KeyboardInterrupt, SystemExit):
+		pass
+	finally:
+		logging.shutdown()
 
 class LRRBot(irc.bot.SingleServerIRCBot):
 	GAME_CHECK_INTERVAL = 5*60 # Only check the current game at most once every five minutes
@@ -330,8 +335,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return False
 
 def init_logging():
-	# TODO: something more sophisticated
-	logging.basicConfig(level=config['loglevel'])
+	logging.basicConfig(level=config['loglevel'], format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")
+	if config['logfile'] is not None:
+		fileHandler = logging.FileHandler(config['logfile'], 'a', 'utf-8')
+		fileHandler.formatter = logging.root.handlers[0].formatter
+		logging.root.addHandler(fileHandler)
 
 if __name__ == '__main__':
 	main()
