@@ -166,6 +166,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_command_fixtable(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "┳━┳ ノ(º_ºノ)")
 
+	@utils.throttle(5)
+	def on_command_powah(self, conn, event, params, respond_to):
+		conn.privmsg(respond_to, "ᕦ(° Д°)ᕤ STOPPIN POWAH")
+	on_command_stoppin = on_command_powah
+	on_command_stopping = on_command_powah
+	on_command_stoppinpowah = on_command_powah
+	on_command_stoppingpowah = on_command_powah
+
 	@utils.throttle()
 	def on_command_xcam(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "The XCam list is http://bit.ly/CamXCOM")
