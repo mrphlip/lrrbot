@@ -4,13 +4,28 @@
 <title>LRRbot instructions</title>
 <meta http-equiv="Content-type" value="text/html; charset=utf-8">
 <link rel="stylesheet" href="css/style.css" type="text/css">
+<script type="text/javascript">
+function modonly()
+{
+	var show = document.getElementById("showmodonly").checked;
+	setmodonly(document.body, show ? "" : "none");
+}
+function setmodonly(node, display)
+{
+	if (node.className == "modonly")
+		node.style.display = display;
+	for(i in node.childNodes)
+		setmodonly(node.childNodes[i], display);
+}
+</script>
 </head>
-<body>
+<body onload="modonly()">
 <h1>LRRbot instructions</h1>
 <p class="lastupdated">Last updated 19 January 2014</p>
 <p>Bot made for the <a href="http://www.twitch.tv/loadingreadyrun">LoadingReadyLive twitch channel</a>.</p>
 <p class="author">by <a href="http://twitter.com/d3fr0st">defrost aka d3fr0st5</a> and <a href="http://twitter.com/mrphlip">phlip</a></p>
 <h2>Commands</h2>
+<p><label><input type="checkbox" id="showmodonly" onclick="modonly()"> Show mod-only commands</label></p>
 <h3>Information</h3>
 <dl>
 	<dt><code>!commands</code> or <code>!help</code></dt>
@@ -21,16 +36,16 @@
 	<dd>Post a link to Cam's <a href="http://bit.ly/CamXCOM">subs' soldiers spreadsheet</a></dd>
 	<dt><code>!game</code></dt>
 	<dd>Post the game currently being played</dd>
-	<dt><code>!game override </code><i>name</i></dt>
-	<dd>eg: <code>!game override Prayer Warriors: A.O.F.G.</code></dd>
-	<dd>(mod only) Override what game is being played (eg when the current game isn't in the Twitch database)</dd>
-	<dt><code>!game override off</code></dt>
-	<dd>(mod only) Disable override, go back to getting current game from Twitch stream settings. Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.</dd>
-	<dt><code>!game display </code><i>name</i></dt>
-	<dd>eg: <code>!game display Resident Evil: Man Fellating Giraffe</code></dd>
-	<dd>(mod only) Change the display name of the current game to <i>name</i>.</dd>
-	<dt><code>!game refresh</code></dt>
-	<dd>(mod only) Force a refresh of the current Twitch game (normally this is updated at most once every 15 minutes)</dd>
+	<dt class="modonly"><code>!game override </code><i>name</i></dt>
+	<dd class="modonly">eg: <code>!game override Prayer Warriors: A.O.F.G.</code></dd>
+	<dd class="modonly">(mod only) Override what game is being played (eg when the current game isn't in the Twitch database)</dd>
+	<dt class="modonly"><code>!game override off</code></dt>
+	<dd class="modonly">(mod only) Disable override, go back to getting current game from Twitch stream settings. Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.</dd>
+	<dt class="modonly"><code>!game display </code><i>name</i></dt>
+	<dd class="modonly">eg: <code>!game display Resident Evil: Man Fellating Giraffe</code></dd>
+	<dd class="modonly">(mod only) Change the display name of the current game to <i>name</i>.</dd>
+	<dt class="modonly"><code>!game refresh</code></dt>
+	<dd class="modonly">(mod only) Force a refresh of the current Twitch game (normally this is updated at most once every 15 minutes)</dd>
 	<dt><code>!next</code></dt>
 	<dd>Gets the next scheduled stream from the <a href="https://www.google.com/calendar/embed?src=loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com&amp;ctz=America/Vancouver">calendar</a></dd>
 	<dt><code>!tableflip</code></dt>
@@ -52,15 +67,15 @@
 	<dt><code>!</code><i>stat</i></dt>
 	<dd>eg: <code>!death</code></dd>
 	<dd>Adds 1 to the stat counter for the current game</dd>
-	<dt><code>!</code><i>stat</i><code> add </code><i>#</i></dt>
-	<dd>eg: <code>!diamond add 3</code></dd>
-	<dd>(mod only) Adds # to counter for the current game</dd>
-	<dt><code>!</code><i>stat</i><code> remove </code><i>#</i></dt>
-	<dd>eg: <code>!flunge remove</code></dd>
-	<dd>(mod only) Removes # (default 1) from counter for the current game</dd>
-	<dt><code>!</code><i>stat</i><code> set </code><i>#</i></dt>
-	<dd>eg: <code>!busstop set 0</code></dd>
-	<dd>(mod only) Resets the counter to the specified number for the current game</dd>
+	<dt class="modonly"><code>!</code><i>stat</i><code> add </code><i>#</i></dt>
+	<dd class="modonly">eg: <code>!diamond add 3</code></dd>
+	<dd class="modonly">(mod only) Adds # to counter for the current game</dd>
+	<dt class="modonly"><code>!</code><i>stat</i><code> remove </code><i>#</i></dt>
+	<dd class="modonly">eg: <code>!flunge remove</code></dd>
+	<dd class="modonly">(mod only) Removes # (default 1) from counter for the current game</dd>
+	<dt class="modonly"><code>!</code><i>stat</i><code> set </code><i>#</i></dt>
+	<dd class="modonly">eg: <code>!busstop set 0</code></dd>
+	<dd class="modonly">(mod only) Resets the counter to the specified number for the current game</dd>
 	<dt><code>!</code><i>stat</i><code>Count</code></dt>
 	<dd>eg: <code>!deathcount</code></dd>
 	<dd>Post total count for the current game</dd>
