@@ -27,6 +27,8 @@ class throttle(object):
 			if self.lastrun is None or time.time() - self.lastrun >= self.period:
 				self.lastrun = time.time()
 				return func(*args, **kwargs)
+			else:
+				log.info("Skipping %s due to throttling" % func.__name__)
 		return wrapper
 
 def mod_only(func):
@@ -54,6 +56,7 @@ def mod_only(func):
 		if self.is_mod(event):
 			return func(self, conn, event, *args, **kwargs)
 		else:
+			log.info("Refusing %s due to not-a-mod" % func.__name__)
 			mod_complaint(conn, event)
 			return None
 	return wrapper
@@ -106,3 +109,17 @@ def http_request(url, data=None, method='GET', maxtries=3, **kwargs):
 			else:
 				break
 	raise firstex
+
+def nice_duration(duration):
+	"""Convert a duration in seconds to a human-readable duration"""
+	if duration < 0:
+		return "-" + niceduration(-duration)
+	if duration < 60:
+		return "%ds" % duration
+	duration //= 60
+	if duration < 60:
+		return "%dm" % duration
+	duration //= 60
+	if duration < 24:
+		return "%dh" % duration
+	return "%dd, %dh" % divmod(duration, 24)

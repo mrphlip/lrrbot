@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Dependencies:
-#   easy_install irc
+#   easy_install irc icalendar python-dateutil
 
 import re
 import time
+import datetime
 import random
 import urllib.request, urllib.parse
 import json
@@ -14,6 +15,7 @@ from config import config
 import storage
 import twitch
 import utils
+import googlecalendar
 
 log = logging.getLogger('lrrbot')
 
@@ -89,6 +91,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
 				command, params = command_match.groups()
+				log.info("Command from %s: %s %s" % (source.nick, command, params))
 
 				# If the message was sent to a channel, respond in the channel
 				# If it was sent via PM, respond via PM
@@ -313,6 +316,16 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		display = storage.data['stats'][stat]
 		display = display.get('singular', stat) if count == 1 else display.get('plural', stat + "s")
 		conn.privmsg(respond_to, "%d total %s" % (count, display))
+
+	@utils.throttle()
+	def on_command_next(self, conn, event, params, respond_to):
+		event_name, event_time, event_wait = googlecalendar.get_next_event()
+		if event_time:
+			nice_time = event_time.strftime("%a %I:%M %p %Z")
+			nice_duration = utils.nice_duration(event_wait)
+			conn.privmsg(respond_to, "Next scheduled stream: %s at %s (%s from now)" % (event_name, nice_time, nice_duration))
+		else:
+			conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
 
 	def get_current_game(self):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
