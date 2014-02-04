@@ -146,6 +146,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.throttle()
 	def on_command_help(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "Help: %s" % config['siteurl'])
+	on_command_halp = on_command_help
 	on_command_commands = on_command_help
 
 	@utils.throttle()
