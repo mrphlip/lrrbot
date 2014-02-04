@@ -44,7 +44,7 @@ with mdb.connect(**secrets.mysqlopts) as conn:
 			if row['time'] is None:
 				row['duration'] = None
 			else:
-				row['duration'] = utils.niceduration(time.time() - row['time'])
+				row['duration'] = utils.nice_duration(time.time() - row['time'])
 		row_data.reverse()
 
 		if row_data:
@@ -58,10 +58,10 @@ with mdb.connect(**secrets.mysqlopts) as conn:
 		template = pyratemp.Template(filename="tpl/notifications.html")
 		print template(row_data=row_data, maxkey=maxkey).encode("utf-8")
 	elif mode == 'update':
-		utils.writejson(get_notifications(int(request['after'][0])))
+		utils.write_json(get_notifications(int(request['after'][0])))
 	elif mode == 'newmessage':
 		if request['apipass'][0] != secrets.apipass:
-			utils.writejson({'error':'apipass'})
+			utils.write_json({'error':'apipass'})
 			sys.exit()
 		conn.execute("""
 			INSERT INTO NOTIFICATION(MESSAGE, CHANNEL, SUBUSER, USERAVATAR, EVENTTIME)
@@ -73,4 +73,4 @@ with mdb.connect(**secrets.mysqlopts) as conn:
 			request.get('avatar', [None])[0],
 			request.get('eventtime', [None])[0],
 		))
-		utils.writejson({'success':'OK'})
+		utils.write_json({'success':'OK'})

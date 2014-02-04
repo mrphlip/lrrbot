@@ -7,7 +7,7 @@ if __name__ == '__main__':
 import sys
 import json
 
-def writejson(obj, pretty=False):
+def write_json(obj, pretty=False):
 	"""Write a full JSON response, including HTTP headers"""
 	print "Content-type: application/json"
 	print
@@ -16,7 +16,7 @@ def writejson(obj, pretty=False):
 		separators=(', ', ': ') if pretty else (',',':')
 	)
 
-def niceduration(duration):
+def nice_duration(duration):
 	"""Convert a duration in seconds to a human-readable duration"""
 	if duration < 0:
 		return "-" + niceduration(-duration)
