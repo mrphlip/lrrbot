@@ -42,13 +42,8 @@ data = {
 def load():
 	"""Read data from storage"""
 	global data
-	try:
-		fp = open("data.json", "r")
-	except IOError:
-		load_fallback()
-	else:
-		with fp:
-			data = json.load(fp)
+	with open("data.json", "r") as fp:
+		data = json.load(fp)
 
 def save():
 	"""Save data to storage"""
@@ -101,108 +96,5 @@ def find_game(game):
 	data['games'][str(game['_id'])] = gamedata
 	save()
 	return gamedata
-
-def load_fallback():
-	"""
-	Load data from old Game.ini storage
-
-	More data and logic can be added here to facilitate loading data from the old
-	lrrbot, but once the new bot is established, this function will no longer need
-	to be maintained, and can probably be deleted.
-	"""
-	global data
-
-	# First, set up some basic structure, and map names back to the ini file
-	data = {
-		'stats': {
-			'death': {
-				'plural': "deaths",
-				'ininame': "deaths",
-			},
-			'diamond': {
-				'plural': "diamonds",
-				'ininame': "diamonds",
-			},
-			'flunge': {
-				'plural': "flunges",
-				'ininame': "flunge",
-			},
-	    'busstop': {
-	      'singular': "bus-stop",
-	      'plural': "bus-stops",
-	      'ininame': "busstop",
-	    },
-		},
-		'games': {
-			'15921': {
-				'name': "Prince of Persia: Warrior Within",
-				'ininame': "PoP:WarriorWithin",
-			},
-			'15442': {
-				'name': "Shin Megami Tensei: Nocturne",
-				'ininame': "SMT:Nocturne",
-			},
-			'313553': {
-				'name': "XCOM: Enemy Within",
-				'ininame': "XCOM",
-			},
-			'27471': {
-				'name': "Minecraft",
-				'ininame': "minecraft",
-			},
-			'2748': {
-				'name': "Magic: The Gathering",
-				'ininame': "MTG",
-			},
-			'33437': {
-				'name': "Resident Evil 6",
-				'display': "Resident Evil: Man Fellating Giraffe",
-				'ininame': "RE6-Man_Fellating_Giraffe",
-			},
-			'Dark': { # Dark still doesn't appear to be in the Twitch game list
-				'name': "Dark",
-				'ininame': "dark",
-			},
-			'10775': {
-				'name': "S.T.A.L.K.E.R.: Shadow of Chernobyl",
-				'ininame': "STALKER_ShadowsOfChernobyl",
-			},
-			'666': {
-				'name': "Metal Gear 2: Solid Snake",
-				'ininame': "MG2:SS",
-			},
-			"Prayer Warriors: A.o.f.G.": { # This game is not now, and probably will never be, in the Twitch game list
-				'name': "Prayer Warriors: A.o.f.G.",
-				'ininame': "Prayer_Warriors",
-			},
-			'67540': {
-				'name': "Payday: The Heist 2",
-				'ininame': "Payday_2:The_Heist",
-			}
-		},
-	}
-
-	# Next, load data from Game.ini
-	ini = configparser.ConfigParser()
-	ini.read("Game.ini")
-	# Group them by title
-	inisections = {ini.get(sect, 'Title'): dict(ini.items(sect)) for sect in ini.sections()}
-
-	# Now populate the stats across
-	for game in data['games'].values():
-		inigame = inisections.get(game['ininame'], {})
-		game['stats'] = {}
-		for statkey, statvals in data['stats'].items():
-			if statvals['ininame'] in inigame:
-				game['stats'][statkey] = int(inigame[statvals['ininame']])
-
-	# Finally, trim out all the ininame values that we don't need any more
-	for game in data['games'].values():
-		del game['ininame']
-	for stat in data['stats'].values():
-		del stat['ininame']
-
-	# Save the completed data, so we don't need to do this again
-	save()
 
 load()
