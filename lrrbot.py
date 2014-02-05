@@ -171,9 +171,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_command_fixtable(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "┳━┳ ノ(º_ºノ)")
 
-        @utils.throttle(5)
+	@utils.throttle(5)
 	def on_command_drink(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "The drinking game is: http://bit.ly/YRRLRLager)
+		conn.privmsg(respond_to, "The drinking game is: http://bit.ly/YRRLRLager")
 
 	@utils.throttle(5)
 	def on_command_powah(self, conn, event, params, respond_to):
