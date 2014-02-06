@@ -1,5 +1,5 @@
 import json
-import configparser
+from config import config
 
 """
 Data structure:
@@ -42,12 +42,12 @@ data = {
 def load():
 	"""Read data from storage"""
 	global data
-	with open("data.json", "r") as fp:
+	with open(config['datafile'], "r") as fp:
 		data = json.load(fp)
 
 def save():
 	"""Save data to storage"""
-	with open("data.json", "w") as fp:
+	with open(config['datafile'], "w") as fp:
 		# Save with pretty-printing enabled, as we probably want it to be editable
 		json.dump(data, fp, indent=2)
 
