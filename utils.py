@@ -13,13 +13,18 @@ class throttle(object):
 	"""Prevent a function from being called more often than once per period
 
 	Usage:
-	@throttle(period)
+	@throttle([period])
 	def func(...):
 		...
+
+	@throttle([period], notify=True)
+	def func(self, conn, event, ...):
+		...
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=False):
 		self.period = period
 		self.lastrun = None
+		self.notify = notify
 
 	def __call__(self, func):
 		@functools.wraps(func)
@@ -28,8 +33,16 @@ class throttle(object):
 				self.lastrun = time.time()
 				return func(*args, **kwargs)
 			else:
-                                conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
 				log.info("Skipping %s due to throttling" % func.__name__)
+				if self.notify:
+					conn = args[1]
+					event = args[2]
+					source = irc.client.NickMask(event.source)
+					if irc.client.is_channel(event.target):
+						respond_to = event.target
+					else:
+						respond_to = source.nick
+					conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
 		return wrapper
 
 def mod_only(func):

@@ -171,7 +171,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_command_fixtable(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "┳━┳ ノ(º_ºノ)")
 
-	@utils.throttle(5)
+	@utils.throttle()
 	def on_command_drink(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "The drinking game is: http://bit.ly/YRRLRLager")
 
@@ -272,7 +272,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	# Longer throttle for this command, as I expect lots of people to be
 	# hammering it at the same time plus or minus stream lag
-	@utils.throttle(30)
+	@utils.throttle(30, notify=True)
 	def subcommand_stat_increment(self, conn, event, respond_to, stat):
 		game = self.get_current_game()
 		if game is None:
