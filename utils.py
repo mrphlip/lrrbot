@@ -28,6 +28,7 @@ class throttle(object):
 				self.lastrun = time.time()
 				return func(*args, **kwargs)
 			else:
+                                conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
 				log.info("Skipping %s due to throttling" % func.__name__)
 		return wrapper
 
