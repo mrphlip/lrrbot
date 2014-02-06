@@ -66,8 +66,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Set up bot state
 		self.game_override = None
-		self.game_cache = None
-		self.game_last_check = None
 
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
@@ -246,7 +244,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.mod_only
 	def subcommand_game_refresh(self, conn, event, respond_to):
-		self.game_cache = None
+		self.get_current_game_real.reset_throttle()
+		self.subcommand_game_current.reset_throttle()
 		self.subcommand_game_current(conn, event, respond_to)
 
 	def on_fallback_command(self, conn, event, command, params, respond_to):
@@ -341,11 +340,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if self.game_override is not None:
 			game_obj = {'_id': self.game_override, 'name': self.game_override, 'is_override': True}
 			return storage.find_game(game_obj)
-		if self.game_cache is not None and time.time() - self.game_last_check < self.GAME_CHECK_INTERVAL:
-			return storage.find_game(self.game_cache)
-		self.game_cache = twitch.get_game_playing()
-		self.game_last_check = time.time()
-		return storage.find_game(self.game_cache)
+		else:
+			return self.get_current_game_real()
+
+	@utils.throttle(GAME_CHECK_INTERVAL)
+	def get_current_game_real(self):
+		return twitch.get_game_playing()
 
 	def game_name(self, game=None):
 		if game is None:

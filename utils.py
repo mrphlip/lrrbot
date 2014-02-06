@@ -20,18 +20,23 @@ class throttle(object):
 	@throttle([period], notify=True)
 	def func(self, conn, event, ...):
 		...
+
+	When called within the throttle period, the last return value is returned,
+	akin to memoisation (but ignoring parameter values)
 	"""
 	def __init__(self, period=DEFAULT_THROTTLE, notify=False):
 		self.period = period
-		self.lastrun = None
 		self.notify = notify
+		self.lastrun = None
+		self.lastreturn = None
 
 	def __call__(self, func):
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
 			if self.lastrun is None or time.time() - self.lastrun >= self.period:
+				self.lastreturn = func(*args, **kwargs)
 				self.lastrun = time.time()
-				return func(*args, **kwargs)
+				return self.lastreturn
 			else:
 				log.info("Skipping %s due to throttling" % func.__name__)
 				if self.notify:
@@ -43,7 +48,14 @@ class throttle(object):
 					else:
 						respond_to = source.nick
 					conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
+				return self.lastreturn
+		# Copy this method across so it can be accessed on the wrapped function
+		wrapper.reset_throttle = self.reset_throttle
 		return wrapper
+
+	def reset_throttle(self):
+		self.lastrun = None
+		self.lastreturn = None
 
 def mod_only(func):
 	"""Prevent an event-handler function from being called by non-moderators

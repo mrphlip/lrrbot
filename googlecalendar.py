@@ -8,18 +8,10 @@ import operator
 CACHE_EXPIRY = 15*60
 URL = "http://www.google.com/calendar/ical/loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go%40group.calendar.google.com/public/basic.ics"
 
-class CalData(object):
-	def __init__(self):
-		self.cache_data = None
-		self.last_check = None
-	def get(self):
-		if self.cache_data is not None and time.time() - self.last_check < CACHE_EXPIRY:
-			return self.cache_data
-		ical = utils.http_request(URL)
-		self.cache_data = icalendar.Calendar.from_ical(ical)
-		self.last_check = time.time()
-		return self.cache_data
-get_calendar_data = CalData().get
+@utils.throttle(CACHE_EXPIRY)
+def get_calendar_data():
+	ical = utils.http_request(URL)
+	return icalendar.Calendar.from_ical(ical)
 
 def get_next_event():
 	cal_data = get_calendar_data()
