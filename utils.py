@@ -139,13 +139,14 @@ def http_request(url, data=None, method='GET', maxtries=3, **kwargs):
 def nice_duration(duration):
 	"""Convert a duration in seconds to a human-readable duration"""
 	if duration < 0:
-		return "-" + niceduration(-duration)
+		return "-" + nice_duration(-duration)
 	if duration < 60:
 		return "%ds" % duration
 	duration //= 60
 	if duration < 60:
 		return "%dm" % duration
-	duration //= 60
-	if duration < 24:
-		return "%dh" % duration
-	return "%dd, %dh" % divmod(duration, 24)
+	hours, minutes = divmod(duration, 60)
+	if hours < 24:
+		return "%d:%02d" % (hours, minutes)
+	days, hours = divmod(hours, 24)
+	return "%dd, %d:%02d" % (days, hours, minutes)
