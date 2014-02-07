@@ -341,7 +341,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			game_obj = {'_id': self.game_override, 'name': self.game_override, 'is_override': True}
 			return storage.find_game(game_obj)
 		else:
-			return self.get_current_game_real()
+			return storage.find_game(self.get_current_game_real())
 
 	@utils.throttle(GAME_CHECK_INTERVAL)
 	def get_current_game_real(self):
