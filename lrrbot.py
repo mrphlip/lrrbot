@@ -327,8 +327,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		event_name, event_time, event_wait = googlecalendar.get_next_event()
 		if event_time:
 			nice_time = event_time.strftime("%a %I:%M %p %Z")
-			nice_duration = utils.nice_duration(event_wait)
-			conn.privmsg(respond_to, "Next scheduled stream: %s at %s (%s from now)" % (event_name, nice_time, nice_duration))
+			if event_wait < 0:
+				nice_duration = utils.nice_duration(-event_wait) + " ago"
+			else:
+				nice_duration = utils.nice_duration(event_wait) + " from now"
+			conn.privmsg(respond_to, "Next scheduled stream: %s at %s (%s)" % (event_name, nice_time, nice_duration))
 		else:
 			conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
 	on_command_schedule = on_command_next
