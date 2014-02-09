@@ -23,11 +23,12 @@ def main():
 	init_logging()
 
 	try:
-		log.debug("Initialising connection")
+		log.info("Bot startup")
 		LRRBot().start()
 	except (KeyboardInterrupt, SystemExit):
 		pass
 	finally:
+		log.info("Bot shutdown")
 		logging.shutdown()
 
 class LRRBot(irc.bot.SingleServerIRCBot):
@@ -53,6 +54,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# IRC event handlers
 		self.ircobj.add_global_handler('welcome', self.on_connect)
+		self.ircobj.add_global_handler('join', self.on_channel_join)
 		self.ircobj.add_global_handler('pubmsg', self.on_message)
 		self.ircobj.add_global_handler('privmsg', self.on_message)
 
@@ -71,6 +73,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
 		conn.join("#%s" % config['channel'])
+
+	def on_channel_join(self, conn, event):
+		log.info("Channel %s joined" % event.target)
 
 	@utils.swallow_errors
 	def do_keepalive(self):
