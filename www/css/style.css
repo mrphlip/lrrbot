@@ -1,6 +1,8 @@
 body
 {
 	font: 100% sans-serif;
+	background: white;
+	color: black;
 }
 
 h1, h2, h3, h4, p
@@ -19,6 +21,11 @@ p.lastupdated
 p.author
 {
 	font-size: 90%;
+}
+
+p.error
+{
+	color: red;
 }
 
 #notificationlist, #notificationlist li
@@ -86,4 +93,53 @@ p.author
 	height: 64px;
 	width: 64px;
 	vertical-align: middle;
+}
+
+table#statstable, table#statstable tr, table#statstable td, table#statstable th
+{
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+table#statstable
+{
+	margin: 0 auto;
+}
+table#statstable td, table#statstable th
+{
+	padding: 0.1em 0.25em;
+}
+table#statstable tr.even
+{
+	background: white;
+}
+table#statstable tr.odd
+{
+	background: #EEE;
+}
+table#statstable th
+{
+	background: #DDD;
+}
+table#statstable td.game
+{
+	text-align: right;
+}
+table#statstable thead th, table#statstable tfoot th.total
+{
+	text-align: center;
+}
+table#statstable td.stat, table#statstable tfoot th.stat
+{
+	text-align: right;
+}
+table#statstable td.game
+{
+	text-align: left;
+}
+
+.highchart
+{
+	width: auto;
+	height: 25em;
+	margin: 0.5em 0;
 }

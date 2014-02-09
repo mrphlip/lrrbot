@@ -126,23 +126,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			else:
 				if channel_info.get('logo'):
 					notifyparams['avatar'] = channel_info['logo']
-		# Send the information to the server
-		try:
-			res = utils.http_request(
-				config['siteurl'] + "notifications",
-				notifyparams,
-				'POST'
-			)
-		except:
-			log.exception("Error sending notification to server")
-		else:
-			try:
-				res = json.loads(res)
-			except:
-				log.exception("Error parsing notification server response: " + res)
-			else:
-				if 'success' not in res:
-					log.error("Error sending notification to server")
+		utils.api_request('notifications', notifyparams, 'POST')
 
 	@utils.throttle()
 	def on_command_help(self, conn, event, params, respond_to):
@@ -337,6 +321,16 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	on_command_schedule = on_command_next
 	on_command_sched = on_command_next
 	on_command_nextstream = on_command_next
+
+	@utils.throttle(60)
+	def upload_stats(self):
+		url = "stats?%s" % urllib.parse.urlencode({'apipass': config['apipass']})
+		utils.api_request(url, json.dumps(storage.data), 'PUT')
+
+	@utils.throttle()
+	def on_command_stats(self, conn, event, params, respond_to):
+		self.upload_stats()
+		conn.privmsg(respond_to, "Stats: %s" % config['siteurl'] + 'stats')
 
 	def get_current_game(self):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""

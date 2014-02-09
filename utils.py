@@ -4,6 +4,9 @@ import logging
 import irc.client
 import urllib.request, urllib.parse
 import sys
+import json
+import utils
+from config import config
 
 log = logging.getLogger('utils')
 
@@ -109,6 +112,17 @@ def swallow_errors(func):
 			return None
 	return wrapper
 
+class Request(urllib.request.Request):
+	"""Override the get_method method of Request, adding the "method" field that doesn't exist until Python 3.3"""
+	def __init__(self, *args, method=None, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.method = method
+	def get_method(self):
+		if self.method is not None:
+			return self.method
+		else:
+			return super().get_method()
+
 def http_request(url, data=None, method='GET', maxtries=3, **kwargs):
 	"""Download a webpage, with retries on failure."""
 	if data:
@@ -116,16 +130,18 @@ def http_request(url, data=None, method='GET', maxtries=3, **kwargs):
 			data = urllib.parse.urlencode(data)
 		if method == 'GET':
 			url = '%s?%s' % (url, data)
-			args = (url,)
-		else:
-			args = (url, data.encode("utf-8"))
+			req = Request(url=url, method='GET', **kwargs)
+		elif method == 'POST':
+			req = Request(url=url, data=data.encode("utf-8"), method='POST', **kwargs)
+		elif method == 'PUT':
+			req = Request(url=url, data=data.encode("utf-8"), method='PUT', **kwargs)
 	else:
-		args = (url,)
+		req = Request(url=url, method='GET', **kwargs)
 
 	firstex = None
 	while True:
 		try:
-			return urllib.request.urlopen(*args, **kwargs).read().decode("utf-8")
+			return urllib.request.urlopen(req).read().decode("utf-8")
 		except Exception as e:
 			maxtries -= 1
 			if firstex is None:
@@ -135,6 +151,21 @@ def http_request(url, data=None, method='GET', maxtries=3, **kwargs):
 			else:
 				break
 	raise firstex
+
+def api_request(uri, *args, **kwargs):
+	# Send the information to the server
+	try:
+		res = utils.http_request(config['siteurl'] + uri, *args, **kwargs)
+	except:
+		log.exception("Error at server in %s" % uri)
+	else:
+		try:
+			res = json.loads(res)
+		except:
+			log.exception("Error parsing server response from %s: %s" % (uri, res))
+		else:
+			if 'success' not in res:
+				log.error("Error at server in %s" % uri)
 
 def nice_duration(duration):
 	"""Convert a duration in seconds to a human-readable duration"""
