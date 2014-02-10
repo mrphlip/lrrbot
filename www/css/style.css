@@ -136,6 +136,10 @@ table#statstable td.game
 {
 	text-align: left;
 }
+table#statstable td.game .alias
+{
+	border-bottom: 1px dotted black;
+}
 
 .highchart
 {

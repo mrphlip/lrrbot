@@ -21,7 +21,11 @@
 <tbody>
 <!--(for i,game in enumerate(sorted(data['games'].values(), key=lambda game:game['display'].upper())))-->
 	<tr class="@!"odd" if i%2 else "even"!@">
-		<td class="game"<!--(if game['display'] != game['name'])--> title="@!game['name']!@"<!--(end)-->>@!game['display']!@</td>
+		<td class="game">
+			<!--(if game['display'] != game['name'])--><span class="alias" title="@!game['name']!@"><!--(end)-->
+			@!game['display']!@
+			<!--(if game['display'] != game['name'])--></span><!--(end)-->
+		</td>
 		<!--(for statkey,stat in sorted(data['stats'].items(), key=lambda (k,v):-v['total']))-->
 			<td class="stat @!statkey!@">@!game['stats'][statkey]!@</td>
 		<!--(end)-->
