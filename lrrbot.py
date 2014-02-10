@@ -75,7 +75,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		conn.join("#%s" % config['channel'])
 
 	def on_channel_join(self, conn, event):
-		log.info("Channel %s joined" % event.target)
+		source = irc.client.NickMask(event.source)
+		if (source.nick.lower() == config['username'].lower()):
+			log.info("Channel %s joined" % event.target)
 
 	@utils.swallow_errors
 	def do_keepalive(self):
