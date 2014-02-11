@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Dependencies:
 #   easy_install irc icalendar python-dateutil
@@ -159,6 +159,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.throttle(5)
 	def on_command_fixtable(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "┳━┳ ノ(º_ºノ)")
+		
+	@utils.throttle(5)
+	def on_command_picnic(self, conn, event, params, respond_to):
+		conn.privmsg(respond_to, "(╯°Д°）╯︵ɥɔʇıʍʇ")
 
 	@utils.throttle()
 	def on_command_drink(self, conn, event, params, respond_to):
