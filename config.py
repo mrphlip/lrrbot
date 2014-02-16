@@ -1,5 +1,6 @@
 import configparser
 import logging
+import pytz
 from commandline import argv
 
 COFNIG_SECTION = 'lrrbot'
@@ -53,3 +54,6 @@ config['mods'] = set(i.strip().lower() for i in config.get('mods', 'd3fr0st5,mrp
 
 # datafile - file to store save data to
 config.setdefault('datafile', 'data.json')
+
+# timezone - timezone to use for display purposes - default to Pacific Time
+config['timezone'] = pytz.timezone(config.get('timezone', 'America/Vancouver'))

@@ -321,7 +321,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_command_next(self, conn, event, params, respond_to):
 		event_name, event_time, event_wait = googlecalendar.get_next_event()
 		if event_time:
-			nice_time = event_time.strftime("%a %I:%M %p %Z")
+			nice_time = event_time.astimezone(config['timezone']).strftime("%a %I:%M %p %Z")
 			if event_wait < 0:
 				nice_duration = utils.nice_duration(-event_wait) + " ago"
 			else:
