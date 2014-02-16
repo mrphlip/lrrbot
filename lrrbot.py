@@ -68,6 +68,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Set up bot state
 		self.game_override = None
+		self.storm_count = 0
+		self.storm_count_date = None
 
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
@@ -90,20 +92,20 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.swallow_errors
 	def on_message(self, conn, event):
 		source = irc.client.NickMask(event.source)
+		# If the message was sent to a channel, respond in the channel
+		# If it was sent via PM, respond via PM
+		if irc.client.is_channel(event.target):
+			respond_to = event.target
+		else:
+			respond_to = source.nick
+
 		if (source.nick.lower() == config['notifyuser']):
-			self.on_notification(conn, event)
+			self.on_notification(conn, event, respond_to)
 		else:
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
 				command, params = command_match.groups()
 				log.info("Command from %s: %s %s" % (source.nick, command, params))
-
-				# If the message was sent to a channel, respond in the channel
-				# If it was sent via PM, respond via PM
-				if irc.client.is_channel(event.target):
-					respond_to = event.target
-				else:
-					respond_to = source.nick
 
 				# Find the command procedure for this command
 				command_proc = getattr(self, 'on_command_%s' % command.lower(), None)
@@ -112,7 +114,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				else:
 					self.on_fallback_command(conn, event, command, params, respond_to)
 
-	def on_notification(self, conn, event):
+	def on_notification(self, conn, event, respond_to):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
 		log.info("Notification: %s" % event.arguments[0])
 		notifyparams = {
@@ -133,6 +135,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			else:
 				if channel_info.get('logo'):
 					notifyparams['avatar'] = channel_info['logo']
+			# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
+			today = datetime.datetime.now(config['timezone']).date()
+			if today != self.storm_count_date:
+				self.storm_count_date = today
+				self.storm_count = 0
+			self.storm_count += 1
+			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], self.storm_count))
 		utils.api_request('notifications', notifyparams, 'POST')
 
 	@utils.throttle()
