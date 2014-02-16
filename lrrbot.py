@@ -275,7 +275,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		game.setdefault('stats', {}).setdefault(stat, 0)
 		game['stats'][stat] += 1
 		storage.save()
-		self.print_stat(conn, respond_to, stat, game)
+		self.print_stat(conn, respond_to, stat, game, with_emote=True)
 
 	@utils.mod_only
 	def subcommand_stat_edit(self, conn, event, respond_to, stat, operation, value):
@@ -362,16 +362,20 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				return "Not currently playing any game"
 		return game.get('display', game['name'])
 
-	def print_stat(self, conn, respond_to, stat, game=None):
+	def print_stat(self, conn, respond_to, stat, game=None, with_emote=False):
 		if game is None:
 			game = self.get_current_game()
 			if game is None:
 				conn.privmsg(respond_to, "Not currently playing any game")
 				return
 		count = game.get('stats', {}).get(stat, 0)
-		display = storage.data['stats'][stat]
-		display = display.get('singular', stat) if count == 1 else display.get('plural', stat + "s")
-		conn.privmsg(respond_to, "%d %s for %s" % (count, display, self.game_name(game)))
+		stat_details = storage.data['stats'][stat]
+		display = stat_details.get('singular', stat) if count == 1 else stat_details.get('plural', stat + "s")
+		if with_emote and stat_details.get('emote'):
+			emote = stat_details['emote'] + " "
+		else:
+			emote = ""
+		conn.privmsg(respond_to, "%s%d %s for %s" % (emote, count, display, self.game_name(game)))
 
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""
