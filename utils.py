@@ -25,21 +25,37 @@ class throttle(object):
 		...
 
 	When called within the throttle period, the last return value is returned,
-	akin to memoisation (but ignoring parameter values)
+	for memoisation
+
+	params is a list of parameters to consider as distinct, so calls where the
+	watched parameters are the same are throttled together, but calls where they
+	are different are throttled separately. Should be a list of ints (for positional
+	parameters) and strings (for keyword parameters).
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=False):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=False, params=[]):
 		self.period = period
 		self.notify = notify
-		self.lastrun = None
-		self.lastreturn = None
+		self.watchparams = params
+		self.lastrun = {}
+		self.lastreturn = {}
+
+	def watchedparams(self, args, kwargs):
+		params = []
+		for i in self.watchparams:
+			if isinstance(i, int):
+				params.append(args[i])
+			else:
+				params.append(kwargs[i])
+		return tuple(params)
 
 	def __call__(self, func):
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
-			if self.lastrun is None or time.time() - self.lastrun >= self.period:
-				self.lastreturn = func(*args, **kwargs)
-				self.lastrun = time.time()
-				return self.lastreturn
+			params = self.watchedparams(args, kwargs)
+			if params not in self.lastrun or time.time() - self.lastrun[params] >= self.period:
+				self.lastreturn[params] = func(*args, **kwargs)
+				self.lastrun[params] = time.time()
+				return self.lastreturn[params]
 			else:
 				log.info("Skipping %s due to throttling" % func.__name__)
 				if self.notify:
@@ -51,14 +67,14 @@ class throttle(object):
 					else:
 						respond_to = source.nick
 					conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
-				return self.lastreturn
+				return self.lastreturn[params]
 		# Copy this method across so it can be accessed on the wrapped function
 		wrapper.reset_throttle = self.reset_throttle
 		return wrapper
 
 	def reset_throttle(self):
-		self.lastrun = None
-		self.lastreturn = None
+		self.lastrun = {}
+		self.lastreturn = {}
 
 def mod_only(func):
 	"""Prevent an event-handler function from being called by non-moderators

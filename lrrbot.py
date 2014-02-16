@@ -266,7 +266,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	# Longer throttle for this command, as I expect lots of people to be
 	# hammering it at the same time plus or minus stream lag
-	@utils.throttle(30, notify=True)
+	@utils.throttle(30, notify=True, params=[4])
 	def subcommand_stat_increment(self, conn, event, respond_to, stat):
 		game = self.get_current_game()
 		if game is None:
@@ -306,11 +306,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		storage.save()
 		self.print_stat(conn, respond_to, stat, game)
 
-	@utils.throttle()
+	@utils.throttle(params=[4])
 	def subcommand_stat_print(self, conn, event, respond_to, stat):
 		self.print_stat(conn, respond_to, stat)
 
-	@utils.throttle()
+	@utils.throttle(params=[4])
 	def subcommand_stat_printtotal(self, conn, event, respond_to, stat):
 		count = sum(game.get('stats', {}).get(stat, 0) for game in storage.data['games'].values())
 		display = storage.data['stats'][stat]
