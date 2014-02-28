@@ -11,12 +11,16 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 	def __init__(self, request, client_address, server):
 		self.endpoints = {
 		}
+		self.content_type = {
+			"css": "text/css",
+			"js": "text/javascript"
+		}
 		super().__init__(request, client_address, server)
 
-	def send_headers(self, response):
+	def send_headers(self, response, content_type = "text/html"):
 		self.send_response(response, self.responses[response][0])
 		self.send_header("Cache-Control", "max-age={}".format(CACHE_MAX_AGE))
-		self.send_header("Content-Type", "text/html; charset=utf-8")
+		self.send_header("Content-Type", "{}; charset=utf-8".format(content_type))
 		self.end_headers()
 	
 	def inject_commands(self, html):
@@ -48,7 +52,7 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			dd = html.new_tag("dd")
 			if command["modonly"]:
 				dd["class"] = "modonly"
-			dd.string = command["desc"]
+			dd.append(BeautifulSoup(command["desc"]))
 			dl.append(dd)
 		return str(html).encode("utf-8")
 
@@ -60,7 +64,9 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			self.endpoints[path]()
 		else:
 			response = 200 if os.path.exists("www"+path) else 404
-			self.send_headers(response)
+			content_type = self.content_type.get(path[path.rfind(".")+1:], "text/html") \
+				if response == 200 else "text/html"
+			self.send_headers(response, content_type)
 			if response == 200:
 				with open("www"+path, "rb") as f:
 					if path == "/index.html":

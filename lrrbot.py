@@ -176,7 +176,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	
 	@utils.throttle()
 	def on_command_link(self, conn, event, params, respond_to):
-		"""Post a link to loadingreadyrun.com"""
+		"""Post a link to <a href="http://loadingreadyrun.com/">loadingreadyrun.com</a>"""
 		conn.privmsg(respond_to, "Visit LoadingReadyRun: http://loadingreadyrun.com/")
 	on_command_lrr = on_command_link
 
@@ -203,7 +203,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle()
 	def on_command_drink(self, conn, event, params, respond_to):
-		"""Post a link to the drinking game rules"""
+		"""Post a link to the <a href="http://bit.ly/YRRLRLager">drinking game rules</a>"""
 		conn.privmsg(respond_to, "The drinking game is: http://bit.ly/YRRLRLager")
 
 	@utils.throttle(5)
@@ -217,7 +217,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle()
 	def on_command_xcam(self, conn, event, params, respond_to):
-		"""Post a link to Cam's subs' soldiers spreadsheet"""
+		"""Post a link to Cam's <a href="http://bit.ly/CamXCOM">subs' soldiers spreadsheet</a>"""
 		conn.privmsg(respond_to, "The XCam list is http://bit.ly/CamXCOM")
 	on_command_xcom = on_command_xcam
 
@@ -378,7 +378,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle()
 	def on_command_next(self, conn, event, params, respond_to):
-		"""Gets the next scheduled stream from the calendar"""
+		"""Gets the next scheduled stream from the <a href="https://www.google.com/calendar/embed?src=loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com&ctz=America/Vancouver">calendar</a>"""
 		event_name, event_time, event_wait = googlecalendar.get_next_event()
 		if event_time:
 			nice_time = event_time.astimezone(config['timezone']).strftime("%a %I:%M %p %Z")
@@ -400,7 +400,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle()
 	def on_command_stats(self, conn, event, params, respond_to):
-		"""Update the data on the statistics page"""
+		"""Update the data on the <a href="http://lrrbot.mrphlip.com/stats">statistics page</a>"""
 		self.upload_stats()
 		conn.privmsg(respond_to, "Stats: %s" % config['siteurl'] + 'stats')
 
