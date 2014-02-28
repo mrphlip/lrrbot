@@ -16,6 +16,9 @@ import storage
 import twitch
 import utils
 import googlecalendar
+import http.server
+import select
+from http_handler import HTTPHandler
 
 log = logging.getLogger('lrrbot')
 
@@ -24,7 +27,21 @@ def main():
 
 	try:
 		log.info("Bot startup")
-		LRRBot().start()
+		bot = LRRBot()
+		bot._connect()
+		httpd = http.server.HTTPServer(("localhost", 8000), HTTPHandler)
+		httpd.bot = bot
+		not_none = lambda x: x is not None
+		while True:
+			irc = list(filter(not_none,
+				map(lambda x: x.socket,
+					filter(not_none, bot.ircobj.connections))))
+			r, w, x = select.select(irc+[httpd], [], [], 0.2)
+			if httpd in r:	
+				httpd.handle_request()
+				del r[r.index(httpd)]
+			bot.ircobj.process_data(r)
+			bot.ircobj.process_timeout()
 	except (KeyboardInterrupt, SystemExit):
 		pass
 	finally:
