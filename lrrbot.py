@@ -149,7 +149,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		conn.privmsg(respond_to, "Help: %s" % config['siteurl'])
 	on_command_halp = on_command_help
 	on_command_commands = on_command_help
-
+	
+	@utils.mod_only
+	def on_command_test(self, conn, event, params, respond_to):
+		conn.privmsg(respond_to, "Test")
+	
+	
 	@utils.throttle()
 	def on_command_link(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "Visit LoadingReadyRun: http://loadingreadyrun.com/")
@@ -378,6 +383,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				conn.privmsg(respond_to, "Not currently playing any game")
 				return
 		count = game.get('stats', {}).get(stat, 0)
+		countT = sum(game.get('stats', {}).get(stat, 0) for game in storage.data['games'].values())
 		stat_details = storage.data['stats'][stat]
 		display = stat_details.get('singular', stat) if count == 1 else stat_details.get('plural', stat + "s")
 		if with_emote and stat_details.get('emote'):
@@ -385,7 +391,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			emote = ""
 		conn.privmsg(respond_to, "%s%d %s for %s" % (emote, count, display, self.game_name(game)))
-
+		if countT == 1000:
+			conn.privmsg(respond_to, "Watch and pray for another %d %s!" % (countT, display))
+	
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""
 		source = irc.client.NickMask(event.source)
