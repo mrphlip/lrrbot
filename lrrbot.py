@@ -89,6 +89,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.storm_count = 0
 		self.storm_count_date = None
 
+		# Generate !help-like commands
+		for command in storage.data["help"]:
+			f = lambda conn, event, params, respond_to, command=command: \
+				conn.privmsg(respond_to, storage.data["help"][command])
+			f.__doc__ = "Post '{}'".format(storage.data["help"][command])
+			setattr(self, "on_command_{}".format(command), f)
+
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
@@ -172,7 +179,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.mod_only
 	def on_command_test(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "Test")
-	
 	
 	@utils.throttle()
 	def on_command_link(self, conn, event, params, respond_to):
