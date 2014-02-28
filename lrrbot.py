@@ -164,6 +164,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle()
 	def on_command_help(self, conn, event, params, respond_to):
+		"""Post a link to the command list"""
 		conn.privmsg(respond_to, "Help: %s" % config['siteurl'])
 	on_command_halp = on_command_help
 	on_command_commands = on_command_help
@@ -175,11 +176,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	
 	@utils.throttle()
 	def on_command_link(self, conn, event, params, respond_to):
+		"""Post a link to loadingreadyrun.com"""
 		conn.privmsg(respond_to, "Visit LoadingReadyRun: http://loadingreadyrun.com/")
 	on_command_lrr = on_command_link
 
 	@utils.throttle(5) # throttle can be a little shorter on this one
 	def on_command_fliptable(self, conn, event, params, respond_to):
+		"""(╯°□°）╯︵ ┻━┻"""
 		conn.privmsg(respond_to, random.choice([
 			"(╯°□°）╯︵ ┻━┻",
 			"(╯°□°）╯︵ ┻━┻", # Make the classic a bit more likely
@@ -190,18 +193,22 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle(5)
 	def on_command_fixtable(self, conn, event, params, respond_to):
+		"""┳━┳ ノ(º_ºノ)"""
 		conn.privmsg(respond_to, "┳━┳ ノ(º_ºノ)")
 		
 	@utils.throttle(5)
 	def on_command_picnic(self, conn, event, params, respond_to):
+		"""(╯°Д°）╯︵ɥɔʇıʍʇ"""
 		conn.privmsg(respond_to, "(╯°Д°）╯︵ɥɔʇıʍʇ")
 
 	@utils.throttle()
 	def on_command_drink(self, conn, event, params, respond_to):
+		"""Post a link to the drinking game rules"""
 		conn.privmsg(respond_to, "The drinking game is: http://bit.ly/YRRLRLager")
 
 	@utils.throttle(5)
 	def on_command_powah(self, conn, event, params, respond_to):
+		"""ᕦ(° Д°)ᕤ STOPPIN POWAH"""
 		conn.privmsg(respond_to, "ᕦ(° Д°)ᕤ STOPPIN POWAH")
 	on_command_stoppin = on_command_powah
 	on_command_stopping = on_command_powah
@@ -210,10 +217,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle()
 	def on_command_xcam(self, conn, event, params, respond_to):
+		"""Post a link to Cam's subs' soldiers spreadsheet"""
 		conn.privmsg(respond_to, "The XCam list is http://bit.ly/CamXCOM")
 	on_command_xcom = on_command_xcam
 
 	def on_command_game(self, conn, event, params, respond_to):
+		"""Post the game currently being played"""
 		params = params.strip()
 		if params == "": # "!game" - print current game
 			self.subcommand_game_current(conn, event, respond_to)
@@ -369,6 +378,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle()
 	def on_command_next(self, conn, event, params, respond_to):
+		"""Gets the next scheduled stream from the calendar"""
 		event_name, event_time, event_wait = googlecalendar.get_next_event()
 		if event_time:
 			nice_time = event_time.astimezone(config['timezone']).strftime("%a %I:%M %p %Z")
@@ -390,6 +400,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle()
 	def on_command_stats(self, conn, event, params, respond_to):
+		"""Update the data on the statistics page"""
 		self.upload_stats()
 		conn.privmsg(respond_to, "Stats: %s" % config['siteurl'] + 'stats')
 
