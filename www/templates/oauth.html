@@ -1,4 +1,3 @@
-<!--(set_escape)-->HTML<!--(end)-->
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,9 +8,9 @@
 <div id="content">
 <form action="https://api.twitch.tv/kraken/oauth2/authorize" method="GET">
 <input type="hidden" name="response_type" value="code">
-<input type="hidden" name="client_id" value="@!clientid!@">
-<input type="hidden" name="redirect_uri" value="@!redirect_uri!@">
-<input type="hidden" name="scope" value="@!scope!@">
+<input type="hidden" name="client_id" value="{{clientid|e}}">
+<input type="hidden" name="redirect_uri" value="{{redirect_uri|e}}">
+<input type="hidden" name="scope" value="{{scope|e}}">
 <input type="submit" value="Get OAuth token">
 </form>
 </div>

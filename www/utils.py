@@ -4,17 +4,10 @@ if __name__ == '__main__':
 	sys.stderr.write("utils.py accessed directly")
 	sys.exit(1)
 
-import sys
-import json
-
-def write_json(obj, pretty=False):
-	"""Write a full JSON response, including HTTP headers"""
-	print "Content-type: application/json"
-	print
-	json.dump(obj, sys.stdout,
-		indent=2 if pretty else None,
-		separators=(', ', ': ') if pretty else (',',':')
-	)
+import functools
+import oursql
+import secrets
+import server
 
 def nice_duration(duration):
 	"""Convert a duration in seconds to a human-readable duration"""
@@ -29,3 +22,16 @@ def nice_duration(duration):
 	if duration < 24:
 		return "%dh" % duration
 	return "%dd, %dh" % divmod(duration, 24)
+
+def with_mysql(func):
+	"""Decorator to pass a mysql connection and cursor to a function"""
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		conn = oursql.connect(**secrets.mysqlopts)
+		with conn as cur:
+			return func(conn, cur, *args, **kwargs)
+	return wrapper
+
+def ucfirst(s):
+	return s[0].upper() + s[1:]
+server.app.add_template_filter(ucfirst)

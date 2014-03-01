@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Statistics</title>
+<link rel="stylesheet" type="text/css" href="static/style.css">
+</head>
+<body>
+<table id="statstable">
+<thead>
+<tr>
+	<th class="game">Game</th>
+	{%for stat in stats%}
+		<th class="stat {{stat['statkey']|e}}">{{stat['plural']|ucfirst|e}}</th>
+	{%endfor%}
+</tr>
+</thead>
+<tbody>
+{%for game in games%}
+	<tr class="{{loop.cycle('odd, even')}}">
+		<td class="game">
+			{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
+			{{game['display']|e}}
+			{%if game['display'] != game['name']%}</span>{%endif%}
+		</td>
+		{%for stat in stats%}
+			<td class="stat {{stat['statkey']|e}}">{{game['stats'][stat['statkey']]|e}}</td>
+		{%endfor%}
+	</tr>
+{%endfor%}
+</tbody>
+<tfoot>
+<tr>
+	<th class="total">Total</th>
+	{%for stat in stats%}
+		<th class="stat {{stat['statkey']|e}}">{{stat['total']|e}}</th>
+	{%endfor%}
+</tr>
+</tfoot>
+</table>
+<script type="text/javascript" src="static/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="static/highcharts.js"></script>
+{%for stat in stats%}
+<div class="highchart" id="chart-{{stat['statkey']|e}}"></div>
+<script type="text/javascript">
+$(function () {
+	$('#chart-'+{{stat['statkey']|tojson}}).highcharts({
+		title: {
+				text: {{stat['plural']|ucfirst|tojson}}
+		},
+		tooltip: {
+			pointFormat: '{series.name}: <b>{point.y}</b><br>Share: <b>{point.percentage:.1f}%</b>'
+		},
+		plotOptions: {
+				pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						dataLabels: {
+								enabled: true,
+								color: '#000000',
+								connectorColor: '#000000',
+								format: '<b>{point.name}</b>: {point.y}'
+						}
+				}
+		},
+		series: [{
+				type: 'pie',
+				name: {{stat['plural']|ucfirst|tojson}},
+				data: {{stat['graphdata']|tojson}}
+		}]
+	});
+});
+</script>
+{%endfor%}
+</body>
+</html>

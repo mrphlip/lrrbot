@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Twitch notifications</title>
+<link rel="stylesheet" type="text/css" href="static/style.css">
+</head>
+<body>
+<ol id="notificationlist" data-maxkey="{{maxkey}}">
+{%for row in row_data%}
+	<li {%if row['time']%}data-timestamp="{{row['time']}}"{%endif%} class="{{loop.cycle('odd, even')}}">
+	{%if row['duration']%}<div class="duration">{{row['duration']|e}}</div>{%endif%}
+	{%if row['channel']%}<div class="channel">{{row['channel']|e}}</div>{%endif%}
+	{%if row['user']%}
+		<div class="user">
+		{%if row['avatar']%}<a href="http://www.twitch.tv/{{row['user']|e}}"><img class="avatar" src="{{row['avatar']|e}}"></a>{%endif%}
+		<a href="http://www.twitch.tv/{{row['user']|e}}">{{row['user']|e}}</a> just subscribed!
+		</div>
+	{%else%}
+		<div class="message">{{row['message']|e}}</div>
+	{%endif%}
+	</li>
+{%endfor%}
+</ol>
+<script type="text/javascript" src="static/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="static/common.js"></script>
+<script type="text/javascript" src="static/notifications.js"></script>
+</body>
+</html>

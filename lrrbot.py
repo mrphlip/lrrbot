@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Dependencies:
-#   easy_install irc icalendar python-dateutil
+#   easy_install irc icalendar python-dateutil flask oursql
 
 import re
 import time
