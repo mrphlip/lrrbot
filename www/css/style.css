@@ -108,11 +108,11 @@ table#statstable td, table#statstable th
 {
 	padding: 0.1em 0.25em;
 }
-table#statstable tr.even
+table#statstable tr:nth-child(odd)
 {
 	background: white;
 }
-table#statstable tr.odd
+table#statstable tr:nth-child(even)
 {
 	background: #EEE;
 }
