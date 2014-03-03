@@ -16,7 +16,7 @@
 </thead>
 <tbody>
 {%for game in games%}
-	<tr class="{{loop.cycle('odd, even')}}">
+	<tr class="{{loop.cycle('even', 'odd')}}">
 		<td class="game">
 			{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
 			{{game['display']|e}}
