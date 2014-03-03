@@ -19,6 +19,9 @@ import googlecalendar
 import http.server
 import select
 from http_handler import HTTPHandler
+import shlex
+import types
+from functools import partial
 
 log = logging.getLogger('lrrbot')
 
@@ -76,13 +79,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.ircobj.add_global_handler('privmsg', self.on_message)
 
 		# Precompile regular expressions
-		self.re_botcommand = re.compile(r"^\s*%s\s*(\w+)\b\s*(.*?)\s*$" % re.escape(config['commandprefix']), re.IGNORECASE)
 		self.re_subscription = re.compile(r"^(.*) just subscribed!", re.IGNORECASE)
+<<<<<<< HEAD
 		self.re_game_display = re.compile(r"\s*display\b\s*(.*?)\s*$", re.IGNORECASE)
 		self.re_game_override = re.compile(r"\s*override\b\s*(.*?)\s*$", re.IGNORECASE)
 		self.re_game_refresh = re.compile(r"\s*refresh\b\s*$", re.IGNORECASE)
 		self.re_game_completed = re.compile(r"\s*completed\b\s*$", re.IGNORECASE)
 		self.re_addremove = re.compile(r"\s*(add|remove|set)\s*(\d*)\d*$", re.IGNORECASE)
+=======
+>>>>>>> stats tracking
 
 		# Set up bot state
 		self.game_override = None
@@ -91,10 +96,53 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Generate !help-like commands
 		for command in storage.data["help"]:
-			f = lambda conn, event, params, respond_to, command=command: \
-				conn.privmsg(respond_to, storage.data["help"][command])
+			f = utils.throttle()(
+				lambda conn, event, params, respond_to, command=command: \
+					conn.privmsg(respond_to, storage.data["help"][command]))
 			f.__doc__ = "Post '{}'".format(storage.data["help"][command])
 			setattr(self, "on_command_{}".format(command), f)
+
+		parse_int = lambda params: int(params[0]) if len(params) > 0 and params[0].isdigit() else 1
+
+		# Generate commands for statistics
+		stats = storage.data["stats"]
+		for stat in storage.data["stats"]:
+			plural = stats[stat]["plural"]
+			f = utils.throttle(30, notify=True)(partial(self.stat_modify, stat=stat, n=1))
+			f.__doc__ = "Increments the number of {}".format(plural)
+			setattr(self, "on_command_{}".format(stat), f)
+			
+			f = types.MethodType(utils.mod_only(
+				lambda self, conn, event, params, respond_to, stat=stat: \
+					self.stat_modify(conn, event, params, respond_to, stat, parse_int(params))),
+				self)
+			f.__func__.__doc__ = "Adds # to the number of {}".format(plural)
+			setattr(self, "on_command_{}_add".format(stat), f)
+			
+			f = types.MethodType(utils.mod_only(
+				lambda self, conn, event, params, respond_to, stat=stat: \
+					self.stat_modify(conn, event, params, respond_to, stat, -parse_int(params))), self)
+			f.__func__.__doc__ = "Removes # from the number of {}".format(plural)
+			setattr(self, "on_command_{}_remove".format(stat), f)
+			
+			c = "{}{} set".format(config["commandprefix"], stat)
+			f = types.MethodType(utils.mod_only(
+				lambda self, conn, event, params, respond_to, stat=stat: \
+					self.stat_set(conn, event, respond_to, stat, int(params[0])) \
+						if len(params[0]) > 0 and params[0].isdigit() \
+						else conn.privmsg(respond_to,
+							"'{}' needs an integer parameter".format(c))), self)
+			f.__func__.__doc__ = "Resets the number of {} to the specified value for the current game."\
+				.format(plural)
+			setattr(self, "on_command_{}_set".format(stat), f)
+			
+			f = utils.throttle()(partial(self.print_stat, stat=stat))
+			f.__doc__ = "Post the number of {} for the current game.".format(plural)
+			setattr(self, "on_command_{}count".format(stat), f)
+			
+			f = utils.throttle()(partial(self.print_stat_total, stat=stat))
+			f.__doc__ = "Post the number of {} for every game.".format(plural)
+			setattr(self, "on_command_total{}".format(stat), f)
 
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
@@ -127,17 +175,23 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if (source.nick.lower() == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
 		else:
-			command_match = self.re_botcommand.match(event.arguments[0])
-			if command_match:
-				command, params = command_match.groups()
-				log.info("Command from %s: %s %s" % (source.nick, command, params))
+			try:
+				command = shlex.split(event.arguments[0])
+			except ValueError as e:
+				return
+			if not command[0].startswith(config["commandprefix"]):
+				return
+			command[0] = command[0][len(config["commandprefix"]):]
+			log.info("Command from {}: {}".format(source.nick, command))
 
-				# Find the command procedure for this command
-				command_proc = getattr(self, 'on_command_%s' % command.lower(), None)
-				if command_proc:
-					command_proc(conn, event, params, respond_to)
-				else:
-					self.on_fallback_command(conn, event, command, params, respond_to)
+			# Find the command procedure for this command
+			for i in range(len(command), 0, -1):
+				name = "on_command_"+"_".join(command[:i]).lower()
+				proc = getattr(self, name, None)
+				if proc:
+					log.info("Calling {}".format(name))
+					proc(conn, event, command[i:], respond_to)
+					break
 
 	def on_notification(self, conn, event, respond_to):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
@@ -178,6 +232,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	
 	@utils.mod_only
 	def on_command_test(self, conn, event, params, respond_to):
+		"Post 'Test'"
 		conn.privmsg(respond_to, "Test")
 	
 	@utils.throttle()
@@ -227,35 +282,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		conn.privmsg(respond_to, "The XCam list is http://bit.ly/CamXCOM")
 	on_command_xcom = on_command_xcam
 
-	def on_command_game(self, conn, event, params, respond_to):
-		"""Post the game currently being played"""
-		params = params.strip()
-		if params == "": # "!game" - print current game
-			self.subcommand_game_current(conn, event, respond_to)
-			return
-
-		matches = self.re_game_display.match(params)
-		if matches: # "!game display xyz" - change game display
-			self.subcommand_game_display(conn, event, respond_to, matches.group(1))
-			return
-
-		matches = self.re_game_override.match(params)
-		if matches: # "!game override xyz" - set game override
-			self.subcommand_game_override(conn, event, respond_to, matches.group(1))
-			return
-
-		matches = self.re_game_refresh.match(params)
-		if matches:
-			self.subcommand_game_refresh(conn, event, respond_to)
-			return
-			
-		matches = self.re_game_completed.match(params)
-		if matches:
-			self.subcommand_game_completed(conn, event, respond_to)
-			return
-
 	@utils.throttle()
-	def subcommand_game_current(self, conn, event, respond_to):
+	def on_command_game_current(self, conn, event, params, respond_to):
+		"""Post the game currently being played"""
 		game = self.get_current_game()
 		if game is None:
 			message = "Not currently playing any game"
@@ -264,24 +293,34 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if self.game_override is not None:
 			message += " (overridden)"
 		conn.privmsg(respond_to, message)
+	on_command_game = on_command_game_current
 
 	@utils.mod_only
-	def subcommand_game_display(self, conn, event, respond_to, name):
+	def on_command_game_display(self, conn, event, params, respond_to):
+		"""
+		Change the display name of the current game. (E.g. <code>!game display Resident Evil:
+		Man Fellating Giraffe</code>)
+		"""
 		game = self.get_current_game()
 		if game is None:
 			conn.privmsg(respond_to, "Not currently playing any game")
 			return
-		game['display'] = name
+		new_name = " ".join(params)
+		if game["name"] == new_name:
+			del game['display']
+		else:
+			game['display'] = new_name
 		storage.save()
-		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (game['name'], game['display']))
+		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (game['name'], new_name))
 
 	@utils.mod_only
-	def subcommand_game_override(self, conn, event, respond_to, param):
-		if param == "" or param.lower() == "off":
+	def on_command_game_override(self, conn, event, params, respond_to):
+		"""Override what game is being played or <code>off</code> to disable the override."""
+		if len(params) == 0 or (len(params) == 1 and params[0].lower() == "off"):
 			self.game_override = None
 			operation = "disabled"
 		else:
-			self.game_override = param
+			self.game_override = " ".join(params)
 			operation = "enabled"
 		self.get_current_game_real.reset_throttle()
 		self.subcommand_game_current.reset_throttle()
@@ -292,13 +331,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			conn.privmsg(respond_to, "Override %s. Currently playing: %s" % (operation, self.game_name(game)))
 
 	@utils.mod_only
-	def subcommand_game_refresh(self, conn, event, respond_to):
+	def on_command_game_refresh(self, conn, event, params, respond_to):
+		"""Force a refresh of the current Twitch game (normally this is updated at most once every 15 minutes)"""
 		self.get_current_game_real.reset_throttle()
 		self.subcommand_game_current.reset_throttle()
 		self.subcommand_game_current(conn, event, respond_to)
 		
 	@utils.mod_only
-	def subcommand_game_completed(self, conn, event, respond_to):
+	def on_command_game_completed(self, conn, event, params, respond_to):
+		"""Set current game to be completed."""
 		game = self.get_current_game()
 		if game is None:
 			conn.privmsg(respond_to, "Not currently playing any game")
@@ -308,75 +349,27 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		storage.save()
 		conn.privmsg(respond_to, "%s added to the completed list" % (self.game_name(game)))
 
-	def on_fallback_command(self, conn, event, command, params, respond_to):
-		"""Handle dynamic commands that can't have their own named procedure"""
-		# General processing for all stat-management commands
-		if command in storage.data['stats']:
-			params = params.strip()
-			if params == "": # eg "!death" - increment the counter
-				self.subcommand_stat_increment(conn, event, respond_to, command)
-				return
-			matches = self.re_addremove.match(params)
-			if matches: # eg "!death remove", "!death add 5" or "!death set 0"
-				self.subcommand_stat_edit(conn, event, respond_to, command, matches.group(1), matches.group(2))
-				return
-
-		if command[-5:] == "count" and command[:-5] in storage.data['stats']: # eg "!deathcount"
-			self.subcommand_stat_print(conn, event, respond_to, command[:-5])
-			return
-
-		if command[:5] == "total" and command[5:] in storage.data['stats']: # eg "!totaldeath"
-			self.subcommand_stat_printtotal(conn, event, respond_to, command[5:])
-			return
-
-	# Longer throttle for this command, as I expect lots of people to be
-	# hammering it at the same time plus or minus stream lag
-	@utils.throttle(30, notify=True, params=[4])
-	def subcommand_stat_increment(self, conn, event, respond_to, stat):
+	def stat_modify(self, conn, event, params, respond_to, stat=None, n=0):
 		game = self.get_current_game()
 		if game is None:
 			conn.privmsg(respond_to, "Not currently playing any game")
 			return
 		game.setdefault('stats', {}).setdefault(stat, 0)
-		game['stats'][stat] += 1
+		game['stats'][stat] += n
 		storage.save()
-		self.print_stat(conn, respond_to, stat, game, with_emote=True)
+		self.print_stat(conn, respond_to, stat, game, with_emote=(n == 1))
 
-	@utils.mod_only
-	def subcommand_stat_edit(self, conn, event, respond_to, stat, operation, value):
-		operation = operation.lower()
-		if value:
-			try:
-				value = int(value)
-			except ValueError:
-				conn.privmsg(respond_to, "\"%s\" is not a number" % value)
-				return
-		else:
-			if operation == "set":
-				conn.privmsg(respond_to, "\"set\" needs a value")
-				return
-			# default to 1 for add and remove
-			value = 1
+	def stat_set(self, conn, event, respond_to, stat, n):
 		game = self.get_current_game()
 		if game is None:
 			conn.privmsg(respond_to, "Not currently playing any game")
 			return
 		game.setdefault('stats', {}).setdefault(stat, 0)
-		if operation == "add":
-			game['stats'][stat] += value
-		elif operation == "remove":
-			game['stats'][stat] -= value
-		elif operation == "set":
-			game['stats'][stat] = value
+		game['stats'][stat] = n
 		storage.save()
 		self.print_stat(conn, respond_to, stat, game)
 
-	@utils.throttle(params=[4])
-	def subcommand_stat_print(self, conn, event, respond_to, stat):
-		self.print_stat(conn, respond_to, stat)
-
-	@utils.throttle(params=[4])
-	def subcommand_stat_printtotal(self, conn, event, respond_to, stat):
+	def print_stat_total(self, conn, event, respond_to, stat):
 		count = sum(game.get('stats', {}).get(stat, 0) for game in storage.data['games'].values())
 		display = storage.data['stats'][stat]
 		display = display.get('singular', stat) if count == 1 else display.get('plural', stat + "s")

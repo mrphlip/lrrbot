@@ -31,32 +31,8 @@ function setmodonly(node, display)
 </dl>
 <h3>Stats tracking</h3>
 <p>The system can track several stats for each game. The stats available are:</p>
-<ul>
-	<li><code>death</code></li>
-	<li><code>diamond</code> (mostly for Minecraft)</li>
-	<li><code>flunge</code> (mostly for Magic: the Gathering)</li>
-	<li><code>busstop</code> (it could happen)</li>
+<ul id="stats">
 </ul>
-<dl>
-	<dt><code>!</code><i>stat</i></dt>
-	<dd>eg: <code>!death</code></dd>
-	<dd>Adds 1 to the stat counter for the current game</dd>
-	<dt class="modonly"><code>!</code><i>stat</i><code> add </code><i>#</i></dt>
-	<dd class="modonly">eg: <code>!diamond add 3</code></dd>
-	<dd class="modonly">(mod only) Adds # to counter for the current game</dd>
-	<dt class="modonly"><code>!</code><i>stat</i><code> remove </code><i>#</i></dt>
-	<dd class="modonly">eg: <code>!flunge remove</code></dd>
-	<dd class="modonly">(mod only) Removes # (default 1) from counter for the current game</dd>
-	<dt class="modonly"><code>!</code><i>stat</i><code> set </code><i>#</i></dt>
-	<dd class="modonly">eg: <code>!busstop set 0</code></dd>
-	<dd class="modonly">(mod only) Resets the counter to the specified number for the current game</dd>
-	<dt><code>!</code><i>stat</i><code>Count</code></dt>
-	<dd>eg: <code>!deathcount</code></dd>
-	<dd>Post total count for the current game</dd>
-	<dt><code>!total</code><i>stat</i><code></code></dt>
-	<dd>eg: <code>!totaldeath</code></dd>
-	<dd>Post total count for every game</dd>
-</dl>
 <!--
 <h4>Tournament record</h4>
 <dl>

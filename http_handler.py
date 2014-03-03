@@ -60,39 +60,62 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 		self.end_headers()
 	
 	def index(self):
-		self.send_headers(200, "text/html")
-		with open("www/index.html") as f:
-			html = BeautifulSoup(f.read())
-		dl = html.find("dl", id="commands")
 		commands = {}
 		for command in filter(lambda x: x[:11] == "on_command_", dir(self.server.bot)):
-			name = config["commandprefix"]+command[11:]
+			name = (config["commandprefix"]+command[11:]).replace("_", " ")
 			function = getattr(self.server.bot, command)
 			desc = function.__doc__ if function.__doc__ else ""
 			try:
 				modonly = function.__closure__[1].cell_contents.__name__ == "mod_complaint"
 			except:
 				modonly = False
+			try:
+				period = function.__closure__[1].cell_contents.period
+			except:
+				period = 0
 			if function in commands:
 				commands[function]["name"] += [name]
 			else:
-				commands[function] = {"name": [name], "desc": desc, "modonly": modonly}
+				commands[function] = {
+					"name": [name], 
+					"desc": desc, 
+					"modonly": modonly, 
+					"period": period
+				}
 
+		with open("www/index.html") as f:
+			html = BeautifulSoup(f.read())
+		dl = html.find("dl", id="commands")
 		for command in sorted(commands.values(), key=lambda x: x["name"][0]):
+			dt = html.new_tag("dt")
 			for name in command["name"]:
-				dt = html.new_tag("dt")
 				if command["modonly"]:
 					dt["class"] = "modonly"
 				code = html.new_tag("code")
 				code.string = name
 				dt.append(code)
-				dl.append(dt)
+				if name != command["name"][-1]:
+					dt.append(" or ")
+			dl.append(dt)
 			dd = html.new_tag("dd")
 			if command["modonly"]:
 				dd["class"] = "modonly"
-			dd.append(BeautifulSoup(command["desc"]))
+			for elem in BeautifulSoup(command["desc"]).body.children:
+				dd.append(elem)
+			if command["period"] > 0:
+				p = html.new_tag("p")
+				p.string = "Can be used {} seconds after the last use.".format(command["period"])
+				dd.append(p)
 			dl.append(dd)
-		self.wfile.write(str(html).encode("utf-8"))
+		ul = html.find("ul", id="stats")
+		for stat in sorted(storage.data["stats"]):
+			code = html.new_tag("code")
+			code.string = stat
+			li = html.new_tag("li")
+			li.append(code)
+			ul.append(li)
+		self.send_headers(200, "text/html")
+		self.wfile.write(html.encode("utf-8"))
 	
 	def stats(self):
 		with open("www/stats.html") as f:
@@ -117,7 +140,7 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 		for stat, _ in stats:
 			cell = html.new_tag("th")
 			cell["class"] = "stat " + stat
-			cell.string = storage.data["stats"][stat]["plural"]
+			cell.string = storage.data["stats"][stat]["plural"].capitalize()
 			row.append(cell)
 
 		# stats
@@ -166,14 +189,14 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			body.append(div)
 			script = html.new_tag("script", type="text/javascript")
 			script.string = chart.format(
-				name=storage.data["stats"][stat]["plural"],
+				name=storage.data["stats"][stat]["plural"].capitalize(),
 				data=json.dumps(list(map(lambda g: [g["display"] if "display" in g else g["name"], g["stats"][stat]], games))),
 				stat=stat
 			)
 			body.append(script)
 
 		self.send_headers(200, "text/html")
-		self.wfile.write(str(html).encode("utf-8"))
+		self.wfile.write(html.encode("utf-8"))
 
 	def do_GET(self):
 		path = os.path.normpath(urllib.parse.urlparse(self.path).path)
