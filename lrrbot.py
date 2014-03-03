@@ -118,7 +118,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
 		log.info("Notification: %s" % event.arguments[0])
 		notifyparams = {
-			'mode': 'newmessage',
 			'apipass': config['apipass'],
 			'message': event.arguments[0],
 			'eventtime': time.time(),
@@ -142,7 +141,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				self.storm_count = 0
 			self.storm_count += 1
 			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], self.storm_count))
-		utils.api_request('notifications', notifyparams, 'POST')
+		utils.api_request('notifications/newmessage', notifyparams, 'POST')
 
 	@utils.throttle()
 	def on_command_help(self, conn, event, params, respond_to):

@@ -5,4 +5,4 @@ import notifications
 import stats
 import oauth
 
-server.app.run(debug=True)
+server.app.run(debug=True, threaded=True)

@@ -6,11 +6,6 @@ import time
 import utils
 import secrets
 
-@server.app.route('/notifications', methods=['GET','POST'])
-def main():
-	mode = flask.request.values.get('mode', 'page')
-	return HANDLERS[mode]()
-
 def get_notifications(cur, after=None):
 	if after is None:
 		cur.execute("""
@@ -29,6 +24,7 @@ def get_notifications(cur, after=None):
 		""", (after,))
 	return [dict(zip(('key', 'message', 'channel', 'user', 'avatar', 'time'), row)) for row in cur.fetchall()]
 
+@server.app.route('/notifications')
 @utils.with_mysql
 def main_page(conn, cur):
 	row_data = get_notifications(cur)
@@ -49,28 +45,35 @@ def main_page(conn, cur):
 
 	return flask.render_template('notifications.html', row_data=row_data, maxkey=maxkey)
 
+@server.app.route('/notifications/updates', methods=['GET', 'POST'])
 @utils.with_mysql
 def updates(conn, cur):
 	return flask.json.jsonify(notifications=get_notifications(cur, int(flask.request.values['after'])))
 
+event_server = utils.SSEServer()
+server.app.add_url_rule('/notifications/events', view_func=event_server.subscribe)
+
+@server.app.route('/notifications/newmessage', methods=['POST'])
 @utils.with_mysql
 def new_message(conn, cur):
 	if flask.request.values['apipass'] != secrets.apipass:
 		return flask.json.jsonify(error='apipass')
+	data = {
+		'message': flask.request.values['message'],
+		'channel': flask.request.values.get('channel'),
+		'user': flask.request.values.get('subuser'),
+		'avatar': flask.request.values.get('avatar'),
+		'time': float(flask.request.values['eventtime']) if 'eventtime' in flask.request.values else None,
+	}
 	cur.execute("""
 		INSERT INTO NOTIFICATION(MESSAGE, CHANNEL, SUBUSER, USERAVATAR, EVENTTIME)
 		VALUES (?, ?, ?, ?, FROM_UNIXTIME(?))
 		""", (
-		flask.request.values['message'],
-		flask.request.values.get('channel'),
-		flask.request.values.get('subuser'),
-		flask.request.values.get('avatar'),
-		flask.request.values.get('eventtime'),
+		data['message'],
+		data['channel'],
+		data['user'],
+		data['avatar'],
+		data['time'],
 	))
+	event_server.publish(data, 'newmessage')
 	return flask.json.jsonify(success='OK')
-
-HANDLERS = {
-	'page': main_page,
-	'update': updates,
-	'newmessage': new_message,
-}
