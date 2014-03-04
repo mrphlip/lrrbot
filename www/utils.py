@@ -33,6 +33,7 @@ def nice_duration(s, detail=1):
 		return ["%(h)d:%(m)02d:%(s)02d", "%(h)d:%(m)02d", "%(h)dh"][detail] % {'s': s, 'm': m, 'h': h}
 	d, h = divmod(h, 24)
 	return ["%(d)dd, %(h)d:%(m)02d:%(s)02d", "%(d)dd, %(h)d:%(m)02d", "%(d)dd, %(h)dh"][detail] % {'s': s, 'm': m, 'h': h, 'd': d}
+server.app.add_template_filter(nice_duration)
 
 def with_mysql(func):
 	"""Decorator to pass a mysql connection and cursor to a function"""
