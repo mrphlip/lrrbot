@@ -98,6 +98,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.swallow_errors
 	def on_message(self, conn, event):
+		if not hasattr(conn.privmsg, "__wrapped__"):
+			conn.privmsg = utils.twitch_throttle()(conn.privmsg)
 		source = irc.client.NickMask(event.source)
 		# If the message was sent to a channel, respond in the channel
 		# If it was sent via PM, respond via PM
