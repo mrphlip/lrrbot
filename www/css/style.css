@@ -46,12 +46,12 @@ p.error
 	color: black;
 	text-align: center;
 }
-#notificationlist li.even
+#notificationlist li:nth-child(even)
 {
 	border-color: #CCC;
 	background: #CCC;
 }
-#notificationlist li.odd
+#notificationlist li:nth-child(odd)
 {
 	border-color: #EEE;
 	background: #EEE;

@@ -80,14 +80,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Precompile regular expressions
 		self.re_subscription = re.compile(r"^(.*) just subscribed!", re.IGNORECASE)
-<<<<<<< HEAD
-		self.re_game_display = re.compile(r"\s*display\b\s*(.*?)\s*$", re.IGNORECASE)
-		self.re_game_override = re.compile(r"\s*override\b\s*(.*?)\s*$", re.IGNORECASE)
-		self.re_game_refresh = re.compile(r"\s*refresh\b\s*$", re.IGNORECASE)
-		self.re_game_completed = re.compile(r"\s*completed\b\s*$", re.IGNORECASE)
-		self.re_addremove = re.compile(r"\s*(add|remove|set)\s*(\d*)\d*$", re.IGNORECASE)
-=======
->>>>>>> stats tracking
 
 		# Set up bot state
 		self.game_override = None
@@ -197,9 +189,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
 		log.info("Notification: %s" % event.arguments[0])
 		notifyparams = {
-			'mode': 'newmessage',
-			'apipass': config['apipass'],
-			'message': event.arguments[0],
 			'eventtime': time.time(),
 		}
 		if irc.client.is_channel(event.target):
@@ -208,7 +197,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if subscribe_match:
 			notifyparams['subuser'] = subscribe_match.group(1)
 			try:
-				channel_info = twitch.getInfo(subscribe_match.group(1))
+				channel_info = twitch.get_info(subscribe_match.group(1))
 			except:
 				pass
 			else:
@@ -221,7 +210,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				self.storm_count = 0
 			self.storm_count += 1
 			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], self.storm_count))
-		utils.api_request('notifications', notifyparams, 'POST')
+		else:
+			notifyparams["message"] = event.arguments[0]
+		storage.data.setdefault("notifications", [])
+		storage.data["notifications"] += [notifyparams]
+		storage.save()
 
 	@utils.throttle()
 	def on_command_help(self, conn, event, params, respond_to):

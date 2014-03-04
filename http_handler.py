@@ -5,6 +5,8 @@ from config import config
 from bs4 import BeautifulSoup
 import storage
 import json
+import time
+import utils
 
 # Cache responses for five minutes
 CACHE_MAX_AGE = 5 * 60
@@ -45,7 +47,9 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 		self.endpoints = {
 			"/index.html": self.index,
 			"/stats.html": self.stats,
-			"/stats": self.stats
+			"/stats": self.stats,
+			"/notifications.html": self.notifications,
+			"/notifications": self.notifications,
 		}
 		self.content_type = {
 			"css": "text/css",
@@ -195,6 +199,46 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			)
 			body.append(script)
 
+		self.send_headers(200, "text/html")
+		self.wfile.write(html.encode("utf-8"))
+	
+	def notifications(self):
+		storage.data.setdefault("notifications", [])
+		storage.data["notifications"] = list(filter(lambda e: e["eventtime"] - time.time() < 24*3600, storage.data["notifications"]))
+		storage.save()
+
+		with open("www/notifications.html") as f:
+			html = BeautifulSoup(f.read())
+		html.head.append(html.new_tag("meta", **{"http-equiv": "refresh", "content": str(CACHE_MAX_AGE+5)}))
+		ol = html.find("ol", id="notificationlist")
+		for event in sorted(storage.data["notifications"], key=lambda x: x["eventtime"], reverse=True):
+			li = html.new_tag("li")
+			ol.append(li)
+			if "eventtime" in event:
+				div = html.new_tag("div", **{"class": "duration"})
+				div.string = str(utils.nice_duration(time.time()-event["eventtime"]))
+				li.append(div)
+			if "channel" in event:
+				div = html.new_tag("div", **{"class": "channel"})
+				div.string = event["channel"]
+				li.append(div)
+			if "subuser" in event:
+				div = html.new_tag("div", **{"class": "user"})
+				if "avatar" in event:
+					a = html.new_tag("a")
+					a["href"]="http://www.twitch.tv/{}".format(event["subuser"])
+					a.append(html.new_tag("img", src=event["avatar"]))
+					div.append(a)
+				a = html.new_tag("a")
+				a["href"]="http://www.twitch.tv/{}".format(event["subuser"])
+				a.string = event["subuser"]
+				div.append(a)
+				div.append(" just subscribed!")
+				li.append(div)
+			else:
+				div = html.new_tag("div", **{"class": "message"})
+				div.string = event["message"]
+				li.append(div)
 		self.send_headers(200, "text/html")
 		self.wfile.write(html.encode("utf-8"))
 
