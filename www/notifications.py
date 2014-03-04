@@ -32,7 +32,7 @@ def main_page(conn, cur):
 		if row['time'] is None:
 			row['duration'] = None
 		else:
-			row['duration'] = utils.nice_duration(time.time() - row['time'])
+			row['duration'] = utils.nice_duration(time.time() - row['time'], 1)
 	row_data.reverse()
 
 	if row_data:
