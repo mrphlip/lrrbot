@@ -156,6 +156,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.swallow_errors
 	def on_message(self, conn, event):
+		if not hasattr(conn.privmsg, "__wrapped__"):
+			conn.privmsg = utils.twitch_throttle()(conn.privmsg)
 		source = irc.client.NickMask(event.source)
 		# If the message was sent to a channel, respond in the channel
 		# If it was sent via PM, respond via PM
@@ -350,7 +352,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		game.setdefault('stats', {}).setdefault(stat, 0)
 		game['stats'][stat] += n
 		storage.save()
-		self.print_stat(conn, respond_to, stat, game, with_emote=(n == 1))
+		self.print_stat(conn, event, [], respond_to, stat, game, with_emote=(n == 1))
 
 	def stat_set(self, conn, event, respond_to, stat, n):
 		game = self.get_current_game()
@@ -360,9 +362,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		game.setdefault('stats', {}).setdefault(stat, 0)
 		game['stats'][stat] = n
 		storage.save()
-		self.print_stat(conn, respond_to, stat, game)
+		self.print_stat(conn, event, [], respond_to, stat, game)
 
-	def print_stat_total(self, conn, event, respond_to, stat):
+	def print_stat_total(self, conn, event, params, respond_to, stat):
 		count = sum(game.get('stats', {}).get(stat, 0) for game in storage.data['games'].values())
 		display = storage.data['stats'][stat]
 		display = display.get('singular', stat) if count == 1 else display.get('plural', stat + "s")
@@ -415,7 +417,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				return "Not currently playing any game"
 		return game.get('display', game['name'])
 
-	def print_stat(self, conn, respond_to, stat, game=None, with_emote=False):
+	def print_stat(self, conn, event, params, respond_to, stat, game=None, with_emote=False):
 		if game is None:
 			game = self.get_current_game()
 			if game is None:

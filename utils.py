@@ -106,6 +106,23 @@ def mod_only(func):
 			return None
 	return wrapper
 
+class twitch_throttle:
+	def __init__(self, count=20, period=30):
+		self.count = count
+		self.period = period
+		self.timestamps = []
+	
+	def __call__(self, f):
+		@functools.wraps(f)
+		def wrapper(*args, **kwargs):
+			self.timestamps = [t for t in self.timestamps if time.time()-t <= self.period]
+			if len(self.timestamps) >= self.count:
+				log.info("Ignoring {}(*{}, **{})".format(f.__name__, args, kwargs))
+			else:
+				self.timestamps += [time.time()]
+				return f(*args, **kwargs)
+		return wrapper
+
 def log_errors(func):
 	"""Log any errors thrown by a function"""
 	@functools.wraps(func)
