@@ -25,4 +25,4 @@ def oauth():
 		}
 		res = urllib.request.urlopen("https://api.twitch.tv/kraken/oauth2/token", urllib.parse.urlencode(oauth_params).encode()).read().decode()
 		res = json.loads(res)
-		return flask.render_template("oauth_response.html", token=res['access_token'], scopes=res['scope']).encode("utf-8")
+		return flask.render_template("oauth_response.html", token=res['access_token'], scopes=res['scope'])
