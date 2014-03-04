@@ -337,9 +337,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if event_time:
 			nice_time = event_time.astimezone(config['timezone']).strftime("%a %I:%M %p %Z")
 			if event_wait < 0:
-				nice_duration = utils.nice_duration(-event_wait, 0) + " ago"
+				nice_duration = utils.nice_duration(-event_wait, 1) + " ago"
 			else:
-				nice_duration = utils.nice_duration(event_wait, 0) + " from now"
+				nice_duration = utils.nice_duration(event_wait, 1) + " from now"
 			conn.privmsg(respond_to, "Next scheduled stream: %s at %s (%s)" % (event_name, nice_time, nice_duration))
 		else:
 			conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
