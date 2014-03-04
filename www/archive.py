@@ -1,36 +1,44 @@
 #!/usr/bin/env python
-import flask
-import flask.json
-import server
-import urllib.request, urllib.parse
+# -*- coding: utf-8 -*-
+import cgi
+import cgitb
+import json
+import urllib, urllib2
 import time
 import os
+import pyratemp
+import utils
 
 CACHE_TIMEOUT = 15*60
 
-@server.app.route('/archivefeed')
+# Enable debug errors
+# cgitb.enable()
+
+request = cgi.parse()
+
 def archive_feed():
-	channel = flask.request.values.get('channel', 'loadingreadyrun')
-	broadcasts = 'highlights' not in flask.request.values
+	#channel = request.get('channel', ['loadingreadyrun'])[0]
+	channel = "loadingreadyrun"
+	broadcasts = 'highlights' not in request
 	fn = "../twitchcache_%s_%s.json" % (channel, broadcasts)
 
 	try:
 		fileage = time.time() - os.stat(fn).st_mtime
-	except IOError:
+	except OSError:
 		fileage = CACHE_TIMEOUT
 
 	if fileage < CACHE_TIMEOUT:
-		with open(fn, "rt") as fp:
-			data = fp.read()
+		with open(fn, "r") as fp:
+			data = fp.read().decode("utf-8")
 	else:
-		url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.parse.quote(channel, safe=""), "true" if broadcasts else "false", 100)
-		fp = urllib.request.urlopen(url)
-		data = fp.read().decode()
+		url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.quote(channel, safe=""), "true" if broadcasts else "false", 100)
+		fp = urllib2.urlopen(url)
+		data = fp.read().decode("utf-8")
 		fp.close()
-		with open(fn, "wt") as fp:
-			fp.write(data)
+		with open(fn, "w") as fp:
+			fp.write(data.encode("utf-8"))
 
-	data = flask.json.loads(data)
+	data = json.loads(data)
 
 	# For broadcasts:
 	# {'videos': [{'_id': 'a508090853',
@@ -65,5 +73,9 @@ def archive_feed():
 	#              'views': 466},
 	#              ...]}
 
-	rss = flask.render_template("archive_feed.xml", videos=data['videos'], broadcasts=broadcasts)
-	return flask.Response(rss, mimetype="application/xml")
+	print "Content-type: application/xml; charset=utf-8"
+	print
+	template = pyratemp.Template(filename="tpl/archive_feed.xml")
+	print template(videos=data['videos'], broadcasts=broadcasts, nice_duration=utils.nice_duration).encode("utf-8")
+
+archive_feed()

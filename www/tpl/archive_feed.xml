@@ -1,0 +1,23 @@
+<!--(set_escape)-->HTML<!--(end)-->
+<rss version="2.0">
+<channel>
+<title>@!videos[0]['channel']['display_name']!@ &#x2013; @!"Past Broadcasts" if broadcasts else "Highlights"!@</title>
+<link>http://twitch.tv/@!videos[0]['channel']['name']!@</link>
+<language>en</language>
+<!--(for vid in videos)-->
+	<item>
+	<title>@!vid['title']!@ [@!nice_duration(vid['length'],1)!@]</title>
+	<link>@!vid['url']!@</link>
+	<description><![CDATA[
+	<img src="@!vid['preview']!@" style="float:left; margin: 0 0.5em 0.25em 0">
+	<p style="font: bold 125% sans-serif">@!vid['title']!@</p>
+	<!--(if vid['description'])--><p style="font: 100% sans-serif">@!vid['description']!@</p><!--(end)-->
+	<!--(if vid['game'])--><p style="font: 100% sans-serif">Playing: @!vid['game']!@</p><!--(end)-->
+	<p style="font: 100% sans-serif">Length: @!nice_duration(vid['length'],0)!@</p>
+	]]></description>
+	<pubDate>@!vid['recorded_at']!@</pubDate>
+	<guid isPermaLink="true">@!vid['url']!@</guid>
+	</item>
+<!--(end)-->
+</channel>
+</rss>
