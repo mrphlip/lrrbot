@@ -19,7 +19,6 @@ import googlecalendar
 import http.server
 import select
 from http_handler import HTTPHandler
-import shlex
 import types
 from functools import partial
 
@@ -169,10 +168,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if (source.nick.lower() == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
 		else:
-			try:
-				command = shlex.split(event.arguments[0])
-			except ValueError as e:
-				return
+			command = event.arguments[0].split()
 			if not command[0].startswith(config["commandprefix"]):
 				return
 			command[0] = command[0][len(config["commandprefix"]):]
