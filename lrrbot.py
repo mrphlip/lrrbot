@@ -245,6 +245,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			self.game_override = param
 			operation = "enabled"
+		self.get_current_game_real.reset_throttle()
+		self.subcommand_game_current.reset_throttle()
 		game = self.get_current_game()
 		if game is None:
 			conn.privmsg(respond_to, "Override %s. Not currently playing any game" % operation)
