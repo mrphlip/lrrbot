@@ -8,8 +8,10 @@ import json
 import time
 import utils
 
-# Cache responses for five minutes
-CACHE_MAX_AGE = 5 * 60
+# Cache static pages for thirty minutes
+CACHE_STATIC_MAX_AGE = 30 * 60
+# Cache dynamic pages for thirty seconds
+CACHE_DYNAMIC_MAX_AGE = 30
 
 # Highcharts Javascript blob
 chart = """
@@ -57,9 +59,9 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 		}
 		super().__init__(request, client_address, server)
 
-	def send_headers(self, response, content_type = "text/html"):
+	def send_headers(self, response, content_type = "text/html", max_age=CACHE_STATIC_MAX_AGE):
 		self.send_response(response, self.responses[response][0])
-		self.send_header("Cache-Control", "max-age={}".format(CACHE_MAX_AGE))
+		self.send_header("Cache-Control", "max-age={}".format(max_age))
 		self.send_header("Content-Type", "{}; charset=utf-8".format(content_type))
 		self.end_headers()
 	
@@ -199,7 +201,7 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			)
 			body.append(script)
 
-		self.send_headers(200, "text/html")
+		self.send_headers(200, "text/html", CACHE_DYNAMIC_MAX_AGE)
 		self.wfile.write(html.encode("utf-8"))
 	
 	def notifications(self):
@@ -239,7 +241,7 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 				div = html.new_tag("div", **{"class": "message"})
 				div.string = event["message"]
 				li.append(div)
-		self.send_headers(200, "text/html")
+		self.send_headers(200, "text/html", CACHE_DYNAMIC_MAX_AGE)
 		self.wfile.write(html.encode("utf-8"))
 
 	def do_GET(self):

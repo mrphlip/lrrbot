@@ -383,17 +383,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	on_command_sched = on_command_next
 	on_command_nextstream = on_command_next
 
-	@utils.throttle(60)
-	def upload_stats(self):
-		url = "stats?%s" % urllib.parse.urlencode({'apipass': config['apipass']})
-		utils.api_request(url, json.dumps(storage.data), 'PUT')
-
-	@utils.throttle()
-	def on_command_stats(self, conn, event, params, respond_to):
-		"""Update the data on the <a href="http://lrrbot.mrphlip.com/stats">statistics page</a>"""
-		self.upload_stats()
-		conn.privmsg(respond_to, "Stats: %s" % config['siteurl'] + 'stats')
-
 	def get_current_game(self):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
 		if self.game_override is not None:
