@@ -64,6 +64,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.re_game_display = re.compile(r"\s*display\b\s*(.*?)\s*$", re.IGNORECASE)
 		self.re_game_override = re.compile(r"\s*override\b\s*(.*?)\s*$", re.IGNORECASE)
 		self.re_game_refresh = re.compile(r"\s*refresh\b\s*$", re.IGNORECASE)
+		self.re_game_completed = re.compile(r"\s*completed\b\s*$", re.IGNORECASE)
 		self.re_addremove = re.compile(r"\s*(add|remove|set)\s*(\d*)\d*$", re.IGNORECASE)
 
 		# Set up bot state
@@ -214,6 +215,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if matches:
 			self.subcommand_game_refresh(conn, event, respond_to)
 			return
+			
+		matches = self.re_game_completed.match(params)
+		if matches:
+			self.subcommand_game_completed(conn, event, respond_to)
+			return
 
 	@utils.throttle()
 	def subcommand_game_current(self, conn, event, respond_to):
@@ -257,6 +263,17 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.get_current_game_real.reset_throttle()
 		self.subcommand_game_current.reset_throttle()
 		self.subcommand_game_current(conn, event, respond_to)
+		
+	@utils.mod_only
+	def subcommand_game_completed(self, conn, event, respond_to):
+		game = self.get_current_game()
+		if game is None:
+			conn.privmsg(respond_to, "Not currently playing any game")
+			return
+		game.setdefault('stats', {}).setdefault("completed", 0)
+		game['stats']["completed"] = 1
+		storage.save()
+		conn.privmsg(respond_to, "%s added to the completed list" % (self.game_name(game)))
 
 	def on_fallback_command(self, conn, event, command, params, respond_to):
 		"""Handle dynamic commands that can't have their own named procedure"""
