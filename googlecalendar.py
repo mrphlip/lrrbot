@@ -33,6 +33,9 @@ def get_next_event(after=None, all=False):
 			event_time_cutoff = event_time + cutoff_delay
 			if 'rrule' in ev:
 				rrule = dateutil.rrule.rrulestr(ev['rrule'].to_ical().decode('utf-8'), dtstart=event_time_cutoff)
+				### MASSIVE HACK ALERT
+				_apply_monkey_patch(rrule)
+				### END MASSIVE HACK ALERT
 				event_time_cutoff = rrule.after(after)
 				if event_time_cutoff is None:
 					continue
@@ -48,3 +51,34 @@ def get_next_event(after=None, all=False):
 		return event_name, event_time, event_wait
 	else:
 		return None, None, None
+
+def _apply_monkey_patch(rrule):
+	"""
+	The processing in dateutil.rrule is not properly timezone-aware, mostly because
+	Python's timezone handling is far from ideal. In particular, it will claim that,
+	for instance, "2014-03-06 19:00:00 PST" is "2014-03-13 19:00:00 PST", when in fact
+	the correct answer is "2014-03-13 19:00:00 PDT", as daylight savings has started.
+
+	Notably, the time from the original time to the time 1 week later is not 7*24 hours.
+
+	We monkey-patch the rrule class so that all the datetimes that come out of it are
+	re-localised, so that the naive hour/minute values are preserved, but the DST flag
+	is changed. This means that the corrected dates are what is seen by rrule.after(),
+	when it does comparisons using the dates, so the correct results should come out.
+
+	This is a hack that messes with the internals of the library, and as such is far
+	from a good idea. It was written against dateutil 2.2, and no guarantees that it
+	will work with any other version of that library. A better solution would be
+	appreciated, even if it means ditching dateutil for a better library that does
+	what we want it to here.
+	"""
+	if rrule._freq > dateutil.rrule.DAILY:
+		return
+
+	import functools
+	old_iter = rrule._iter
+	@functools.wraps(old_iter)
+	def new_iter(*args, **kwargs):
+		for dt in old_iter(*args, **kwargs):
+			yield dt.tzinfo.localize(dt.replace(tzinfo=None))
+	rrule._iter = new_iter
