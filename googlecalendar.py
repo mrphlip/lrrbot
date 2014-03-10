@@ -56,10 +56,12 @@ def _apply_monkey_patch(rrule):
 	"""
 	The processing in dateutil.rrule is not properly timezone-aware, mostly because
 	Python's timezone handling is far from ideal. In particular, it will claim that,
-	for instance, "2014-03-06 19:00:00 PST" is "2014-03-13 19:00:00 PST", when in fact
-	the correct answer is "2014-03-13 19:00:00 PDT", as daylight savings has started.
+	for instance, a week after "2014-03-06 19:00:00 PST" is "2014-03-13 19:00:00 PST",
+	when in fact the correct answer is "2014-03-13 19:00:00 PDT", as daylight savings
+	has started.
 
-	Notably, the time from the original time to the time 1 week later is not 7*24 hours.
+	Notably, the time from the original time to the time 1 week later is not 7*24 hours
+	when calculated correctly.
 
 	We monkey-patch the rrule class so that all the datetimes that come out of it are
 	re-localised, so that the naive hour/minute values are preserved, but the DST flag
@@ -72,13 +74,20 @@ def _apply_monkey_patch(rrule):
 	appreciated, even if it means ditching dateutil for a better library that does
 	what we want it to here.
 	"""
-	if rrule._freq > dateutil.rrule.DAILY:
-		return
-
 	import functools
 	old_iter = rrule._iter
 	@functools.wraps(old_iter)
 	def new_iter(*args, **kwargs):
-		for dt in old_iter(*args, **kwargs):
-			yield dt.tzinfo.localize(dt.replace(tzinfo=None))
+		# If the rule is Daily/Weekly/Monthly/etc, then we want to keep the naive
+		# date/time values, eg 1 day after "7PM PST" is still "7pm PDT"
+		# even though that's only 23 hours difference.
+		# If the rule is Hourly/etc, then we want to use the timezone-aware time,
+		# eg one hour after "1:30AM PST" should be "3:30AM PDT", as that is
+		# a time gap of one actual hour.
+		if rrule._freq <= dateutil.rrule.DAILY:
+			for dt in old_iter(*args, **kwargs):
+				yield dt.tzinfo.localize(dt.replace(tzinfo=None))
+		else:
+			for dt in old_iter(*args, **kwargs):
+				yield dt.tzinfo.normalize(dt)
 	rrule._iter = new_iter
