@@ -264,7 +264,8 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			ol.append(li)
 			if "eventtime" in event:
 				div = html.new_tag("div", **{"class": "duration"})
-				div.string = str(utils.nice_duration(time.time()-event["eventtime"]))
+				timestamp = datetime.datetime.fromtimestamp(event["eventtime"], config["timezone"])
+				div.string = timestamp.strftime("%Y-%m-%d %H:%M:%S")
 				li.append(div)
 			if "channel" in event:
 				div = html.new_tag("div", **{"class": "channel"})
