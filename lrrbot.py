@@ -301,6 +301,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			del game['display']
 		else:
 			game['display'] = new_name
+		game["updated"] = time.time()
 		storage.save()
 		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (game['name'], new_name))
 
@@ -347,6 +348,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return
 		game.setdefault('stats', {}).setdefault(stat, 0)
 		game['stats'][stat] += n
+		game["updated"] = time.time()
 		storage.save()
 		self.print_stat(conn, event, [], respond_to, stat, game, with_emote=(n == 1))
 
@@ -357,6 +359,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return
 		game.setdefault('stats', {}).setdefault(stat, 0)
 		game['stats'][stat] = n
+		game["updated"] = time.time()
 		storage.save()
 		self.print_stat(conn, event, [], respond_to, stat, game)
 

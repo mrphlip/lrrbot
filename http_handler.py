@@ -7,6 +7,27 @@ import storage
 import json
 import time
 import utils
+import datetime
+
+utc = datetime.timezone.utc
+startup_timestamp = datetime.datetime.now(tz=utc).replace(microsecond=0)
+
+def http_date(date):
+	return date.astimezone(utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
+
+def parse_http_date(date):
+	# RFC1123
+	try:
+		return datetime.datetime.strptime(date, "%a, %d %b %Y %H:%M:%S GMT").replace(tzinfo=utc)
+	except:
+		pass
+	# RFC850
+	try:
+		return datetime.datetime.strptime(date, "%A, %d-%b-%y %H:%M:%S GMT").replace(tzinfo=utc)
+	except:
+		pass
+	# asctime
+	return datetime.datetime.strptime(date, "%a %b %d %H:%M:%S %Y").replace(tzinfo=utc)
 
 # Cache static pages for thirty minutes
 CACHE_STATIC_MAX_AGE = 30 * 60
@@ -59,13 +80,22 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 		}
 		super().__init__(request, client_address, server)
 
-	def send_headers(self, response, content_type = "text/html", max_age=CACHE_STATIC_MAX_AGE):
+	def send_headers(self, response, content_type = "text/html", max_age=CACHE_STATIC_MAX_AGE, last_modified=None):
 		self.send_response(response, self.responses[response][0])
-		self.send_header("Cache-Control", "max-age={}".format(max_age))
+		self.send_header("Cache-Control", "public, max-age={}".format(max_age))
 		self.send_header("Content-Type", "{}; charset=utf-8".format(content_type))
+		if last_modified is not None:
+			self.send_header("Last-Modified", http_date(last_modified))
 		self.end_headers()
 	
 	def index(self):
+		if "If-Modified-Since" in self.headers:
+			old_date = parse_http_date(self.headers["If-Modified-Since"])
+			if old_date >= startup_timestamp:
+				self.send_response(304, self.responses[304][0])
+				self.end_headers()
+				return
+
 		commands = {}
 		for command in filter(lambda x: x[:11] == "on_command_", dir(self.server.bot)):
 			name = (config["commandprefix"]+command[11:]).replace("_", " ")
@@ -120,10 +150,18 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			li = html.new_tag("li")
 			li.append(code)
 			ul.append(li)
-		self.send_headers(200, "text/html")
+		self.send_headers(200, "text/html", last_modified=startup_timestamp)
 		self.wfile.write(html.encode("utf-8"))
 	
 	def stats(self):
+		last_modified = datetime.datetime.utcfromtimestamp(max(map(lambda g: g["updated"], storage.data["games"].values()))).replace(tzinfo=utc)
+		if "If-Modified-Since" in self.headers:
+			old_date = parse_http_date(self.headers["If-Modified-Since"])
+			if old_date >= last_modified:
+				self.send_response(304, self.responses[304][0])
+				self.end_headers()
+				return
+
 		with open("www/stats.html") as f:
 			html = BeautifulSoup(f.read())
 		table = html.find("table", id="statstable")
@@ -201,17 +239,25 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			)
 			body.append(script)
 
-		self.send_headers(200, "text/html", CACHE_DYNAMIC_MAX_AGE)
+		self.send_headers(200, "text/html", CACHE_DYNAMIC_MAX_AGE, last_modified)
 		self.wfile.write(html.encode("utf-8"))
 	
 	def notifications(self):
+		last_modified = datetime.datetime.utcfromtimestamp(max(map(lambda e: e["eventtime"], storage.data["notifications"]))).replace(tzinfo=utc)
+		if "If-Modified-Since" in self.headers:
+			old_date = parse_http_date(self.headers["If-Modified-Since"])
+			if old_date >= last_modified:
+				self.send_response(304, self.responses[304][0])
+				self.end_headers()
+				return
+
 		storage.data.setdefault("notifications", [])
-		storage.data["notifications"] = list(filter(lambda e: e["eventtime"] - time.time() < 24*3600, storage.data["notifications"]))
+		storage.data["notifications"] = list(filter(lambda e: time.time() - e["eventtime"] < 24*3600, storage.data["notifications"]))
 		storage.save()
 
 		with open("www/notifications.html") as f:
 			html = BeautifulSoup(f.read())
-		html.head.append(html.new_tag("meta", **{"http-equiv": "refresh", "content": str(CACHE_MAX_AGE+5)}))
+		html.head.append(html.new_tag("meta", **{"http-equiv": "refresh", "content": str(300)}))
 		ol = html.find("ol", id="notificationlist")
 		for event in sorted(storage.data["notifications"], key=lambda x: x["eventtime"], reverse=True):
 			li = html.new_tag("li")
@@ -241,7 +287,7 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 				div = html.new_tag("div", **{"class": "message"})
 				div.string = event["message"]
 				li.append(div)
-		self.send_headers(200, "text/html", CACHE_DYNAMIC_MAX_AGE)
+		self.send_headers(200, "text/html", CACHE_DYNAMIC_MAX_AGE, last_modified)
 		self.wfile.write(html.encode("utf-8"))
 
 	def do_GET(self):
@@ -255,7 +301,11 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			response = 200 if os.path.exists("www"+path) else 404
 			content_type = self.content_type.get(path[path.rfind(".")+1:], "text/html") \
 				if response == 200 else "text/html"
-			self.send_headers(response, content_type)
+			last_modified = None
+			if response == 200:
+				mtime = os.stat("www"+path).st_mtime
+				last_modified = datetime.datetime.utcfromtimestamp(mtime).replace(tzinfo=utc)
+			self.send_headers(response, content_type, last_modified=last_modified)
 			if response == 200:
 				with open("www"+path, "rb") as f:
 					self.wfile.write(f.read())
