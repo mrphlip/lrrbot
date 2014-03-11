@@ -8,6 +8,7 @@ import json
 import time
 import utils
 import datetime
+import xml.sax.saxutils
 
 utc = datetime.timezone.utc
 startup_timestamp = datetime.datetime.now(tz=utc).replace(microsecond=0)
@@ -73,6 +74,8 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 			"/stats": self.stats,
 			"/notifications.html": self.notifications,
 			"/notifications": self.notifications,
+			"/archivefeed": self.feed,
+			"/archivefeed.rss": self.feed,
 		}
 		self.content_type = {
 			"css": "text/css",
@@ -290,7 +293,89 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 				li.append(div)
 		self.send_headers(200, "text/html", CACHE_DYNAMIC_MAX_AGE, last_modified)
 		self.wfile.write(html.encode("utf-8"))
+	
+	def feed(self):
+		broadcasts = "true"
+		if "highlights" in urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query):
+			broadcasts = "false"
+		url = "https://api.twitch.tv/kraken/channels/{}/videos?broadcasts={}&limit={}"
+		url = url.format(config["channel"], broadcasts, 100)
+		data = json.loads(utils.http_request(url))["videos"]
+		if len(data) > 0:
+			last_modified = datetime.datetime.strptime(max(map(lambda v: v["recorded_at"], data)), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=utc)
+		else:
+			last_modified = datetime.datetime.now(tz=utc)
+		url = "https://api.twitch.tv/kraken/channels/{}"
+		channel = json.loads(utils.http_request(url.format(config["channel"])))
 
+		self.send_headers(200, "application/xml", CACHE_STATIC_MAX_AGE, last_modified)
+		
+		rss = xml.sax.saxutils.XMLGenerator(self.wfile, "utf-8", True)
+		rss.startDocument()
+		rss.startElement("rss", {"version": "2.0"})
+		rss.startElement("channel", {})
+
+		rss.startElement("title", {})
+		rss.characters("{} – {}".format(channel["display_name"], "Past Broadcasts" if broadcasts == "true" else "Highlights"))
+		rss.endElement("title")
+		
+		rss.startElement("link", {})
+		rss.characters("http://twitch.tv/{}".format(config["channel"]))
+		rss.endElement("link")
+
+		rss.startElement("language", {})
+		rss.characters("en")
+		rss.endElement("language")
+
+		rss.startElement("description", {})
+		rss.endElement("description")
+
+		for vid in data:
+			rss.startElement("item", {})
+
+			rss.startElement("title", {})
+			rss.characters("{} {}".format(vid["title"], utils.nice_duration(vid["length"], 1)))
+			rss.endElement("title")
+
+			rss.startElement("link", {})
+			rss.characters(vid["url"])
+			rss.endElement("link")
+			
+			rss.startElement("description", {})
+			html = BeautifulSoup()
+			html.append(html.new_tag("img", src=vid["preview"], style="float: left; margin 0 0.5em 0.25em 0"))
+			p = html.new_tag("p", style="font: bold 125% sans-serif")
+			p.append(vid["title"])
+			html.append(p)
+			if vid["description"]:
+				p = html.new_tag("p", style="font: 100% sans-serif")
+				p.append(vid["description"])
+				html.append(p)
+			if vid["game"]:
+				p = html.new_tag("p", style="font: 100% sans-serif")
+				p.append("Playing: {}".format(vid["game"]))
+				html.append(p)
+			p = html.new_tag("p", style="font: 100% sans-serif")
+			p.append("Length: {}".format(utils.nice_duration(vid["length"], 0)))
+			html.append(p)
+			rss.characters(str(html))
+			rss.endElement("description")
+
+			rss.startElement("pubDate", {})
+			pubdate = datetime.datetime.strptime(vid["recorded_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=utc)
+			rss.characters(http_date(pubdate))
+			rss.endElement("pubDate")
+
+			rss.startElement("guid", {"isPermaLink": "true"})
+			rss.characters(vid["url"])
+			rss.endElement("guid")
+			
+			rss.endElement("item")
+
+		rss.endElement("channel")
+		rss.endElement("rss")
+		rss.endDocument()
+		
 	def do_GET(self):
 		path = os.path.normpath(urllib.parse.urlparse(self.path).path)
 		
