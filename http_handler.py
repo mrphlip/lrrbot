@@ -320,7 +320,7 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 		rss.endElement("title")
 		
 		rss.startElement("link", {})
-		rss.characters("http://twitch.tv/{}".format(config["channel"]))
+		rss.characters("http://twitch.tv/{}".format(channel["url"]))
 		rss.endElement("link")
 
 		rss.startElement("language", {})
