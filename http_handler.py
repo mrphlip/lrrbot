@@ -246,7 +246,10 @@ class HTTPHandler(http.server.BaseHTTPRequestHandler):
 		self.wfile.write(html.encode("utf-8"))
 	
 	def notifications(self):
-		last_modified = datetime.datetime.utcfromtimestamp(max(map(lambda e: e["eventtime"], storage.data["notifications"]))).replace(tzinfo=utc)
+		if len(storage.data["notifications"]) == 0:
+			last_modified = datetime.datetime.now(tz=utc)
+		else:
+			last_modified = datetime.datetime.utcfromtimestamp(max(map(lambda e: e["eventtime"], storage.data["notifications"]))).replace(tzinfo=utc)
 		if "If-Modified-Since" in self.headers:
 			old_date = parse_http_date(self.headers["If-Modified-Since"])
 			if old_date >= last_modified:
