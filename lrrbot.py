@@ -72,6 +72,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.storm_count = 0
 		self.storm_count_date = None
 
+		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
+		self.spammers = {}
+
 		self.seen_joins = False
 
 	def on_connect(self, conn, event):
@@ -110,6 +113,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		if (source.nick.lower() == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
+		elif self.check_spam(conn, event, event.arguments[0]):
+			return
 		else:
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
@@ -430,6 +435,36 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return channel.is_oper(source.nick) or channel.is_owner(source.nick)
 		else:
 			return False
+
+	def check_spam(self, conn, event, message):
+		"""Check the message against spam detection rules"""
+		if not irc.client.is_channel(event.target):
+			return False
+		respond_to = event.target
+		source = irc.client.NickMask(event.source)
+		for re, desc in self.spam_rules:
+			matches = re.search(message)
+			if matches:
+				log.info("Detected spam from %s - %r matches %s" % (source.nick, message, re.pattern))
+				groups = {str(i+1):v for i,v in enumerate(matches.groups())}
+				desc = desc % groups
+				self.spammers.setdefault(source.nick.lower(), 0)
+				self.spammers[source.nick.lower()] += 1
+				level = self.spammers[source.nick.lower()]
+				if level <= 1:
+					log.info("First offence, flickering %s" % source.nick)
+					conn.privmsg(event.target, ".timeout %s 1" % source.nick)
+					conn.privmsg(event.target, "%s: Message deleted, auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
+				elif level <= 2:
+					log.info("Second offence, timing out %s" % source.nick)
+					conn.privmsg(event.target, ".timeout %s" % source.nick)
+					conn.privmsg(event.target, "%s: Timeout for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
+				else:
+					log.info("Third offence, banning %s" % source.nick)
+					conn.privmsg(event.target, ".ban %s" % source.nick)
+					conn.privmsg(event.target, "%s: Banned persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
+				return True
+		return False
 
 def init_logging():
 	logging.basicConfig(level=config['loglevel'], format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")

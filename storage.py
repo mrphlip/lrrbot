@@ -20,6 +20,12 @@ data = {
 			},
 		},
 	},
+	'spam_rules': [
+		{
+			're': '<regular expression>',
+			'message': '<ban description>',
+		},
+	],
 }
 
 For example:
@@ -36,6 +42,12 @@ data = {
 			},
 		},
 	},
+	'spam_rules': [
+		{
+			're': '^I am a spambot!$',
+			'message': "claims to be a spambot",
+		},
+	],
 }
 """
 
