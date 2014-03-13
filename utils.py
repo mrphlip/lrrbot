@@ -122,6 +122,7 @@ class twitch_throttle:
 			else:
 				self.timestamps.append(now)
 				return f(*args, **kwargs)
+		wrapper.is_throttled = True
 		return wrapper
 
 def log_errors(func):
