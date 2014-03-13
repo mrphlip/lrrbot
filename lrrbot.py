@@ -72,6 +72,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.storm_count = 0
 		self.storm_count_date = None
 
+		self.seen_joins = False
+
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
@@ -81,6 +83,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		source = irc.client.NickMask(event.source)
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
+		else:
+			if not self.seen_joins:
+				self.seen_joins = True
+				log.info("We have joins, we're on a good server")
 
 	@utils.swallow_errors
 	def do_keepalive(self):
