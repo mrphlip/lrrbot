@@ -115,11 +115,12 @@ class twitch_throttle:
 	def __call__(self, f):
 		@functools.wraps(f)
 		def wrapper(*args, **kwargs):
-			self.timestamps = [t for t in self.timestamps if time.time()-t <= self.period]
+			now = time.time()
+			self.timestamps = [t for t in self.timestamps if now-t <= self.period]
 			if len(self.timestamps) >= self.count:
 				log.info("Ignoring {}(*{}, **{})".format(f.__name__, args, kwargs))
 			else:
-				self.timestamps += [time.time()]
+				self.timestamps.append(now)
 				return f(*args, **kwargs)
 		return wrapper
 
