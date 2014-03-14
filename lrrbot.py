@@ -65,6 +65,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.re_game_override = re.compile(r"\s*override\b\s*(.*?)\s*$", re.IGNORECASE)
 		self.re_game_refresh = re.compile(r"\s*refresh\b\s*$", re.IGNORECASE)
 		self.re_game_completed = re.compile(r"\s*completed\b\s*$", re.IGNORECASE)
+		self.re_game_vote = re.compile(r"\s*(good|bad)\b\s*$", re.IGNORECASE)
 		self.re_addremove = re.compile(r"\s*(add|remove|set)\s*(\d*)\d*$", re.IGNORECASE)
 
 		# Set up bot state
@@ -222,6 +223,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.subcommand_game_completed(conn, event, respond_to)
 			return
 
+		matches = self.re_game_vote.match(params)
+		if matches:
+			self.subcommand_game_vote(conn, event, respond_to, matches.group(1))
+			return
+
 	@utils.throttle()
 	def subcommand_game_current(self, conn, event, respond_to):
 		game = self.get_current_game()
@@ -229,9 +235,23 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			message = "Not currently playing any game"
 		else:
 			message = "Currently playing: %s" % self.game_name(game)
+			game.setdefault("votes", {})
+			if len(game["votes"]) > 0:
+				good = sum(game["votes"].values())
+				message += " (rating {:.0f}%)".format(100*good/len(game["votes"]))
 		if self.game_override is not None:
 			message += " (overridden)"
 		conn.privmsg(respond_to, message)
+
+        def subcommand_game_vote(self, conn, event, respond_to, vote):
+		game = self.get_current_game()
+		if game is None:
+			conn.privmsg(respond_to, "Not currently playing any game")
+			return
+		nick = irc.client.NickMask(event.source).nick.lower()
+		game.setdefault("votes", {})
+		game["votes"][nick] = True if vote == "good" else False
+		conn.privmsg(respond_to, "{} thinks that {} is {}".format(nick, self.game_name(game), vote))
 
 	@utils.mod_only
 	def subcommand_game_display(self, conn, event, respond_to, name):
