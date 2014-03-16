@@ -47,6 +47,10 @@ function setmodonly(node, display)
 	<dd class="modonly">(mod only) Change the display name of the current game to <i>name</i>.</dd>
 	<dt class="modonly"><code>!game refresh</code></dt>
 	<dd class="modonly">(mod only) Force a refresh of the current Twitch game (normally this is updated at most once every 15 minutes)</dd>
+	<dt class="modonly"><code>!game completed</code></dt>
+	<dd class="modonly">(mod only) Mark a game as having been completed</dd>
+	<dt><code>!game good</code> / <code>!game bad</code></dt>
+	<dd>Declare whether you believe this is a good game or a bad one. Voting a second time replaces your existing vote. The host may heed this or ignore it at their choice. Probably ignore it.</dd>
 	<dt><code>!next</code></dt>
 	<dd>Gets the next scheduled stream from the <a href="https://www.google.com/calendar/embed?src=loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com&amp;ctz=America/Vancouver">calendar</a></dd>
 	<dt><code>!stats</code></dt>
@@ -63,10 +67,13 @@ function setmodonly(node, display)
 <h3>Stats tracking</h3>
 <p>The system can track several stats for each game. The stats available are:</p>
 <ul>
-	<li><code>death</code></li>
-	<li><code>diamond</code> (mostly for Minecraft)</li>
-	<li><code>flunge</code> (mostly for Magic: the Gathering)</li>
-	<li><code>busstop</code> (it could happen)</li>
+	<li><code>death</code> &ndash; self-explanatory</li>
+	<li><code>diamond</code> &ndash; mostly for Minecraft</li>
+	<li><code>flunge</code> &ndash; mostly for Magic: the Gathering, whenever a strong offensive maneuver is made without thinking through the consequences</li>
+	<li><code>pardonfuck</code> &ndash; for when a game is ridiculously cheap and/or buggy</li>
+	<li><code>tilt</code> &ndash; when the host gets... upset... about a game</li>
+	<li><code>scream</code> &ndash; when the host reacts loudly to a horror game</li>
+	<li><code>busstop</code> &ndash; you can't prove it won't happen</li>
 </ul>
 <dl>
 	<dt><code>!</code><i>stat</i></dt>
