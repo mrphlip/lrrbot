@@ -238,7 +238,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		matches = self.re_game_vote.match(params)
 		if matches:
-			self.subcommand_game_vote(conn, event, respond_to, matches.group(1))
+			self.subcommand_game_vote(conn, event, respond_to, matches.group(1).lower() == "good")
 			return
 
 	@utils.throttle()
@@ -248,23 +248,27 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			message = "Not currently playing any game"
 		else:
 			message = "Currently playing: %s" % self.game_name(game)
-			game.setdefault("votes", {})
-			if len(game["votes"]) > 0:
+			if game.get('votes'):
 				good = sum(game["votes"].values())
-				message += " (rating {:.0f}%)".format(100*good/len(game["votes"]))
+				message += " (rating %.0f%%)" % (100*good/len(game["votes"]))
 		if self.game_override is not None:
 			message += " (overridden)"
 		conn.privmsg(respond_to, message)
 
-        def subcommand_game_vote(self, conn, event, respond_to, vote):
+	# No throttle here
+	def subcommand_game_vote(self, conn, event, respond_to, vote):
 		game = self.get_current_game()
 		if game is None:
 			conn.privmsg(respond_to, "Not currently playing any game")
 			return
-		nick = irc.client.NickMask(event.source).nick.lower()
+		nick = irc.client.NickMask(event.source).nick
 		game.setdefault("votes", {})
-		game["votes"][nick] = True if vote == "good" else False
-		conn.privmsg(respond_to, "{} thinks that {} is {}".format(nick, self.game_name(game), vote))
+		game["votes"][nick.lower()] = vote
+		storage.save()
+
+		good = sum(game["votes"].values())
+		count = len(game["votes"])
+		conn.privmsg(respond_to, "%s: Rating for %s is now %.0f%% (%d/%d)" % (nick, self.game_name(game), 100*good/count, good, count))
 
 	@utils.mod_only
 	def subcommand_game_display(self, conn, event, respond_to, name):
