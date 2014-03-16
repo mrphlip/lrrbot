@@ -302,13 +302,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.subcommand_game_current(conn, event, respond_to)
 		
 	@utils.mod_only
+	@utils.throttle(30, notify=True)
 	def subcommand_game_completed(self, conn, event, respond_to):
 		game = self.get_current_game()
 		if game is None:
 			conn.privmsg(respond_to, "Not currently playing any game")
 			return
 		game.setdefault('stats', {}).setdefault("completed", 0)
-		game['stats']["completed"] = 1
+		game['stats']["completed"] += 1
 		storage.save()
 		conn.privmsg(respond_to, "%s added to the completed list" % (self.game_name(game)))
 
@@ -337,6 +338,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	# hammering it at the same time plus or minus stream lag
 	@utils.throttle(30, notify=True, params=[4])
 	def subcommand_stat_increment(self, conn, event, respond_to, stat):
+		# Special case for this stat, should be handled through the "!game completed" code-path
+		if stat == "completed":
+			self.subcommand_game_completed(conn, event, respond_to)
+			return
 		game = self.get_current_game()
 		if game is None:
 			conn.privmsg(respond_to, "Not currently playing any game")
@@ -348,6 +353,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.mod_only
 	def subcommand_stat_edit(self, conn, event, respond_to, stat, operation, value):
+		# Let "completed" go through here like any other stat, so corrections can be made if necessary
 		operation = operation.lower()
 		if value:
 			try:
