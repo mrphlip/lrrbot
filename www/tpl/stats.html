@@ -9,7 +9,7 @@
 <!--(if stale)-->
 <p class="error">The data displayed on this page was last updated @!stale!@ ago. To show current data, please type <code>!stats</code> in the Twitch chat, to tell the LRRBot to send the latest data to the web server.</p>
 <!--(end)-->
-<table id="statstable">
+<table class="statstable">
 <thead>
 <tr>
 	<th class="game">Game</th>
@@ -40,6 +40,32 @@
 	<!--(end)-->
 </tr>
 </tfoot>
+</table>
+<table class="statstable">
+<thead>
+<tr>
+	<th class="game">Game</th>
+	<th class="rating" colspan="2">Rating</th>
+</tr>
+</thead>
+<tbody>
+<!--(for i,game in enumerate(sorted((g for g in data['games'].values() if g['votecount']), key=lambda g:-g['voteperc'])))-->
+	<tr class="@!"odd" if i%2 else "even"!@">
+		<td class="game">
+			<!--(if game['display'] != game['name'])--><span class="alias" title="@!game['name']!@"><!--(end)-->
+			@!game['display']!@
+			<!--(if game['display'] != game['name'])--></span><!--(end)-->
+		</td>
+	<td class="rating graph">
+		<div class="rating">
+			<div class="good" style="width: @!game['voteperc']!@%"></div>
+			<div class="bad" style="width: @!100.0 - game['voteperc']!@%"></div>
+		</div>
+	</td>
+	<td class="rating numbers">@!game['votegood']!@ / @!game['votecount']!@</td>
+	</tr>
+<!--(end)-->
+</tbody>
 </table>
 <script type="text/javascript" src="js/jquery-1.10.2.js"></script>
 <script type="text/javascript" src="js/highcharts.js"></script>

@@ -47,6 +47,13 @@ for game in data['games'].values():
 	game.setdefault('stats', {})
 	for statkey in data['stats'].keys():
 		game['stats'].setdefault(statkey, 0)
+	game.setdefault('votes', {})
+	game['votecount'] = len(game['votes'])
+	game['votegood'] = sum(game['votes'].values())
+	if game['votecount']:
+		game['voteperc'] = 100.0 * float(game['votegood']) / float(game['votecount'])
+	else:
+		game['voteperc'] = 0.0
 
 print "Content-type: text/html; charset=utf-8"
 print

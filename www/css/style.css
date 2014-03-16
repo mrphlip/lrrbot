@@ -95,50 +95,75 @@ p.error
 	vertical-align: middle;
 }
 
-table#statstable, table#statstable tr, table#statstable td, table#statstable th
+table.statstable, table.statstable tr, table.statstable td, table.statstable th
 {
 	border: 1px solid black;
 	border-collapse: collapse;
 }
-table#statstable
+table.statstable
 {
-	margin: 0 auto;
+	margin: 0 auto 1em;
 }
-table#statstable td, table#statstable th
+table.statstable td, table.statstable th
 {
 	padding: 0.1em 0.25em;
 }
-table#statstable tr.even
+table.statstable tr.even
 {
 	background: white;
 }
-table#statstable tr.odd
+table.statstable tr.odd
 {
 	background: #EEE;
 }
-table#statstable th
+table.statstable th
 {
 	background: #DDD;
 }
-table#statstable td.game
+table.statstable td.game
 {
 	text-align: right;
 }
-table#statstable thead th, table#statstable tfoot th.total
+table.statstable thead th, table.statstable tfoot th.total
 {
 	text-align: center;
 }
-table#statstable td.stat, table#statstable tfoot th.stat
+table.statstable td.stat, table.statstable tfoot th.stat
 {
 	text-align: right;
 }
-table#statstable td.game
+table.statstable td.game
 {
 	text-align: left;
 }
-table#statstable td.game .alias
+table.statstable td.game .alias
 {
 	border-bottom: 1px dotted black;
+}
+table.statstable div.rating
+{
+	margin: 0.25em;
+	border: 1px solid black;
+	width: 20em;
+	height: 1em;
+}
+table.statstable div.rating .good
+{
+	background: #0C0;
+	height: 1em;
+	margin: 0;
+	padding: 0;
+	border: none;
+	float: left;
+}
+table.statstable div.rating .bad
+{
+	background: #C00;
+	height: 1em;
+	margin: 0;
+	padding: 0;
+	border: none;
+	float: right;
 }
 
 .highchart
