@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="static/style.css">
 </head>
 <body>
-<table id="statstable">
+<table class="statstable">
 <thead>
 <tr>
 	<th class="game">Game</th>
@@ -36,6 +36,32 @@
 	{%endfor%}
 </tr>
 </tfoot>
+</table>
+<table class="statstable">
+<thead>
+<tr>
+	<th class="game">Game</th>
+	<th class="rating" colspan="2">Rating</th>
+</tr>
+</thead>
+<tbody>
+{%for game in votegames%}
+	<tr class="{{loop.cycle('even', 'odd')}}">
+		<td class="game">
+			{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
+			{{game['display']|e}}
+			{%if game['display'] != game['name']%}</span>{%endif%}
+		</td>
+		<td class="rating graph">
+			<div class="rating">
+				<div class="good" style="width: {{game['voteperc']}}%"></div>
+				<div class="bad" style="width: {{100.0 - game['voteperc']}}%"></div>
+			</div>
+		</td>
+		<td class="rating numbers">{{game['votegood']}} / {{game['votecount']}}</td>
+	</tr>
+{%endfor%}
+</tbody>
 </table>
 <script type="text/javascript" src="static/jquery-1.10.2.js"></script>
 <script type="text/javascript" src="static/highcharts.js"></script>
