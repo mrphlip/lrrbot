@@ -190,7 +190,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		
 	@utils.throttle(5)
 	def on_command_picnic(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "(╯°Д°）╯︵ɥɔʇıʍʇ")
+		if random.randrange(5) == 0:
+			conn.privmsg(respond_to, "THERE IS NO NEED TO PANIC, IT'S FINE, EVERYTHING IS FINE")
+		else:
+			conn.privmsg(respond_to, "(╯°Д°）╯︵ɥɔʇıʍʇ")
+	on_command_panic = on_command_picnic
 
 	@utils.throttle()
 	def on_command_drink(self, conn, event, params, respond_to):
