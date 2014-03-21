@@ -269,10 +269,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		game.setdefault("votes", {})
 		game["votes"][nick.lower()] = vote
 		storage.save()
+		self.subcommand_game_vote_respond(conn, event, respond_to, game)
 
+	@utils.throttle(60)
+	def subcommand_game_vote_respond(self, conn, event, respond_to, game):
 		good = sum(game["votes"].values())
 		count = len(game["votes"])
-		conn.privmsg(respond_to, "%s: Rating for %s is now %.0f%% (%d/%d)" % (nick, self.game_name(game), 100*good/count, good, count))
+		conn.privmsg(respond_to, "Rating for %s is now %.0f%% (%d/%d)" % (self.game_name(game), 100*good/count, good, count))
 
 	@utils.mod_only
 	def subcommand_game_display(self, conn, event, respond_to, name):
