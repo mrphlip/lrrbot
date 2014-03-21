@@ -190,11 +190,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		
 	@utils.throttle(5)
 	def on_command_picnic(self, conn, event, params, respond_to):
-		if random.randrange(5) == 0:
-			conn.privmsg(respond_to, "THERE IS NO NEED TO PANIC, IT'S FINE, EVERYTHING IS FINE")
-		else:
-			conn.privmsg(respond_to, "(╯°Д°）╯︵ɥɔʇıʍʇ")
-	on_command_panic = on_command_picnic
+		conn.privmsg(respond_to, "(╯°Д°）╯︵ɥɔʇıʍʇ")
+
+	@utils.throttle(5)
+	def on_command_panic(self, conn, event, params, respond_to):
+		conn.privmsg(respond_to, "THERE IS NO NEED TO PANIC, IT'S FINE, EVERYTHING IS FINE")
 
 	@utils.throttle()
 	def on_command_drink(self, conn, event, params, respond_to):
@@ -268,10 +268,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		game.setdefault("votes", {})
 		game["votes"][nick.lower()] = vote
 		storage.save()
+		self.subcommand_game_vote_respond(conn, event, respond_to, game)
 
+	@utils.throttle(60)
+	def subcommand_game_vote_respond(self, conn, event, respond_to, game):
 		good = sum(game["votes"].values())
 		count = len(game["votes"])
-		conn.privmsg(respond_to, "%s: Rating for %s is now %.0f%% (%d/%d)" % (nick, self.game_name(game), 100*good/count, good, count))
+		conn.privmsg(respond_to, "Rating for %s is now %.0f%% (%d/%d)" % (self.game_name(game), 100*good/count, good, count))
 
 	@utils.mod_only
 	def subcommand_game_display(self, conn, event, respond_to, name):
