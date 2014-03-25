@@ -113,8 +113,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			respond_to = source.nick
 			
-		game = self.get_current_game()
 		if self.voteUpdate:
+			game = self.get_current_game()
 			self.subcommand_game_vote_respond(conn, event, respond_to, game)
 		
 		if (source.nick.lower() == config['notifyuser']):
@@ -275,6 +275,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		game["votes"][nick.lower()] = vote
 		storage.save()
 		self.voteUpdate = True
+		self.subcommand_game_vote_respond(conn, event, respond_to, game)
 
 	@utils.throttle(60)
 	def subcommand_game_vote_respond(self, conn, event, respond_to, game):
