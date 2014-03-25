@@ -164,61 +164,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], self.storm_count))
 		utils.api_request('notifications', notifyparams, 'POST')
 
-	@utils.throttle()
-	def on_command_help(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "Help: %s" % config['siteurl'])
-	on_command_halp = on_command_help
-	on_command_commands = on_command_help
-	
 	@utils.mod_only
 	def on_command_test(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "Test")
 	
-	
-	@utils.throttle()
-	def on_command_link(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "Visit LoadingReadyRun: http://loadingreadyrun.com/")
-	on_command_lrr = on_command_link
-
-	@utils.throttle(5) # throttle can be a little shorter on this one
-	def on_command_fliptable(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, random.choice([
-			"(╯°□°）╯︵ ┻━┻",
-			"(╯°□°）╯︵ ┻━┻", # Make the classic a bit more likely
-			"(╯°Д°）╯︵ ┻━┻",
-			"(ﾉಠ益ಠ）ﾉ 彡 ┻━┻",
-		]))
-	on_command_tableflip = on_command_fliptable
-
-	@utils.throttle(5)
-	def on_command_fixtable(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "┳━┳ ノ(º_ºノ)")
-		
-	@utils.throttle(5)
-	def on_command_picnic(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "(╯°Д°）╯︵ɥɔʇıʍʇ")
-
-	@utils.throttle(5)
-	def on_command_panic(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "THERE IS NO NEED TO PANIC, IT'S FINE, EVERYTHING IS FINE")
-
-	@utils.throttle()
-	def on_command_drink(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "The drinking game is: http://bit.ly/YRRLRLager")
-
-	@utils.throttle(5)
-	def on_command_powah(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "ᕦ(° Д°)ᕤ STOPPIN POWAH")
-	on_command_stoppin = on_command_powah
-	on_command_stopping = on_command_powah
-	on_command_stoppinpowah = on_command_powah
-	on_command_stoppingpowah = on_command_powah
-
-	@utils.throttle()
-	def on_command_xcam(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "The XCam list is http://bit.ly/CamXCOM")
-	on_command_xcom = on_command_xcam
-
 	def on_command_game(self, conn, event, params, respond_to):
 		params = params.strip()
 		if params == "": # "!game" - print current game
@@ -349,6 +298,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.subcommand_stat_printtotal(conn, event, respond_to, command[5:])
 			return
 
+		if command in storage.data['responses']:
+			self.subcommand_static_response(conn, event, respond_to, command)
+			return
+
 	# Longer throttle for this command, as I expect lots of people to be
 	# hammering it at the same time plus or minus stream lag
 	@utils.throttle(30, notify=True, params=[4])
@@ -406,6 +359,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		display = storage.data['stats'][stat]
 		display = display.get('singular', stat) if count == 1 else display.get('plural', stat + "s")
 		conn.privmsg(respond_to, "%d total %s" % (count, display))
+
+	@utils.throttle(5, params=[4])
+	def subcommand_static_response(self, conn, event, respond_to, command):
+		response = storage.data['responses'][command]
+		if isinstance(response, (tuple, list)):
+			response = random.choice(response)
+		conn.privmsg(respond_to, response)
 
 	@utils.throttle()
 	def on_command_next(self, conn, event, params, respond_to):
