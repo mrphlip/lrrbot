@@ -72,6 +72,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.game_override = None
 		self.storm_count = 0
 		self.storm_count_date = None
+		self.voteUpdate = False
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
@@ -106,12 +107,16 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			conn.privmsg = utils.twitch_throttle()(conn.privmsg)
 		source = irc.client.NickMask(event.source)
 		# If the message was sent to a channel, respond in the channel
-		# If it was sent via PM, respond via PM
+		# If it was sent via PM, respond via PM		
 		if irc.client.is_channel(event.target):
 			respond_to = event.target
 		else:
 			respond_to = source.nick
-
+			
+		if self.voteUpdate:
+			game = self.get_current_game()
+			self.subcommand_game_vote_respond(conn, event, respond_to, game)
+		
 		if (source.nick.lower() == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
 		elif self.check_spam(conn, event, event.arguments[0]):
@@ -268,6 +273,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		game.setdefault("votes", {})
 		game["votes"][nick.lower()] = vote
 		storage.save()
+		self.voteUpdate = True
 		self.subcommand_game_vote_respond(conn, event, respond_to, game)
 
 	@utils.throttle(60)
@@ -275,6 +281,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		good = sum(game["votes"].values())
 		count = len(game["votes"])
 		conn.privmsg(respond_to, "Rating for %s is now %.0f%% (%d/%d)" % (self.game_name(game), 100*good/count, good, count))
+		self.voteUpdate = False
 
 	@utils.mod_only
 	def subcommand_game_display(self, conn, event, respond_to, name):
