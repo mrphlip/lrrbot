@@ -61,7 +61,7 @@ def save():
 	"""Save data to storage"""
 	with open(config['datafile'], "w") as fp:
 		# Save with pretty-printing enabled, as we probably want it to be editable
-		json.dump(data, fp, indent=2)
+		json.dump(data, fp, indent=2, sort_keys=True)
 
 def find_game(game):
 	"""
