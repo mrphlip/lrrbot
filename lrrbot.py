@@ -163,6 +163,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], self.storm_count))
 		utils.api_request('notifications/newmessage', notifyparams, 'POST')
 
+	@utils.throttle()
+	def on_command_storm(self, conn, event, params, respond_to):
+		today = datetime.datetime.now(config['timezone']).date()
+		if today != self.storm_count_date:
+			self.storm_count_date = today
+			self.storm_count = 0
+		conn.privmsg(respond_to, "Today's storm count: %d" % self.storm_count)
+	on_command_stormcount = on_command_storm
+
 	@utils.mod_only
 	def on_command_test(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "Test")
