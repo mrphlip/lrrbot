@@ -3,11 +3,11 @@ import logging
 import pytz
 from commandline import argv
 
-COFNIG_SECTION = 'lrrbot'
+CONFIG_SECTION = 'lrrbot'
 
 config = configparser.ConfigParser()
 config.read(argv.conf)
-config = dict(config.items(COFNIG_SECTION))
+config = dict(config.items(CONFIG_SECTION))
 
 # hostname - server to connect to (default Twitch)
 config.setdefault('hostname', 'irc.twitch.tv')
