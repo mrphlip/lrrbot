@@ -3,11 +3,11 @@ import logging
 import pytz
 from commandline import argv
 
-COFNIG_SECTION = 'lrrbot'
+CONFIG_SECTION = 'lrrbot'
 
 config = configparser.ConfigParser()
 config.read(argv.conf)
-config = dict(config.items(COFNIG_SECTION))
+config = dict(config.items(CONFIG_SECTION))
 
 # hostname - server to connect to (default Twitch)
 config.setdefault('hostname', 'irc.twitch.tv')
@@ -50,7 +50,7 @@ config.setdefault('siteurl', 'http://lrrbot.mrphlip.com/')
 config.setdefault('apipass', None)
 
 # mods - comma-separated list of moderators for the bot, in addition to people with chanop privileges
-config['mods'] = set(i.strip().lower() for i in config.get('mods', 'd3fr0st5,mrphlip').split(','))
+config['mods'] = set(i.strip().lower() for i in config.get('mods', 'd3fr0st5,mrphlip,lord_hosk,admiralmemo,dixonij').split(','))
 
 # datafile - file to store save data to
 config.setdefault('datafile', 'data.json')
