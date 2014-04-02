@@ -12,8 +12,8 @@ import uuid
 REQUEST_SCOPES = []
 
 # Needs to be the URI of this script, and also the registered URI for the app
-#REDIRECT_URI = 'http://lrrbot.mrphlip.com/login'
-REDIRECT_URI = 'http://localhost:5000/login'
+REDIRECT_URI = 'http://lrrbot.mrphlip.com/login'
+#REDIRECT_URI = 'http://localhost:5000/login'
 
 def with_session(func):
 	"""
