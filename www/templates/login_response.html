@@ -1,0 +1,18 @@
+{%extends "master.html"%}
+{%block title%}Log In{%endblock%}
+{%block header%}Log In{%endblock%}
+{%block headextra%}
+{%if success and return_to%}
+<meta http-equiv="refresh" content="3;{{return_to|e}}">
+{%endif%}
+{%endblock%}
+{%block content%}
+{%if success%}
+<p>Login successful</p>
+{%if return_to%}
+<p><a href="{{return_to|e}}">Return to the previous page</a></p>
+{%endif%}
+{%else%}
+<p>Login failed - please try again, and contact us if you have continued problems...</p>
+{%endif%}
+{%endblock%}

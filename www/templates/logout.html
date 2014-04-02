@@ -1,0 +1,14 @@
+{%extends "master.html"%}
+{%block title%}Log Out{%endblock%}
+{%block header%}Log Out{%endblock%}
+{%block headextra%}
+{%if return_to%}
+<meta http-equiv="refresh" content="3;{{return_to|e}}">
+{%endif%}
+{%endblock%}
+{%block content%}
+<p>Logout successful</p>
+{%if return_to%}
+<p><a href="{{return_to|e}}">Return to the previous page</a></p>
+{%endif%}
+{%endblock%}

@@ -4,6 +4,8 @@ window.rowToggle = false;
 
 function init()
 {
+	window.originalTitle = document.title;
+
 	// Convert the timestamps to Date objects
 	$("#notificationlist li").each(function()
 	{
@@ -81,9 +83,9 @@ function updateTitle()
 {
 	var newcount = $('#notificationlist li.new').length;
 	if (newcount)
-		document.title = "(" + newcount + ") Twitch notifications";
+		document.title = "(" + newcount + ") " + window.originalTitle;
 	else
-		document.title = "Twitch notifications";
+		document.title = window.originalTitle;
 }
 
 //--------------

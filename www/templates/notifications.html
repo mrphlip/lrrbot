@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Twitch notifications</title>
-<link rel="stylesheet" type="text/css" href="static/style.css">
-</head>
-<body>
+{%extends "master.html"%}
+{%block title%}Notifications{%endblock%}
+{%block header%}Twitch Notifications{%endblock%}
+{%block headextra%}
+<script type="text/javascript" src="static/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="static/common.js"></script>
+<script type="text/javascript" src="static/notifications.js"></script>
+{%endblock%}
+{%block content%}
 <ol id="notificationlist" data-maxkey="{{maxkey}}">
 {%for row in row_data%}
 	<li {%if row['time']%}data-timestamp="{{row['time']}}"{%endif%} class="{{loop.cycle('even', 'odd')}}">
@@ -21,8 +23,4 @@
 	</li>
 {%endfor%}
 </ol>
-<script type="text/javascript" src="static/jquery-1.10.2.js"></script>
-<script type="text/javascript" src="static/common.js"></script>
-<script type="text/javascript" src="static/notifications.js"></script>
-</body>
-</html>
+{%endblock%}

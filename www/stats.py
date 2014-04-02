@@ -2,11 +2,13 @@
 import flask
 import flask.json
 import server
+import login
 
 STORAGE = "../data.json"
 
 @server.app.route('/stats')
-def stats():
+@login.with_session
+def stats(session):
 	with open(STORAGE, "r") as fp:
 		data = flask.json.load(fp)
 
@@ -43,4 +45,4 @@ def stats():
 		stat['graphdata'] = [(game['display'], game['stats'][stat['statkey']]) for game in games if game['stats'][stat['statkey']]]
 		stat['graphdata'].sort(key=lambda pt:-pt[1])
 
-	return flask.render_template('stats.html', games=games, votegames=votegames, stats=stats)
+	return flask.render_template('stats.html', games=games, votegames=votegames, stats=stats, session=session)

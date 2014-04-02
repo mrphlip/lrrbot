@@ -1,10 +1,11 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Statistics</title>
-<link rel="stylesheet" type="text/css" href="static/style.css">
-</head>
-<body>
+{%extends "master.html"%}
+{%block title%}Stats{%endblock%}
+{%block header%}Statistics{%endblock%}
+{%block headextra%}
+<script type="text/javascript" src="static/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="static/highcharts.js"></script>
+{%endblock%}
+{%block content%}
 <table class="statstable">
 <thead>
 <tr>
@@ -63,8 +64,6 @@
 {%endfor%}
 </tbody>
 </table>
-<script type="text/javascript" src="static/jquery-1.10.2.js"></script>
-<script type="text/javascript" src="static/highcharts.js"></script>
 {%for stat in stats%}
 <div class="highchart" id="chart-{{stat['statkey']|e}}"></div>
 <script type="text/javascript">
@@ -97,5 +96,4 @@ $(function () {
 });
 </script>
 {%endfor%}
-</body>
-</html>
+{%endblock%}

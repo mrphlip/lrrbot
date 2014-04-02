@@ -1,0 +1,32 @@
+{%extends "master.html"%}
+{%block title%}Log In{%endblock%}
+{%block header%}Log In{%endblock%}
+{%block headextra%}
+<script>
+var nonce = {{nonce|tojson}};
+function init()
+{
+	document.getElementById("remember_me_wrapper").style.display = "";
+	update_state();
+}
+function update_state()
+{
+	var remember_me = document.getElementById("remember_me").checked;
+	var state = nonce + ":" + (remember_me ? 1 : 0);
+	document.getElementById("state").value = state;
+}
+window.onload = init;
+</script>
+{%endblock%}
+{%block content%}
+<p>Logging in to the LRRbot website via Twitch will let us know what your username is in the chat, so you can do things like vote on game ratings and such without spamming the chat. <!--It also allows moderators access to administrative pages on the site.--></p>
+<form action="https://api.twitch.tv/kraken/oauth2/authorize" method="GET">
+<div id="remember_me_wrapper" style="display: none; margin: 0.25em 0"><label><input id="remember_me" type="checkbox" onclick="update_state()" onchange="update_state()"> Remember me</label></div>
+<input type="hidden" name="response_type" value="code">
+<input type="hidden" name="client_id" value="{{clientid|e}}">
+<input type="hidden" name="redirect_uri" value="{{redirect_uri|e}}">
+<input type="hidden" name="scope" value="{{scope|e}}">
+<input type="hidden" id="state" name="state" value="{{nonce|e}}">
+<input type="image" alt="Login via Twitch" src="static/connect_dark.png">
+</form>
+{%endblock%}

@@ -1,6 +1,8 @@
 import flask
 import server
+import login
 
 @server.app.route('/')
-def index():
-	return flask.render_template('index.html')
+@login.with_session
+def index(session):
+	return flask.render_template('index.html', session=session)

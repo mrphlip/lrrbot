@@ -5,6 +5,88 @@ body
 	color: black;
 }
 
+.header
+{
+	position: relative;
+	border-radius: 0.5em;
+	padding: 1em;
+	margin: 0 0 0.5em 0;
+	color: black;
+	background-color: #CCC;
+	/* Thanks to: http://www.css3factory.com/linear-gradients/ */
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.75, #CCCCCC), color-stop(1, #EEEEEE));
+	background-image: -o-linear-gradient(bottom, #CCCCCC 75%, #EEEEEE 100%);
+	background-image: -moz-linear-gradient(bottom, #CCCCCC 75%, #EEEEEE 100%);
+	background-image: -webkit-linear-gradient(bottom, #CCCCCC 75%, #EEEEEE 100%);
+	background-image: -ms-linear-gradient(bottom, #CCCCCC 75%, #EEEEEE 100%);
+	background-image: linear-gradient(to bottom, #CCCCCC 75%, #EEEEEE 100%);
+}
+.header h1
+{
+	margin: 0;
+	padding: 0;
+	font: bold 150% sans-serif;
+	color: white;
+	text-shadow: 1px 1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000, 2px 2px 2px #000;
+}
+.header .login
+{
+	position: absolute;
+	bottom: 0.5em;
+	right: 0.5em;
+}
+.menu
+{
+	position: relative;
+	border-radius: 0.5em;
+	padding: 0.25em;
+	margin: 0 0 0.5em 0;
+	color: black;
+	background-color: #EEE;
+}
+.menu ul
+{
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.menu li
+{
+	list-style: none;
+	display: inline;
+	margin: 0;
+	padding: 0 0.5em;
+	border-left: 1px dotted grey;
+}
+.menu li.first
+{
+	border-left: none;
+}
+.menu :link, .menu :visited
+{
+	color: #00E;
+	text-decoration: none;
+}
+.body-content
+{
+	position: relative;
+	border-radius: 0.5em;
+	padding: 1em;
+	margin: 0 0 0.5em 0;
+	color: black;
+	background-color: #EEE;
+}
+.footer
+{
+	position: relative;
+	border-radius: 0.5em;
+	padding: 1em;
+	margin: 0 0 0.5em 0;
+	color: black;
+	background-color: #CCC;
+	font-size: 80%;
+}
+
 h1, h2, h3, h4, p
 {
 	margin: 0 0 0.25em;
@@ -48,13 +130,13 @@ p.error
 }
 #notificationlist li.even
 {
-	border-color: #CCC;
-	background: #CCC;
+	border-color: #BBB;
+	background: #BBB;
 }
 #notificationlist li.odd
 {
-	border-color: #EEE;
-	background: #EEE;
+	border-color: #DDD;
+	background: #DDD;
 }
 #notificationlist li.new
 {
@@ -110,15 +192,15 @@ table.statstable td, table.statstable th
 }
 table.statstable tr.even
 {
-	background: white;
+	background: #EEE;
 }
 table.statstable tr.odd
 {
-	background: #EEE;
+	background: #DDD;
 }
 table.statstable th
 {
-	background: #DDD;
+	background: #CCC;
 }
 table.statstable td.game
 {

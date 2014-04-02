@@ -5,6 +5,7 @@ import server
 import time
 import utils
 import secrets
+import login
 
 def get_notifications(cur, after=None):
 	if after is None:
@@ -25,25 +26,26 @@ def get_notifications(cur, after=None):
 	return [dict(zip(('key', 'message', 'channel', 'user', 'avatar', 'time'), row)) for row in cur.fetchall()]
 
 @server.app.route('/notifications')
+@login.with_session
 @utils.with_mysql
-def main_page(conn, cur):
+def main_page(conn, cur, session):
 	row_data = get_notifications(cur)
 	for row in row_data:
 		if row['time'] is None:
 			row['duration'] = None
 		else:
-			row['duration'] = utils.nice_duration(time.time() - row['time'], 1)
+			row['duration'] = utils.nice_duration(time.time() - row['time'], 2)
 	row_data.reverse()
 
 	if row_data:
 		maxkey = row_data[0]['key']
 	else:
-		conn.execute("SELECT MAX(NOTIFICATIONKEY) FROM NOTIFICATION")
-		maxkey = conn.fetchone()[0]
+		cur.execute("SELECT MAX(NOTIFICATIONKEY) FROM NOTIFICATION")
+		maxkey = cur.fetchone()[0]
 		if maxkey is None:
 			maxkey = -1
 
-	return flask.render_template('notifications.html', row_data=row_data, maxkey=maxkey)
+	return flask.render_template('notifications.html', row_data=row_data, maxkey=maxkey, session=session)
 
 @server.app.route('/notifications/updates', methods=['GET', 'POST'])
 @utils.with_mysql
