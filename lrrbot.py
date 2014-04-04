@@ -247,7 +247,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def subcommand_game_display(self, conn, event, respond_to, name):
 		game = self.get_current_game()
 		if game is None:
-			conn.privmsg(respond_to, "Not currently playing any game")
+			conn.privmsg(respond_to, "Not currently playing any game, if they are yell at them to update the stream")
 			return
 		game['display'] = name
 		storage.save()
