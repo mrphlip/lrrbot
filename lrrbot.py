@@ -237,7 +237,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.throttle(60)
 	def subcommand_game_vote_respond(self, conn, event, respond_to, game):
-		if game.get('votes'):
+		if game and game.get('votes'):
 			good = sum(game["votes"].values())
 			count = len(game["votes"])
 			conn.privmsg(respond_to, "Rating for %s is now %.0f%% (%d/%d)" % (self.game_name(game), 100*good/count, good, count))
