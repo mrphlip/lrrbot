@@ -392,6 +392,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	on_command_sched = on_command_next
 	on_command_nextstream = on_command_next
 
+	@utils.throttle()
+	def on_command_time(self, conn, event, params, respond_to):
+		now = datetime.datetime.now(config['timezone'])
+		conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
+
 	def get_current_game(self):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
 		if self.game_override is not None:
