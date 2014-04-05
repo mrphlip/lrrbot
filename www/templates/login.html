@@ -19,7 +19,8 @@ window.onload = init;
 </script>
 {%endblock%}
 {%block content%}
-<p>Logging in to the LRRbot website via Twitch will let us know what your username is in the chat, so you can do things like vote on game ratings and such without spamming the chat. <!--It also allows moderators access to administrative pages on the site.--></p>
+<p><!--Logging in to the LRRbot website via Twitch will let us know what your username is in the chat, so you can do things like vote on game ratings and such without spamming the chat. It also allows moderators access to administrative pages on the site.--></p>
+<p>Logging in doesn't actually achieve much yet, but it'll do something at some point in the future, I promise!</p>
 <form action="https://api.twitch.tv/kraken/oauth2/authorize" method="GET">
 <div id="remember_me_wrapper" style="display: none; margin: 0.25em 0"><label><input id="remember_me" type="checkbox" onclick="update_state()" onchange="update_state()"> Remember me</label></div>
 <input type="hidden" name="response_type" value="code">
