@@ -3,6 +3,9 @@ from lrrbot import bot
 import storage
 import utils
 
+def game_name(game):
+    return game.get("display", game["name"])
+
 @bot.command("game")
 @utils.throttle()
 def current_game(lrrbot, conn, event, respond_to):
@@ -55,10 +58,10 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 @utils.mod_only
 def override_game(lrrbot, conn, event, respond_to, game):
 	if game == "" or game.lower() == "off":
-		self.game_override = None
+		lrrbot.game_override = None
 		operation = "disabled"
 	else:
-		self.game_override = game
+		lrrbot.game_override = game
 		operation = "enabled"
 	lrrbot.get_current_game_real.reset_throttle()
 	current_game.reset_throttle()
