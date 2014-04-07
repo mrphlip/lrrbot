@@ -21,18 +21,6 @@ import googlecalendar
 
 log = logging.getLogger('lrrbot')
 
-def main():
-	init_logging()
-
-	try:
-		log.info("Bot startup")
-		LRRBot().start()
-	except (KeyboardInterrupt, SystemExit):
-		pass
-	finally:
-		log.info("Bot shutdown")
-		logging.shutdown()
-
 class LRRBot(irc.bot.SingleServerIRCBot):
 	GAME_CHECK_INTERVAL = 5*60 # Only check the current game at most once every five minutes
 
@@ -60,15 +48,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.ircobj.add_global_handler('pubmsg', self.on_message)
 		self.ircobj.add_global_handler('privmsg', self.on_message)
 
+		# Commands
+		self.commands = {}
+		self.re_botcommand = None
+		self.command_groups = {}
+
 		# Precompile regular expressions
-		self.re_botcommand = re.compile(r"^\s*%s\s*(\w+)\b\s*(.*?)\s*$" % re.escape(config['commandprefix']), re.IGNORECASE)
 		self.re_subscription = re.compile(r"^(.*) just subscribed!", re.IGNORECASE)
-		self.re_game_display = re.compile(r"\s*display\b\s*(.*?)\s*$", re.IGNORECASE)
-		self.re_game_override = re.compile(r"\s*override\b\s*(.*?)\s*$", re.IGNORECASE)
-		self.re_game_refresh = re.compile(r"\s*refresh\b\s*$", re.IGNORECASE)
-		self.re_game_completed = re.compile(r"\s*completed\b\s*$", re.IGNORECASE)
-		self.re_game_vote = re.compile(r"\s*(good|bad)\b\s*$", re.IGNORECASE)
-		self.re_addremove = re.compile(r"\s*(add|remove|set)\s*(\d*)\d*$", re.IGNORECASE)
 
 		# Set up bot state
 		self.game_override = None
@@ -108,6 +94,26 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			else:
 				conn.setblocking(True) # docs say this "may" be necessary :-/
 				self.on_server_event(conn)
+
+	def add_command(self, pattern, function):
+		self.commands[re.compile(pattern.replace(" ", r"\s+"), re.IGNORECASE)] = function
+
+	def command(self, pattern):
+		def wrapper(function):
+			self.add_command(pattern, function)
+			return function
+		return wrapper
+
+	def compile(self):
+		self.re_botcommand = r"^\s*%s\s*(?:" % re.escape(config["commandprefix"])
+		self.re_botcommand += "|".join(map(lambda re: '(%s)' % re.pattern, self.commands))
+		self.re_botcommand += r")\s*$"
+		self.re_botcommand = re.compile(self.re_botcommand, re.IGNORECASE)
+
+		i = 1
+		for regex, function in self.commands.items():
+			self.command_groups[i] = (function, i+regex.groups)
+			i += 1+regex.groups
 
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
@@ -154,15 +160,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
-				command, params = command_match.groups()
-				log.info("Command from %s: %s %s" % (source.nick, command, params))
-
-				# Find the command procedure for this command
-				command_proc = getattr(self, 'on_command_%s' % command.lower(), None)
-				if command_proc:
-					command_proc(conn, event, params, respond_to)
-				else:
-					self.on_fallback_command(conn, event, command, params, respond_to)
+				command = command_match.group(command_match.lastindex)
+				log.info("Command from %s: %s " % (source.nick, command))
+				proc, end = self.command_groups[command_match.lastindex]
+				params = command_match.groups()[command_match.lastindex:end]
+				proc(self, conn, event, respond_to, *params)
 
 	def on_notification(self, conn, event, respond_to):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
@@ -212,116 +214,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_command_test(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "Test")
 	
-	def on_command_game(self, conn, event, params, respond_to):
-		params = params.strip()
-		if params == "": # "!game" - print current game
-			self.subcommand_game_current(conn, event, respond_to)
-			return
-
-		matches = self.re_game_display.match(params)
-		if matches: # "!game display xyz" - change game display
-			self.subcommand_game_display(conn, event, respond_to, matches.group(1))
-			return
-
-		matches = self.re_game_override.match(params)
-		if matches: # "!game override xyz" - set game override
-			self.subcommand_game_override(conn, event, respond_to, matches.group(1))
-			return
-
-		matches = self.re_game_refresh.match(params)
-		if matches:
-			self.subcommand_game_refresh(conn, event, respond_to)
-			return
-			
-		matches = self.re_game_completed.match(params)
-		if matches:
-			self.subcommand_game_completed(conn, event, respond_to)
-			return
-
-		matches = self.re_game_vote.match(params)
-		if matches:
-			self.subcommand_game_vote(conn, event, respond_to, matches.group(1).lower() == "good")
-			return
-
-	@utils.throttle()
-	def subcommand_game_current(self, conn, event, respond_to):
-		game = self.get_current_game()
-		if game is None:
-			message = "Not currently playing any game"
-		else:
-			message = "Currently playing: %s" % self.game_name(game)
-			if game.get('votes'):
-				good = sum(game["votes"].values())
-				message += " (rating %.0f%%)" % (100*good/len(game["votes"]))
-		if self.game_override is not None:
-			message += " (overridden)"
-		conn.privmsg(respond_to, message)
-
-	# No throttle here
-	def subcommand_game_vote(self, conn, event, respond_to, vote):
-		game = self.get_current_game()
-		if game is None:
-			conn.privmsg(respond_to, "Not currently playing any game")
-			return
-		nick = irc.client.NickMask(event.source).nick
-		game.setdefault("votes", {})
-		game["votes"][nick.lower()] = vote
-		storage.save()
-		self.voteUpdate = True
-		self.subcommand_game_vote_respond(conn, event, respond_to, game)
-
-	@utils.throttle(60)
-	def subcommand_game_vote_respond(self, conn, event, respond_to, game):
-		if game and game.get('votes'):
-			good = sum(game["votes"].values())
-			count = len(game["votes"])
-			conn.privmsg(respond_to, "Rating for %s is now %.0f%% (%d/%d)" % (self.game_name(game), 100*good/count, good, count))
-		self.voteUpdate = False
-
-	@utils.mod_only
-	def subcommand_game_display(self, conn, event, respond_to, name):
-		game = self.get_current_game()
-		if game is None:
-			conn.privmsg(respond_to, "Not currently playing any game, if they are yell at them to update the stream")
-			return
-		game['display'] = name
-		storage.save()
-		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (game['name'], game['display']))
-
-	@utils.mod_only
-	def subcommand_game_override(self, conn, event, respond_to, param):
-		if param == "" or param.lower() == "off":
-			self.game_override = None
-			operation = "disabled"
-		else:
-			self.game_override = param
-			operation = "enabled"
-		self.get_current_game_real.reset_throttle()
-		self.subcommand_game_current.reset_throttle()
-		game = self.get_current_game()
-		if game is None:
-			conn.privmsg(respond_to, "Override %s. Not currently playing any game" % operation)
-		else:
-			conn.privmsg(respond_to, "Override %s. Currently playing: %s" % (operation, self.game_name(game)))
-
-	@utils.mod_only
-	def subcommand_game_refresh(self, conn, event, respond_to):
-		self.get_current_game_real.reset_throttle()
-		self.subcommand_game_current.reset_throttle()
-		self.subcommand_game_current(conn, event, respond_to)
-		
-	@utils.mod_only
-	@utils.throttle(30, notify=True)
-	def subcommand_game_completed(self, conn, event, respond_to):
-		game = self.get_current_game()
-		if game is None:
-			conn.privmsg(respond_to, "Not currently playing any game")
-			return
-		game.setdefault('stats', {}).setdefault("completed", 0)
-		game['stats']["completed"] += 1
-		storage.save()
-		conn.privmsg(respond_to, "%s added to the completed list" % (self.game_name(game)))
-
 	def on_fallback_command(self, conn, event, command, params, respond_to):
 		"""Handle dynamic commands that can't have their own named procedure"""
 		# General processing for all stat-management commands
@@ -539,6 +431,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			node = node.setdefault(subkey, {})
 		node[data['key'][-1]] = data['value']
 		storage.save()
+bot = LRRBot()
 
 def init_logging():
 	logging.basicConfig(level=config['loglevel'], format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")
@@ -548,4 +441,21 @@ def init_logging():
 		logging.root.addHandler(fileHandler)
 
 if __name__ == '__main__':
-	main()
+	# Fix module names
+	import sys
+	sys.modules["lrrbot"] = sys.modules["__main__"]
+
+	init_logging()
+
+	import commands
+	bot.compile()
+
+	try:
+		log.info("Bot startup")
+		bot.start()
+	except (KeyboardInterrupt, SystemExit):
+		pass
+	finally:
+		log.info("Bot shutdown")
+		logging.shutdown()
+
