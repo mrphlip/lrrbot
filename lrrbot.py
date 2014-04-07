@@ -214,20 +214,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_command_test(self, conn, event, params, respond_to):
 		conn.privmsg(respond_to, "Test")
 	
-	def on_fallback_command(self, conn, event, command, params, respond_to):
-		"""Handle dynamic commands that can't have their own named procedure"""
-		if command in storage.data['responses']:
-			self.subcommand_static_response(conn, event, respond_to, command)
-			return
-
-
-	@utils.throttle(5, params=[4])
-	def subcommand_static_response(self, conn, event, respond_to, command):
-		response = storage.data['responses'][command]
-		if isinstance(response, (tuple, list)):
-			response = random.choice(response)
-		conn.privmsg(respond_to, response)
-
 	@utils.throttle()
 	def on_command_next(self, conn, event, params, respond_to):
 		event_name, event_time, event_wait = googlecalendar.get_next_event()
