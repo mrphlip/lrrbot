@@ -42,6 +42,7 @@ def vote_respond(lrrbot, conn, event, respond_to, game):
 		
 		conn.privmsg(respond_to, "Rating for %s is now %.0f%% (%d/%d)" % (game_name(game), 100*good/count, good, count))
 	lrrbot.vote_update = None
+bot.vote_respond = vote_respond
 
 @bot.command("game display (.*?)")
 @utils.mod_only

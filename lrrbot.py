@@ -58,7 +58,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Set up bot state
 		self.game_override = None
-		self.voteUpdate = False
+		self.vote_update = None
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
@@ -149,9 +149,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			respond_to = source.nick
 			
-		if self.voteUpdate:
-			game = self.get_current_game()
-			self.subcommand_game_vote_respond(conn, event, respond_to, game)
+		if self.vote_update is not None:
+			self.vote_respond(self, conn, event, respond_to, self.vote_update)
 		
 		if (source.nick.lower() == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
@@ -197,43 +196,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			storage.save()
 			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
 		utils.api_request('notifications/newmessage', notifyparams, 'POST')
-
-	@utils.throttle()
-	def on_command_storm(self, conn, event, params, respond_to):
-		today = datetime.datetime.now(config['timezone']).date().toordinal()
-		if today != storage.data.get("storm",{}).get("date"):
-			storage.data["storm"] = {
-				"date": today,
-				"count": 0,
-			}
-			storage.save()
-		conn.privmsg(respond_to, "Today's storm count: %d" % storage.data["storm"]["count"])
-	on_command_stormcount = on_command_storm
-
-	@utils.mod_only
-	def on_command_test(self, conn, event, params, respond_to):
-		conn.privmsg(respond_to, "Test")
-	
-	@utils.throttle()
-	def on_command_next(self, conn, event, params, respond_to):
-		event_name, event_time, event_wait = googlecalendar.get_next_event()
-		if event_time:
-			nice_time = event_time.astimezone(config['timezone']).strftime("%a %I:%M %p %Z")
-			if event_wait < 0:
-				nice_duration = utils.nice_duration(-event_wait, 1) + " ago"
-			else:
-				nice_duration = utils.nice_duration(event_wait, 1) + " from now"
-			conn.privmsg(respond_to, "Next scheduled stream: %s at %s (%s)" % (event_name, nice_time, nice_duration))
-		else:
-			conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
-	on_command_schedule = on_command_next
-	on_command_sched = on_command_next
-	on_command_nextstream = on_command_next
-
-	@utils.throttle()
-	def on_command_time(self, conn, event, params, respond_to):
-		now = datetime.datetime.now(config['timezone'])
-		conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
 
 	def get_current_game(self):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
