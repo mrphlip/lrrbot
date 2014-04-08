@@ -4,5 +4,6 @@
 __pycache__
 *~
 Game.ini
+*.json
 .dropbox
 desktop.ini
