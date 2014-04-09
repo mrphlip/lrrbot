@@ -22,6 +22,12 @@ def get_next_event(after=None, all=False):
 		if isinstance(ev, icalendar.Event):
 			event_name = str(ev['summary'])
 			event_time = ev['dtstart'].dt
+			exception_times = ev.get('exdate')
+			if not exception_times:
+				exception_times = []
+			elif not isinstance(exception_times, (tuple, list)):
+				exception_times = [exception_times]
+			exception_times = set(j.dt for i in exception_times for j in i.dts)
 			if not isinstance(event_time, datetime.datetime):
 				# ignore full-day events
 				continue
@@ -36,7 +42,13 @@ def get_next_event(after=None, all=False):
 				### MASSIVE HACK ALERT
 				_apply_monkey_patch(rrule)
 				### END MASSIVE HACK ALERT
-				event_time_cutoff = rrule.after(after)
+				# Find the next event in the recurrence that isn't an exception
+				search_date = after
+				while True:
+					search_date = rrule.after(search_date)
+					if search_date is None or search_date - cutoff_delay not in exception_times:
+						break
+				event_time_cutoff = search_date
 				if event_time_cutoff is None:
 					continue
 				event_time = event_time_cutoff - cutoff_delay
