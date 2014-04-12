@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Dependencies:
-#   easy_install irc icalendar python-dateutil flask oursql
+#   easy_install irc icalendar python-dateutil sseclient flask oursql
 
 import re
 import time
@@ -9,8 +9,11 @@ import datetime
 import random
 import urllib.request, urllib.parse
 import json
+import threading
+import queue
 import logging
 import irc.bot, irc.client
+import sseclient
 from config import config
 import storage
 import twitch
@@ -78,6 +81,24 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.spammers = {}
 
 		self.seen_joins = False
+
+		self.event_queue = queue.Queue()
+		# TODO: To be more robust, the code really should have a way to shut this thread down
+		# when the bot exits... currently, it's assuming that there'll only be one LRRBot
+		# instance, that lasts the life of the program... which is true for now...
+		threading.Thread(target=self.event_thread, name="Event Thread", daemon=True).start()
+
+	def start(self):
+		self._connect()
+		while True:
+			self.ircobj.process_once(timeout=0.2)
+			while True:
+				try:
+					event = self.event_queue.get_nowait()
+				except queue.Empty:
+					break
+				else:
+					self.on_server_event(event)
 
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
@@ -474,6 +495,55 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					conn.privmsg(event.target, "%s: Banned persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
 				return True
 		return False
+
+	def event_thread(self):
+		"""
+		Connect to the server and listen for events
+
+		Then pass the event to the main IRC thread so that processing the event
+		doesn't conflict with the real bot
+		"""
+		data = {
+			'apipass': config['apipass']
+		}
+		while True:
+			try:
+				for event in sseclient.SSEClient(config['siteurl'] + "bot/events?" + urllib.parse.urlencode(data)):
+					if event.data: # ignore the keep-alive messages
+						self.event_queue.put(event)
+			except (KeyboardInterrupt, SystemExit):
+				raise
+			except:
+				log.exception("SSE connection error")
+			log.info("SSE connection closed, retrying in 10 seconds...")
+			time.sleep(10)
+
+	@utils.swallow_errors
+	def on_server_event(self, event):
+		log.info("Received command from server: %s(%s)" % (event.event, event.data))
+		data = json.loads(event.data)
+		event_proc = getattr(self, 'on_server_event_%s' % event.event.lower())
+		event_proc(data)
+		if data.get('callback'):
+			utils.api_request('bot/callback', {
+				'apipass': config['apipass'],
+				'callback': data['callback'],
+			}, 'POST')
+
+	def on_server_event_set_data(self, data):
+		if not isinstance(data['key'], (list, tuple)):
+			data['key'] = [data['key']]
+		log.info("Setting storage %s to %r" % ('.'.join(data['key']), data['value']))
+		# if key is, eg, ["a", "b", "c"]
+		# then we want to effectively do:
+		# storage.data["a"]["b"]["c"] = value
+		# But in case one of those intermediate dicts doesn't exist:
+		# storage.data.setdefault("a", {}).setdefault("b", {})["c"] = value
+		node = storage.data
+		for subkey in data['key'][:-1]:
+			node = node.setdefault(subkey, {})
+		node[data['key'][-1]] = data['value']
+		storage.save()
 
 def init_logging():
 	logging.basicConfig(level=config['loglevel'], format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")

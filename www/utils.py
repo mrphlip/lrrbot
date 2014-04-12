@@ -124,7 +124,11 @@ class SSEServer(object):
 		Called by event consumers, returns the event stream.
 
 		Can be bound directly to a URL:
-		app.add_url_rule('/endpoint', view_func=event_server.subscribe)
+			app.add_url_rule('/endpoint', view_func=event_server.subscribe)
+		or called from a handler:
+			@app.route('/endpoint')
+			def handler():
+				return event_server.subscribe()
 		"""
 		return flask.Response(self._event_generator(), mimetype="text/event-stream")
 

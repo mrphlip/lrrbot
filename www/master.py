@@ -5,6 +5,7 @@ import notifications
 import stats
 import login
 import archive
+import botinteract
 import secrets
 
 server.app.secret_key = secrets.session_secret
