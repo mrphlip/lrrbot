@@ -98,6 +98,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def add_command(self, pattern, function):
 		self.commands[re.compile(pattern.replace(" ", r"\s+"), re.IGNORECASE)] = function
 
+	def remove_command(self, pattern):
+		del self.commands[re.compile(pattern.replace(" ", r"\s+"), re.IGNORECASE)]
+
 	def command(self, pattern):
 		def wrapper(function):
 			self.add_command(pattern, function)
@@ -278,6 +281,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			node = node.setdefault(subkey, {})
 		node[data['key'][-1]] = data['value']
 		storage.save()
+
+	def on_server_event_modify_command(self, data):
+		commands.static.modify_command(data["pattern"], data["response"])
+		bot.compile()
 bot = LRRBot()
 
 def init_logging():
