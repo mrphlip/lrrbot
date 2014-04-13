@@ -7,3 +7,4 @@ Game.ini
 *.json
 .dropbox
 desktop.ini
+*.sock

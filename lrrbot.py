@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Dependencies:
-#   easy_install irc icalendar python-dateutil sseclient flask oursql
+#   easy_install irc icalendar python-dateutil flask oursql
 
+import os
 import re
 import time
 import datetime
 import random
 import urllib.request, urllib.parse
 import json
-import threading
-import queue
 import logging
+import socket
 import irc.bot, irc.client
-import sseclient
 from config import config
 import storage
 import twitch
@@ -82,23 +81,30 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.seen_joins = False
 
-		self.event_queue = queue.Queue()
-		# TODO: To be more robust, the code really should have a way to shut this thread down
+		# TODO: To be more robust, the code really should have a way to shut this socket down
 		# when the bot exits... currently, it's assuming that there'll only be one LRRBot
 		# instance, that lasts the life of the program... which is true for now...
-		threading.Thread(target=self.event_thread, name="Event Thread", daemon=True).start()
+		try:
+			os.unlink(config['socket_filename'])
+		except OSError:
+			if os.path.exists(config['socket_filename']):
+				raise
+		self.event_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+		self.event_socket.bind(config['socket_filename'])
+		self.event_socket.listen(5)
+		self.event_socket.setblocking(False)
 
 	def start(self):
 		self._connect()
 		while True:
 			self.ircobj.process_once(timeout=0.2)
-			while True:
-				try:
-					event = self.event_queue.get_nowait()
-				except queue.Empty:
-					break
-				else:
-					self.on_server_event(event)
+			try:
+				conn, addr = self.event_socket.accept()
+			except OSError:
+				pass
+			else:
+				conn.setblocking(True) # docs say this "may" be necessary :-/
+				self.on_server_event(conn)
 
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
@@ -496,39 +502,19 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				return True
 		return False
 
-	def event_thread(self):
-		"""
-		Connect to the server and listen for events
-
-		Then pass the event to the main IRC thread so that processing the event
-		doesn't conflict with the real bot
-		"""
-		data = {
-			'apipass': config['apipass']
-		}
-		while True:
-			try:
-				for event in sseclient.SSEClient(config['siteurl'] + "bot/events?" + urllib.parse.urlencode(data)):
-					if event.data: # ignore the keep-alive messages
-						self.event_queue.put(event)
-			except (KeyboardInterrupt, SystemExit):
-				raise
-			except:
-				log.exception("SSE connection error")
-			log.info("SSE connection closed, retrying in 10 seconds...")
-			time.sleep(10)
-
 	@utils.swallow_errors
-	def on_server_event(self, event):
-		log.info("Received command from server: %s(%s)" % (event.event, event.data))
-		data = json.loads(event.data)
-		event_proc = getattr(self, 'on_server_event_%s' % event.event.lower())
-		event_proc(data)
-		if data.get('callback'):
-			utils.api_request('bot/callback', {
-				'apipass': config['apipass'],
-				'callback': data['callback'],
-			}, 'POST')
+	def on_server_event(self, conn):
+		log.debug("Received event connection from server")
+		buf = b""
+		while b"\n" not in buf:
+			buf += conn.recv(1024)
+		data = json.loads(buf.decode())
+		log.info("Command from server: %s(%r)" % (data['command'], data['param']))
+		event_proc = getattr(self, 'on_server_event_%s' % data['command'].lower())
+		ret = event_proc(data['param'])
+		log.debug("Returning: %r" % ret)
+		conn.send((json.dumps(ret) + "\n").encode())
+		conn.close()
 
 	def on_server_event_set_data(self, data):
 		if not isinstance(data['key'], (list, tuple)):

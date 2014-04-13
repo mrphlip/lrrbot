@@ -57,3 +57,6 @@ config.setdefault('datafile', 'data.json')
 
 # timezone - timezone to use for display purposes - default to Pacific Time
 config['timezone'] = pytz.timezone(config.get('timezone', 'America/Vancouver'))
+
+# socket_filename - Filename for the UDS channel that the webserver uses to communicate with the bot
+config.setdefault('socket_filename', 'lrrbot.sock')
