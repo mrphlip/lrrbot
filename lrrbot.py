@@ -72,8 +72,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Set up bot state
 		self.game_override = None
-		self.storm_count = 0
-		self.storm_count_date = None
 		self.voteUpdate = False
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
@@ -187,21 +185,27 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				if channel_info.get('logo'):
 					notifyparams['avatar'] = channel_info['logo']
 			# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
-			today = datetime.datetime.now(config['timezone']).date()
-			if today != self.storm_count_date:
-				self.storm_count_date = today
-				self.storm_count = 0
-			self.storm_count += 1
-			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], self.storm_count))
+			today = datetime.datetime.now(config['timezone']).date().toordinal()
+			if today != storage.data.get("storm",{}).get("date"):
+				storage.data["storm"] = {
+					"date": today,
+					"count": 0,
+				}
+			storage.data["storm"]["count"] += 1
+			storage.save()
+			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
 		utils.api_request('notifications/newmessage', notifyparams, 'POST')
 
 	@utils.throttle()
 	def on_command_storm(self, conn, event, params, respond_to):
-		today = datetime.datetime.now(config['timezone']).date()
-		if today != self.storm_count_date:
-			self.storm_count_date = today
-			self.storm_count = 0
-		conn.privmsg(respond_to, "Today's storm count: %d" % self.storm_count)
+		today = datetime.datetime.now(config['timezone']).date().toordinal()
+		if today != storage.data.get("storm",{}).get("date"):
+			storage.data["storm"] = {
+				"date": today,
+				"count": 0,
+			}
+			storage.save()
+		conn.privmsg(respond_to, "Today's storm count: %d" % storage.data["storm"]["count"])
 	on_command_stormcount = on_command_storm
 
 	@utils.mod_only
