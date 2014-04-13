@@ -96,6 +96,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	def start(self):
 		self._connect()
+
+		# Don't fall over if the server sends something that's not real UTF-8
+		for conn in self.ircobj.connections:
+			conn.buffer.errors = "replace"
+
 		while True:
 			self.ircobj.process_once(timeout=0.2)
 			try:
