@@ -45,7 +45,10 @@ $(document).ready(function() {
     $("#stats").dataTable({
         "bPaginate": false,
         "bFilter": false,
-        "bInfo": false
+        "bInfo": false,
+        "aoColumnDefs": [
+            {"aTargets": [0], "sType": "html"}
+        ]
     });
 });
 </script>
