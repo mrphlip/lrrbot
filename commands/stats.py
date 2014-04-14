@@ -84,8 +84,8 @@ def printtotal(lrrbot, conn, event, respond_to, stat):
 re_stats = "|".join(storage.data["stats"])
 
 bot.add_command("(%s)" % re_stats, increment)
-bot.add_command("(%s) add( \d+)?" % re_stats, add)
-bot.add_command("(%s) remove( \d+)?" % re_stats, remove)
-bot.add_command("(%s) set (\d+)" % re_stats, stat_set)
+bot.add_command("(%s)\s+add(?:\s+(\d+))?" % re_stats, add)
+bot.add_command("(%s)\s+remove(?:\s+(\d+))?" % re_stats, remove)
+bot.add_command("(%s)\s+set\s+(\d+)" % re_stats, stat_set)
 bot.add_command("(%s)count" % re_stats, stat_print)
 bot.add_command("total(%s)" % re_stats, printtotal)
