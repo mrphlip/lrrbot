@@ -4,9 +4,10 @@
 {%block headextra%}
 <script type="text/javascript" src="static/jquery-1.10.2.js"></script>
 <script type="text/javascript" src="static/highcharts.js"></script>
+<script type="text/javascript" src="static/jquery.dataTables.min.js"></script>
 {%endblock%}
 {%block content%}
-<table class="statstable">
+<table class="statstable" id="stats">
 <thead>
 <tr>
 	<th class="game">Game</th>
@@ -38,6 +39,17 @@
 </tr>
 </tfoot>
 </table>
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#stats tr").removeClass("even odd");
+    $("#stats").dataTable({
+        "bPaginate": false,
+        "bFilter": false,
+        "bInfo": false
+    });
+});
+</script>
+
 <table class="statstable">
 <thead>
 <tr>
