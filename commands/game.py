@@ -67,7 +67,7 @@ def override_game(lrrbot, conn, event, respond_to, game):
 	lrrbot.get_current_game_real.reset_throttle()
 	current_game.reset_throttle()
 	game = lrrbot.get_current_game()
-	message = "Override %s." % operation
+	message = "Override %s. " % operation
 	if game is None:
 		message += "Not currently playing any game"
 	else:

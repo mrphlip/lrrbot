@@ -13,7 +13,7 @@ def test(lrrbot, conn, event, respond_to):
 @bot.command("storm(?:count)?")
 @utils.throttle()
 def stormcount(lrrbot, conn, event, respond_to):
-	today = datetime.datetime.now(config["timezone"]).data()
+	today = datetime.datetime.now(config["timezone"]).date().toordinal()
 	if today != storage.data.get("storm", {}).get("date"):
 		storage.data["storm"] = {
 			"date": today,
