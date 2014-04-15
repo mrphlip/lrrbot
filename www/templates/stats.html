@@ -2,9 +2,9 @@
 {%block title%}Stats{%endblock%}
 {%block header%}Statistics{%endblock%}
 {%block headextra%}
-<script type="text/javascript" src="static/jquery-1.10.2.js"></script>
-<script type="text/javascript" src="static/highcharts.js"></script>
-<script type="text/javascript" src="static/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='highcharts.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='jquery.dataTables.min.js')|e}}"></script>
 {%endblock%}
 {%block content%}
 <table class="statstable" id="stats">

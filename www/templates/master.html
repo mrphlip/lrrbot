@@ -3,8 +3,8 @@
 <head>
 {%block head%}
 <title>{%block title%}{%endblock%} &ndash; LRRbot</title>
-<link rel="stylesheet" type="text/css" href="static/style.css">
-<link rel="shortcut icon" href="static/favicon.ico">
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')|e}}">
+<link rel="shortcut icon" href="{{url_for('static', filename='favicon.ico')|e}}">
 {%block headextra%}{%endblock%}
 {%endblock%}
 </head>
@@ -12,18 +12,18 @@
 <div class="header">
 	<div class="login">
 		{%if session['user']%}
-			<a href="/logout{%if session['url']%}?return_to={{session['url']|e}}{%endif%}">Log out ({{session['user']|e}})</a>
+			<a href="{{url_for('logout')|e}}{%if session['url']%}?return_to={{session['url']|e}}{%endif%}">Log out ({{session['user']|e}})</a>
 		{%else%}
-			<a href="/login{%if session['url']%}?return_to={{session['url']|e}}{%endif%}">Log in</a>
+			<a href="{{url_for('login')|e}}{%if session['url']%}?return_to={{session['url']|e}}{%endif%}">Log in</a>
 		{%endif%}
 	</div>
 	<h1>LRRbot &ndash; {%block header%}{%endblock%}</h1>
 </div>
 <div class="menu">
 <ul>
-	<li class="first"><a href="/">Commands</a></li>
-	<li><a href="/stats">Stats</a></li>
-	<li><a href="/notifications">Notifications</a></li>
+	<li class="first"><a href="{{url_for('index')|e}}">Commands</a></li>
+	<li><a href="{{url_for('stats')|e}}">Stats</a></li>
+	<li><a href="{{url_for('notifications')|e}}">Notifications</a></li>
 </ul>
 </div>
 <div class="body-content">

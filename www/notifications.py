@@ -28,7 +28,7 @@ def get_notifications(cur, after=None):
 @server.app.route('/notifications')
 @login.with_session
 @utils.with_mysql
-def main_page(conn, cur, session):
+def notifications(conn, cur, session):
 	row_data = get_notifications(cur)
 	for row in row_data:
 		if row['time'] is None:
