@@ -190,11 +190,11 @@ table.statstable td, table.statstable th
 {
 	padding: 0.1em 0.25em;
 }
-table.statstable tr.even
+table.statstable tr.odd
 {
 	background: #EEE;
 }
-table.statstable tr.odd
+table.statstable tr.even
 {
 	background: #DDD;
 }
