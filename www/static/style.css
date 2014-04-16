@@ -218,7 +218,7 @@ table.statstable td.game
 {
 	text-align: left;
 }
-table.statstable td.game .alias
+.alias
 {
 	border-bottom: 1px dotted black;
 }
@@ -253,4 +253,117 @@ table.statstable div.rating .bad
 	width: auto;
 	height: 25em;
 	margin: 0.5em 0;
+}
+
+table.votes, table.votes tr, table.votes td, table.votes th
+{
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+table.votes
+{
+	margin: 0 auto 1em;
+}
+table.votes td, table.votes th
+{
+	padding: 0.1em 0.25em;
+}
+table.votes tr.odd
+{
+	background: #EEE;
+}
+table.votes tr.even
+{
+	background: #DDD;
+}
+table.votes tr.current
+{
+	background: #DFD;
+}
+table.votes th
+{
+	background: #CCC;
+}
+table.votes td.game
+{
+	text-align: right;
+}
+table.votes .current td.game
+{
+	font-size: 200%;
+}
+table.votes td.votes
+{
+	text-align: center;
+	border-left: hidden;
+}
+table.votes div.votes
+{
+	width: 36px;
+	height: 24px;
+	position: relative;
+	margin: 0 auto;
+}
+table.votes div.vote
+{
+	width: 18px;
+	height: 24px;
+	background: url(thumbs24.png);
+	position: absolute;
+}
+table.votes .current div.votes
+{
+	width: 72px;
+	height: 48px;
+}
+table.votes .current div.vote
+{
+	width: 36px;
+	height: 48px;
+	background: url(thumbs48.png);
+}
+table.votes div.vote.down
+{
+	top: 0;
+	left: 0;
+}
+table.votes div.vote.up
+{
+	top: 0;
+	right: 0;
+}
+table.votes div.vote.down.inactive
+{
+	background-position: top left;
+}
+table.votes div.vote.up.inactive
+{
+	background-position: top right;
+}
+table.votes div.vote.down.inactive:hover
+{
+	background-position: center left;
+}
+table.votes div.vote.up.inactive:hover
+{
+	background-position: center right;
+}
+table.votes div.vote.down.active
+{
+	background-position: bottom left;
+}
+table.votes div.vote.up.active
+{
+	background-position: bottom right;
+}
+table.votes div.vote.inactive
+{
+	cursor: pointer;
+}
+table.votes div.loading
+{
+	background: url(loading.gif);
+	width: 18px;
+	height: 18px;
+	margin: 0 auto;
 }

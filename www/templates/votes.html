@@ -1,0 +1,27 @@
+{%extends "master.html"%}
+{%block title%}Votes{%endblock%}
+{%block header%}Votes{%endblock%}
+{%block headextra%}
+<script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='votes.js')|e}}"></script>
+{%endblock%}
+{%block content%}
+<table class="votes">
+{%for game in games%}
+<tr class="{{loop.cycle('odd', 'even')}} {%if game['id'] == current_game_id%}current{%endif%}" data-gameid="{{game['id']|e}}" data-currentvote="{{game['vote']|tojson}}">
+	<td class="game">
+		{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
+		{{game['display']|e}}
+		{%if game['display'] != game['name']%}</span>{%endif%}
+	</td>
+	<td class="votes">
+		<div class="votes">
+			<div class="vote down {%if game['vote'] == False%}active{%else%}inactive{%endif%}"></div>
+			<div class="vote up {%if game['vote'] == True%}active{%else%}inactive{%endif%}"></div>
+		</div>
+		<div class="loading" style="display: none"></div>
+	</td>
+</tr>
+{%endfor%}
+</table>
+{%endblock%}

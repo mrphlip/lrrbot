@@ -31,6 +31,21 @@ def with_session(func):
 		return func(*args, **kwargs)
 	return wrapper
 
+def require_login(func):
+	"""
+	Like with_session, but if the user isn't logged in,
+	send them via the login screen.
+	"""
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		session = load_session()
+		if session['user']:
+			kwargs['session'] = session
+			return func(*args, **kwargs)
+		else:
+			return login(session['url'])
+	return wrapper
+
 def load_session(include_url=True):
 	"""Get the login session information from the cookies"""
 	# could potentially add other things here in the future...

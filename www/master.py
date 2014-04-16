@@ -5,6 +5,7 @@ import notifications
 import stats
 import login
 import archive
+import votes
 import botinteract
 import secrets
 

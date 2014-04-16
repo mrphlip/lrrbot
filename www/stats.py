@@ -3,14 +3,12 @@ import flask
 import flask.json
 import server
 import login
-
-STORAGE = "../data.json"
+import botinteract
 
 @server.app.route('/stats')
 @login.with_session
 def stats(session):
-	with open(STORAGE, "r") as fp:
-		data = flask.json.load(fp)
+	data = botinteract.get_data([])
 
 	games = data['games']
 	stats = data['stats']

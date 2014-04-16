@@ -89,7 +89,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.ircobj.process_once(timeout=0.2)
 			try:
 				conn, addr = self.event_socket.accept()
-			except OSError:
+			except (OSError, socket.error):
 				pass
 			else:
 				conn.setblocking(True) # docs say this "may" be necessary :-/
@@ -266,6 +266,21 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		log.debug("Returning: %r" % ret)
 		conn.send((json.dumps(ret) + "\n").encode())
 		conn.close()
+
+	def on_server_event_current_game(self, data):
+		game = self.get_current_game()
+		if game:
+			return game['id']
+		else:
+			return None
+
+	def on_server_event_get_data(self, data):
+		if not isinstance(data['key'], (list, tuple)):
+			data['key'] = [data['key']]
+		node = storage.data
+		for subkey in data['key']:
+			node = node.get(subkey, {})
+		return node
 
 	def on_server_event_set_data(self, data):
 		if not isinstance(data['key'], (list, tuple)):

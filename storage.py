@@ -82,6 +82,7 @@ def find_game(game):
 		if gamedata['name'] != game['name']:
 			gamedata['name'] = game['name']
 			save()
+		gamedata['id'] = str(game['_id'])
 		return gamedata
 
 	# Next try to find the game using the name
@@ -91,17 +92,22 @@ def find_game(game):
 			if not game.get('is_override'):
 				del data['games'][gameid]
 				data['games'][str(game['_id'])] = gamedata
+				gamedata['id'] = str(game['_id'])
 				save()
+			else:
+				gamedata['id'] = gameid
 			return gamedata
 
 	# Look up the game by display name as a fallback
 	for gameid, gamedata in data['games'].items():
 		if 'display' in gamedata and gamedata['display'] == game['name']:
 			# Don't try to keep things aligned here...
+			gamedata['id'] = gameid
 			return gamedata
 
 	# This is a new game
 	gamedata = {
+		'id': str(game['_id']),
 		'name': game['name'],
 		'stats': {},
 	}
