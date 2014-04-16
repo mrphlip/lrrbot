@@ -182,7 +182,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if subscribe_match:
 			notifyparams['subuser'] = subscribe_match.group(1)
 			try:
-				channel_info = twitch.getInfo(subscribe_match.group(1))
+				channel_info = twitch.get_info(subscribe_match.group(1))
 			except:
 				pass
 			else:
