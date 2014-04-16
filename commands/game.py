@@ -21,7 +21,7 @@ def current_game(lrrbot, conn, event, respond_to):
 		message += " (overridden)"
 	conn.privmsg(respond_to, message)
 
-@bot.command("game\s+(good|bad)")
+@bot.command("game (good|bad)")
 def vote(lrrbot, conn, event, respond_to, vote):
 	game = lrrbot.get_current_game()
 	if game is None:
@@ -44,7 +44,7 @@ def vote_respond(lrrbot, conn, event, respond_to, game):
 	lrrbot.vote_update = None
 bot.vote_respond = vote_respond
 
-@bot.command("game\s+display\s+(.*?)")
+@bot.command("game display (.*?)")
 @utils.mod_only
 def set_game_name(lrrbot, conn, event, respond_to, name):
 	game = lrrbot.get_current_game()
@@ -55,7 +55,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 	storage.save()
 	conn.privmsg(respond_to, "OK, I'll start calling %(name)s \"%(display)s\"" % game)
 
-@bot.command("game\s+override(?:\s+(.*?))?")
+@bot.command("game override (.*?)")
 @utils.mod_only
 def override_game(lrrbot, conn, event, respond_to, game):
 	if game == "" or game.lower() == "off":
@@ -74,14 +74,14 @@ def override_game(lrrbot, conn, event, respond_to, game):
 		message += "Currently playing: %s" % game_name(game)
 	conn.privmsg(respond_to, message)
 
-@bot.command("game\s+refresh")
+@bot.command("game refresh")
 @utils.mod_only
 def refresh(lrrbot, conn, event, respond_to):
 	lrrbot.get_current_game_real.reset_throttle()
 	current_game.reset_throttle()
 	current_game(lrrbot, conn, event, respond_to)
 
-@bot.command("game\s+completed")
+@bot.command("game completed")
 @utils.mod_only
 @utils.throttle(30, notify=True)
 def completed(lrrbot, conn, event, respond_to):
