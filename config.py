@@ -42,6 +42,8 @@ if config['logfile'] == "":
 
 # notifyuser - user to watch for notifications
 config['notifyuser'] = config.get('notifyuser', 'twitchnotify').lower()
+# metadatauser - user to watch for Twitch metadata
+config['metadatauser'] = config.get('metadatauser', 'jtv').lower()
 # commandprefix - symbol to prefix all bot commands
 config.setdefault('commandprefix', '!')
 # siteurl - root of web site

@@ -12,7 +12,7 @@ import urllib.request, urllib.parse
 import json
 import logging
 import socket
-import irc.bot, irc.client
+import irc.bot, irc.client, irc.modes
 from config import config
 import storage
 import twitch
@@ -47,6 +47,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.ircobj.add_global_handler('join', self.on_channel_join)
 		self.ircobj.add_global_handler('pubmsg', self.on_message)
 		self.ircobj.add_global_handler('privmsg', self.on_message)
+		self.ircobj.add_global_handler('mode', self.on_mode)
 
 		# Commands
 		self.commands = {}
@@ -55,6 +56,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Precompile regular expressions
 		self.re_subscription = re.compile(r"^(.*) just subscribed!", re.IGNORECASE)
+		self.re_subscriber = re.compile(r"^SPECIALUSER (.*) subscriber", re.IGNORECASE)
 
 		# Set up bot state
 		self.game_override = None
@@ -63,7 +65,18 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
 
-		self.seen_joins = False
+		self.mods = set(storage.data.get('mods', config['mods']))
+		self.subs = set(storage.data.get('subs', []))
+		# The way to detect a sub is if the user jtv sends us:
+		# :jtv PRIVMSG #channel :SPECIALUSER somenick subscriber
+		# just before somenick talks in the channel
+		# The way we detect that someone is *not* a subscriber (perhaps *no longer*
+		# a subscriber) is if they say something that is not so prefixed.
+		# So this set stores names that have had a "subscriber" tag, but haven't
+		# spoken yet - anyone who talks and isn't in this set, is no longer a
+		# subscriber.
+		# Convoluted, but necessary.
+		self.upcomingsubs = set()
 
 		# TODO: To be more robust, the code really should have a way to shut this socket down
 		# when the bot exits... currently, it's assuming that there'll only be one LRRBot
@@ -121,16 +134,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
+		self.twitchclient(conn, 3)
 		conn.join("#%s" % config['channel'])
 
 	def on_channel_join(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
-		else:
-			if not self.seen_joins:
-				self.seen_joins = True
-				log.info("We have joins, we're on a good server")
 
 	@utils.swallow_errors
 	def do_keepalive(self):
@@ -157,9 +167,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		
 		if (source.nick.lower() == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
+		if (source.nick.lower() == config['metadatauser']):
+			self.on_metadata(conn, event)
 		elif self.check_spam(conn, event, event.arguments[0]):
 			return
 		else:
+			self.check_subscriber(conn, source.nick.lower())
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
 				command = command_match.group(command_match.lastindex)
@@ -198,7 +211,47 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			storage.data["storm"]["count"] += 1
 			storage.save()
 			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
+
+			self.subs.add(subuser.lower())
+			storage.data['subs'] = list(self.subs)
+			storage.save()
 		utils.api_request('notifications/newmessage', notifyparams, 'POST')
+
+	def on_metadata(self, conn, event):
+		subscriber_match = self.re_subscriber.match(event.arguments[0])
+		if subscriber_match:
+			subuser = subscriber_match.group(1).lower()
+			if subuser not in self.subs:
+				self.subs.add(subuser)
+				storage.data['subs'] = list(self.subs)
+				storage.save()
+			self.upcomingsubs.add(subuser)
+
+	def check_subscriber(self, conn, nick):
+		"""
+		If a user says something that was not immediately preceded by
+		jtv saying "SPECIALUSER thisguy subscriber" then remove them from
+		the subscriber list, if they're in it.
+		"""
+		if nick not in self.upcomingsubs and nick in self.subs:
+			self.subs.remove(nick)
+			storage.data['subs'] = list(self.subs)
+			storage.save()
+		elif nick in self.upcomingsubs:
+			self.upcomingsubs.remove(nick)
+
+	def on_mode(self, conn, event):
+		if irc.client.is_channel(event.target):
+			for mode in irc.modes.parse_channel_modes(" ".join(event.arguments)):
+				if mode[0] == "+" and mode[1] == 'o':
+					self.mods.add(mode[2].lower())
+					storage.data['mods'] = list(self.mods)
+					storage.save()
+				# Son't actually remove users from self.mods on -o, as Twitch chat sends
+				# those when the user leaves the channel, and that sometimes happens
+				# unreliably, or we might not get a +o when they return...
+				# Will just have to remove users from storage.data['mods'] manually
+				# should it ever come up.
 
 	def get_current_game(self):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
@@ -215,13 +268,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""
 		source = irc.client.NickMask(event.source)
-		if source.nick.lower() in config['mods']:
-			return True
-		elif irc.client.is_channel(event.target):
-			channel = self.channels[event.target]
-			return channel.is_oper(source.nick) or channel.is_owner(source.nick)
-		else:
-			return False
+		return source.nick.lower() in self.mods
+
+	def is_sub(self, event):
+		"""Check whether the source of the event is a known subscriber to the channel"""
+		source = irc.client.NickMask(event.source)
+		return source.nick.lower() in self.subs
 
 	def check_spam(self, conn, event, message):
 		"""Check the message against spam detection rules"""
@@ -252,6 +304,27 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					conn.privmsg(event.target, "%s: Banned persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
 				return True
 		return False
+
+	def twitchclient(self, conn, level):
+		"""
+		Undocumented Twitch command that sets how TMI behaves in a variety of
+		interesting ways...
+
+		Options:
+		1 - The default. Behaves mostly like a real IRC server, with joins and parts
+		    (though on a delay) and the like. The jtv user tells you about staff
+		    members, but otherwise stays silent.
+		2 - Behaves like the previous version of the Twitch web chat. No joins or
+		    parts (there's a REST API call to get the current user list). The jtv user
+		    sends PMs before every single chat message, to say whether the chat user
+		    is a subscriber, what colour the user's name should be, and what channel
+		    emote sets the user has enabled.
+		3 - The same as 2, but the user "twitchnotify" also sends messages to the chat
+		    for notifications, currently only for new subscribers.
+
+		This may also have other effects... it is, after all, undocumented. Good luck!
+		"""
+		conn.send_raw("TWITCHCLIENT %d" % level)
 
 	@utils.swallow_errors
 	def on_server_event(self, conn):
