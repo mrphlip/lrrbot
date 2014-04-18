@@ -46,11 +46,34 @@ def require_login(func):
 			return login(session['url'])
 	return wrapper
 
+def require_mod(func):
+	"""
+	Like with_session, but if the user isn't logged in,
+	send them via the login screen. If the user isn't
+	a moderator, kick them out.
+	"""
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		session = load_session()
+		if session['user']:
+			kwargs['session'] = session
+			if session['is_mod']:
+				return func(*args, **kwargs)
+			else:
+				return flask.render_template('require_mod.html', session=session)
+		else:
+			return login(session['url'])
+	return wrapper
+
 def load_session(include_url=True):
 	"""Get the login session information from the cookies"""
 	# could potentially add other things here in the future...
 	session = {
-		"user": flask.session.get('user')
+		"user": flask.session.get('user'),
+		# Theoretically we should talk to the bot to see if this user
+		# has +o, but I don't want to have to send a bot request with
+		# every single pageload... so a static list it is.
+		"is_mod": flask.session.get('user') in secrets.mods,
 	}
 	if include_url:
 		session['url'] = flask.request.url
@@ -113,7 +136,7 @@ def login(return_to=None):
 			# user name anyway.
 			# Should we ever decide we need to keep the token around in the future, we'll need
 			# to use an alternate session backend for Flask so we can keep it secret.
-			flask.session['user'] = res_object['token']['user_name']
+			flask.session['user'] = res_object['token']['user_name'].lower()
 			flask.session.permanent = remember_me
 			return_to = flask.session.pop('login_return_to', None)
 			return flask.render_template("login_response.html", success=True, return_to=return_to, session=load_session(include_url=False))

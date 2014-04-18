@@ -1,0 +1,59 @@
+{%extends "master.html"%}
+{%block title%}Responses{%endblock%}
+{%block header%}Responses{%endblock%}
+{%block headextra%}
+<script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='commands.js')|e}}"></script>
+{%endblock%}
+{%block content%}
+<div style="text-align:right; margin: 1em">
+	<button class="save">Save</button>
+	<div class="loading" style="display: none; margin: 0 0 0 auto"></div>
+</div>
+<table class="nicetable commands">
+<thead>
+<tr>
+	<td class="command"></td>
+	<td class="response"></td>
+	<td class="button">
+		<button class="add">Add</button>
+	</td>
+</tr>
+</thead>
+<tbody>
+{%for command, response in commands%}
+<tr class="{{loop.cycle('odd', 'even')}}">
+	<td class="command">
+		{%for c in command%}
+			<div>
+				<div class="button remove {%if len(command) <= 1%}disabled{%endif%}"></div>
+				<div class="input">
+					<input type="text" value="{{c|e}}">
+				</div>
+			</div>
+		{%endfor%}
+		<div>
+			<div class="button add"></div>
+		</div>
+	</td>
+	<td class="response">
+		{%for r in response%}
+			<div>
+				<div class="button remove {%if len(response) <= 1%}disabled{%endif%}"></div>
+				<div class="input">
+					<input type="text" value="{{r|e}}">
+				</div>
+			</div>
+		{%endfor%}
+		<div>
+			<div class="button add"></div>
+		</div>
+	</td>
+	<td class="button">
+		<button class="del">Del</button>
+	</td>
+</tr>
+{%endfor%}
+</tbody>
+</table>
+{%endblock%}

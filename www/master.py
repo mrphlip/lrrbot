@@ -6,6 +6,7 @@ import stats
 import login
 import archive
 import votes
+import commands
 import botinteract
 import secrets
 

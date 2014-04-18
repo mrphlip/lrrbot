@@ -110,6 +110,13 @@ p.error
 	color: red;
 }
 
+div.loading
+{
+	background: url(loading.gif);
+	width: 18px;
+	height: 18px;
+}
+
 #notificationlist, #notificationlist li
 {
 	margin: 0;
@@ -177,31 +184,32 @@ p.error
 	vertical-align: middle;
 }
 
-table.statstable, table.statstable tr, table.statstable td, table.statstable th
+table.nicetable, table.nicetable tr, table.nicetable td, table.nicetable th
 {
 	border: 1px solid black;
 	border-collapse: collapse;
 }
-table.statstable
+table.nicetable
 {
 	margin: 0 auto 1em;
 }
-table.statstable td, table.statstable th
+table.nicetable td, table.nicetable th
 {
 	padding: 0.1em 0.25em;
 }
-table.statstable tr.odd
+table.nicetable tr.odd
 {
 	background: #EEE;
 }
-table.statstable tr.even
+table.nicetable tr.even
 {
 	background: #DDD;
 }
-table.statstable th
+table.nicetable th
 {
 	background: #CCC;
 }
+
 table.statstable td.game
 {
 	text-align: right;
@@ -255,27 +263,6 @@ table.statstable div.rating .bad
 	margin: 0.5em 0;
 }
 
-table.votes, table.votes tr, table.votes td, table.votes th
-{
-	border: 1px solid black;
-	border-collapse: collapse;
-}
-table.votes
-{
-	margin: 0 auto 1em;
-}
-table.votes td, table.votes th
-{
-	padding: 0.1em 0.25em;
-}
-table.votes tr.odd
-{
-	background: #EEE;
-}
-table.votes tr.even
-{
-	background: #DDD;
-}
 table.votes tr.current
 {
 	background: #DFD;
@@ -362,8 +349,63 @@ table.votes div.vote.inactive
 }
 table.votes div.loading
 {
-	background: url(loading.gif);
-	width: 18px;
-	height: 18px;
 	margin: 0 auto;
+}
+
+table.commands
+{
+	width: 100%;
+}
+table.commands thead td
+{
+	border-top: hidden;
+	border-left: hidden;
+	border-right: hidden;
+}
+table.commands td.command
+{
+	width: 15%;
+}
+table.commands td.response
+{
+	width: 81%;
+}
+table.commands td.button
+{
+	width: 4%;
+}
+table.commands input, table.commands button
+{
+	width: 100%;
+}
+table.commands div.button
+{
+	background: url(icons.png);
+	width: 22px;
+	height: 22px;
+	margin: 0 3px;
+	float: left;
+	cursor: pointer;
+}
+table.commands div.button.add
+{
+	background-position: 0 0;
+}
+table.commands div.button.remove
+{
+	background-position: -22px 0;
+}
+table.commands div.button.remove.disabled
+{
+	background: none;
+	cursor: inherit;
+}
+table.commands div.input
+{
+	height: 22px;
+	margin-left: 30px;
+}
+input.error
+{
+	background: #F88;
 }

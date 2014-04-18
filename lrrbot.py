@@ -370,8 +370,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		node[data['key'][-1]] = data['value']
 		storage.save()
 
-	def on_server_event_modify_command(self, data):
-		commands.static.modify_command(data["pattern"], data["response"])
+	def on_server_event_modify_commands(self, data):
+		commands.static.modify_commands(data)
 		bot.compile()
 bot = LRRBot()
 
