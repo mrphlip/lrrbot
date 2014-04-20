@@ -212,7 +212,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			storage.save()
 			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
 
-			self.subs.add(subuser.lower())
+			self.subs.add(subscribe_match.group(1).lower())
 			storage.data['subs'] = list(self.subs)
 			storage.save()
 		utils.api_request('notifications/newmessage', notifyparams, 'POST')
