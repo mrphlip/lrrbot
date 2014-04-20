@@ -32,12 +32,13 @@ class throttle(object):
 	are different are throttled separately. Should be a list of ints (for positional
 	parameters) and strings (for keyword parameters).
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=False, params=[]):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=False, params=[], log=True):
 		self.period = period
 		self.notify = notify
 		self.watchparams = params
 		self.lastrun = {}
 		self.lastreturn = {}
+		self.log = log
 
 	def watchedparams(self, args, kwargs):
 		params = []
@@ -57,7 +58,8 @@ class throttle(object):
 				self.lastrun[params] = time.time()
 				return self.lastreturn[params]
 			else:
-				log.info("Skipping %s due to throttling" % func.__name__)
+				if self.log:
+					log.info("Skipping %s due to throttling" % func.__name__)
 				if self.notify:
 					conn = args[1]
 					event = args[2]

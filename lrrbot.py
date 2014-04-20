@@ -261,7 +261,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			return storage.find_game(self.get_current_game_real())
 
-	@utils.throttle(GAME_CHECK_INTERVAL)
+	@utils.throttle(GAME_CHECK_INTERVAL, log=False)
 	def get_current_game_real(self):
 		return twitch.get_game_playing()
 

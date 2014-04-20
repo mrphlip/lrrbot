@@ -34,7 +34,7 @@ def vote(lrrbot, conn, event, respond_to, vote):
 	lrrbot.vote_update = game
 	vote_respond(lrrbot, conn, event, respond_to, game)
 
-@utils.throttle(60)
+@utils.throttle(60, log=False)
 def vote_respond(lrrbot, conn, event, respond_to, game):
 	if game and game.get("votes"):
 		good = sum(game["votes"].values())
