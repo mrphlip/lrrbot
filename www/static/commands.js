@@ -125,7 +125,7 @@ function save()
 	$.ajax({
 		'type': 'POST',
 		'url': "commands/submit",
-		'data': "data=" + escape(data),
+		'data': "data=" + encodeURIComponent(data),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,

@@ -138,7 +138,7 @@ function ajax_update()
 	$.ajax({
 		'type': 'POST',
 		'url': "notifications/updates",
-		'data': "after=" + escape(window.maxkey),
+		'data': "after=" + encodeURIComponent(window.maxkey),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,

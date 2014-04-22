@@ -19,7 +19,7 @@ function clickVote(row, vote)
 	$.ajax({
 		'type': 'POST',
 		'url': "votes/submit",
-		'data': "id=" + escape(row.data('gameid')) + "&vote=" + (vote ? 1 : 0),
+		'data': "id=" + encodeURIComponent(row.data('gameid')) + "&vote=" + (vote ? 1 : 0),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,
