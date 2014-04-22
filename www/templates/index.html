@@ -25,42 +25,14 @@ window.onload = modonly;
 <p><label><input type="checkbox" id="showmodonly" onclick="modonly()"> Show mod-only commands</label></p>
 <h3>Information</h3>
 <dl>
-	<dt><code>!commands</code> or <code>!help</code></dt>
-	<dd>Post a link to the command list</dd>
-	<dt><code>!link</code></dt>
-	<dd>Post a link to <a href="http://loadingreadyrun.com/">loadingreadyrun.com</a></dd>
-	<dt><code>!XCAM</code></dt>
-	<dd>Post a link to Cam's <a href="http://bit.ly/CamXCOM">subs' soldiers spreadsheet</a></dd>
-	<dt><code>!drink</code></dt>
-	<dd>Post a link to the <a href="http://bit.ly/YRRLRLager">drinking game rules</a></dd>
-	<dt><code>!game</code></dt>
-	<dd>Post the game currently being played</dd>
-	<dt class="modonly"><code>!game override </code><i>name</i></dt>
-	<dd class="modonly">eg: <code>!game override Prayer Warriors: A.O.F.G.</code></dd>
-	<dd class="modonly">(mod only) Override what game is being played (eg when the current game isn't in the Twitch database)</dd>
-	<dt class="modonly"><code>!game override off</code></dt>
-	<dd class="modonly">(mod only) Disable override, go back to getting current game from Twitch stream settings. Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.</dd>
-	<dt class="modonly"><code>!game display </code><i>name</i></dt>
-	<dd class="modonly">eg: <code>!game display Resident Evil: Man Fellating Giraffe</code></dd>
-	<dd class="modonly">(mod only) Change the display name of the current game to <i>name</i>.</dd>
-	<dt class="modonly"><code>!game refresh</code></dt>
-	<dd class="modonly">(mod only) Force a refresh of the current Twitch game (normally this is updated at most once every 15 minutes)</dd>
-	<dt class="modonly"><code>!game completed</code></dt>
-	<dd class="modonly">(mod only) Mark a game as having been completed</dd>
-	<dt><code>!game good</code> / <code>!game bad</code></dt>
-	<dd>Declare whether you believe this game is entertaining to watch on-stream. Voting a second time replaces your existing vote. The host may heed this or ignore it at their choice. Probably ignore it.</dd>
-	<dt><code>!next</code></dt>
-	<dd>Gets the next scheduled stream from the <a href="https://www.google.com/calendar/embed?src=loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com&amp;ctz=America/Vancouver">calendar</a></dd>
-	<dt><code>!stats</code></dt>
-	<dd>Post a link to the <a href="{{url_for('stats')|e}}">statistics page</a></dd>
-	<dt><code>!storm</code></dt>
-	<dd>Show the current storm count (the number of viewers who have subscribed today)</dd>
-	<dt><code>!tableflip</code></dt>
-	<dd><code>(╯°□°）╯︵ ┻━┻</code></dd>
-	<dt><code>!fixtable</code></dt>
-	<dd><code>┳━┳ ノ(º_ºノ)</code></dd>
-	<dt><code>!picnic</code></dt>
-	<dd><code>(╯°Д°）╯︵ɥɔʇıʍʇ</code></dd>
+{% for command in commands %}
+    <dt{% if command["mod-only"] %} class="modonly"{% endif %}>{{ command["aliases"] | safe }}
+    {% if command["throttled"] != None %}<span class="label timeout">&#x231B; {{ command["throttled"] }}</span>{% endif %}
+    {% if command["mod-only"] %}<span class="label modonly">Mod only</span>{% endif %}
+    {% for paragraph in command["description"] %}
+    <dd{% if command["mod-only"] %} class="modonly"{% endif %}>{{ paragraph }}</dd>
+    {% endfor %}
+{% endfor %}
 </dl>
 <h3>Stats tracking</h3>
 <p>The system can track several stats for each game. The stats available are:</p>

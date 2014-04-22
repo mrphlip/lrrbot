@@ -13,6 +13,12 @@ def test(lrrbot, conn, event, respond_to):
 @bot.command("storm(?:count)?")
 @utils.throttle()
 def stormcount(lrrbot, conn, event, respond_to):
+	"""
+	Command: !storm
+	Command: !stormcount
+
+	Show the current storm count (the number of viewers who have subscribed today)
+	"""
 	today = datetime.datetime.now(config["timezone"]).date().toordinal()
 	if today != storage.data.get("storm", {}).get("date"):
 		storage.data["storm"] = {
@@ -25,6 +31,14 @@ def stormcount(lrrbot, conn, event, respond_to):
 @bot.command("next(?:stream)?|sched(?:ule)?")
 @utils.throttle()
 def next(lrrbot, conn, event, respond_to):
+	"""
+	Command: !next
+	Command: !nextstream
+	Command: !sched
+	Command: !schedule
+
+	Gets the next scheduled stream from the calendar
+	"""
 	event_name, event_time, event_wait = googlecalendar.get_next_event()
 	if event_time:
 		nice_time = event_time = event_time.astimezone(config["timezone"]).strftime("%a %I:%M %p %Z")
@@ -39,5 +53,10 @@ def next(lrrbot, conn, event, respond_to):
 @bot.command("time")
 @utils.throttle()
 def time(lrrbot, conn, event, respond_to):
+	"""
+	Command: !time
+
+	Post the current moonbase time.
+	"""
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
