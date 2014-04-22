@@ -11,6 +11,7 @@ import threading
 import oursql
 import secrets
 import server
+import socket
 
 def nice_duration(s, detail=1):
 	"""
@@ -48,100 +49,16 @@ def ucfirst(s):
 	return s[0].upper() + s[1:]
 server.app.add_template_filter(ucfirst)
 
-# Timer code from http://stackoverflow.com/questions/3393612/run-certain-code-every-n-seconds/13151299#13151299
-class RepeatedTimer(object):
-	"""Run a function regularly after a particular interval of time"""
-	def __init__(self, interval, function, *args, **kwargs):
-		self._timer     = None
-		self.interval   = interval
-		self.function   = function
-		self.args       = args
-		self.kwargs     = kwargs
-		self.is_running = False
-		self.start()
+def sse_send_event(endpoint, event=None, data=None, event_id=None):
+	sse_event = {"endpoint": endpoint}
+	if event is not None:
+		sse_event["event"] = event
+	if data is not None:
+		sse_event["data"] = data
+	if event_id is not None:
+		sse_event["id"] = event_id
 
-	def _run(self):
-		self.is_running = False
-		self.start()
-		self.function(*self.args, **self.kwargs)
-
-	def start(self):
-		if not self.is_running:
-			self._timer = threading.Timer(self.interval, self._run)
-			self._timer.start()
-			self.is_running = True
-
-	def stop(self):
-		self._timer.cancel()
-		self.is_running = False
-
-# SSE code based from http://flask.pocoo.org/snippets/116/
-class ServerSentEvent(object):
-	"""Class to hold an event that should be sent to an SSE client"""
-	def __init__(self, data, event=None, id=None):
-		self.data = data
-		self.event = event
-		self.id = id
-
-	def encode(self):
-		if not isinstance(self.data, str):
-			data = flask.json.dumps(self.data)
-		if not data:
-			return ""
-		lines = []
-		for key, val in [('data', data), ('event', self.event), ('id', self.id)]:
-			if not val:
-				continue
-			for line in str(val).split('\n'):
-				lines.append("%s: %s" % (key, line))
-		return '\n'.join(lines) + "\n\n"
-
-class SSEKeepAlive(ServerSentEvent):
-	def __init__(self):
-		pass
-	def encode(self):
-		return ": keepalive\n\n"
-
-class SSEServer(object):
-	"""Mediates a server-sent-event channel."""
-	def __init__(self, keepalive_timeout=30):
-		self._subscriptions = []
-		if keepalive_timeout is not None:
-			self._timer = RepeatedTimer(keepalive_timeout, self.keepalive)
-
-	def _event_generator(self):
-		q = queue.Queue()
-		self._subscriptions.append(q)
-		try:
-			while True:
-				ev = q.get()
-				yield ev.encode()
-		finally:
-			self._subscriptions.remove(q)
-
-	def subscribe(self):
-		"""
-		Called by event consumers, returns the event stream.
-
-		Can be bound directly to a URL:
-			app.add_url_rule('/endpoint', view_func=event_server.subscribe)
-		or called from a handler:
-			@app.route('/endpoint')
-			def handler():
-				return event_server.subscribe()
-		"""
-		return flask.Response(self._event_generator(), mimetype="text/event-stream")
-
-	def publish(self, *args, **kwargs):
-		"""
-		Called by event producers, sends an event to all subscribed clients.
-		"""
-		if len(args) == 1 and not kwargs and isinstance(args[0], ServerSentEvent):
-			event = args[0]
-		else:
-			event = ServerSentEvent(*args, **kwargs)
-		for sub in self._subscriptions[:]:
-			sub.put(event)
-
-	def keepalive(self):
-		self.publish(SSEKeepAlive())
+	sse = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+	sse.connect("/tmp/eventserver.sock")
+	sse.send(flask.json.dumps(sse_event).encode("utf-8")+b"\n")
+	sse.close()
