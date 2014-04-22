@@ -1,3 +1,3 @@
 from flask import Flask
-app = Flask('lrrbot')
+app = Flask(__name__)
 __all__ = ['app']
