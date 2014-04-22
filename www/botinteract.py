@@ -1,7 +1,9 @@
 import flask.json
 import socket
+import login
 
-def send_bot_command(command, param, timeout=5):
+@login.with_session
+def send_bot_command(command, param, session, timeout=5):
 	"""
 	Send a message to the bot, and return the response
 
@@ -13,6 +15,7 @@ def send_bot_command(command, param, timeout=5):
 	data = {
 		"command": command,
 		"param": param,
+                "user": session['user'],
 	}
 	conn.send((flask.json.dumps(data) + "\n").encode())
 	buf = b""

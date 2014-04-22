@@ -333,21 +333,21 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		while b"\n" not in buf:
 			buf += conn.recv(1024)
 		data = json.loads(buf.decode())
-		log.info("Command from server: %s(%r)" % (data['command'], data['param']))
+		log.info("Command from server (%s): %s(%r)" % (data['user'], data['command'], data['param']))
 		event_proc = getattr(self, 'on_server_event_%s' % data['command'].lower())
-		ret = event_proc(data['param'])
+		ret = event_proc(data['user'], data['param'])
 		log.debug("Returning: %r" % ret)
 		conn.send((json.dumps(ret) + "\n").encode())
 		conn.close()
 
-	def on_server_event_current_game(self, data):
+	def on_server_event_current_game(self, user, data):
 		game = self.get_current_game()
 		if game:
 			return game['id']
 		else:
 			return None
 
-	def on_server_event_get_data(self, data):
+	def on_server_event_get_data(self, user, data):
 		if not isinstance(data['key'], (list, tuple)):
 			data['key'] = [data['key']]
 		node = storage.data
@@ -355,7 +355,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			node = node.get(subkey, {})
 		return node
 
-	def on_server_event_set_data(self, data):
+	def on_server_event_set_data(self, user, data):
 		if not isinstance(data['key'], (list, tuple)):
 			data['key'] = [data['key']]
 		log.info("Setting storage %s to %r" % ('.'.join(data['key']), data['value']))
@@ -370,7 +370,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		node[data['key'][-1]] = data['value']
 		storage.save()
 
-	def on_server_event_modify_commands(self, data):
+	def on_server_event_modify_commands(self, user, data):
 		commands.static.modify_commands(data)
 		bot.compile()
 bot = LRRBot()
