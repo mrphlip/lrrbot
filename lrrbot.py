@@ -373,6 +373,24 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_server_event_modify_commands(self, user, data):
 		commands.static.modify_commands(data)
 		bot.compile()
+	
+	def on_server_event_get_commands(self, user, data):
+		bind = lambda maybe, f: f(maybe) if maybe is not None else None
+		ret = []
+		for command in self.commands.values():
+			doc = utils.parse_docstring(command.__doc__)
+			for cmd in doc.walk():
+				if cmd.get_content_maintype() == "multipart":
+					continue
+				if cmd.get_all("command") is None:
+					continue
+				ret += [{
+					"aliases": cmd.get_all("command"),
+					"mod-only": cmd.get("mod-only") == "true",
+					"throttled": bind(cmd.get("throttled"), int),
+					"description": cmd.get_payload()
+				}]
+		return ret
 bot = LRRBot()
 
 def init_logging():

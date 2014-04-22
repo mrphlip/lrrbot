@@ -409,3 +409,26 @@ input.error
 {
 	background: #F88;
 }
+
+.label {
+    float: right;
+    margin-right: 1em;
+    padding: 2px;
+    border-radius: 2px;
+    color: #FFF;
+    font-size: small;
+    min-width: 5em;
+    text-align: center;
+}
+
+.label.modonly {
+    background-color: #D9534F;
+}
+
+.label.timeout {
+    background-color: #5cb85c;
+}
+
+dt code {
+    line-height: 150%;
+}
