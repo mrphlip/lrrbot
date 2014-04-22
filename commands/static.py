@@ -9,11 +9,11 @@ def generate_docstring():
 	inverse_responses = {}
 	for command, response in storage.data["responses"].items():
 		if isinstance(response, (tuple, list)):
-			response = frozenset(response)
+			response = tuple(response)
 		inverse_responses.setdefault(response, [])
 		inverse_responses[response] += [command]
 	def generator():
-		for response, command in sorted(inverse_responses.items(), key=lambda e: e[1]):
+		for response, command in inverse_responses.items():
 			fragment = ""
 			if isinstance(command, list):
 				for cmd in command:
@@ -22,8 +22,8 @@ def generate_docstring():
 				fragment += "Command: %s%s\n" % (config["commandprefix"], cmd)
 			fragment += "Throttled: 5\n"
 			fragment += "\n"
-			response = response if isinstance(response, str) else "' or '".join(response)
-			fragment += "Post '%s'\n" % response
+			response = response if isinstance(response, str) else random.choice(response)
+			fragment += response + "\n"
 			yield fragment
 	return "\n--command\n".join(generator())
 

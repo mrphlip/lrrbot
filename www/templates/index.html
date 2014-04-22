@@ -30,7 +30,7 @@ window.onload = modonly;
     {% if command["throttled"] != None %}<span class="label timeout">&#x231B; {{ command["throttled"] }}</span>{% endif %}
     {% if command["mod-only"] %}<span class="label modonly">Mod only</span>{% endif %}
     {% for paragraph in command["description"] %}
-    <dd{% if command["mod-only"] %} class="modonly"{% endif %}>{{ paragraph }}</dd>
+    <dd{% if command["mod-only"] %} class="modonly"{% endif %}>{{ paragraph | urlize }}</dd>
     {% endfor %}
 {% endfor %}
 </dl>
@@ -46,40 +46,23 @@ window.onload = modonly;
 	<li><code>busstop</code> &ndash; you can't prove it won't happen</li>
 </ul>
 <dl>
-	<dt><code>!</code><i>stat</i></dt>
+    <dt><code>!</code><i>stat</i><span class="label timeout">&#x231B; 30</span></dt>
 	<dd>eg: <code>!death</code></dd>
 	<dd>Adds 1 to the stat counter for the current game</dd>
-	<dt class="modonly"><code>!</code><i>stat</i><code> add </code><i>#</i></dt>
+    <dt class="modonly"><code>!</code><i>stat</i><code> add </code><i>#</i><span class="label modonly">Mod only</span></dt>
 	<dd class="modonly">eg: <code>!diamond add 3</code></dd>
-	<dd class="modonly">(mod only) Adds # to counter for the current game</dd>
-	<dt class="modonly"><code>!</code><i>stat</i><code> remove </code><i>#</i></dt>
+	<dd class="modonly">Adds # to counter for the current game</dd>
+    <dt class="modonly"><code>!</code><i>stat</i><code> remove </code><i>#</i><span class="label modonly">Mod only</span></dt>
 	<dd class="modonly">eg: <code>!flunge remove</code></dd>
-	<dd class="modonly">(mod only) Removes # (default 1) from counter for the current game</dd>
-	<dt class="modonly"><code>!</code><i>stat</i><code> set </code><i>#</i></dt>
+	<dd class="modonly">Removes # (default 1) from counter for the current game</dd>
+	<dt class="modonly"><code>!</code><i>stat</i><code> set </code><i>#</i><span class="label modonly">Mod only</span></dt>
 	<dd class="modonly">eg: <code>!busstop set 0</code></dd>
-	<dd class="modonly">(mod only) Resets the counter to the specified number for the current game</dd>
-	<dt><code>!</code><i>stat</i><code>Count</code></dt>
+	<dd class="modonly">Resets the counter to the specified number for the current game</dd>
+	<dt><code>!</code><i>stat</i><code>Count</code><span class="label timeout">&#x231B; 15</span></dt>
 	<dd>eg: <code>!deathcount</code></dd>
 	<dd>Post total count for the current game</dd>
-	<dt><code>!total</code><i>stat</i><code></code></dt>
+    <dt><code>!total</code><i>stat</i><code></code><span class="label timeout">&#x231B; 15</span></dt>
 	<dd>eg: <code>!totaldeath</code></dd>
 	<dd>Post total count for every game</dd>
 </dl>
-<!--
-<h4>Tournament record</h4>
-<dl>
-	<dt><code>!matchwin</code></dt>
-	<dd>Add a win to counter</dd>
-	<dt><code>!matchwin remove</code></dt>
-	<dd>(mod only) Remove a win from counter</dd>
-	<dt><code>!matchlose</code></dt>
-	<dd>Add a loss to counter</dd>
-	<dt><code>!matchlose remove</code></dt>
-	<dd>(mod only) Remove a loss from counter</dd>
-	<dt><code>!matchresult</code></dt>
-	<dd>Post current match results</dd>
-	<dt><code>!matchreset</code></dt>
-	<dd>(mod only) resets match counters</dd>
-</dl>
--->
 {%endblock%}
