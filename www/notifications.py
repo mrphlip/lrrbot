@@ -52,9 +52,6 @@ def notifications(conn, cur, session):
 def updates(conn, cur):
 	return flask.json.jsonify(notifications=get_notifications(cur, int(flask.request.values['after'])))
 
-event_server = utils.SSEServer()
-server.app.add_url_rule('/notifications/events', view_func=event_server.subscribe)
-
 @server.app.route('/notifications/newmessage', methods=['POST'])
 @utils.with_mysql
 def new_message(conn, cur):
@@ -77,5 +74,5 @@ def new_message(conn, cur):
 		data['avatar'],
 		data['time'],
 	))
-	event_server.publish(data, 'newmessage')
+	utils.sse_send_event("/notifications/events", event="newmessage", data=flask.json.dumps(data))
 	return flask.json.jsonify(success='OK')
