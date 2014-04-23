@@ -47,3 +47,6 @@ def modify_commands(data):
 	Send a message to the bot, to replace the static command responses.
 	"""
 	send_bot_command("modify_commands", data)
+
+def get_commands():
+	return send_bot_command("get_commands", None)

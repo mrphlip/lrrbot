@@ -9,6 +9,11 @@ def game_name(game):
 @bot.command("game")
 @utils.throttle()
 def current_game(lrrbot, conn, event, respond_to):
+	"""
+	Command: !game
+
+	Post the game currently being played.
+	"""
 	game = lrrbot.get_current_game()
 	if game is None:
 		message = "Not currently playing any game"
@@ -23,6 +28,15 @@ def current_game(lrrbot, conn, event, respond_to):
 
 @bot.command("game (good|bad)")
 def vote(lrrbot, conn, event, respond_to, vote):
+	"""
+	Command: !game good
+	Command: !game bad
+
+	Declare whether you believe this game is entertaining to watch
+	on-stream. Voting a second time replaces your existing vote. The
+	host may heed this or ignore it at their choice. Probably ignore
+	it.
+	"""
 	game = lrrbot.get_current_game()
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
@@ -47,6 +61,13 @@ bot.vote_respond = vote_respond
 @bot.command("game display (.*?)")
 @utils.mod_only
 def set_game_name(lrrbot, conn, event, respond_to, name):
+	"""
+	Command: !game display NAME
+
+	eg. !game display Resident Evil: Man Fellating Giraffe
+
+	Change the display name of the current game to NAME.
+	"""
 	game = lrrbot.get_current_game()
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game, if they are yell at them to update the stream")
@@ -58,6 +79,19 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 @bot.command("game override (.*?)")
 @utils.mod_only
 def override_game(lrrbot, conn, event, respond_to, game):
+	"""
+	Command: !game override NAME
+	
+	eg: !game override Prayer Warriors: A.O.F.G.
+	
+	Override what game is being played (eg when the current game isn't in the Twitch database)
+
+	--command
+	Command: !game override off
+	
+	Disable override, go back to getting current game from Twitch stream settings.
+	Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.
+	"""
 	if game == "" or game.lower() == "off":
 		lrrbot.game_override = None
 		operation = "disabled"
@@ -77,6 +111,11 @@ def override_game(lrrbot, conn, event, respond_to, game):
 @bot.command("game refresh")
 @utils.mod_only
 def refresh(lrrbot, conn, event, respond_to):
+	"""
+	Command: !game refresh
+
+	Force a refresh of the current Twitch game (normally this is updated at most once every 15 minutes)
+	"""
 	lrrbot.get_current_game_real.reset_throttle()
 	current_game.reset_throttle()
 	current_game(lrrbot, conn, event, respond_to)
@@ -85,6 +124,11 @@ def refresh(lrrbot, conn, event, respond_to):
 @utils.mod_only
 @utils.throttle(30, notify=True)
 def completed(lrrbot, conn, event, respond_to):
+	"""
+	Command: !game completed
+
+	Mark a game as having been completed.
+	"""
 	game = lrrbot.get_current_game()
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")

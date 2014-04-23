@@ -7,8 +7,43 @@ import sys
 import json
 import utils
 from config import config
+import email.parser
 
 log = logging.getLogger('utils')
+
+DOCSTRING_IMPLICIT_PREFIX = """Content-Type: multipart/message; boundary=command
+
+--command"""
+DOCSTRING_IMPLICIT_SUFFIX = "\n--command--\n"
+
+def deindent(s):
+	def skipblank():
+		generator = map(lambda s: s.lstrip(), s.splitlines())
+		for line in generator:
+			if line != '':
+				break
+		yield line
+		yield from generator
+	return "\n".join(skipblank())
+
+def parse_docstring(docstring):
+	if docstring is None:
+		docstring = ""
+	docstring = DOCSTRING_IMPLICIT_PREFIX + docstring + DOCSTRING_IMPLICIT_SUFFIX
+	return email.parser.Parser().parsestr(deindent(docstring))
+    
+def encode_docstring(docstring):
+	docstring = str(docstring)
+	assert docstring.startswith(DOCSTRING_IMPLICIT_PREFIX)
+	assert docstring.endswith(DOCSTRING_IMPLICIT_SUFFIX)
+	return docstring[len(DOCSTRING_IMPLICIT_PREFIX):-len(DOCSTRING_IMPLICIT_SUFFIX)]
+    
+def add_header(doc, name, value):
+	for part in doc.walk():
+		if part.get_content_maintype() != "multipart":
+			part[name] = value
+	return doc
+
 
 DEFAULT_THROTTLE = 15
 
@@ -72,6 +107,8 @@ class throttle(object):
 				return self.lastreturn[params]
 		# Copy this method across so it can be accessed on the wrapped function
 		wrapper.reset_throttle = self.reset_throttle
+		wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
+			"Throttled", str(self.period)))
 		return wrapper
 
 	def reset_throttle(self):
@@ -106,6 +143,8 @@ def mod_only(func):
 			log.info("Refusing %s due to not-a-mod" % func.__name__)
 			mod_complaint(conn, event)
 			return None
+	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
+		"Mod-Only", "true"))
 	return wrapper
 
 class twitch_throttle:
