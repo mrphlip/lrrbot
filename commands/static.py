@@ -29,14 +29,14 @@ def generate_docstring():
 
 @utils.throttle(5, params=[4])
 def static_response(lrrbot, conn, event, respond_to, command):
-	response = storage.data["responses"][command]
+	response = storage.data["responses"][command.lower()]
 	if isinstance(response, (tuple, list)):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response)
 
 def modify_commands(commands):
     bot.remove_command("(%s)" % "|".join(re.escape(c) for c in storage.data["responses"]))
-    storage.data["responses"] = commands
+    storage.data["responses"] = dict(map(lambda c: (c[0].lower(), c[1]), commands.items()))
     storage.save()
     static_response.__doc__ = generate_docstring()
     bot.add_command("(%s)" % "|".join(re.escape(c) for c in storage.data["responses"]), static_response)
