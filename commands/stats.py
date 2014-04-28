@@ -73,6 +73,8 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 	conn.privmsg(respond_to, "%s%d %s for %s" % (emote, count, display, game_name(game)))
 	if countT == 1000:
 		conn.privmsg(respond_to, "Watch and pray for another %d %s!" % (countT, display))
+	if countT == 2500:
+		conn.privmsg(respond_to, "For hitting this milestone here's some code drop, Fez: 63BT5-GQ72Z-6L068 Mark of the Ninja: C03YW-YX0CA-IYC85 FTL: 5539N-PAREC-J4YGM Bastion: TE4M2-A5V64-BITNV" % (countT, display))
 
 @utils.throttle(params=[4])
 def printtotal(lrrbot, conn, event, respond_to, stat):
