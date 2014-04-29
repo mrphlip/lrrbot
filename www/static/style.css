@@ -109,12 +109,39 @@ p.error
 {
 	color: red;
 }
+input.error
+{
+	background: #F88;
+}
 
 div.loading
 {
 	background: url(loading.gif);
 	width: 18px;
 	height: 18px;
+}
+
+div.button
+{
+	background: url(icons.png);
+	width: 22px;
+	height: 22px;
+	margin: 0 3px;
+	float: left;
+	cursor: pointer;
+}
+div.button.add
+{
+	background-position: 0 0;
+}
+div.button.remove
+{
+	background-position: -22px 0;
+}
+div.button.disabled
+{
+	background: none;
+	cursor: inherit;
 }
 
 #notificationlist, #notificationlist li
@@ -378,36 +405,58 @@ table.commands input, table.commands button
 {
 	width: 100%;
 }
-table.commands div.button
-{
-	background: url(icons.png);
-	width: 22px;
-	height: 22px;
-	margin: 0 3px;
-	float: left;
-	cursor: pointer;
-}
-table.commands div.button.add
-{
-	background-position: 0 0;
-}
-table.commands div.button.remove
-{
-	background-position: -22px 0;
-}
-table.commands div.button.remove.disabled
-{
-	background: none;
-	cursor: inherit;
-}
 table.commands div.input
 {
 	height: 22px;
 	margin-left: 30px;
 }
-input.error
+
+table.spam
 {
-	background: #F88;
+	width: 100%;
+}
+table.spam tfoot td
+{
+	border-bottom: hidden;
+	border-left: hidden;
+	border-right: hidden;
+}
+table.spam td.action
+{
+	width: auto;
+}
+table.spam td.re
+{
+	width: 25%;
+}
+table.spam td.response
+{
+	width: 75%;
+}
+table.spam input
+{
+	width: 100%;
+}
+
+#spamresults
+{
+	font-family: monospace;
+}
+#spamresults .odd
+{
+	background: #EEE;
+}
+#spamresults .even
+{
+	background: #DDD;
+}
+#spamresults .spam.odd
+{
+	background: #E88;
+}
+#spamresults .spam.even
+{
+	background: #D88;
 }
 
 .label {

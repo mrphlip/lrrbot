@@ -374,6 +374,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		commands.static.modify_commands(data)
 		bot.compile()
 	
+	def on_server_event_modify_spam_rules(self, user, data):
+		storage.data['spam_rules'] = data
+		storage.save()
+		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
+	
 	def on_server_event_get_commands(self, user, data):
 		bind = lambda maybe, f: f(maybe) if maybe is not None else None
 		ret = []

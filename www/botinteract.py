@@ -48,5 +48,11 @@ def modify_commands(data):
 	"""
 	send_bot_command("modify_commands", data)
 
+def modify_spam_rules(data):
+	"""
+	Send a message to the bot, to replace the static command responses.
+	"""
+	send_bot_command("modify_spam_rules", data)
+
 def get_commands():
 	return send_bot_command("get_commands", None)
