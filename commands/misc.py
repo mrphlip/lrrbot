@@ -4,6 +4,8 @@ import datetime
 import googlecalendar
 import utils
 import storage
+import twitch
+import json
 
 @bot.command("test")
 @utils.mod_only
@@ -60,3 +62,33 @@ def time(lrrbot, conn, event, respond_to):
 	"""
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
+
+@bot.command("viewers")
+@utils.throttle(30) # longer cooldown as this involves 2 API calls
+def viewers(lrrbot, conn, event, respond_to):
+	"""
+	Command: !viewers
+
+	Post the number of viewers currently watching the stream
+	"""
+	stream_info = twitch.get_info()
+	if stream_info:
+		viewers = stream_info.get("viewers")
+	else:
+		viewers = None
+	
+	# Since we're using TWITCHCLIENT 3, we don't get join/part messages, so we can't just use
+	# len(lrrbot.channels["#loadingreadyrun"].userdict)
+	# as that dict won't be populated. Need to call this api instead.
+	chatters = utils.http_request("http://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
+	chatters = json.loads(chatters).get("chatter_count")
+
+	if viewers is not None:
+		viewers = "%d %s viewing the stream." % (viewers, "user" if viewers == 1 else "users")
+	else:
+		viewers = "Stream is not live."
+	if chatters is not None:
+		chatters = "%d %s in the chat." % (chatters, "user" if chatters == 1 else "users")
+	else:
+		chatters = "No-one in the chat."
+	conn.privmsg(respond_to, "%s %s" % (viewers, chatters))
