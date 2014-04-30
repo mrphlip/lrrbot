@@ -74,19 +74,6 @@ def time(lrrbot, conn, event, respond_to):
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%H:%M"))
 
-
-<<<<<<< HEAD
-@bot.command("time 24")
-@utils.throttle()
-def time(lrrbot, conn, event, respond_to):
-	"""
-	Command: !time
-
-	Post the current moonbase time.
-	"""
-	now = datetime.datetime.now(config["timezone"])
-	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%H:%M"))
-=======
 @bot.command("viewers")
 @utils.throttle(30) # longer cooldown as this involves 2 API calls
 def viewers(lrrbot, conn, event, respond_to):
@@ -116,4 +103,3 @@ def viewers(lrrbot, conn, event, respond_to):
 	else:
 		chatters = "No-one in the chat."
 	conn.privmsg(respond_to, "%s %s" % (viewers, chatters))
->>>>>>> 1c08d994c05fc801a6771280b43c37ef1836dc68
