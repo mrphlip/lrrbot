@@ -60,3 +60,14 @@ def time(lrrbot, conn, event, respond_to):
 	"""
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
+
+@bot.command("time 24")
+@utils.throttle()
+def time(lrrbot, conn, event, respond_to):
+	"""
+	Command: !time
+
+	Post the current moonbase time.
+	"""
+	now = datetime.datetime.now(config["timezone"])
+	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%H:%M"))
