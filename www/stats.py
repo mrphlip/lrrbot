@@ -10,6 +10,9 @@ import botinteract
 def stats(session):
 	data = botinteract.get_data([])
 
+	# Let's be honest...
+	data['games']["Prayer Warriors: A.O.F.G."]['stats']['pardonfuck'] = float('Infinity')
+
 	games = data['games']
 	stats = data['stats']
 	# Calculate totals

@@ -24,6 +24,7 @@ def get_info(username=None, use_fallback=True):
 	channel_data = data.get('stream') and data['stream'].get('channel')
 	if channel_data:
 		channel_data['live'] = True
+		channel_data['viewers'] = data['stream']['viewers']
 		return channel_data
 
 	if not use_fallback:

@@ -7,6 +7,7 @@ import login
 import archive
 import votes
 import commands
+import spam
 import botinteract
 import secrets
 

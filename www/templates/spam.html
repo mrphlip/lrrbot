@@ -1,0 +1,55 @@
+{%extends "master.html"%}
+{%block title%}Spam Rules{%endblock%}
+{%block header%}Spam Rules{%endblock%}
+{%block headextra%}
+<script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='spam.js')|e}}"></script>
+{%endblock%}
+{%block content%}
+<div style="text-align:right; margin: 1em">
+	<button class="save">Save</button>
+	<div class="save loading" style="display: none; margin: 0 0 0 auto"></div>
+</div>
+<table class="nicetable spam">
+<thead>
+<tr>
+	<th class="action"></td>
+	<th class="re">Expression</td>
+	<th class="message">Message</td>
+</tr>
+</thead>
+<tbody>
+{%for rule in rules%}
+<tr class="{{loop.cycle('odd', 'even')}}">
+	<td class="action">
+		<div class="button remove"></div>
+	</td>
+	<td class="re">
+		<input type="text" value="{{rule['re']|e}}">
+	</td>
+	<td class="response">
+		<input type="text" value="{{rule['message']|e}}">
+	</td>
+</tr>
+{%endfor%}
+</tbody>
+<tfoot>
+<tr>
+	<td class="action">
+		<div class="button add"></div>
+	</td>
+	<td class="re"></td>
+	<td class="response"></td>
+</tr>
+</tfoot>
+</table>
+<h2>Testing area</h2>
+<p>Copy text here from the chat to test out the spam rules, before saving them!</p>
+<div><textarea style="width: 100%; height: 5em" id="testtext"></textarea></div>
+<div><label><input type="checkbox" id="onlyspam"> Only show matches</label></div>
+<div>
+	<button class="test">Test spam rules</button>
+	<div class="test loading" style="display: none; margin: 0 auto 0 0"></div>
+</div>
+<div id="spamresults"></div>
+{%endblock%}
