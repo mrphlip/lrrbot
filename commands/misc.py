@@ -29,6 +29,43 @@ def stormcount(lrrbot, conn, event, respond_to):
 		}
 		storage.save()
 	conn.privmsg(respond_to, "Today's storm count: %d" % storage.data["storm"]["count"])
+	
+@bot.command("spam(?:count)?")
+@utils.throttle()
+def spamcount(lrrbot, conn, event, respond_to):
+	"""
+	Command: !spam
+	Command: !spamcount
+
+	Show the current storm count (the number of viewers who have spammed repeatidily(2 strike) today)
+	Adding this one in has bot usually leave after getting a timeout
+	"""
+	today = datetime.datetime.now(config["timezone"]).date().toordinal()
+	if today != storage.data.get("spam", {}).get("date"):
+		storage.data["spam"] = {
+			"date": today,
+			"count": 0
+		}
+		storage.save()
+	conn.privmsg(respond_to, "Today's repeated spam count: %d" % storage.data["spam"]["count"])
+	
+@bot.command("ban(?:count)?")
+@utils.throttle()
+def bancount(lrrbot, conn, event, respond_to):
+	"""
+	Command: !ban
+	Command: !bancount
+
+	Show the current ban count (the number of viewers who have been banned (third strike) today)
+	"""
+	today = datetime.datetime.now(config["timezone"]).date().toordinal()
+	if today != storage.data.get("ban", {}).get("date"):
+		storage.data["ban"] = {
+			"date": today,
+			"count": 0
+		}
+		storage.save()
+	conn.privmsg(respond_to, "Today's bot ban count: %d" % storage.data["ban"]["count"])
 
 @bot.command("next(?:stream)?|sched(?:ule)?")
 @utils.throttle()
