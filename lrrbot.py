@@ -293,11 +293,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				if level <= 1:
 					log.info("First offence, flickering %s" % source.nick)
 					conn.privmsg(event.target, ".timeout %s 1" % source.nick)
-					conn.privmsg(event.target, "%s: Message deleted, auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
+					conn.privmsg(event.target, "%s: First warning(Purge), Message deleted, auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
 				elif level <= 2:
 					log.info("Second offence, timing out %s" % source.nick)
 					conn.privmsg(event.target, ".timeout %s" % source.nick)
-					conn.privmsg(event.target, "%s: Timeout for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
+					conn.privmsg(event.target, "%s: Second warning(10 minute timeout), Timeout for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
 				else:
 					log.info("Third offence, banning %s" % source.nick)
 					conn.privmsg(event.target, ".ban %s" % source.nick)
