@@ -298,12 +298,24 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					log.info("Second offence, timing out %s" % source.nick)
 					conn.privmsg(event.target, ".timeout %s" % source.nick)
 					conn.privmsg(event.target, "%s: Second warning(10 minute timeout), Timeout for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
+					if today != storage.data.get("spam",{}).get("date"):
+						storage.data["spam"] = {
+							"date": today,
+							"count": 0,
+					}
 					storage.data["spam"]["count"] += 1
+					storage.save()
 				else:
 					log.info("Third offence, banning %s" % source.nick)
 					conn.privmsg(event.target, ".ban %s" % source.nick)
 					conn.privmsg(event.target, "%s: Banned persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
+					if today != storage.data.get("ban",{}).get("date"):
+						storage.data["ban"] = {
+							"date": today,
+							"count": 0,
+					}
 					storage.data["ban"]["count"] += 1
+					storage.save()
 				return True
 		return False
 
