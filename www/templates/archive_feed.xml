@@ -2,6 +2,7 @@
 <channel>
 <title>{{videos[0]['channel']['display_name']|e}} &#x2013; {{"Past Broadcasts" if broadcasts else "Highlights"}}</title>
 <link>http://twitch.tv/{{videos[0]['channel']['name']|e}}</link>
+<description></description>
 <language>en</language>
 {%for vid in videos%}
 <item>
