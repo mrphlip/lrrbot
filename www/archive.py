@@ -6,12 +6,13 @@ import urllib.request, urllib.parse
 import time
 import os
 import datetime
+import dateutil.parser
 
 CACHE_TIMEOUT = 15*60
 
 def format_time(video):
-    recorded_at = datetime.datetime.strptime(video["recorded_at"], "%Y-%m-%dT%H:%M:%SZ")
-    video["recorded_at"] = "{:%a, %d %b %Y %H:%M:%S GMT}".format(recorded_at)
+    recorded_at = dateutil.parser.parse(video["recorded_at"])
+    video["recorded_at"] = "{:%a, %d %b %Y %H:%M:%S %z}".format(recorded_at)
     return video
 
 @server.app.route('/archivefeed')
@@ -36,7 +37,8 @@ def archive_feed():
 		with open(fn, "wt") as fp:
 			fp.write(data)
 
-	data = list(map(format_time, flask.json.loads(data)['videos']))
+	videos = flask.json.loads(data)['videos']
+	videos = [format_time(video) for video in videos]
 
 	# For broadcasts:
 	# {'videos': [{'_id': 'a508090853',
@@ -71,5 +73,5 @@ def archive_feed():
 	#              'views': 466},
 	#              ...]}
 
-	rss = flask.render_template("archive_feed.xml", videos=data, broadcasts=broadcasts)
+	rss = flask.render_template("archive_feed.xml", videos=videos, broadcasts=broadcasts)
 	return flask.Response(rss, mimetype="application/xml")
