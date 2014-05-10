@@ -293,29 +293,24 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				if level <= 1:
 					log.info("First offence, flickering %s" % source.nick)
 					conn.privmsg(event.target, ".timeout %s 1" % source.nick)
-					conn.privmsg(event.target, "%s: First warning(Purge), Message deleted, auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
+					conn.privmsg(event.target, "%s: Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
 				elif level <= 2:
 					log.info("Second offence, timing out %s" % source.nick)
 					conn.privmsg(event.target, ".timeout %s" % source.nick)
-					conn.privmsg(event.target, "%s: Second warning(10 minute timeout), Timeout for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
-					if today != storage.data.get("spam",{}).get("date"):
-						storage.data["spam"] = {
-							"date": today,
-							"count": 0,
-					}
-					storage.data["spam"]["count"] += 1
-					storage.save()
+					conn.privmsg(event.target, "%s: Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
 				else:
 					log.info("Third offence, banning %s" % source.nick)
 					conn.privmsg(event.target, ".ban %s" % source.nick)
-					conn.privmsg(event.target, "%s: Banned persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
-					if today != storage.data.get("ban",{}).get("date"):
-						storage.data["ban"] = {
-							"date": today,
-							"count": 0,
-					}
-					storage.data["ban"]["count"] += 1
-					storage.save()
+					conn.privmsg(event.target, "%s: Banned for persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
+					level = 3
+				today = datetime.datetime.now(config['timezone']).date().toordinal()
+				if today != storage.data.get("spam",{}).get("date"):
+					storage.data["spam"] = {
+						"date": today,
+						"count": [0, 0, 0],
+				}
+				storage.data["spam"]["count"][level - 1] += 1
+				storage.save()
 				return True
 		return False
 
