@@ -182,7 +182,7 @@ def dice(lrrbot, conn, event, respond_to, count, sides):
 	if sides == 2:
 		result -= count # as though we were rolling 0 and 1, instead of 1 and 2
 		if plural:
-			conn.privmsg(respond_to, "Flipping %d coins... got %d headses and %d tailses." % (count, result, count - result))
+			conn.privmsg(respond_to, "Flipping %d coins... got %d %s and %d %s." % (count, result, "heads" if result == 1 else "headses", count - result, "tails" if count - result == 1 else "tailses"))
 		else:
 			conn.privmsg(respond_to, "Flipping a coin... got %s." % ("Heads", "Tails")[result])
 	else:
