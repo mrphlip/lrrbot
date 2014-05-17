@@ -79,9 +79,12 @@ class throttle(object):
 		params = []
 		for i in self.watchparams:
 			if isinstance(i, int):
-				params.append(args[i])
+				param = args[i]
 			else:
-				params.append(kwargs[i])
+				param = kwargs[i]
+			if isinstance(param, str):
+				param = param.lower()
+			params.append(param)
 		return tuple(params)
 
 	def __call__(self, func):
