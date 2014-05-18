@@ -78,18 +78,22 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# Convoluted, but necessary.
 		self.upcomingsubs = set()
 
-		# TODO: To be more robust, the code really should have a way to shut this socket down
-		# when the bot exits... currently, it's assuming that there'll only be one LRRBot
-		# instance, that lasts the life of the program... which is true for now...
-		try:
-			os.unlink(config['socket_filename'])
-		except OSError:
-			if os.path.exists(config['socket_filename']):
-				raise
-		self.event_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-		self.event_socket.bind(config['socket_filename'])
-		self.event_socket.listen(5)
-		self.event_socket.setblocking(False)
+		# Let us run on windows, without the socket
+		if hasattr(socket, 'AF_UNIX'):
+			# TODO: To be more robust, the code really should have a way to shut this socket down
+			# when the bot exits... currently, it's assuming that there'll only be one LRRBot
+			# instance, that lasts the life of the program... which is true for now...
+			try:
+				os.unlink(config['socket_filename'])
+			except OSError:
+				if os.path.exists(config['socket_filename']):
+					raise
+			self.event_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+			self.event_socket.bind(config['socket_filename'])
+			self.event_socket.listen(5)
+			self.event_socket.setblocking(False)
+		else:
+			self.event_socket = None
 
 	def start(self):
 		self._connect()
@@ -100,13 +104,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		while True:
 			self.ircobj.process_once(timeout=0.2)
-			try:
-				conn, addr = self.event_socket.accept()
-			except (OSError, socket.error):
-				pass
-			else:
-				conn.setblocking(True) # docs say this "may" be necessary :-/
-				self.on_server_event(conn)
+			if self.event_socket:
+				try:
+					conn, addr = self.event_socket.accept()
+				except (OSError, socket.error):
+					pass
+				else:
+					conn.setblocking(True) # docs say this "may" be necessary :-/
+					self.on_server_event(conn)
 
 	def add_command(self, pattern, function):
 		self.commands[re.compile(pattern.replace(" ", r"\s+"), re.IGNORECASE)] = function
