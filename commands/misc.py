@@ -196,7 +196,7 @@ def dice(lrrbot, conn, event, respond_to, count, sides):
 				name = "%dd%d" % (count, sides)
 			else:
 				name = "d%d" % sides
-		if plural and count <= 10:
+		if plural and count <= 10 and sides <= 1000:
 			conn.privmsg(respond_to, "Rolling %s... got %d (%s)." % (name, result, ", ".join(str(i) for i in rolls)))
 		else:
 			conn.privmsg(respond_to, "Rolling %s... got %d." % (name, result))
