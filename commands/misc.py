@@ -176,6 +176,9 @@ def dice(lrrbot, conn, event, respond_to, count, sides):
 		else:
 			conn.privmsg(respond_to, "Rolling a marble... got 1. %s." % random.choice(INSULTS))
 		return
+	elif sides >= 1000:
+		conn.privmsg(respond_to, "Are you sure you want THE EVENT to happen? [y/n]")
+		return
 
 	rolls = [random.randint(1, sides) for i in range(count)]
 	result = sum(rolls)
