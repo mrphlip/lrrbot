@@ -21,6 +21,7 @@ def generate_docstring():
 			else:
 				fragment += "Command: %s%s\n" % (config["commandprefix"], cmd)
 			fragment += "Throttled: 5\n"
+			fragment += "Literal-Response: true\n"
 			fragment += "\n"
 			response = response if isinstance(response, str) else random.choice(response)
 			fragment += response + "\n"

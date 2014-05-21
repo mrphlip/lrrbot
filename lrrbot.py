@@ -407,7 +407,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					"aliases": cmd.get_all("command"),
 					"mod-only": cmd.get("mod-only") == "true",
 					"throttled": bind(cmd.get("throttled"), int),
-					"description": cmd.get_payload()
+					"literal-response": cmd.get("literal-response") == "true",
+					"description": cmd.get_payload(),
 				}]
 		return ret
 bot = LRRBot()
