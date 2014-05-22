@@ -72,7 +72,9 @@ def next(lrrbot, conn, event, respond_to):
 		else:
 			conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
 	else:
-		conn.privmsg(respond_to, "(Overwritten) %s" % lrrbot.calendar_override)
+		now = datetime.datetime.now(config["timezone"])
+
+		conn.privmsg(respond_to, "(Overwritten) %s, current moonbase time %s" % (lrrbot.calendar_override, now.strftime("%I:%M %p")))
 		
 @bot.command("calendar override (.*?)")
 @utils.mod_only
