@@ -72,7 +72,7 @@ def next(lrrbot, conn, event, respond_to):
 		else:
 			conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
 	else:
-		conn.privmsg(respond_to, "(Overwritten) %s)" % lrrbot.calendar_override)
+		conn.privmsg(respond_to, "(Overwritten) %s" % lrrbot.calendar_override)
 		
 @bot.command("calendar override (.*?)")
 @utils.mod_only
