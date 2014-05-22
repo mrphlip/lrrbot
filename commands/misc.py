@@ -78,7 +78,7 @@ def next(lrrbot, conn, event, respond_to):
 		
 @bot.command("calendar override (.*?)")
 @utils.mod_only
-def calendar_game(lrrbot, conn, event, respond_to, response):
+def calendar_override(lrrbot, conn, event, respond_to, response):
 	"""
 	Command: !calendar override RESPONSE
 	
@@ -95,11 +95,11 @@ def calendar_game(lrrbot, conn, event, respond_to, response):
 	if response == "" or response.lower() == "off":
 		lrrbot.calendar_override = None
 		operation = "disabled"
+		message = "Override disabled"
 	else:
 		lrrbot.calendar_override = response
 		operation = "enabled"
-	game = lrrbot.get_current_game()
-	message = "New !next response: %s. " % response
+		message = "New !next response: %s. " % response
 	conn.privmsg(respond_to, message)
 
 @bot.command("time")
