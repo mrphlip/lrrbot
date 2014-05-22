@@ -60,16 +60,45 @@ def next(lrrbot, conn, event, respond_to):
 
 	Gets the next scheduled stream from the calendar
 	"""
-	event_name, event_time, event_wait = googlecalendar.get_next_event()
-	if event_time:
-		nice_time = event_time = event_time.astimezone(config["timezone"]).strftime("%a %I:%M %p %Z")
-		if event_wait < 0:
-			nice_duration = utils.nice_duration(-event_wait, 1) + " ago"
+	if lrrbot.calendar_override == None:
+		event_name, event_time, event_wait = googlecalendar.get_next_event()
+		if event_time:
+			nice_time = event_time = event_time.astimezone(config["timezone"]).strftime("%a %I:%M %p %Z")
+			if event_wait < 0:
+				nice_duration = utils.nice_duration(-event_wait, 1) + " ago"
+			else:
+				nice_duration = utils.nice_duration(event_wait, 1) + " from now"
+			conn.privmsg(respond_to, "Next scheduled stream: %s at %s (%s)" % (event_name, nice_time, nice_duration))
 		else:
-			nice_duration = utils.nice_duration(event_wait, 1) + " from now"
-		conn.privmsg(respond_to, "Next scheduled stream: %s at %s (%s)" % (event_name, nice_time, nice_duration))
+			conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
 	else:
-		conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
+		conn.privmsg(respond_to, "(Overwritten) %s)" % lrrbot.calendar_override)
+		
+@bot.command("calendar override (.*?)")
+@utils.mod_only
+def calendar_game(lrrbot, conn, event, respond_to, response):
+	"""
+	Command: !calendar override RESPONSE
+	
+	eg: !calendar override Next rescheduled stream: Video Games with Video James at Thu 12:30 PM PDT 
+	
+	For when the calendar isn't properly updated
+
+	--command
+	Command: !game override off
+	
+	Disable override, go back to getting current game from Twitch stream settings.
+	Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.
+	"""
+	if response == "" or response.lower() == "off":
+		lrrbot.calendar_override = None
+		operation = "disabled"
+	else:
+		lrrbot.calendar_override = response
+		operation = "enabled"
+	game = lrrbot.get_current_game()
+	message = "New !next response: %s. " % response
+	conn.privmsg(respond_to, message)
 
 @bot.command("time")
 @utils.throttle()

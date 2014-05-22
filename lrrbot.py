@@ -60,6 +60,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Set up bot state
 		self.game_override = None
+		self.calendar_override = None
 		self.vote_update = None
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
