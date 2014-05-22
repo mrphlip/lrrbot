@@ -87,10 +87,9 @@ def calendar_override(lrrbot, conn, event, respond_to, response):
 	For when the calendar isn't properly updated
 
 	--command
-	Command: !game override off
+	Command: !calendar override off
 	
-	Disable override, go back to getting current game from Twitch stream settings.
-	Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.
+	Disable override, go back to getting the next stream from the calendar.
 	"""
 	if response == "" or response.lower() == "off":
 		lrrbot.calendar_override = None
