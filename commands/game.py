@@ -136,4 +136,7 @@ def completed(lrrbot, conn, event, respond_to):
 	game.setdefault("stats", {}).setdefault("completed", 0)
 	game["stats"]["completed"] += 1
 	storage.save()
-	conn.privmsg(respond_to, "%s added to the completed list" % game_name(game))
+	emote = storage.data.get('stats', {}).get('completed', {}).get('emote', "")
+	if emote:
+		emote += " "
+	conn.privmsg(respond_to, "%s%s added to the completed list" % (emote, game_name(game)))
