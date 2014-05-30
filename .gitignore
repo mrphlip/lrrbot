@@ -8,3 +8,4 @@ Game.ini
 .dropbox
 desktop.ini
 *.sock
+*.sublime-*
