@@ -8,7 +8,10 @@ import botinteract
 @server.app.route('/commands')
 @login.require_mod
 def commands(session):
-	data = botinteract.get_data('responses')
+	mode = flask.request.values.get('mode', 'responses')
+	assert(mode in ('responses', 'explanations'))
+
+	data = botinteract.get_data(mode)
 
 	# Prepare the data, and group equivalent commands together
 	data_reverse = {}
@@ -24,11 +27,13 @@ def commands(session):
 	data = [(commands, response) for response, commands in data_reverse.items()]
 	data.sort()
 
-	return flask.render_template("commands.html", commands=data, len=len, session=session)
+	return flask.render_template("commands.html", commands=data, len=len, mode=mode, session=session)
 
 @server.app.route('/commands/submit', methods=['POST'])
 @login.require_mod
 def commands_submit(session):
+	mode = flask.request.values.get('mode', 'responses')
+	assert(mode in ('responses', 'explanations'))
 	data = flask.json.loads(flask.request.values['data'])
 	# Server-side sanity checking
 	for command, responses in data.items():
@@ -45,5 +50,8 @@ def commands_submit(session):
 				raise ValueError("Value is not a string or list of strings")
 			if response == '':
 				raise ValueError("Response is blank")
-	botinteract.modify_commands(data)
+	if mode == 'responses':
+		botinteract.modify_commands(data)
+	elif mode == 'explanations':
+		botinteract.modify_explanations(data)
 	return flask.json.jsonify(success='OK')

@@ -1,6 +1,6 @@
 {%extends "master.html"%}
-{%block title%}Responses{%endblock%}
-{%block header%}Responses{%endblock%}
+{%block title%}{{mode|ucfirst|e}}{%endblock%}
+{%block header%}{{mode|ucfirst|e}}{%endblock%}
 {%block headextra%}
 <script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='commands.js')|e}}"></script>
@@ -10,7 +10,7 @@
 	<button class="save">Save</button>
 	<div class="loading" style="display: none; margin: 0 0 0 auto"></div>
 </div>
-<table class="nicetable commands">
+<table class="nicetable commands" data-mode="{{mode|e}}">
 <thead>
 <tr>
 	<td class="command"></td>

@@ -118,6 +118,7 @@ function save()
 		}
 	});
 	if (foundError) return;
+	var mode = jQuery("table.commands").data('mode');
 	// Send the data up to the server
 	$('div.loading').show();
 	$('button.save').hide();
@@ -125,7 +126,7 @@ function save()
 	$.ajax({
 		'type': 'POST',
 		'url': "commands/submit",
-		'data': "data=" + encodeURIComponent(data),
+		'data': "data=" + encodeURIComponent(data) + "&mode=" + encodeURIComponent(mode),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,

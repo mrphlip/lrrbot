@@ -388,6 +388,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_server_event_modify_commands(self, user, data):
 		commands.static.modify_commands(data)
 		bot.compile()
+
+	def on_server_event_modify_explanations(self, user, data):
+		commands.static.modify_explanations(data)
+		bot.compile()
 	
 	def on_server_event_modify_spam_rules(self, user, data):
 		storage.data['spam_rules'] = data
