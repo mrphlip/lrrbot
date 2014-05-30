@@ -116,7 +116,7 @@ function save()
 			foundError = true;
 			return false;
 		}
-		if (val.length() > 450) {
+		if (val.length > 450) {
 			$(this).focus().addClass("error");
 			alert("Response is too long");
 			foundError = true;
