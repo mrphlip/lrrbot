@@ -116,6 +116,12 @@ function save()
 			foundError = true;
 			return false;
 		}
+		if (val.length() > 450) {
+			$(this).focus().addClass("error");
+			alert("Response is too long");
+			foundError = true;
+			return false;
+		}
 	});
 	if (foundError) return;
 	var mode = jQuery("table.commands").data('mode');

@@ -50,6 +50,8 @@ def commands_submit(session):
 				raise ValueError("Value is not a string or list of strings")
 			if response == '':
 				raise ValueError("Response is blank")
+			if len(response) > 450:
+				raise ValueError("Response is too long")
 	if mode == 'responses':
 		botinteract.modify_commands(data)
 	elif mode == 'explanations':
