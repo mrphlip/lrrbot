@@ -35,7 +35,7 @@ def generate_explain_docstring():
 	Provide an explanation for a given topic.
 	
 	Available topics: %s.
-	""" % (config["commandprefix"], ','.join(sorted(storage.data["explanations"].keys())))
+	""" % (config["commandprefix"], ', '.join(sorted(storage.data["explanations"].keys())))
 
 def generate_expression(node):
 	return "(%s)" % "|".join(re.escape(c) for c in node)
