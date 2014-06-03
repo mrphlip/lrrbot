@@ -8,6 +8,7 @@ import json
 import utils
 from config import config
 import email.parser
+import textwrap
 
 log = logging.getLogger('utils')
 
@@ -44,6 +45,22 @@ def add_header(doc, name, value):
 			part[name] = value
 	return doc
 
+def shorten_fallback(text, width, **kwargs):
+	w = textwrap.TextWrapper(width=width, **kwargs)
+	r = ' '.join(text.strip().split())
+	r = w.wrap(r)
+	if len(r) > 1:
+		r = r[0]
+		while len(r) + 3 > width:
+			r = r[:r.rfind(' ')]
+			r = r + "..."
+	elif len(r) == 0:
+		r = None
+	else:
+		r = r[0]
+	return r
+
+shorten = getattr(textwrap, "shorten", shorten_fallback)
 
 DEFAULT_THROTTLE = 15
 
