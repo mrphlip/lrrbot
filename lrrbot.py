@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Dependencies:
-#   easy_install irc icalendar python-dateutil flask oursql
+#   easy_install irc icalendar python-dateutil flask oursql beautifulsoup4
 
 import os
 import re
@@ -390,7 +390,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		bot.compile()
 
 	def on_server_event_modify_explanations(self, user, data):
-		commands.static.modify_explanations(data)
+		commands.explain.modify_explanations(data)
 		bot.compile()
 	
 	def on_server_event_modify_spam_rules(self, user, data):

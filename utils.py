@@ -8,6 +8,7 @@ import json
 import utils
 from config import config
 import email.parser
+import textwrap
 
 log = logging.getLogger('utils')
 
@@ -44,6 +45,23 @@ def add_header(doc, name, value):
 			part[name] = value
 	return doc
 
+def shorten_fallback(text, width, **kwargs):
+	"""textwrap.shorten is introduced in Python 3.4"""
+	w = textwrap.TextWrapper(width=width, **kwargs)
+	r = ' '.join(text.strip().split())
+	r = w.wrap(r)
+	if len(r) > 1:
+		r = r[0]
+		while len(r) + 3 > width:
+			r = r[:r.rfind(' ')]
+			r = r + "..."
+	elif len(r) == 0:
+		r = None
+	else:
+		r = r[0]
+	return r
+
+shorten = getattr(textwrap, "shorten", shorten_fallback)
 
 DEFAULT_THROTTLE = 15
 
@@ -202,20 +220,22 @@ class Request(urllib.request.Request):
 		else:
 			return super().get_method()
 
-def http_request(url, data=None, method='GET', maxtries=3, **kwargs):
+def http_request(url, data=None, method='GET', maxtries=3, headers={}, **kwargs):
 	"""Download a webpage, with retries on failure."""
+	# Let's be nice.
+	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
 	if data:
 		if isinstance(data, dict):
 			data = urllib.parse.urlencode(data)
 		if method == 'GET':
 			url = '%s?%s' % (url, data)
-			req = Request(url=url, method='GET', **kwargs)
+			req = Request(url=url, method='GET', headers=headers, **kwargs)
 		elif method == 'POST':
-			req = Request(url=url, data=data.encode("utf-8"), method='POST', **kwargs)
+			req = Request(url=url, data=data.encode("utf-8"), method='POST', headers=headers, **kwargs)
 		elif method == 'PUT':
-			req = Request(url=url, data=data.encode("utf-8"), method='PUT', **kwargs)
+			req = Request(url=url, data=data.encode("utf-8"), method='PUT', headers=headers, **kwargs)
 	else:
-		req = Request(url=url, method='GET', **kwargs)
+		req = Request(url=url, method='GET', headers=headers, **kwargs)
 
 	firstex = None
 	while True:

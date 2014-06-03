@@ -28,28 +28,12 @@ def generate_docstring():
 			yield fragment
 	return "\n--command\n".join(generator())
 
-def generate_explain_docstring():
-	return """
-	Command: %sexplain TOPIC
-
-	Provide an explanation for a given topic.
-	
-	Available topics: %s.
-	""" % (config["commandprefix"], ', '.join(sorted(storage.data["explanations"].keys())))
-
 def generate_expression(node):
 	return "(%s)" % "|".join(re.escape(c) for c in node)
 
 @utils.throttle(5, params=[4])
 def static_response(lrrbot, conn, event, respond_to, command):
 	response = storage.data["responses"][command.lower()]
-	if isinstance(response, (tuple, list)):
-		response = random.choice(response)
-	conn.privmsg(respond_to, response)
-
-@utils.throttle(5, params=[4])
-def explain_response(lrrbot, conn, event, respond_to, command):
-	response = storage.data["explanations"][command.lower()]
 	if isinstance(response, (tuple, list)):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response)
@@ -61,14 +45,5 @@ def modify_commands(commands):
     static_response.__doc__ = generate_docstring()
     bot.add_command(generate_expression(storage.data["responses"]), static_response)
 
-def modify_explanations(commands):
-    bot.remove_command("explain " + generate_expression(storage.data["explanations"]))
-    storage.data["explanations"] = {k.lower(): v for k,v in commands.items()}
-    storage.save()
-    explain_response.__doc__ = generate_explain_docstring()
-    bot.add_command("explain " + generate_expression(storage.data["explanations"]), explain_response)
-
 static_response.__doc__ = generate_docstring()
 bot.add_command(generate_expression(storage.data["responses"]), static_response)
-explain_response.__doc__ = generate_explain_docstring()
-bot.add_command("explain " + generate_expression(storage.data["explanations"]), explain_response)
