@@ -4,7 +4,7 @@ import storage
 import random
 import utils
 import re
-import requests
+import json
 from bs4 import BeautifulSoup, NavigableString, Tag
 
 API_ENDPOINT = "http://wiki.loadingreadyrun.com/api.php"
@@ -36,7 +36,7 @@ def watch(page):
 def wiki(topic):
 	params = {"titles": "_".join(topic.strip().split())}
 	params.update(PARAMS)
-	data = requests.get(API_ENDPOINT, params=params).json()
+	data = json.loads(utils.http_request(API_ENDPOINT, data=params))
 	for page in data["query"]["pages"].values():
 		try:
 			categories = set(map(lambda c: c["title"][len("Category:"):], page["categories"]))
@@ -66,9 +66,6 @@ def wiki(topic):
 			if text == '' or i is not None and i.get_text().strip() == text:
 				continue
 			return utils.shorten(text+suffix, 450)
-
-def generate_expression(node):
-	return "(%s)" % "|".join(re.escape(c) for c in node)
 
 @bot.command("explain (.*?)")
 @utils.throttle(5, params=[4])

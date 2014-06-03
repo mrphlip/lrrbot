@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Dependencies:
-#   easy_install irc icalendar python-dateutil flask oursql
+#   easy_install irc icalendar python-dateutil flask oursql beautifulsoup4
 
 import os
 import re
