@@ -100,12 +100,6 @@ function save()
 			foundError = true;
 			return false;
 		}
-		else if (val.indexOf(" ") >= 0) {
-			$(this).focus().addClass("error");
-			alert("Command must be a single word");
-			foundError = true;
-			return false;
-		}
 	});
 	if (foundError) return;
 	$('td.response input').each(function() {
