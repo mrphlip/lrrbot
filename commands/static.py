@@ -29,18 +29,18 @@ def generate_docstring():
 	return "\n--command\n".join(generator())
 
 def generate_expression(node):
-	return "(%s)" % "|".join(re.escape(c) for c in node)
+	return "(%s)" % "|".join(re.escape(c).replace("\\ ", " ") for c in node)
 
 @utils.throttle(5, params=[4])
 def static_response(lrrbot, conn, event, respond_to, command):
-	response = storage.data["responses"][command.lower()]
+	response = storage.data["responses"][" ".join(command.lower().split())]
 	if isinstance(response, (tuple, list)):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response)
 
 def modify_commands(commands):
     bot.remove_command(generate_expression(storage.data["responses"]))
-    storage.data["responses"] = {k.lower(): v for k,v in commands.items()}
+    storage.data["responses"] = {" ".join(k.lower().split()): v for k,v in commands.items()}
     storage.save()
     static_response.__doc__ = generate_docstring()
     bot.add_command(generate_expression(storage.data["responses"]), static_response)

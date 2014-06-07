@@ -76,6 +76,7 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 	
 	Provide an explanation for a given topic.
 	"""
+	command = " ".join(command.split())
 	if command.lower() in storage.data["explanations"]:
 		response = storage.data["explanations"][command.lower()]
 	else:

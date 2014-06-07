@@ -41,8 +41,6 @@ def commands_submit(session):
 			raise ValueError("Key is not a string")
 		if command == '':
 			raise ValueError("Command is blank")
-		if ' ' in command:
-			raise ValueError("Command contains spaces")
 		if not isinstance(responses, (tuple, list)):
 			reponses = [responses]
 		for response in responses:
