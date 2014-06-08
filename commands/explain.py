@@ -79,8 +79,6 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 	command = " ".join(command.split())
 	if command.lower() in storage.data["explanations"]:
 		response = storage.data["explanations"][command.lower()]
-	else:
-		response = wiki(command)
 	if response is None or response == "":
 		return
 	if isinstance(response, (tuple, list)):
