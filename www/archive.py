@@ -27,15 +27,15 @@ def archive_feed():
 		fileage = CACHE_TIMEOUT
 
 	if fileage < CACHE_TIMEOUT:
-		with open(fn, "rt") as fp:
+		with open(fn, "rb") as fp:
 			data = fp.read()
 	else:
 		url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.parse.quote(channel, safe=""), "true" if broadcasts else "false", 100)
 		fp = urllib.request.urlopen(url)
 		data = fp.read().decode()
 		fp.close()
-		with open(fn, "wt") as fp:
-			fp.write(data)
+		with open(fn, "wb") as fp:
+			fp.write(data.encode("utf-8"))
 
 	videos = flask.json.loads(data)['videos']
 	videos = [format_time(video) for video in videos]
