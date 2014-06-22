@@ -173,6 +173,7 @@ INSULTS = [
 ]
 @bot.command("(\d*)d(\d+)")
 @utils.throttle(5)
+@utils.mod_only
 def dice(lrrbot, conn, event, respond_to, count, sides):
 	"""
 	Command: !d#
