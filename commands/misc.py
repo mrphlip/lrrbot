@@ -172,8 +172,7 @@ INSULTS = [
 	"Surprising everyone"
 ]
 @bot.command("(\d*)d(\d+)")
-@utils.throttle(5)
-@utils.mod_only
+@utils.spammable()
 def dice(lrrbot, conn, event, respond_to, count, sides):
 	"""
 	Command: !d#

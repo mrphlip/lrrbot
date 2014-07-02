@@ -335,3 +335,32 @@ def get_timezone(tz):
 			return pytz.timezone(tznames[tz])
 		else:
 			raise
+class spammable(object):
+	"""Prevent a command from being spammed by idiots.
+
+	Usage:
+	@bot.command(...)
+	@utils.spammable([period])
+	def func(lrrbot, conn, event, respond_to, ...):
+		...
+	"""
+	def __init__(self, period=60, notify=True, log=True):
+		self.period = period
+		self.notify = notify
+		self.log = log
+		self.lastrun = 0
+
+	def __call__(self, func):
+		@functools.wraps(func)
+		def wrapper(bot, conn, event, respond_to, *args, **kwargs):
+			if time.time() - self.lastrun >= self.period or bot.is_mod(event):
+				self.lastrun = time.time()
+				func(bot, conn, event, respond_to, *args, **kwargs)
+			else:
+				if self.log:
+					log.info("Skipping %s due to spamming" % func.__name__)
+				if self.notify:
+					conn.privmsg(respond_to, "%s: A similar command has been registered recently" % irc.client.NickMask(event.source).nick)
+		wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
+			"Spammable", str(self.period)))
+		return wrapper

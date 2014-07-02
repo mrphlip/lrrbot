@@ -11,7 +11,7 @@ with open("mtgcards.json") as fp:
 	CARD_DATA = json.load(fp)
 
 @bot.command("card (.+)")
-@utils.mod_only
+@utils.spammable()
 def card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	Command: !card card-name

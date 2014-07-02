@@ -94,7 +94,7 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 	conn.privmsg(respond_to, response)
 
 @bot.command("wiki (.*?)")
-@utils.mod_only
+@utils.spammable()
 @utils.throttle(5, params=[4])
 def wiki_response(lrrbot, conn, event, respond_to, topic):
 	"""
