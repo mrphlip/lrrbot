@@ -159,27 +159,27 @@ def process_card(card, expansion):
 	def build_description():
 		yield card['name']
 		if 'manaCost' in card:
-			yield ' ('
+			yield ' ['
 			yield re_mana.sub(r"\1", card['manaCost'])
-			yield ')'
+			yield ']'
 		if card.get('layout') == 'flip':
 			if card['name'] == card['names'][0]:
-				yield ' [flip: '
+				yield ' (flip: '
 				yield card['names'][1]
-				yield ']'
+				yield ')'
 			else:
-				yield ' [unflip: '
+				yield ' (unflip: '
 				yield card['names'][0]
-				yield ']'
+				yield ')'
 		if card.get('layout') == 'double-faced':
 			if card['name'] == card['names'][0]:
-				yield ' [back: '
+				yield ' (back: '
 				yield card['names'][1]
-				yield ']'
+				yield ')'
 			else:
-				yield ' [front: '
+				yield ' (front: '
 				yield card['names'][0]
-				yield ']'
+				yield ')'
 		yield ' | '
 		yield card.get('type', '?Type missing?')
 		if 'power' in card or 'toughness' in card:
