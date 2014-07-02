@@ -26,8 +26,8 @@ def current_game(lrrbot, conn, event, respond_to):
 		message += " (overridden)"
 	conn.privmsg(respond_to, message)
 
-@bot.command("game (good|bad)")
-def vote(lrrbot, conn, event, respond_to, vote):
+@bot.command("game (?:(good|yes|:\)|:D|<3|lrrAWESOME|lrrGOAT|lrrSPOT)|(bad|no|:\(|:/|>\(|lrrAWW|lrrEFF|lrrFRUMP))")
+def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 	"""
 	Command: !game good
 	Command: !game bad
@@ -43,7 +43,7 @@ def vote(lrrbot, conn, event, respond_to, vote):
 		return
 	nick = irc.client.NickMask(event.source).nick
 	game.setdefault("votes", {})
-	game["votes"][nick.lower()] = (vote.lower() == "good")
+	game["votes"][nick.lower()] = vote_good is not None
 	storage.save()
 	lrrbot.vote_update = game
 	vote_respond(lrrbot, conn, event, respond_to, game)
