@@ -344,23 +344,25 @@ class spammable(object):
 	def func(lrrbot, conn, event, respond_to, ...):
 		...
 	"""
-	def __init__(self, period=30, increase=2, decrease=10, minimum=None, notify=True, log=True):
-		self.minimum = period if minimum is None else minimum
+	def __init__(self, period=30, increase=2, slope=-1, notify=True, log=True):
+		self.min = period
 		self.period = period
 		self.increase = increase
-		self.decrease = decrease
+		self.slope = slope
 		self.notify = notify
 		self.log = log
 		self.lastrun = 0
+		self.lastupdate = 0
 
 	def __call__(self, func):
 		@functools.wraps(func)
 		def wrapper(bot, conn, event, respond_to, *args, **kwargs):
+			self.period = max(self.period+(self.lastupdate-time.time())*self.slope, self.min)
+			self.lastupdate = time.time()
 			if bot.is_mod(event):
 				return func(bot, conn, event, respond_to, *args, **kwargs)
 			if time.time() - self.lastrun >= self.period:
 				self.lastrun = time.time()
-				self.period = max(self.minimum, self.period-decrease)
 				func(bot, conn, event, respond_to, *args, **kwargs)
 			else:
 				self.period *= self.increase
