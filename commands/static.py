@@ -33,10 +33,19 @@ def generate_expression(node):
 
 @utils.throttle(5, params=[4])
 def static_response(lrrbot, conn, event, respond_to, command):
-	response = storage.data["responses"][" ".join(command.lower().split())]
-	if isinstance(response, (tuple, list)):
-		response = random.choice(response)
-	conn.privmsg(respond_to, response)
+	if storage.data["subsciption_check"][command.lower()] is True:
+		if lrrbot.is_sub(event):
+			response = storage.data["responses"][" ".join(command.lower().split())]
+			if isinstance(response, (tuple, list)):
+				response = random.choice(response)
+			conn.privmsg(respond_to, response)
+		else:
+			return
+	else:
+		response = storage.data["responses"][" ".join(command.lower().split())]
+		if isinstance(response, (tuple, list)):
+			response = random.choice(response)
+		conn.privmsg(respond_to, response)
 
 def modify_commands(commands):
     bot.remove_command(generate_expression(storage.data["responses"]))
