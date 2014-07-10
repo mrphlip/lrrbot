@@ -12,6 +12,18 @@ import random
 @utils.mod_only
 def test(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Test")
+	
+@bot.command("music")
+@utils.throttle()
+def music(lrrbot, conn, event, respond_to):
+	conn.privmsg(respond_to, "Now playing: %s" % storage.data["music"]["playing"])
+	
+@bot.command("music playing (.*?)")
+@utils.mod_only
+def music(lrrbot, conn, event, respond_to, name):
+	storage.data['music']["playing"] = name
+	storage.save()
+	conn.privmsg(respond_to, "Music added, now playing: %s" % name)
 
 @bot.command("storm(?:count)?")
 @utils.throttle()
