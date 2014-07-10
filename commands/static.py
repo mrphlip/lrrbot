@@ -33,8 +33,8 @@ def generate_expression(node):
 
 @utils.throttle(5, params=[4])
 def static_response(lrrbot, conn, event, respond_to, command):
-	if storage.data["subsciption_check"][command.lower()] is True:
-		if lrrbot.is_sub(event):
+	if storage.data["response"][command.lower()]["access"] is "sub":
+		if lrrbot.is_sub(event) or lrrbot.is_mod(event):
 			response = storage.data["responses"][" ".join(command.lower().split())]
 			if isinstance(response, (tuple, list)):
 				response = random.choice(response)
