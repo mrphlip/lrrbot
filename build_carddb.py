@@ -132,6 +132,8 @@ def process_card(card, expansion):
 		card['text'] = "You may play any number of lands on each of your turns.\n\nWhenever you play a land, if it wasn't the first land you played this turn, Fastbond deals 1 damage to you."
 	if card['name'] == "Wakestone Gargoyle":
 		card['text'] = "Defender, flying\n\n{1}{W}: Creatures you control with defender can attack this turn as though they didn't have defender."
+	if card['name'] == "Sorceress Queen":
+		card['text'] = "{T}: Target creature other than Sorceress Queen has base power and toughness 0/2 until end of turn."
 
 	if card.get('layout') == 'split':
 		# Return split cards as a single card... for all the other pieces, return nothing
