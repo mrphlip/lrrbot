@@ -9,7 +9,6 @@ body
 {
 	position: relative;
 	border-radius: 0.5em;
-	padding: 1em;
 	margin: 0 0 0.5em 0;
 	color: black;
 	background-color: #CCC;
@@ -28,6 +27,11 @@ body
 	font: bold 150% sans-serif;
 	color: white;
 	text-shadow: 1px 1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000, 2px 2px 2px #000;
+}
+.header img
+{
+	vertical-align: middle;
+	margin: 0 0.5em 0 0;
 }
 .header .login
 {
