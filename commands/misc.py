@@ -16,11 +16,21 @@ def test(lrrbot, conn, event, respond_to):
 @bot.command("music")
 @utils.throttle()
 def music(lrrbot, conn, event, respond_to):
+	"""
+	Command: !music
+	
+	Displays the string currently stored in Music: playing:
+	"""
 	conn.privmsg(respond_to, "Now playing: %s" % storage.data["music"]["playing"])
 	
 @bot.command("music playing (.*?)")
 @utils.mod_only
 def music(lrrbot, conn, event, respond_to, name):
+	"""
+	Command: !music playing NAME
+	
+	Replaces current Music: playing: string with NAME
+	"""
 	storage.data['music']["playing"] = name
 	storage.save()
 	conn.privmsg(respond_to, "Music added, now playing: %s" % name)
