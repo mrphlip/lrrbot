@@ -148,6 +148,24 @@ div.button.disabled
 	cursor: inherit;
 }
 
+.splash
+{
+	float: right;
+	margin: 0 0 0.5em 1em;
+}
+.splash img
+{
+	border: none;
+	display: block;
+}
+.clear
+{
+	clear: both;
+	height: 0;
+	line-height: 0;
+	font-size: 0;
+}
+
 #notificationlist, #notificationlist li
 {
 	margin: 0;
