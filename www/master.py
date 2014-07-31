@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import server
 import index
+import help
 import notifications
 import stats
 import login
