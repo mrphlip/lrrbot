@@ -6,6 +6,7 @@ import server
 import urllib.request, urllib.parse
 import secrets
 import uuid
+import utils
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -65,16 +66,15 @@ def require_mod(func):
 			return login(session['url'])
 	return wrapper
 
-def load_session(include_url=True):
+def load_session(include_url=True, include_mod=True):
 	"""Get the login session information from the cookies"""
 	# could potentially add other things here in the future...
 	session = {
 		"user": flask.session.get('user'),
-		# Theoretically we should talk to the bot to see if this user
-		# has +o, but I don't want to have to send a bot request with
-		# every single pageload... so a static list it is.
-		"is_mod": flask.session.get('user') in secrets.mods,
 	}
+	if include_mod:
+		session['is_mod'] = utils.is_mod(flask.session.get('user'))
+		session['is_sub'] = utils.is_sub(flask.session.get('user'))
 	if include_url:
 		session['url'] = flask.request.url
 	else:

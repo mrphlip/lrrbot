@@ -2,13 +2,13 @@ import flask.json
 import socket
 import login
 
-@login.with_session
-def send_bot_command(command, param, session, timeout=5):
+def send_bot_command(command, param, timeout=5):
 	"""
 	Send a message to the bot, and return the response
 
 	Raises socket.timeout in the event of a timeout
 	"""
+	session = login.load_session(include_mod=False)
 	conn = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 	conn.settimeout(timeout)
 	conn.connect("../lrrbot.sock")
