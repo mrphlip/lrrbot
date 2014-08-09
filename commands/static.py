@@ -7,7 +7,8 @@ import re
 
 def generate_docstring():
 	inverse_responses = {}
-	for command, response in storage.data["responses"].items():
+	for command, data in storage.data["responses"].items():
+		response = data["response"]
 		if isinstance(response, (tuple, list)):
 			response = tuple(response)
 		inverse_responses.setdefault(response, [])
