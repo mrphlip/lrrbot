@@ -35,18 +35,12 @@ def generate_expression(node):
 @utils.throttle(5, params=[4])
 def static_response(lrrbot, conn, event, respond_to, command):
 	if storage.data["response"][command.lower()]["access"] is "sub":
-		if lrrbot.is_sub(event) or lrrbot.is_mod(event):
-			response = storage.data["responses"][" ".join(command.lower().split())]
-			if isinstance(response, (tuple, list)):
-				response = random.choice(response)
-			conn.privmsg(respond_to, response)
-		else:
+		if not lrrbot.is_sub(event) and not lrrbot.is_mod(event):
 			return
-	else:
-		response = storage.data["responses"][" ".join(command.lower().split())]
-		if isinstance(response, (tuple, list)):
-			response = random.choice(response)
-		conn.privmsg(respond_to, response)
+	response = storage.data["responses"][" ".join(command.lower().split())]["response"]
+	if isinstance(response, (tuple, list)):
+		response = random.choice(response)
+	conn.privmsg(respond_to, response)
 
 def modify_commands(commands):
     bot.remove_command(generate_expression(storage.data["responses"]))
