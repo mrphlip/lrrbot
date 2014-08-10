@@ -88,7 +88,7 @@ def next(lrrbot, conn, event, respond_to, timezone):
 	"""
 	conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
 
-@bot.command("(?:nextfan(?:stream)?|fansched(?:ule)?) (.*)?")
+@bot.command("(?:nextfan(?:stream)?|fansched(?:ule)?)( .*)?")
 @utils.throttle()
 def nextfan(lrrbot, conn, event, respond_to, timezone):
 	"""
