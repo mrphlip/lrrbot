@@ -114,7 +114,7 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None):
 	elif isinstance(tz, str):
 		tz = tz.strip()
 		try:
-			tz = pytz.timezone(tz)
+			tz = utils.get_timezone(tz)
 		except pytz.exceptions.UnknownTimeZoneError:
 			return "Unknown timezone: %s" % tz
 

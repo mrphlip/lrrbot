@@ -10,6 +10,7 @@ from config import config
 import email.parser
 import textwrap
 import datetime
+import pytz
 
 log = logging.getLogger('utils')
 
@@ -290,3 +291,17 @@ def nice_duration(s, detail=1):
 		return ["%(h)d:%(m)02d:%(s)02d", "%(h)d:%(m)02d", "%(h)dh"][detail] % {'s': s, 'm': m, 'h': h}
 	d, h = divmod(h, 24)
 	return ["%(d)dd, %(h)d:%(m)02d:%(s)02d", "%(d)dd, %(h)d:%(m)02d", "%(d)dd, %(h)dh"][detail] % {'s': s, 'm': m, 'h': h, 'd': d}
+
+def get_timezone(tz):
+	"""
+	Look up a timezone by name, case-insensitively
+	"""
+	try:
+		return pytz.timezone(tz)
+	except pytz.exceptions.UnknownTimeZoneError:
+		tznames = {i.lower(): i for i in pytz.all_timezones}
+		tz = tz.lower()
+		if tz in tznames:
+			return pytz.timezone(tznames[tz])
+		else:
+			raise
