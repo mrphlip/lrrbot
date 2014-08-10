@@ -82,8 +82,8 @@ def next(lrrbot, conn, event, respond_to, timezone):
 
 	Gets the next scheduled stream from the LoadingReadyLive calendar
 
-	Can specify a timezone, to show stream in your local time, eg:
-	!next America/New_York
+	Can specify a timezone, to show stream in your local time, eg: !next America/New_York
+
 	If no time is specified, times will be shown in Moonbase time.
 	"""
 	conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
