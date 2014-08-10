@@ -1,6 +1,5 @@
 irc>=8.6
-icalendar>=3.6.2
-python-dateutil==2.2
+python-dateutil>=2.2
 flask>=0.10.1
 oursql>=0.9.4
 beautifulsoup4>=4.3.2

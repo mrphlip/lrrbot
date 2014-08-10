@@ -9,6 +9,7 @@ import utils
 from config import config
 import email.parser
 import textwrap
+import datetime
 
 log = logging.getLogger('utils')
 
@@ -275,6 +276,8 @@ def nice_duration(s, detail=1):
 		1 - Show to the nearest minute, unless less than a minute
 		2 - Show to the nearest hour, unless less than an hour
 	"""
+	if isinstance(s, datetime.timedelta):
+		s = s.days * 86400 + s.seconds
 	if s < 0:
 		return "-" + nice_duration(-s, detail)
 	if s < 60:

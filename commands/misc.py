@@ -71,57 +71,35 @@ def spamcount(lrrbot, conn, event, respond_to):
 		storage.save()
 	conn.privmsg(respond_to, "Today's spam counts: %d hits, %d repeat offenders, %d bannings" % tuple(storage.data["spam"]["count"]))
 
-@bot.command("next(?:stream)?|sched(?:ule)?")
+@bot.command("(?:next(?:stream)?|sched(?:ule)?)( .*)?")
 @utils.throttle()
-def next(lrrbot, conn, event, respond_to):
+def next(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !next
 	Command: !nextstream
 	Command: !sched
 	Command: !schedule
 
-	Gets the next scheduled stream from the calendar
-	"""
-	if lrrbot.calendar_override == None:
-		event_name, event_time, event_wait = googlecalendar.get_next_event()
-		if event_time:
-			nice_time = event_time = event_time.astimezone(config["timezone"]).strftime("%a %I:%M %p %Z")
-			if event_wait < 0:
-				nice_duration = utils.nice_duration(-event_wait, 1) + " ago"
-			else:
-				nice_duration = utils.nice_duration(event_wait, 1) + " from now"
-			conn.privmsg(respond_to, "Next scheduled stream: %s at %s (%s)" % (event_name, nice_time, nice_duration))
-		else:
-			conn.privmsg(respond_to, "There don't seem to be any upcoming scheduled streams")
-	else:
-		now = datetime.datetime.now(config["timezone"])
+	Gets the next scheduled stream from the LoadingReadyLive calendar
 
-		conn.privmsg(respond_to, "(Overwritten) %s, current moonbase time %s" % (lrrbot.calendar_override, now.strftime("%I:%M %p")))
-		
-@bot.command("calendar override (.*?)")
-@utils.mod_only
-def calendar_override(lrrbot, conn, event, respond_to, response):
+	Can specify a timezone, to show stream in your local time, eg:
+	!next America/New_York
+	If no time is specified, times will be shown in Moonbase time.
 	"""
-	Command: !calendar override RESPONSE
-	
-	eg: !calendar override Next rescheduled stream: Video Games with Video James at Thu 12:30 PM PDT 
-	
-	For when the calendar isn't properly updated
+	conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
 
-	--command
-	Command: !calendar override off
-	
-	Disable override, go back to getting the next stream from the calendar.
+@bot.command("(?:nextfan(?:stream)?|fansched(?:ule)?) (.*)?")
+@utils.throttle()
+def nextfan(lrrbot, conn, event, respond_to, timezone):
 	"""
-	if response == "" or response.lower() == "off":
-		lrrbot.calendar_override = None
-		operation = "disabled"
-		message = "Override disabled"
-	else:
-		lrrbot.calendar_override = response
-		operation = "enabled"
-		message = "New !next response: %s. " % response
-	conn.privmsg(respond_to, message)
+	Command: !nextfan
+	Command: !nextfanstream
+	Command: !fansched
+	Command: !fanschedule
+
+	Gets the next scheduled stream from the fan-streaming calendar
+	"""
+	conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True))
 
 @bot.command("time")
 @utils.throttle()

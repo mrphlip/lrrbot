@@ -1,105 +1,143 @@
-import icalendar
 import utils
-import time
 import datetime
-import dateutil.rrule
-import operator
+import dateutil.parser
+import json
+from config import config
+import urllib.parse
+import pytz, pytz.exceptions
 
 CACHE_EXPIRY = 15*60
-URL = "http://www.google.com/calendar/ical/loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go%40group.calendar.google.com/public/basic.ics"
+CALENDAR_LRL = "loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com"
+CALENDAR_FAN = "caffeinatedlemur@gmail.com"
+EVENT_COUNT = 10
 
-@utils.throttle(CACHE_EXPIRY)
-def get_calendar_data():
-	ical = utils.http_request(URL)
-	return icalendar.Calendar.from_ical(ical)
+EVENTS_URL = "https://www.googleapis.com/calendar/v3/calendars/%s/events"
+DATE_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
+DISPLAY_FORMAT = "%a %I:%M %p %Z"
 
-def get_next_event(after=None, all=False):
-	cal_data = get_calendar_data()
-	events = []
+HISTORY_PERIOD = datetime.timedelta(hours=1) # How long ago can an event have started to count as "recent"?
+LOOKAHEAD_PERIOD = datetime.timedelta(hours=1) # How close together to events have to be to count as "the same time"?
+
+@utils.throttle(CACHE_EXPIRY, params=[0])
+def get_upcoming_events(calendar, after=None):
+	"""
+	Get the next several events from the calendar. Will include the currently-happening
+	events (if any) and a number of following events.
+
+	Results are cached, so we get more events than we should need, so that if the
+	first few events become irrelevant by the time the cache expires, we still have
+	the data we need.
+	(Technically, the API quota limits allow us to get the events, for both
+	calendars, every 1.7 seconds... but still, caching on principle.)
+
+	The "after" parameter allows overriding the reference time, for testing purposes.
+	"""
 	if after is None:
 		after = datetime.datetime.now(datetime.timezone.utc)
-	for ev in cal_data.subcomponents:
-		if isinstance(ev, icalendar.Event):
-			event_name = str(ev['summary'])
-			event_time = ev['dtstart'].dt
-			exception_times = ev.get('exdate')
-			if not exception_times:
-				exception_times = []
-			elif not isinstance(exception_times, (tuple, list)):
-				exception_times = [exception_times]
-			exception_times = set(j.dt for i in exception_times for j in i.dts)
-			if not isinstance(event_time, datetime.datetime):
-				# ignore full-day events
-				continue
-			# Report episodes that are either in the first half, or started less than an hour ago
-			# Whichever is shorter
-			cutoff_delay = (ev['dtend'].dt - ev['dtstart'].dt) / 2
-			if cutoff_delay > datetime.timedelta(hours=1):
-				cutoff_delay = datetime.timedelta(hours=1)
-			event_time_cutoff = event_time + cutoff_delay
-			if 'rrule' in ev:
-				rrule = dateutil.rrule.rrulestr(ev['rrule'].to_ical().decode('utf-8'), dtstart=event_time_cutoff)
-				### MASSIVE HACK ALERT
-				_apply_monkey_patch(rrule)
-				### END MASSIVE HACK ALERT
-				# Find the next event in the recurrence that isn't an exception
-				search_date = after
-				while True:
-					search_date = rrule.after(search_date)
-					if search_date is None or search_date - cutoff_delay not in exception_times:
-						break
-				event_time_cutoff = search_date
-				if event_time_cutoff is None:
-					continue
-				event_time = event_time_cutoff - cutoff_delay
-			if event_time_cutoff > after:
-				events.append((event_name, event_time))
-	if all:
-		events.sort(key=operator.itemgetter(1))
-		return events
-	if events:
-		event_name, event_time = min(events, key=operator.itemgetter(1))
-		event_wait = (event_time - after).total_seconds()
-		return event_name, event_time, event_wait
-	else:
-		return None, None, None
+	url = EVENTS_URL % urllib.parse.quote(calendar)
+	data = {
+		"maxResults": EVENT_COUNT,
+		"orderBy": "startTime",
+		"singleEvents": "true",
+		"timeMin": after.strftime(DATE_FORMAT),
+		"timeZone": config['timezone'].zone,
+		"key": config['google_key'],
+	}
+	res = utils.http_request(url, data)
+	res = json.loads(res)
+	if 'error' in res:
+		raise Exception(res['error']['message'])
+	formatted_items = []
+	for item in res['items']:
+		formatted_items.append({
+			"id": item['id'],
+			"url": item['htmlLink'],
+			"title": item['summary'],
+			"creator": item['creator']['displayName'],
+			"start": dateutil.parser.parse(item['start']['dateTime']),
+			"end": dateutil.parser.parse(item['end']['dateTime']),
+		})
+	return formatted_items
 
-def _apply_monkey_patch(rrule):
+def get_next_event(calendar, after=None, include_current=False):
 	"""
-	The processing in dateutil.rrule is not properly timezone-aware, mostly because
-	Python's timezone handling is far from ideal. In particular, it will claim that,
-	for instance, a week after "2014-03-06 19:00:00 PST" is "2014-03-13 19:00:00 PST",
-	when in fact the correct answer is "2014-03-13 19:00:00 PDT", as daylight savings
-	has started.
+	Get the list of events that should be shown by the !next command.
 
-	Notably, the time from the original time to the time 1 week later is not 7*24 hours
-	when calculated correctly.
+	Our criteria:
+	For pulling from the official LRL calendar, we don't care about
+	events that are currently happening, as it's likely whoever's using the bot
+	knows about the stream that's currently live.
+	We'll still pull out the current event if it's only recently started (ie started within
+	the last hour, or less than half over for streams shorter than 2 hours), so that
+	!next still gives a reasonable response when a stream is running late.
 
-	We monkey-patch the rrule class so that all the datetimes that come out of it are
-	re-localised, so that the naive hour/minute values are preserved, but the DST flag
-	is changed. This means that the corrected dates are what is seen by rrule.after(),
-	when it does comparisons using the dates, so the correct results should come out.
+	For the fan calendar, always bring out events that are current, no matter how old
+	as users may not be aware of them.
+	This is controlled by the include_current param.
 
-	This is a hack that messes with the internals of the library, and as such is far
-	from a good idea. It was written against dateutil 2.2, and no guarantees that it
-	will work with any other version of that library. A better solution would be
-	appreciated, even if it means ditching dateutil for a better library that does
-	what we want it to here.
+	For future events, we show the first event that's starting in the future (or
+	recently in the past), and any other events that are starting in less than an hour
+	from that event (so if multiple events are scheduled at roughly the same time,
+	we get all of them).
 	"""
-	import functools
-	old_iter = rrule._iter
-	@functools.wraps(old_iter)
-	def new_iter(*args, **kwargs):
-		# If the rule is Daily/Weekly/Monthly/etc, then we want to keep the naive
-		# date/time values, eg 1 day after "7PM PST" is still "7pm PDT"
-		# even though that's only 23 hours difference.
-		# If the rule is Hourly/etc, then we want to use the timezone-aware time,
-		# eg one hour after "1:30AM PST" should be "3:30AM PDT", as that is
-		# a time gap of one actual hour.
-		if rrule._freq <= dateutil.rrule.DAILY:
-			for dt in old_iter(*args, **kwargs):
-				yield dt.tzinfo.localize(dt.replace(tzinfo=None))
+	if after is None:
+		after = datetime.datetime.now(datetime.timezone.utc)
+	events = get_upcoming_events(calendar, after=after)
+
+	first_future_event = None
+	for i, ev in enumerate(events):
+		history = (ev['end'] - ev['start'])
+		if history > HISTORY_PERIOD:
+			history = HISTORY_PERIOD
+		reference_time = ev['start'] + history
+		if reference_time >= after:
+			first_future_event = i
+			break
+	if first_future_event is None:
+		return []
+
+	lookahead_end = events[first_future_event]['start'] + LOOKAHEAD_PERIOD
+	return [ev for i,ev in enumerate(events) if (i >= first_future_event or include_current) and ev['start'] < lookahead_end]
+
+def get_next_event_text(calendar, after=None, include_current=None, tz=None):
+	"""
+	Build the actual human-readable response to the !next command.
+
+	The tz parameter can override the timezone used to display the event times.
+	This can be an actual timezone object, or a string timezone name.
+	Defaults to moonbase time.
+	"""
+	if after is None:
+		after = datetime.datetime.now(datetime.timezone.utc)
+	if not tz:
+		tz = config['timezone']
+	elif isinstance(tz, str):
+		tz = tz.strip()
+		try:
+			tz = pytz.timezone(tz)
+		except pytz.exceptions.UnknownTimeZoneError:
+			return "Unknown timezone: %s" % tz
+
+	events = get_next_event(calendar, after=after, include_current=include_current)
+	if not events:
+		return "There don't seem to be any upcoming scheduled streams"
+
+	strs = []
+	for i, ev in enumerate(events):
+		# If several events are at the same time, just show the time once after all of them
+		if i == len(events) - 1 or ev['start'] != events[i+1]['start']:
+			if ev['start'] < after:
+				nice_duration = utils.nice_duration(after - ev['start'], 1) + " ago"
+			else:
+				nice_duration = utils.nice_duration(ev['start'] - after, 1) + " from now"
+			strs.append("%s at %s (%s)" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT), nice_duration))
 		else:
-			for dt in old_iter(*args, **kwargs):
-				yield dt.tzinfo.normalize(dt)
-	rrule._iter = new_iter
+			strs.append(ev['title'])
+	response = ', '.join(strs)
+
+	if calendar == CALENDAR_LRL:
+		response = "Next scheduled stream: " + response
+	elif calendar == CALENDAR_FAN:
+		response = "Next scheduled stream: " + response
+
+	return utils.shorten(response, 450) # For safety
