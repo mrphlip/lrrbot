@@ -138,6 +138,6 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None):
 	if calendar == CALENDAR_LRL:
 		response = "Next scheduled stream: " + response
 	elif calendar == CALENDAR_FAN:
-		response = "Next scheduled stream: " + response
+		response = "Next scheduled fan stream: " + response
 
 	return utils.shorten(response, 450) # For safety
