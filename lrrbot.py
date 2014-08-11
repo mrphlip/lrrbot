@@ -51,6 +51,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.commands = {}
 		self.re_botcommand = None
 		self.command_groups = {}
+		self.server_events = {}
 
 		# Precompile regular expressions
 		self.re_subscription = re.compile(r"^(.*) just subscribed!", re.IGNORECASE)
@@ -134,6 +135,21 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		for regex, function in self.commands.items():
 			self.command_groups[i] = (function, i+regex.groups)
 			i += 1+regex.groups
+
+	def add_server_event(self, name, function):
+		self.server_events[name.lower()] = function
+
+	def remove_server_event(self, name):
+		del self.server_events[name.lower()]
+
+	def server_event(self, name=None):
+		def wrapper(function):
+			nonlocal name
+			if name is None:
+				name = function.__name__
+			self.add_server_event(name, function)
+			return function
+		return wrapper
 
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
@@ -347,73 +363,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			buf += conn.recv(1024)
 		data = json.loads(buf.decode())
 		log.info("Command from server (%s): %s(%r)" % (data['user'], data['command'], data['param']))
-		event_proc = getattr(self, 'on_server_event_%s' % data['command'].lower())
-		ret = event_proc(data['user'], data['param'])
+		eventproc = self.server_events[data['command'].lower()]
+		ret = eventproc(self, data['user'], data['param'])
 		log.debug("Returning: %r" % ret)
 		conn.send((json.dumps(ret) + "\n").encode())
 		conn.close()
 
-	def on_server_event_current_game(self, user, data):
-		game = self.get_current_game()
-		if game:
-			return game['id']
-		else:
-			return None
-
-	def on_server_event_get_data(self, user, data):
-		if not isinstance(data['key'], (list, tuple)):
-			data['key'] = [data['key']]
-		node = storage.data
-		for subkey in data['key']:
-			node = node.get(subkey, {})
-		return node
-
-	def on_server_event_set_data(self, user, data):
-		if not isinstance(data['key'], (list, tuple)):
-			data['key'] = [data['key']]
-		log.info("Setting storage %s to %r" % ('.'.join(data['key']), data['value']))
-		# if key is, eg, ["a", "b", "c"]
-		# then we want to effectively do:
-		# storage.data["a"]["b"]["c"] = value
-		# But in case one of those intermediate dicts doesn't exist:
-		# storage.data.setdefault("a", {}).setdefault("b", {})["c"] = value
-		node = storage.data
-		for subkey in data['key'][:-1]:
-			node = node.setdefault(subkey, {})
-		node[data['key'][-1]] = data['value']
-		storage.save()
-
-	def on_server_event_modify_commands(self, user, data):
-		commands.static.modify_commands(data)
-		bot.compile()
-
-	def on_server_event_modify_explanations(self, user, data):
-		commands.explain.modify_explanations(data)
-		bot.compile()
-	
-	def on_server_event_modify_spam_rules(self, user, data):
-		storage.data['spam_rules'] = data
-		storage.save()
-		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
-	
-	def on_server_event_get_commands(self, user, data):
-		bind = lambda maybe, f: f(maybe) if maybe is not None else None
-		ret = []
-		for command in self.commands.values():
-			doc = utils.parse_docstring(command.__doc__)
-			for cmd in doc.walk():
-				if cmd.get_content_maintype() == "multipart":
-					continue
-				if cmd.get_all("command") is None:
-					continue
-				ret += [{
-					"aliases": cmd.get_all("command"),
-					"mod-only": cmd.get("mod-only") == "true",
-					"throttled": bind(cmd.get("throttled"), int),
-					"literal-response": cmd.get("literal-response") == "true",
-					"description": cmd.get_payload(),
-				}]
-		return ret
 bot = LRRBot()
 
 def init_logging():
@@ -431,6 +386,7 @@ if __name__ == '__main__':
 	init_logging()
 
 	import commands
+	import serverevents
 	bot.compile()
 
 	try:
@@ -441,4 +397,3 @@ if __name__ == '__main__':
 	finally:
 		log.info("Bot shutdown")
 		logging.shutdown()
-
