@@ -5,11 +5,14 @@
 <title>{%block title%}{%endblock%} &ndash; LRRbot</title>
 <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')|e}}">
 <link rel="shortcut icon" href="{{url_for('static', filename='favicon.ico')|e}}">
+<script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='infobar.js')|e}}"></script>
 {%block headextra%}{%endblock%}
 {%endblock%}
 </head>
 <body>
 <div class="header">
+	<h1><a href="{{url_for('index')|e}}"><img src="{{url_for('static', filename='logo.png')|e}}" alt="LRRbot" width="98" height="100"></a> {%block header%}{%endblock%}</h1>
 	<div class="login">
 		{%if session['user']%}
 			<a href="{{url_for('logout')|e}}{%if session['url']%}?return_to={{session['url']|e}}{%endif%}">Log out ({{session['user']|e}})</a>
@@ -17,7 +20,28 @@
 			<a href="{{url_for('login')|e}}{%if session['url']%}?return_to={{session['url']|e}}{%endif%}">Log in</a>
 		{%endif%}
 	</div>
-	<h1><a href="{{url_for('index')|e}}"><img src="{{url_for('static', filename='logo.png')|e}}" alt="LRRbot" width="98" height="100"></a> {%block header%}{%endblock%}</h1>
+</div>
+<div class="infobar">
+	{%if session['header'].get('advice')%}
+		<div class="advice">{{session['header']['advice']|e}}</div>
+	{%endif%}
+	{%if session['header'].get('current_game')%}
+		<span class="showmore expand"></span>
+		Currently playing: <span class="currently-playing">{{session['header']['current_game']['display']|e}}</span>
+		{%if session['header']['current_game'].get("rating")%}
+			<span class="rating" style="display: none">&ndash; {{"%.0f"|format(session['header']['current_game']['rating']['perc'])|e}}% ({{session['header']['current_game']['rating']['good']|e}}/{{session['header']['current_game']['rating']['total']|e}})</span>
+		{%endif%}
+		<div class="stats" style="display: none">
+			<ul>
+				{%for stat in session['header']['current_game']['stats']%}
+				<li {%if loop.first%}class="first"{%endif%}><span class="stat-count">{{stat['count']|e}}</span> <span class="stat-type">{{stat['type']|e}}</span></li>
+				{%endfor%}
+			</ul>
+		</div>
+	{%else%}
+		The stream is not currently playing any game.
+	{%endif%}
+	<div class="clear"></div>
 </div>
 <div class="menu">
 <ul>

@@ -2,6 +2,7 @@ from lrrbot import bot
 import utils
 import storage
 import commands.static, commands.explain
+import random
 
 @bot.server_event()
 def current_game(lrrbot, user, data):
@@ -71,3 +72,34 @@ def get_commands(lrrbot, user, data):
 				"description": cmd.get_payload(),
 			}]
 	return ret
+
+@bot.server_event()
+def get_header_info(lrrbot, user, data):
+	game = lrrbot.get_current_game()
+	data = {}
+	if game is not None:
+		data['current_game'] = {
+			"name": game['name'],
+			"display": game.get("display", game["name"]),
+			"id": game["id"],
+			"is_override": lrrbot.game_override is not None,
+		}
+		stats = [{
+			"count": v,
+			"type": storage.data['stats'][k].get("singular" if v == 1 else "plural", k)
+		} for (k,v) in game['stats'].items() if v]
+		stats.sort(key=lambda i: (-i['count'], i['type']))
+		data['current_game']['stats'] = stats
+		if game.get("votes"):
+			good = sum(game['votes'].values())
+			total = len(game['votes'])
+			data["current_game"]["rating"] = {
+				"good": good,
+				"total": total,
+				"perc": 100.0 * good / total,
+			}
+		if user is not None:
+			data["current_game"]["my_rating"] = game.get("votes", {}).get(user.lower())
+	if 'advice' in storage.data['responses']:
+		data['advice'] = random.choice(storage.data['responses']['advice'])
+	return data

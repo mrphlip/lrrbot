@@ -8,8 +8,9 @@ body
 .header
 {
 	position: relative;
-	border-radius: 0.5em;
-	margin: 0 0 0.5em 0;
+	border-top-left-radius: 0.5em;
+	border-top-right-radius: 0.5em;
+	margin: 0;
 	color: black;
 	background-color: #CCC;
 	/* Thanks to: http://www.css3factory.com/linear-gradients/ */
@@ -39,7 +40,7 @@ body
 	bottom: 0.5em;
 	right: 0.5em;
 }
-.menu
+.infobar, .menu
 {
 	position: relative;
 	border-radius: 0.5em;
@@ -48,13 +49,18 @@ body
 	color: black;
 	background-color: #EEE;
 }
-.menu ul
+.infobar
+{
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+.infobar ul, .menu ul
 {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 }
-.menu li
+.infobar li, .menu li
 {
 	list-style: none;
 	display: inline;
@@ -62,9 +68,39 @@ body
 	padding: 0 0.5em;
 	border-left: 1px dotted grey;
 }
-.menu li.first
+.infobar li.first, .menu li.first
 {
 	border-left: none;
+}
+.infobar
+{
+	font-size: 90%;
+}
+.infobar .advice
+{
+	float: right;
+	margin: 0 0.5em;
+	font-size: 80%;
+	font-style: italic;
+}
+.infobar .showmore
+{
+	padding-left: 17px;
+	margin: 0 0.25em 0 0;
+	background: url(expandcollapse.png) no-repeat;
+	cursor: pointer;
+}
+.infobar .showmore.expand
+{
+	background-position: center left;
+}
+.infobar .showmore.collapse
+{
+	background-position: center right;
+}
+.infobar .currently-playing, .infobar .stat-count
+{
+	font-weight: bold;
 }
 .menu :link, .menu :visited
 {

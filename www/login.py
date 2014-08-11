@@ -7,6 +7,7 @@ import urllib.request, urllib.parse
 import secrets
 import uuid
 import utils
+import botinteract
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -66,8 +67,12 @@ def require_mod(func):
 			return login(session['url'])
 	return wrapper
 
-def load_session(include_url=True, include_mod=True):
-	"""Get the login session information from the cookies"""
+def load_session(include_url=True, include_mod=True, include_header=True):
+	"""
+	Get the login session information from the cookies.
+
+	Includes all the information needed by the master.html template.
+	"""
 	# could potentially add other things here in the future...
 	session = {
 		"user": flask.session.get('user'),
@@ -79,6 +84,8 @@ def load_session(include_url=True, include_mod=True):
 		session['url'] = flask.request.url
 	else:
 		session['url'] = None
+	if include_header:
+		session['header'] = botinteract.get_header_info()
 	return session
 
 @server.app.route('/login')

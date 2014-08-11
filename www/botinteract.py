@@ -8,7 +8,10 @@ def send_bot_command(command, param, timeout=5):
 
 	Raises socket.timeout in the event of a timeout
 	"""
-	session = login.load_session(include_mod=False)
+	# Call load_session separately instead of @with_session
+	# so we can turn off all the flags that use botinteract calls
+	# to avoid infinite recursion
+	session = login.load_session(include_mod=False, include_header=False)
 	conn = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 	conn.settimeout(timeout)
 	conn.connect("../lrrbot.sock")
@@ -62,3 +65,6 @@ def modify_spam_rules(data):
 
 def get_commands():
 	return send_bot_command("get_commands", None)
+
+def get_header_info():
+	return send_bot_command("get_header_info", None)
