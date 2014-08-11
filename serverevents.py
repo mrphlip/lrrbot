@@ -102,4 +102,9 @@ def get_header_info(lrrbot, user, data):
 			data["current_game"]["my_rating"] = game.get("votes", {}).get(user.lower())
 	if 'advice' in storage.data['responses']:
 		data['advice'] = random.choice(storage.data['responses']['advice'])
+	if user is not None:
+		data['is_mod'] = lrrbot.is_mod_nick(user)
+		data['is_sub'] = lrrbot.is_sub_nick(user)
+	else:
+		data['is_mod'] = data['is_sub'] = False
 	return data

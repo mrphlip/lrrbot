@@ -49,7 +49,7 @@
 	<li><a href="{{url_for('stats')|e}}">Stats</a></li>
 	<li><a href="{{url_for('notifications')|e}}">Notifications</a></li>
 	<li><a href="{{url_for('votes')|e}}">Votes</a></li>
-	{%if session['is_mod']%}
+	{%if session['header']['is_mod']%}
 	<li><a href="{{url_for('commands')|e}}">Responses</a></li>
 	<li><a href="{{url_for('commands')|e}}?mode=explanations">Explanations</a></li>
 	<li><a href="{{url_for('spam')|e}}">Spam</a></li>

@@ -117,19 +117,3 @@ class throttle(object):
 	def reset_throttle(self):
 		self.lastrun = {}
 		self.lastreturn = {}
-
-@throttle(24*60*60)
-def get_mods():
-	from botinteract import get_data
-	return set(get_data('mods'))
-
-@throttle(24*60*60)
-def get_subs():
-	from botinteract import get_data
-	return set(get_data('subs'))
-
-def is_mod(nick):
-	return nick and nick.lower() in get_mods()
-
-def is_sub(nick):
-	return nick and nick.lower() in get_subs()

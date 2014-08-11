@@ -11,7 +11,7 @@ def send_bot_command(command, param, timeout=5):
 	# Call load_session separately instead of @with_session
 	# so we can turn off all the flags that use botinteract calls
 	# to avoid infinite recursion
-	session = login.load_session(include_mod=False, include_header=False)
+	session = login.load_session(include_header=False)
 	conn = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 	conn.settimeout(timeout)
 	conn.connect("../lrrbot.sock")

@@ -290,10 +290,16 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		source = irc.client.NickMask(event.source)
 		return source.nick.lower() in self.mods
 
+	def is_mod_nick(self, nick):
+		return nick.lower() in self.mods
+
 	def is_sub(self, event):
 		"""Check whether the source of the event is a known subscriber to the channel"""
 		source = irc.client.NickMask(event.source)
 		return source.nick.lower() in self.subs
+
+	def is_sub_nick(self, nick):
+		return nick.lower() in self.subs
 
 	def check_spam(self, conn, event, message):
 		"""Check the message against spam detection rules"""

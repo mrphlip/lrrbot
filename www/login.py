@@ -59,7 +59,7 @@ def require_mod(func):
 		session = load_session()
 		if session['user']:
 			kwargs['session'] = session
-			if session['is_mod']:
+			if session['header']['is_mod']:
 				return func(*args, **kwargs)
 			else:
 				return flask.render_template('require_mod.html', session=session)
@@ -67,7 +67,7 @@ def require_mod(func):
 			return login(session['url'])
 	return wrapper
 
-def load_session(include_url=True, include_mod=True, include_header=True):
+def load_session(include_url=True, include_header=True):
 	"""
 	Get the login session information from the cookies.
 
@@ -77,9 +77,6 @@ def load_session(include_url=True, include_mod=True, include_header=True):
 	session = {
 		"user": flask.session.get('user'),
 	}
-	if include_mod:
-		session['is_mod'] = utils.is_mod(flask.session.get('user'))
-		session['is_sub'] = utils.is_sub(flask.session.get('user'))
 	if include_url:
 		session['url'] = flask.request.url
 	else:
