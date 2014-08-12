@@ -5,9 +5,7 @@ if __name__ == '__main__':
 	sys.exit(1)
 
 import flask.json
-import queue
 import functools
-import threading
 import oursql
 import secrets
 import server

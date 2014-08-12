@@ -5,7 +5,6 @@ import server
 import urllib.request, urllib.parse
 import time
 import os
-import datetime
 import dateutil.parser
 
 CACHE_TIMEOUT = 15*60

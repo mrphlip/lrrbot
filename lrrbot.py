@@ -5,8 +5,6 @@ import os
 import re
 import time
 import datetime
-import random
-import urllib.request, urllib.parse
 import json
 import logging
 import socket
@@ -16,7 +14,6 @@ from config import config
 import storage
 import twitch
 import utils
-import googlecalendar
 
 log = logging.getLogger('lrrbot')
 
