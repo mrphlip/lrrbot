@@ -1,4 +1,4 @@
-from lrrbot import bot
+from lrrbot import bot, log
 import utils
 import storage
 import commands.static, commands.explain
