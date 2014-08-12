@@ -4,6 +4,7 @@ import storage
 import random
 import utils
 import re
+import logging
 
 def generate_docstring():
 	inverse_responses = {}
@@ -34,8 +35,10 @@ def generate_expression(node):
 
 @utils.throttle(5, params=[4])
 def static_response(lrrbot, conn, event, respond_to, command):
-	if storage.data["response"][command.lower()]["access"] is "sub":
-		if not lrrbot.is_sub(event) and not lrrbot.is_mod(event):
+	log = logging.getLogger('lrrbot')
+	if storage.data["responses"][command.lower()]["access"] == "sub":
+		if not lrrbot.is_sub(event) and not lrrbot.is_mod(event):0
+			log.info("Refusing %s due to inadequate access" % command)
 			return
 	response = storage.data["responses"][" ".join(command.lower().split())]["response"]
 	if isinstance(response, (tuple, list)):
