@@ -10,6 +10,7 @@ import urllib.request, urllib.parse
 import json
 import logging
 import socket
+import select
 import irc.bot, irc.client, irc.modes
 from config import config
 import storage
@@ -103,8 +104,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			conn.buffer.errors = "replace"
 
 		while True:
-			self.ircobj.process_once(timeout=0.2)
-			if self.event_socket:
+			sockets = [conn.socket for conn in self.ircobj.connections if conn and conn.socket]
+			sockets.append(self.event_socket)
+			(i, o, e) = select.select(sockets, [], [], 0.2)
+			if self.event_socket in i:
 				try:
 					conn, addr = self.event_socket.accept()
 				except (OSError, socket.error):
@@ -112,6 +115,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				else:
 					conn.setblocking(True) # docs say this "may" be necessary :-/
 					self.on_server_event(conn)
+			else:
+				self.ircobj.process_data(i)
+			self.ircobj.process_timeout()
 
 	def add_command(self, pattern, function):
 		self.commands[re.compile(pattern.replace(" ", r"\s+"), re.IGNORECASE)] = function
