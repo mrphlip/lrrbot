@@ -85,7 +85,10 @@ body
 }
 .infobar .showmore
 {
-	padding-left: 17px;
+	display: inline-block;
+	width: 17px;
+	height: 17px;
+	vertical-align: middle;
 	margin: 0 0.25em 0 0;
 	background: url(expandcollapse.png) no-repeat;
 	cursor: pointer;
