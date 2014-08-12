@@ -3,7 +3,6 @@ import time
 import logging
 import irc.client
 import urllib.request, urllib.parse
-import sys
 import json
 import utils
 from config import config

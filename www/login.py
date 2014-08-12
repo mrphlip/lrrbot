@@ -6,7 +6,6 @@ import server
 import urllib.request, urllib.parse
 import secrets
 import uuid
-import utils
 import botinteract
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes

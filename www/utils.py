@@ -6,9 +6,7 @@ if __name__ == '__main__':
 
 import flask
 import flask.json
-import queue
 import functools
-import threading
 import oursql
 import secrets
 import server

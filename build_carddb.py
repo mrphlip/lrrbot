@@ -15,7 +15,6 @@ import zipfile
 import io
 import json
 import re
-import copy
 from commands.card import clean_text
 
 URL = 'http://mtgjson.com/json/AllSets.json.zip'
