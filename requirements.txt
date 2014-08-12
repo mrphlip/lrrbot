@@ -2,3 +2,4 @@ irc>=8.6
 python-dateutil>=2.2
 flask>=0.10.1
 oursql>=0.9.4
+pycrypto>=2.6.0
