@@ -1,0 +1,64 @@
+{%extends "master.html"%}
+{%block title%}History{%endblock%}
+{%block header%}Audit History{%endblock%}
+{%block headextra%}
+<script type="text/javascript">
+$(function(){
+	$('#showunchanged').change(function(){
+		if ($(this).prop('checked'))
+			$('tr.nochange').show();
+		else
+			$('tr.nochange').hide();
+	}).change();
+})
+</script>
+{%endblock%}
+{%block content%}
+<div class="historyhead">
+	{%if headdata['prevkey']%}<div class="prevlink"><a href="{{url_for('history_show', historykey=headdata['prevkey'])|e}}">&larr; Previous</a> (<a href="{{url_for('history_diff', fromkey=headdata['prevkey'], tokey=headdata['fromkey'])|e}}">diff</a>)</div>{%endif%}
+	{%if headdata['nextkey']%}<div class="nextlink"><a href="{{url_for('history_show', historykey=headdata['nextkey'])|e}}">Next &rarr;</a> (<a href="{{url_for('history_diff', fromkey=headdata['tokey'], tokey=headdata['nextkey'])|e}}">diff</a>)</div>{%endif%}
+	Change by {{headdata['user']|e}} on {{headdata['time']|timestamp}}
+</div>
+<div class="clear"></div>
+{%if headdata['isdiff']%}<label><input id="showunchanged" type="checkbox"> Show unchanged</label>{%endif%}
+{%if headdata['page'] in ('responses', 'explanations')%}
+<table class="historyshow nicetable">
+<thead>
+	<tr>
+		<th class="key">Key</th>
+		<th class="response">Response</th>
+		<th class="access" colspan="2">Access</th>
+	</tr>
+</thead>
+<tbody>
+	{%for key, values in data%}
+		{%for response in values['response']%}
+		<tr class="{{values['mode']|e}}">
+			{%if loop.first%}<td class="key" rowspan="{{values['response']|length}}" class="key">{{key|e}}</td>{%endif%}
+			<td class="response {{response['mode']|e}}">{{response['text']|e}}</td>
+			{%if loop.first and values['access']['from'] == values['access']['to']%}<td class="access both" rowspan="{{values['response']|length}}" colspan="2">{{values['access']['from']|e}}</td>{%endif%}
+			{%if loop.first and values['access']['from'] != values['access']['to']%}<td class="access from" rowspan="{{values['response']|length}}">{{values['access']['from']|e}}</td><td class="access to" rowspan="{{values['response']|length}}">{{values['access']['to']|e}}</td>{%endif%}
+		</tr>
+		{%endfor%}
+	{%endfor%}
+</tbody>
+</table>
+{%elif headdata['page'] == 'spam'%}
+<table class="historyshow nicetable">
+<thead>
+	<tr>
+		<th class="expression">Expression</th>
+		<th class="message">Message</th>
+	</tr>
+</thead>
+<tbody>
+	{%for row in data%}
+		<tr class="{{row['mode']|e}}">
+			<td class="expression">{{row['re']|e}}</td>
+			<td class="message">{{row['message']|e}}</td>
+		</tr>
+	{%endfor%}
+</tbody>
+</table>
+{%endif%}
+{%endblock%}

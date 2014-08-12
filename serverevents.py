@@ -3,6 +3,7 @@ import utils
 import storage
 import commands.static, commands.explain
 import random
+import re
 
 @bot.server_event()
 def current_game(lrrbot, user, data):

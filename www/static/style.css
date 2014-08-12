@@ -280,6 +280,7 @@ table.nicetable, table.nicetable tr, table.nicetable td, table.nicetable th
 table.nicetable
 {
 	margin: 0 auto 1em;
+	width: 100%;
 }
 table.nicetable td, table.nicetable th
 {
@@ -548,4 +549,26 @@ table.spam input
 
 dt code {
     line-height: 150%;
+}
+
+table.historyshow td {
+	background: white;
+}
+table.historyshow tr.from td, table.historyshow td.from {
+	background: #F99;
+}
+table.historyshow tr.to td, table.historyshow td.to {
+	background: #9F9;
+}
+
+.historyhead {
+	text-align: center;
+}
+.historyhead .prevlink {
+	float: left;
+	text-align: left;
+}
+.historyhead .nextlink {
+	float: right;
+	text-align: right;
 }

@@ -4,6 +4,7 @@ import flask.json
 import server
 import login
 import botinteract
+import history
 import re
 
 @server.app.route('/spam')
@@ -38,6 +39,7 @@ def spam_submit(session):
 		return flask.json.jsonify(error=error)
 
 	botinteract.modify_spam_rules(data)
+	history.store("spam", session['user'], data)
 	return flask.json.jsonify(success='OK')
 
 @server.app.route('/spam/test', methods=['POST'])

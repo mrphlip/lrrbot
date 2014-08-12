@@ -1,0 +1,21 @@
+{%extends "master.html"%}
+{%block title%}History{%endblock%}
+{%block header%}Audit History{%endblock%}
+{%block content%}
+<form action="{{url_for('history')|e}}" method="get" id="pageform">
+	<select name="page" onchange="document.getElementById('pageform').submit()">
+		<option value="responses" {%if page == "responses"%}selected{%endif%}>Commands</option>
+		<option value="explanations" {%if page == "explanations"%}selected{%endif%}>Explanations</option>
+		<option value="spam" {%if page == "spam"%}selected{%endif%}>Spam rules</option>
+	</select>
+</form>
+<ol class="historylist">
+	{%for row in data%}
+		<li>
+			{%if row['lastkey']%}(<a href="{{url_for('history_diff', fromkey=row['lastkey'], tokey=row['key'])|e}}">diff</a>){%endif%}
+			<a href="{{url_for('history_show', historykey=row['key'])|e}}">{{row['time']|timestamp}}</a>
+			&ndash; {{row['user']|e}} ({{"%+d"|format(row['lengthdiff'])|e}})
+		</li>
+	{%endfor%}
+</ol>
+{%endblock%}

@@ -4,6 +4,7 @@ if __name__ == '__main__':
 	sys.stderr.write("utils.py accessed directly")
 	sys.exit(1)
 
+import flask
 import flask.json
 import queue
 import functools
@@ -13,6 +14,7 @@ import secrets
 import server
 import socket
 import time
+import datetime
 
 def nice_duration(s, detail=1):
 	"""
@@ -49,6 +51,19 @@ def with_mysql(func):
 def ucfirst(s):
 	return s[0].upper() + s[1:]
 server.app.add_template_filter(ucfirst)
+
+def timestamp(ts):
+	"""
+	Outputs a given time (either unix timestamp or datetime instance) as a human-readable time
+	and includes tags so that common.js will convert the time on page-load to the user's
+	timezone and preferred date/time format.
+	"""
+	if isinstance(ts, (int, float)):
+		ts = datetime.datetime.utcfromtimestamp(ts).replace(tzinfo=datetime.timezone.utc)
+	else:
+		ts = datetime.datetime.astimezone(datetime.timezone.utc)
+	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"%d\">%s</span>" % (ts.timestamp(), flask.escape(ts.ctime())))
+server.app.add_template_filter(timestamp)
 
 def sse_send_event(endpoint, event=None, data=None, event_id=None):
 	sse_event = {"endpoint": endpoint}

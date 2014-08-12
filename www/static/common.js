@@ -14,3 +14,10 @@ function niceduration(duration)
 		return duration + "h";
 	return Math.floor(duration / 24) + "d, " + (duration % 24) + "h";
 }
+
+$(function(){
+	$(".timestamp").each(function(){
+		var timestamp = new Date($(this).data('timestamp') * 1000);
+		$(this).text(timestamp.toLocaleString());
+	});
+});

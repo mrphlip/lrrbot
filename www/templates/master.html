@@ -6,6 +6,7 @@
 <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')|e}}">
 <link rel="shortcut icon" href="{{url_for('static', filename='favicon.ico')|e}}">
 <script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='common.js')|e}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='infobar.js')|e}}"></script>
 {%block headextra%}{%endblock%}
 {%endblock%}
@@ -53,6 +54,7 @@
 	<li><a href="{{url_for('commands')|e}}">Responses</a></li>
 	<li><a href="{{url_for('commands')|e}}?mode=explanations">Explanations</a></li>
 	<li><a href="{{url_for('spam')|e}}">Spam</a></li>
+	<li><a href="{{url_for('history')|e}}">History</a></li>
 	{%endif%}
 </ul>
 </div>

@@ -4,6 +4,7 @@ import flask.json
 import server
 import login
 import botinteract
+import history
 
 @server.app.route('/commands')
 @login.require_mod
@@ -63,4 +64,5 @@ def commands_submit(session):
 		botinteract.modify_commands(data)
 	elif mode == 'explanations':
 		botinteract.modify_explanations(data)
+	history.store(mode, session['user'], data)
 	return flask.json.jsonify(success='OK')
