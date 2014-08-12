@@ -67,6 +67,7 @@ def get_commands(lrrbot, user, data):
 			ret += [{
 				"aliases": cmd.get_all("command"),
 				"mod-only": cmd.get("mod-only") == "true",
+				"sub-only": cmd.get("sub-only") == "true",
 				"throttled": bind(cmd.get("throttled"), int),
 				"literal-response": cmd.get("literal-response") == "true",
 				"description": cmd.get_payload(),
@@ -101,7 +102,7 @@ def get_header_info(lrrbot, user, data):
 		if user is not None:
 			data["current_game"]["my_rating"] = game.get("votes", {}).get(user.lower())
 	if 'advice' in storage.data['responses']:
-		data['advice'] = random.choice(storage.data['responses']['advice'])
+		data['advice'] = random.choice(storage.data['responses']['advice']['response'])
 	if user is not None:
 		data['is_mod'] = lrrbot.is_mod_nick(user)
 		data['is_sub'] = lrrbot.is_sub_nick(user)

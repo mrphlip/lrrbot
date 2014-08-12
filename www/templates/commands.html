@@ -14,13 +14,14 @@
 <tr>
 	<td class="command"></td>
 	<td class="response"></td>
+	<td class="access"></td>
 	<td class="button">
 		<button class="add">Add</button>
 	</td>
 </tr>
 </thead>
 <tbody>
-{%for command, response in commands%}
+{%for command, response, access in commands%}
 <tr class="{{loop.cycle('odd', 'even')}}">
 	<td class="command">
 		{%for c in command%}
@@ -47,6 +48,13 @@
 		<div>
 			<div class="button add"></div>
 		</div>
+	</td>
+	<td class="access">
+		<select>
+			<option value="any" {%if access=="any"%}selected{%endif%}>Anyone</option>
+			<option value="sub" {%if access=="sub"%}selected{%endif%}>Subscribers</option>
+			<option value="mod" {%if access=="mod"%}selected{%endif%}>Moderators</option>
+		</select>
 	</td>
 	<td class="button">
 		<button class="del">Del</button>

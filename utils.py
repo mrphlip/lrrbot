@@ -170,6 +170,36 @@ def mod_only(func):
 		"Mod-Only", "true"))
 	return wrapper
 
+def sub_only(func):
+	"""Prevent an event-handler function from being called by non-subscribers
+
+	Usage:
+	@sub_only
+	def on_event(self, conn, event, ...):
+		...
+	"""
+
+	@throttle()
+	def sub_complaint(conn, event):
+		source = irc.client.NickMask(event.source)
+		if irc.client.is_channel(event.target):
+			respond_to = event.target
+		else:
+			respond_to = source.nick
+		conn.privmsg(respond_to, "%s: That is a subscriber-only command" % source.nick)
+
+	@functools.wraps(func)
+	def wrapper(self, conn, event, *args, **kwargs):
+		if self.is_sub(event):
+			return func(self, conn, event, *args, **kwargs)
+		else:
+			log.info("Refusing %s due to not-a-sub" % func.__name__)
+			sub_complaint(conn, event)
+			return None
+	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
+		"Sub-Only", "true"))
+	return wrapper
+
 class twitch_throttle:
 	def __init__(self, count=20, period=30):
 		self.count = count

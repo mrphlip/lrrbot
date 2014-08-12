@@ -32,11 +32,20 @@ function addRow()
 					"<div class='button add'></div>" +
 				"</div>" +
 			"</td>" +
+			"<td class='access'>" +
+				"<select>" +
+					"<option value='any'>Anyone</option>" +
+					"<option value='sub'>Subscribers</option>" +
+					"<option value='mod'>Moderators</option>" +
+				"</select>" +
+			"</td>" +
 			"<td class='button'>" +
 				"<button class='del'>Del</button>" +
 			"</td>" +
 		"</tr>"
 	);
+	if (jQuery("table.commands").data('mode') === "explanations")
+		row.find('.access select').val('mod');
 	row.find('button.del').click(deleteRow);
 	row.find('div.button.add').click(addText);
 	row.find('div.button.remove').click(deleteText);
@@ -146,8 +155,12 @@ function getAsJSON()
 		});
 		if (responses.length == 1)
 			responses = responses[0];
+		var access = row.find('td.access select').val();
 		row.find('td.command input').each(function() {
-			data[$(this).val()] = responses;
+			data[$(this).val()] = {
+				'response': responses,
+				'access': access
+			};
 		});
 	});
 	return JSON.stringify(data);

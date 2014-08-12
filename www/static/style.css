@@ -456,13 +456,17 @@ table.commands td.command
 }
 table.commands td.response
 {
-	width: 81%;
+	width: 75%;
+}
+table.commands td.access
+{
+	width: 6%;
 }
 table.commands td.button
 {
 	width: 4%;
 }
-table.commands input, table.commands button
+table.commands input, table.commands select, table.commands button
 {
 	width: 100%;
 }
@@ -533,6 +537,9 @@ table.spam input
 
 .label.modonly {
     background-color: #D9534F;
+}
+.label.subonly {
+    background-color: #180094;
 }
 
 .label.timeout {

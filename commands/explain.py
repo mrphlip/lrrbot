@@ -1,4 +1,4 @@
-from lrrbot import bot
+from lrrbot import bot, log
 from config import config
 import storage
 import random
@@ -68,19 +68,27 @@ def wiki(topic):
 			return utils.shorten(text+suffix, 450)
 
 @bot.command("explain (.*?)")
-@utils.mod_only
 @utils.throttle(5, params=[4])
 def explain_response(lrrbot, conn, event, respond_to, command):
 	"""
 	Command: !explain TOPIC
+	Mod-Only: true
 	
 	Provide an explanation for a given topic.
 	"""
 	command = " ".join(command.split())
-	if command.lower() in storage.data["explanations"]:
-		response = storage.data["explanations"][command.lower()]
-	if response is None or response == "":
+	response_data = storage.data["explanations"].get(command.lower())
+	if not response_data:
 		return
+	if response_data["access"] == "sub":
+		if not lrrbot.is_sub(event) and not lrrbot.is_mod(event):
+			log.info("Refusing explain %s due to inadequate access" % command)
+			return
+	if response_data["access"] == "mod":
+		if not lrrbot.is_mod(event):
+			log.info("Refusing explain %s due to inadequate access" % command)
+			return
+	response = response_data['response']
 	if isinstance(response, (tuple, list)):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response)
@@ -101,4 +109,3 @@ def wiki_response(lrrbot, conn, event, respond_to, topic):
 def modify_explanations(commands):
     storage.data["explanations"] = {k.lower(): v for k,v in commands.items()}
     storage.save()
-
