@@ -53,13 +53,13 @@ def modify_commands(data):
 
 def modify_explanations(data):
 	"""
-	Send a message to the bot, to replace the static command responses.
+	Send a message to the bot, to replace the explain responses.
 	"""
 	send_bot_command("modify_explanations", data)
 
 def modify_spam_rules(data):
 	"""
-	Send a message to the bot, to replace the static command responses.
+	Send a message to the bot, to replace the spam rules.
 	"""
 	send_bot_command("modify_spam_rules", data)
 
