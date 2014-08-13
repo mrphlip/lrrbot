@@ -10,23 +10,30 @@ import difflib
 @login.require_mod
 @utils.with_mysql
 def history(conn, cur, session):
-	page = flask.request.values.get('page', 'responses')
-	assert page in ('responses', 'explanations', 'spam')
-	cur.execute("""
-		SELECT HISTORYKEY, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, LENGTH(JSONDATA)
-		FROM HISTORY
-		WHERE SECTION = ?
-		ORDER BY CHANGETIME
-	""", (page,))
-	data = [dict(zip(('key', 'time', 'user', 'datalen'), row)) for row in cur.fetchall()]
-	lastlen = 0
-	lastkey = None
+	page = flask.request.values.get('page', 'all')
+	assert page in ('responses', 'explanations', 'spam', 'all')
+	if page == 'all':
+		cur.execute("""
+			SELECT HISTORYKEY, SECTION, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, LENGTH(JSONDATA)
+			FROM HISTORY
+			ORDER BY CHANGETIME
+		""", ())
+	else:
+		cur.execute("""
+			SELECT HISTORYKEY, SECTION, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, LENGTH(JSONDATA)
+			FROM HISTORY
+			WHERE SECTION = ?
+			ORDER BY CHANGETIME
+		""", (page,))
+	data = [dict(zip(('key', 'section', 'time', 'user', 'datalen'), row)) for row in cur.fetchall()]
+	lastlen = {}
+	lastkey = {}
 	for i in data:
-		i['lengthdiff'] = i['datalen'] - lastlen
-		lastlen = i['datalen']
+		i['lengthdiff'] = i['datalen'] - lastlen.get(i['section'], 0)
+		lastlen[i['section']] = i['datalen']
 		if i['user'] is None:
 			i['user'] = "unknown"
-		i['lastkey'], lastkey = lastkey, i['key']
+		i['lastkey'], lastkey[i['section']] = lastkey.get(i['section']), i['key']
 	data.reverse()
 	return flask.render_template("historylist.html", page=page, data=data, session=session)
 
