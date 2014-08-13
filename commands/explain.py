@@ -29,19 +29,6 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response)
 
-@bot.command("wiki (.*?)")
-@utils.mod_only
-@utils.throttle(5, params=[4])
-def wiki_response(lrrbot, conn, event, respond_to, topic):
-	"""
-	Command: !wiki TOPIC
-
-	Post the first paragraph of the LoadingReadyWiki page for that topic.
-	"""
-	response = wiki(topic)
-	if response is not None and response != "":
-		conn.privmsg(respond_to, response)
-
 def modify_explanations(commands):
     storage.data["explanations"] = {k.lower(): v for k,v in commands.items()}
     storage.save()
