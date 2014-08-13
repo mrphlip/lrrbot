@@ -115,7 +115,6 @@ def main():
     send_bot_command("set_data", {"key": "staged_highlights", "value": []})
     if highlights is None:
         highlights = []
-    highlights += [{"time": 1407806380, "user": "lrrbot", "description": "Test!"}]
     highlights = list(filter(lambda e: e is not None, map(twitch_lookup, highlights)))
 
     if highlights == []:
