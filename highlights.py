@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import sys, argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('-t', '--test', action='store_const', help="Test mode", default=False, const=True)
+argv = parser.parse_args()
+del parser
+# Remove arguments from argv before the lrrbot commandline module is indirectly imported...
+sys.argv = sys.argv[:1]
+
 from config import config
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
@@ -95,7 +103,8 @@ def twitch_videos():
 def twitch_lookup(highlight):
     for video in twitch_videos():
         t = dateutil.parser.parse(video["recorded_at"]).timestamp()
-        print(video["title"], t, t+video["length"])
+        if argv.test:
+            print(video["title"], t, t+video["length"])
         if highlight["time"] < t:
             continue
         elif highlight["time"] > t+video["length"]:
@@ -112,7 +121,8 @@ def main():
         return
     
     highlights = send_bot_command("get_data", {"key": "staged_highlights"})
-    send_bot_command("set_data", {"key": "staged_highlights", "value": []})
+    if argv.test:
+        print("Staged highlights: %r" % highlights)
     if highlights is None:
         highlights = []
     highlights = list(filter(lambda e: e is not None, map(twitch_lookup, highlights)))
@@ -147,8 +157,14 @@ def main():
         root.appendChild(new_field(doc, "ROUGH TIME THEREIN", "before "+utils.nice_duration(highlight["time"], 0)))
         root.appendChild(new_field(doc, "NOTES", "From chat user '%s'." % highlight["user"]))
 
-        headers["Content-Type"] = "application/atom+xml"
-        utils.http_request(post_url, headers=headers, data=doc.toxml(), method="POST")
+        if argv.test:
+            print("Command: %s" % doc.toxml())
+        else:
+            headers["Content-Type"] = "application/atom+xml"
+            utils.http_request(post_url, headers=headers, data=doc.toxml(), method="POST")
+
+    if not argv.test:
+        send_bot_command("set_data", {"key": "staged_highlights", "value": []})
 
 if __name__ == '__main__':
     main()

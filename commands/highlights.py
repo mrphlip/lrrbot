@@ -3,9 +3,10 @@ import twitch
 import utils
 import time
 import storage
+import irc.client
 
 @bot.command("highlight (.*?)")
-@utils.sub_only()
+@utils.sub_only
 @utils.throttle(60)
 def highlight(lrrbot, conn, event, respond_to, description):
     if not twitch.get_info()["live"]:

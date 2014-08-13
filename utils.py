@@ -189,7 +189,7 @@ def sub_only(func):
 
 	@functools.wraps(func)
 	def wrapper(self, conn, event, *args, **kwargs):
-		if self.is_sub(event):
+		if self.is_sub(event) or self.is_mod(event):
 			return func(self, conn, event, *args, **kwargs)
 		else:
 			log.info("Refusing %s due to not-a-sub" % func.__name__)
