@@ -194,9 +194,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		@functools.wraps(func)
 		def wrapper(target, message):
 			username = config["username"]
-			self.chat_log(generate_event("jtv", target, ["SPECIALUSER %s subscriber" % username]))
-			self.chat_log(generate_event("jtv", target, ["USERCOLOR %s #0000FF" % username]))
-			self.chat_log(generate_event("jtv", target, ["EMOTESET %s [317]" % username]))
 			self.chat_log(generate_event(username, target, [message]))
 			return func(target, message)
 		wrapper.is_logged = True
