@@ -14,6 +14,7 @@ from config import config
 import storage
 import twitch
 import utils
+import functools
 
 log = logging.getLogger('lrrbot')
 
@@ -173,10 +174,36 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		except irc.client.ServerNotConnectedError:
 			pass
 
+	def chat_log(self, event):
+		source = irc.client.NickMask(event.source).nick
+		log.info("chat_log STUB: %f: %s -> %s: %s", time.time(), source, event.target, event.arguments[0])
+
+	def log_outgoing(self, func):
+		def generate_event(source, target, arguments):
+			event = lambda: None # object() doesn't have a '__dict__'
+			event.source = source
+			event.target = target
+			event.arguments = arguments
+			return event
+
+		@functools.wraps(func)
+		def wrapper(target, message):
+			username = config["username"]
+			self.chat_log(generate_event("jtv", target, ["SPECIALUSER %s subscriber" % username]))
+			self.chat_log(generate_event("jtv", target, ["USERCOLOR %s #0000FF" % username]))
+			self.chat_log(generate_event("jtv", target, ["EMOTESET %s [317]" % username]))
+			self.chat_log(generate_event(username, target, [message]))
+			return func(target, message)
+		wrapper.is_logged = True
+		return wrapper
+
 	@utils.swallow_errors
 	def on_message(self, conn, event):
+		self.chat_log(event)
 		if not hasattr(conn.privmsg, "is_throttled"):
 			conn.privmsg = utils.twitch_throttle()(conn.privmsg)
+		if not hasattr(conn.privmsg, "is_logged"):
+			conn.privmsg = self.log_outgoing(conn.privmsg)
 		source = irc.client.NickMask(event.source)
 		# If the message was sent to a channel, respond in the channel
 		# If it was sent via PM, respond via PM		
