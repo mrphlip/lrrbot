@@ -15,6 +15,8 @@ import storage
 import twitch
 import utils
 import functools
+import oursql
+import www.secrets
 
 log = logging.getLogger('lrrbot')
 
@@ -93,6 +95,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.event_socket.setblocking(False)
 		else:
 			self.event_socket = None
+
+		self.mysql_conn = oursql.connect(**www.secrets.mysqlopts)
 
 	def start(self):
 		self._connect()
@@ -176,7 +180,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	def chat_log(self, event):
 		source = irc.client.NickMask(event.source).nick
-		log.info("chat_log STUB: %f: %s -> %s: %s", time.time(), source, event.target, event.arguments[0])
+		with self.mysql_conn as cur:
+		    cur.execute("INSERT INTO log (time, source, target, message) VALUES (?, ?, ?, ?)", (time.time(), source, event.target, event.arguments[0]))
 
 	def log_outgoing(self, func):
 		def generate_event(source, target, arguments):

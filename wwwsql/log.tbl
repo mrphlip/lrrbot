@@ -1,0 +1,8 @@
+CREATE TABLE log (
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    time DOUBLE NOT NULL,
+    source VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+    target VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+    message TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL
+);
+CREATE INDEX log_idx1 ON log(time);
