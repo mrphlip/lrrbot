@@ -20,7 +20,7 @@ window.onload = modonly;
 {%endblock%}
 {%block content%}
 <h2>Commands</h2>
-<p><label><input type="checkbox" id="showmodonly" onclick="modonly()"> Show mod-only commands</label></p>
+<p><label><input type="checkbox" id="showmodonly" onclick="modonly()" {% if session['header']['is_mod'] %}checked{% endif %}> Show mod-only commands</label></p>
 <h3>Information</h3>
 <dl>
 {% for command in commands %}
