@@ -20,6 +20,8 @@ import www.secrets
 
 log = logging.getLogger('lrrbot')
 
+SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', 'emoteset': {317}}
+
 class LRRBot(irc.bot.SingleServerIRCBot):
 	GAME_CHECK_INTERVAL = 5*60 # Only check the current game at most once every five minutes
 
@@ -56,7 +58,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Precompile regular expressions
 		self.re_subscription = re.compile(r"^(.*) just subscribed!", re.IGNORECASE)
-		self.re_subscriber = re.compile(r"^SPECIALUSER (.*) subscriber", re.IGNORECASE)
 
 		# Set up bot state
 		self.game_override = None
@@ -68,16 +69,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.mods = set(storage.data.get('mods', config['mods']))
 		self.subs = set(storage.data.get('subs', []))
-		# The way to detect a sub is if the user jtv sends us:
-		# :jtv PRIVMSG #channel :SPECIALUSER somenick subscriber
-		# just before somenick talks in the channel
-		# The way we detect that someone is *not* a subscriber (perhaps *no longer*
-		# a subscriber) is if they say something that is not so prefixed.
-		# So this set stores names that have had a "subscriber" tag, but haven't
-		# spoken yet - anyone who talks and isn't in this set, is no longer a
-		# subscriber.
-		# Convoluted, but necessary.
-		self.upcomingsubs = set()
+
+		self.metadata = {}
 
 		# Let us run on windows, without the socket
 		if hasattr(socket, 'AF_UNIX'):
@@ -178,30 +171,42 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		except irc.client.ServerNotConnectedError:
 			pass
 
-	def chat_log(self, event):
+	def chat_log(self, event, metadata):
 		source = irc.client.NickMask(event.source).nick
 		with self.mysql_conn as cur:
-		    cur.execute("INSERT INTO LOG (TIME, SOURCE, TARGET, MESSAGE) VALUES (?, ?, ?, ?)", (time.time(), source, event.target, event.arguments[0]))
+			cur.execute("INSERT INTO LOG (TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET) VALUES (?, ?, ?, ?, ?, ?, ?)", (
+				time.time(),
+				source,
+				event.target,
+				event.arguments[0],
+				','.join(metadata.get('specialuser',[])),
+				metadata.get('usercolor'),
+				','.join(str(i) for i in metadata.get('emoteset', []))
+			))
 
 	def log_outgoing(self, func):
-		def generate_event(source, target, arguments):
-			event = lambda: None # object() doesn't have a '__dict__'
-			event.source = source
-			event.target = target
-			event.arguments = arguments
-			return event
-
 		@functools.wraps(func, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_throttled",))
 		def wrapper(target, message):
 			username = config["username"]
-			self.chat_log(generate_event(username, target, [message]))
+			self.chat_log(irc.client.Event("pubmsg", username, target, [message]), SELF_METADATA)
 			return func(target, message)
 		wrapper.is_logged = True
 		return wrapper
 
 	@utils.swallow_errors
 	def on_message(self, conn, event):
-		self.chat_log(event)
+		source = irc.client.NickMask(event.source)
+		nick = source.nick.lower()
+		if (nick == config['metadatauser']):
+			self.on_metadata(conn, event)
+			return
+		metadata = self.metadata.pop(nick, {})
+		if self.is_mod(event):
+			metadata.setdefault('specialuser', set()).add('mod')
+		if config['debug']:
+			log.debug("Message metadata: %r" % metadata)
+
+		self.chat_log(event, metadata)
 		if not hasattr(conn.privmsg, "is_throttled"):
 			conn.privmsg = utils.twitch_throttle()(conn.privmsg)
 		if not hasattr(conn.privmsg, "is_logged"):
@@ -217,14 +222,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if self.vote_update is not None:
 			self.vote_respond(self, conn, event, respond_to, self.vote_update)
 		
-		if (source.nick.lower() == config['notifyuser']):
+		if (nick == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
-		if (source.nick.lower() == config['metadatauser']):
-			self.on_metadata(conn, event)
 		elif self.check_spam(conn, event, event.arguments[0]):
 			return
 		else:
-			self.check_subscriber(conn, source.nick.lower())
+			self.check_subscriber(conn, nick, metadata)
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
 				command = command_match.group(command_match.lastindex)
@@ -270,27 +273,44 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		utils.api_request('notifications/newmessage', notifyparams, 'POST')
 
 	def on_metadata(self, conn, event):
-		subscriber_match = self.re_subscriber.match(event.arguments[0])
-		if subscriber_match:
-			subuser = subscriber_match.group(1).lower()
-			if subuser not in self.subs:
-				self.subs.add(subuser)
-				storage.data['subs'] = list(self.subs)
-				storage.save()
-			self.upcomingsubs.add(subuser)
+		"""
+		Takes metadata messages from jtv and stores them for the following message they apply to.
 
-	def check_subscriber(self, conn, nick):
+		Recognised flags in metadata dict:
+		{
+			'specialuser': set('subscriber', 'turbo'),
+			'usercolor': '#123456',
+			'emoteset': set(317, 4269), # 317 is is loadingreadyrun
+		}
 		"""
-		If a user says something that was not immediately preceded by
-		jtv saying "SPECIALUSER thisguy subscriber" then remove them from
-		the subscriber list, if they're in it.
+		bits = event.arguments[0].split()
+		if bits[0] == "SPECIALUSER":
+			self.metadata.setdefault(bits[1], {}).setdefault('specialuser', set()).update(bits[2:])
+		elif bits[0] == "USERCOLOR":
+			self.metadata.setdefault(bits[1], {})['usercolor'] = bits[2]
+		elif bits[0] == "EMOTESET":
+			# bits[2] == "[123,456,789]"
+			emoteset = ''.join(bits[2:]).lstrip('[').rstrip(']').split(',')
+			self.metadata.setdefault(bits[1], {})['emoteset'] = set(int(i) for i in emoteset)
+		elif bits[0] == "CLEARCHAT":
+			# TODO: record this appropriately in the chat log
+			# bits[1] is the user being timed-out/banned/whatever
+			pass
+
+	def check_subscriber(self, conn, nick, metadata):
 		"""
-		if nick not in self.upcomingsubs and nick in self.subs:
+		Whenever a user says something, update the subscriber list according to whether
+		their message has the subscriber-badge metadata attached to it.
+		"""
+		is_sub = 'subscriber' in metadata.get('specialuser', set())
+		if not is_sub and nick in self.subs:
 			self.subs.remove(nick)
 			storage.data['subs'] = list(self.subs)
 			storage.save()
-		elif nick in self.upcomingsubs:
-			self.upcomingsubs.remove(nick)
+		elif is_sub and nick not in self.subs:
+			self.subs.add(nick)
+			storage.data['subs'] = list(self.subs)
+			storage.save()
 
 	def on_mode(self, conn, event):
 		if irc.client.is_channel(event.target):
