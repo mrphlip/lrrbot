@@ -181,7 +181,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def chat_log(self, event):
 		source = irc.client.NickMask(event.source).nick
 		with self.mysql_conn as cur:
-		    cur.execute("INSERT INTO log (time, source, target, message) VALUES (?, ?, ?, ?)", (time.time(), source, event.target, event.arguments[0]))
+		    cur.execute("INSERT INTO LOG (TIME, SOURCE, TARGET, MESSAGE) VALUES (?, ?, ?, ?)", (time.time(), source, event.target, event.arguments[0]))
 
 	def log_outgoing(self, func):
 		def generate_event(source, target, arguments):
