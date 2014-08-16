@@ -191,7 +191,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			event.arguments = arguments
 			return event
 
-		@functools.wraps(func)
+		@functools.wraps(func, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_throttled",))
 		def wrapper(target, message):
 			username = config["username"]
 			self.chat_log(generate_event(username, target, [message]))

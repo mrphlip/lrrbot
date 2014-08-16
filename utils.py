@@ -206,7 +206,7 @@ class twitch_throttle:
 		self.timestamps = []
 	
 	def __call__(self, f):
-		@functools.wraps(f)
+		@functools.wraps(f, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_logged",))
 		def wrapper(*args, **kwargs):
 			now = time.time()
 			self.timestamps = [t for t in self.timestamps if now-t <= self.period]
