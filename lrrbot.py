@@ -21,6 +21,7 @@ import www.secrets
 log = logging.getLogger('lrrbot')
 
 SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', 'emoteset': {317}}
+PURGE_PERIOD = 15*60
 
 class LRRBot(irc.bot.SingleServerIRCBot):
 	GAME_CHECK_INTERVAL = 5*60 # Only check the current game at most once every five minutes
@@ -184,6 +185,16 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				','.join(str(i) for i in metadata.get('emoteset', []))
 			))
 
+	def clear_chat_log(self, nick):
+		"""
+		Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
+		"""
+		with self.mysql_conn as cur:
+			cur.execute("UPDATE LOG SET SPECIALUSER=CASE COALESCE(SPECIALUSER, '') WHEN '' THEN 'cleared' ELSE CONCAT(SPECIALUSER, ',cleared') END WHERE SOURCE=? AND TIME>=?", (
+				nick,
+				time.time() - PURGE_PERIOD,
+			))
+
 	def log_outgoing(self, func):
 		@functools.wraps(func, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_throttled",))
 		def wrapper(target, message):
@@ -293,9 +304,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			emoteset = ''.join(bits[2:]).lstrip('[').rstrip(']').split(',')
 			self.metadata.setdefault(bits[1], {})['emoteset'] = set(int(i) for i in emoteset)
 		elif bits[0] == "CLEARCHAT":
-			# TODO: record this appropriately in the chat log
-			# bits[1] is the user being timed-out/banned/whatever
-			pass
+			# This message is both "CLEARCHAT" to clear the whole chat
+			# or "CLEARCHAT someuser" to purge a single user
+			if len(bits) >= 2:
+				self.clear_chat_log(bits[1])
 
 	def check_subscriber(self, conn, nick, metadata):
 		"""
