@@ -58,8 +58,10 @@ def timestamp(ts):
 	"""
 	if isinstance(ts, (int, float)):
 		ts = datetime.datetime.utcfromtimestamp(ts).replace(tzinfo=datetime.timezone.utc)
+	elif ts.tzinfo is None:
+		ts = ts.replace(tzinfo=datetime.timezone.utc)
 	else:
-		ts = datetime.datetime.astimezone(datetime.timezone.utc)
+		ts = ts.astimezone(datetime.timezone.utc)
 	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"%d\">%s</span>" % (ts.timestamp(), flask.escape(ts.ctime())))
 server.app.add_template_filter(timestamp)
 

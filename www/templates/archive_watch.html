@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+<title>{{video["title"]|e}}</title>
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="jquery.splitter.css")|e}}">
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="archive.css")|e}}">
+<script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='jquery.splitter-0.14.0.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='archive.js')|e}}"></script>
+<script>
+	window.start = {{video["start"]|tojson}};
+</script>
+</head>
+<body>
+<div id="content">
+	<div><div id="video">
+		<object bgcolor="#000000" data="http://www.twitch.tv/widgets/archive_embed_player.swf" type="application/x-shockwave-flash" width="100%" height="100%" id="clip_embed_player_flash">
+			<param  name="movie" value="http://www.twitch.tv/widgets/archive_embed_player.swf" />
+			<param  name="allowScriptAccess" value="always" />
+			<param  name="allowNetworking" value="all" />
+			<param  name="allowFullScreen" value="true" />
+			<param  name="flashvars" value="channel={{video['channel']|e}}&amp;auto_play=true&amp;{{video['type']|e}}_id={{video['id']|e}}" />
+		</object>
+	</div></div>
+	<div><div id="chat">
+	{%for line in chat%}
+		{%if line['nick'] == "twitchnotify"%}
+			<div class="notification line" data-timestamp="{{line["time"]|e}}">{{line["messagehtml"]|safe}}</div>
+		{%else%}
+			<div class="line" data-timestamp="{{line["time"]|e}}">
+				{%if "staff" in line["flags"]%}<span class="badge staff"></span>{%endif%}
+				{%if "admin" in line["flags"]%}<span class="badge admin"></span>{%endif%}
+				{%if line["nick"] == video["channel"] %}<span class="badge broadcaster"></span>{%endif%}
+				{%if "mod" in line["flags"]%}<span class="badge mod"></span>{%endif%}
+				{%if "turbo" in line["flags"]%}<span class="badge turbo"></span>{%endif%}
+				{%if "subscriber" in line["flags"]%}<span class="badge subscriber"></span>{%endif%}
+				<span class="nick" {%if line["color"]%}style="color:{{line["color"]|e}}"{%endif%}>{{line["display_name"]|e}}</span>:
+				{%if "cleared" in line["flags"]%}
+					<span class="deleted">&lt;message deleted&gt;</span>
+					<span class="message cleared">{{line["message"]|e}}</span>
+				{%else%}
+					<span class="message">{{line["messagehtml"]|safe}}</span>
+				{%endif%}
+			</div>
+		{%endif%}
+	{%endfor%}
+	</div></div>
+</div>
+</body>
+</html>

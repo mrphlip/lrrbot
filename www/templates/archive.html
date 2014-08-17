@@ -1,0 +1,17 @@
+{%extends "master.html"%}
+{%block title%}{{"Past Broadcasts" if broadcasts else "Highlights"}}{%endblock%}
+{%block header%}{{"Past Broadcasts" if broadcasts else "Highlights"}}{%endblock%}
+{%block headextra%}
+<link rel="alternate" type="application/rss+xml" href="{{url_for("archive_feed")|e}}{%if not broadcasts%}?highlights=true{%endif%}"></head>
+{%endblock%}
+{%block content%}
+{%for vid in videos%}
+<img src="{{vid['preview']|e}}" style="float:left; margin: 0 0.5em 0.25em 0">
+<p style="font: bold 125% sans-serif"><a href="{{url_for("archive_watch", videoid=vid['_id'])|e}}">{{vid['title']|e}}</a></p>
+<p style="font: 100% sans-serif">Recorded at: {{vid['recorded_at']|timestamp}}</p>
+{%if vid['description']%}<p style="font: 100% sans-serif">{{vid['description']|e}}</p>{%endif%}
+{%if vid['game']%}<p style="font: 100% sans-serif">Playing: {{vid['game']|e}}</p>{%endif%}
+<p style="font: 100% sans-serif">Length: {{vid['length']|nice_duration(0)}}</p>
+<div class="clear"></div>
+{%endfor%}
+{%endblock%}

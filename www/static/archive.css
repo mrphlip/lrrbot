@@ -1,0 +1,104 @@
+html, body, #content
+{
+	font: 100% sans-serif;
+	background: white;
+	color: black;
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+}
+
+#video
+{
+	background: black;
+	height: 100%;
+	width: 100%;
+}
+#video object
+{
+	height: 100%;
+	width: 100%;
+	display: block;
+}
+#chat
+{
+	font-size: 80%;
+	padding: 0.25em;
+}
+
+.notification
+{
+	color: #666;
+}
+
+.nick
+{
+	font-weight: bold;
+}
+
+.badge
+{
+	background: url(chat_badge.png) no-repeat;
+	height: 18px;
+	width: 18px;
+	margin: 0;
+	display: inline-block;
+	vertical-align: middle;
+}
+.badge.staff
+{
+	background-position: 0px 50%;
+}
+.badge.admin
+{
+	background-position: -18px 50%;
+}
+.badge.broadcaster
+{
+	background-position: -36px 50%;
+}
+.badge.mod
+{
+	background-position: -54px 50%;
+}
+.badge.turbo
+{
+	background-position: -72px 50%;
+}
+.badge.subscriber
+{
+	background-position: -90px 50%;
+}
+
+img
+{
+	vertical-align: middle;
+}
+
+.deleted
+{
+	color: #6441A5;
+	cursor: pointer;
+}
+.deleted:hover
+{
+	text-decoration: underline;
+}
+.cleared
+{
+	display: none;
+}
+
+/* These are ad-related divs that the twitch player creates, that are sometimes at the edge of view, and push out the scrollbars */
+#adaptvSpotDiv_1,
+#adaptvSpotDiv_2,
+#adaptvSpotDiv_3,
+#adaptvSpotDiv_4,
+#adaptvSpotDiv_5,
+#adaptvSpotDiv_6,
+#adaptvSpotDiv_7,
+#adaptvSpotDiv_8
+{
+	overflow: hidden;
+}

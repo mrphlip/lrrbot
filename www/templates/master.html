@@ -50,6 +50,8 @@
 	<li><a href="{{url_for('stats')|e}}">Stats</a></li>
 	<li><a href="{{url_for('notifications')|e}}">Notifications</a></li>
 	<li><a href="{{url_for('votes')|e}}">Votes</a></li>
+	<li><a href="{{url_for('archive')|e}}">Past Broadcasts</a></li>
+	<li><a href="{{url_for('archive')|e}}?highlights=true">Highlights</a></li>
 	{%if session['header']['is_mod']%}
 	<li><a href="{{url_for('commands')|e}}">Responses</a></li>
 	<li><a href="{{url_for('commands')|e}}?mode=explanations">Explanations</a></li>
