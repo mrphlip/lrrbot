@@ -175,5 +175,5 @@ def archive_watch(conn, cur, videoid):
 	video = get_video_data(videoid)
 	if video is None:
 		return "Unrecognised video"
-	chat = list(chat_data(conn, cur, video["start"] - BEFORE_BUFFER, video["end"] + AFTER_BUFFER))
+	chat = chat_data(conn, cur, video["start"] - BEFORE_BUFFER, video["end"] + AFTER_BUFFER)
 	return flask.render_template("archive_watch.html", video=video, chat=chat)
