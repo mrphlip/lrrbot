@@ -550,9 +550,11 @@ dt code {
     line-height: 150%;
 }
 
+table.historyshow {
+	width: 100%;
+}
 table.historyshow td {
 	background: white;
-	width: 100%;
 }
 table.historyshow tr.from td, table.historyshow td.from {
 	background: #F99;
