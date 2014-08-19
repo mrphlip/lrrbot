@@ -280,7 +280,6 @@ table.nicetable, table.nicetable tr, table.nicetable td, table.nicetable th
 table.nicetable
 {
 	margin: 0 auto 1em;
-	width: 100%;
 }
 table.nicetable td, table.nicetable th
 {
@@ -553,6 +552,7 @@ dt code {
 
 table.historyshow td {
 	background: white;
+	width: 100%;
 }
 table.historyshow tr.from td, table.historyshow td.from {
 	background: #F99;
