@@ -139,7 +139,7 @@ def chat_data(conn, cur, starttime, endtime, target="#loadingreadyrun"):
 			emoteset = set(int(i) for i in emoteset.split(','))
 		else:
 			emoteset = set()
-		messagehtml = jinja2.utils.urlize(message)
+		messagehtml = jinja2.utils.urlize(message).replace('<a ', '<a target="_blank" ')
 		for emote in get_filtered_emotes(emoteset):
 			messagehtml = emote['regex'].sub(emote['html'], messagehtml)
 		yield {
