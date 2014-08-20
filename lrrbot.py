@@ -15,13 +15,11 @@ import storage
 import twitch
 import utils
 import functools
-import oursql
-import www.secrets
+import chatlog
 
 log = logging.getLogger('lrrbot')
 
 SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', 'emoteset': {317}}
-PURGE_PERIOD = 15*60
 
 class LRRBot(irc.bot.SingleServerIRCBot):
 	GAME_CHECK_INTERVAL = 5*60 # Only check the current game at most once every five minutes
@@ -89,8 +87,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.event_socket.setblocking(False)
 		else:
 			self.event_socket = None
-
-		self.mysql_conn = oursql.connect(**www.secrets.mysqlopts)
 
 	def start(self):
 		self._connect()
@@ -172,34 +168,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		except irc.client.ServerNotConnectedError:
 			pass
 
-	def chat_log(self, event, metadata):
-		source = irc.client.NickMask(event.source).nick
-		with self.mysql_conn as cur:
-			cur.execute("INSERT INTO LOG (TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET) VALUES (?, ?, ?, ?, ?, ?, ?)", (
-				time.time(),
-				source,
-				event.target,
-				event.arguments[0],
-				','.join(metadata.get('specialuser',[])),
-				metadata.get('usercolor'),
-				','.join(str(i) for i in metadata.get('emoteset', []))
-			))
-
-	def clear_chat_log(self, nick):
-		"""
-		Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
-		"""
-		with self.mysql_conn as cur:
-			cur.execute("UPDATE LOG SET SPECIALUSER=CASE COALESCE(SPECIALUSER, '') WHEN '' THEN 'cleared' ELSE CONCAT(SPECIALUSER, ',cleared') END WHERE SOURCE=? AND TIME>=?", (
-				nick,
-				time.time() - PURGE_PERIOD,
-			))
-
 	def log_outgoing(self, func):
 		@functools.wraps(func, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_throttled",))
 		def wrapper(target, message):
 			username = config["username"]
-			self.chat_log(irc.client.Event("pubmsg", username, target, [message]), SELF_METADATA)
+			chatlog.log_chat(irc.client.Event("pubmsg", username, target, [message]), SELF_METADATA)
 			return func(target, message)
 		wrapper.is_logged = True
 		return wrapper
@@ -217,7 +190,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if config['debug']:
 			log.debug("Message metadata: %r" % metadata)
 
-		self.chat_log(event, metadata)
+		chatlog.log_chat(event, metadata)
 		if not hasattr(conn.privmsg, "is_throttled"):
 			conn.privmsg = utils.twitch_throttle()(conn.privmsg)
 		if not hasattr(conn.privmsg, "is_logged"):
@@ -307,7 +280,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			# This message is both "CLEARCHAT" to clear the whole chat
 			# or "CLEARCHAT someuser" to purge a single user
 			if len(bits) >= 2:
-				self.clear_chat_log(bits[1])
+				chatlog.clear_chat_log(bits[1])
 
 	def check_subscriber(self, conn, nick, metadata):
 		"""
@@ -459,6 +432,8 @@ if __name__ == '__main__':
 	import serverevents
 	bot.compile()
 
+	chatlog.createthread()
+	
 	try:
 		log.info("Bot startup")
 		bot.start()
@@ -467,3 +442,4 @@ if __name__ == '__main__':
 	finally:
 		log.info("Bot shutdown")
 		logging.shutdown()
+		chatlog.exitthread()

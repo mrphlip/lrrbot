@@ -89,68 +89,14 @@ def archive_feed():
 	rss = flask.render_template("archive_feed.xml", videos=archive_feed_data(channel, broadcasts), broadcasts=broadcasts)
 	return flask.Response(rss, mimetype="application/xml")
 
-@utils.throttle(24*60*60)
-def get_twitch_emotes():
-	with contextlib.closing(urllib.request.urlopen("https://api.twitch.tv/kraken/chat/emoticons")) as fp:
-		data = flask.json.load(fp)['emoticons']
-	emotesets = {}
-	for emote in data:
-		regex = re.compile("(%s)" % emote['regex'])
-		for image in emote['images']:
-			html = '<img src="%s" width="%d" height="%d" alt="\\1" title="\\1">' % (image['url'], image['width'], image['height'])
-			emotesets.setdefault(image.get("emoticon_set"), {})[emote['regex']] = {
-				"regex": regex,
-				"html": html,
-			}
-	return emotesets
-
-def get_filtered_emotes(setids):
-	emotesets = get_twitch_emotes()
-	emotes = emotesets[None]
-	for setid in setids:
-		emotes.update(emotesets.get(setid, {}))
-	return emotes.values()
-
-@utils.throttle(24*60*60, params=[0])
-def get_display_name(nick):
-	# This takes way too long to run, so... no.
-	# TODO: Watch the Twitch API to see if there's ever a way to mass-fetch these
-	return nick
-
-	try:
-		with contextlib.closing(urllib.request.urlopen("https://api.twitch.tv/kraken/users/%s" % nick)) as fp:
-			data = flask.json.load(fp)
-		return data['display_name']
-	except:
-		return nick
-
 def chat_data(conn, cur, starttime, endtime, target="#loadingreadyrun"):
-	cur.execute("SELECT TIME, SOURCE, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET FROM LOG WHERE TARGET=? AND TIME BETWEEN ? AND ? ORDER BY TIME ASC", (
+	cur.execute("SELECT MESSAGEHTML FROM LOG WHERE TARGET=? AND TIME BETWEEN ? AND ? ORDER BY TIME ASC", (
 		target,
 		starttime,
 		endtime
 	))
-	for time, source, message, specialuser, usercolor, emoteset in cur:
-		if specialuser:
-			specialuser = set(specialuser.split(','))
-		else:
-			specialuser = set()
-		if emoteset:
-			emoteset = set(int(i) for i in emoteset.split(','))
-		else:
-			emoteset = set()
-		messagehtml = jinja2.utils.urlize(message).replace('<a ', '<a target="_blank" ')
-		for emote in get_filtered_emotes(emoteset):
-			messagehtml = emote['regex'].sub(emote['html'], messagehtml)
-		yield {
-			'time': time,
-			'nick': source.lower(),
-			'display_name': get_display_name(source),
-			'message': message,
-			'messagehtml': messagehtml,
-			'flags': specialuser,
-			'color': usercolor,
-		}
+	for message, in cur:
+		yield message
 
 @utils.throttle(24*60*60, params=[0])
 def get_video_data(videoid):

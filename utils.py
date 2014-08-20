@@ -79,7 +79,8 @@ class throttle(object):
 		...
 
 	When called within the throttle period, the last return value is returned,
-	for memoisation
+	for memoisation. period can be set to None to never expire, allowing this to
+	be used as a basic memoisation decorator.
 
 	params is a list of parameters to consider as distinct, so calls where the
 	watched parameters are the same are throttled together, but calls where they
@@ -110,7 +111,7 @@ class throttle(object):
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
 			params = self.watchedparams(args, kwargs)
-			if params not in self.lastrun or time.time() - self.lastrun[params] >= self.period:
+			if params not in self.lastrun or (self.period and time.time() - self.lastrun[params] >= self.period):
 				self.lastreturn[params] = func(*args, **kwargs)
 				self.lastrun[params] = time.time()
 				return self.lastreturn[params]
