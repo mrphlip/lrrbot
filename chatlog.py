@@ -152,7 +152,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	ret.append('</div>')
 	return ''.join(ret)
 
-@utils.throttle(CACHE_EXPIRY, params=[0])
+@utils.throttle(CACHE_EXPIRY, params=[0], log=False)
 def get_display_name(nick):
 	try:
 		data = utils.http_request("https://api.twitch.tv/kraken/users/%s" % nick)
@@ -161,7 +161,7 @@ def get_display_name(nick):
 	except:
 		return nick
 
-@utils.throttle(CACHE_EXPIRY)
+@utils.throttle(CACHE_EXPIRY, log=False)
 def get_twitch_emotes():
 	data = utils.http_request("https://api.twitch.tv/kraken/chat/emoticons")
 	data = json.loads(data)['emoticons']
