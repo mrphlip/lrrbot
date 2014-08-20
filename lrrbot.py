@@ -62,6 +62,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.game_override = None
 		self.calendar_override = None
 		self.vote_update = None
+		self.access = "all"
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
@@ -212,6 +213,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return
 		else:
 			self.check_subscriber(conn, nick, metadata)
+			if self.access == "mod" and not self.is_mod(event):
+				return
+			if self.access == "sub" and not self.is_mod(event) and not self.is_sub(event):
+				return
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
 				command = command_match.group(command_match.lastindex)
