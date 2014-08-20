@@ -97,7 +97,7 @@ def history_diff(conn, cur, session, fromkey, tokey):
 				if not isinstance(torow['response'], (tuple, list)):
 					row['response'] = [torow['response']]
 				else:
-					row['response'] = torow['reponse']
+					row['response'] = torow['response']
 				row['response'] = [{"text": i, "mode": "to"} for i in row['response']]
 				row['access'] = {"from": torow['access'], "to": torow['access']}
 				row['mode'] = "to"
@@ -105,7 +105,7 @@ def history_diff(conn, cur, session, fromkey, tokey):
 				if not isinstance(fromrow['response'], (tuple, list)):
 					row['response'] = [fromrow['response']]
 				else:
-					row['response'] = fromrow['reponse']
+					row['response'] = fromrow['response']
 				row['response'] = [{"text": i, "mode": "from"} for i in row['response']]
 				row['access'] = {"from": fromrow['access'], "to": fromrow['access']}
 				row['mode'] = "from"
