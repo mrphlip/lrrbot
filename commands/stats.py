@@ -29,6 +29,7 @@ def increment(lrrbot, conn, event, respond_to, stat):
 
 @utils.mod_only
 def add(lrrbot, conn, event, respond_to, stat, n):
+	stat = stat.lower()
 	n = 1 if n is None else int(n)
 	game = stat_update(lrrbot, stat, n)
 	if game is None:
@@ -38,6 +39,7 @@ def add(lrrbot, conn, event, respond_to, stat, n):
 
 @utils.mod_only
 def remove(lrrbot, conn, event, respond_to, stat, n):
+	stat = stat.lower()
 	n = 1 if n is None else int(n)
 	game = stat_update(lrrbot, stat, -n)
 	if game is None:
@@ -47,6 +49,7 @@ def remove(lrrbot, conn, event, respond_to, stat, n):
 
 @utils.mod_only
 def stat_set(lrrbot, conn, event, respond_to, stat, n):
+	stat = stat.lower()
 	n = 1 if n is None else int(n)
 	game = stat_update(lrrbot, stat, n, True)
 	if game is None:
@@ -56,7 +59,7 @@ def stat_set(lrrbot, conn, event, respond_to, stat, n):
 
 @utils.throttle(params=[4])
 def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=False):
-	print("stat_print:", stat)
+	stat = stat.lower()
 	if game is None:
 		game = lrrbot.get_current_game()
 		if game is None:
@@ -78,6 +81,7 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 
 @utils.throttle(params=[4])
 def printtotal(lrrbot, conn, event, respond_to, stat):
+	stat = stat.lower()
 	count = sum(game.get("stats", {}).get(stat, 0) for game in storage.data["games"].values())
 	display = storage.data["stats"][stat]
 	display = display.get("singular", stat) if count == 1 else display.get("plural", stat + "s")
