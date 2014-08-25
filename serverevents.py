@@ -59,7 +59,7 @@ def get_commands(lrrbot, user, data):
 	bind = lambda maybe, f: f(maybe) if maybe is not None else None
 	ret = []
 	for command in lrrbot.commands.values():
-		doc = utils.parse_docstring(command.__doc__)
+		doc = utils.parse_docstring(command['func'].__doc__)
 		for cmd in doc.walk():
 			if cmd.get_content_maintype() == "multipart":
 				continue
