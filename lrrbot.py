@@ -113,10 +113,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.ircobj.process_timeout()
 
 	def add_command(self, pattern, function):
-		self.commands[re.compile(pattern.replace(" ", r"\s+"), re.IGNORECASE)] = function
+		pattern = pattern.replace(" ", r"\s+")
+		self.commands[pattern] = {
+			"groups": re.compile(pattern, re.IGNORECASE).groups,
+			"func": function,
+		}
 
 	def remove_command(self, pattern):
-		del self.commands[re.compile(pattern.replace(" ", r"\s+"), re.IGNORECASE)]
+		del self.commands[pattern.replace(" ", r"\s+")]
 
 	def command(self, pattern):
 		def wrapper(function):
@@ -126,14 +130,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	def compile(self):
 		self.re_botcommand = r"^\s*%s\s*(?:" % re.escape(config["commandprefix"])
-		self.re_botcommand += "|".join(map(lambda re: '(%s)' % re.pattern, self.commands))
+		self.re_botcommand += "|".join(map(lambda re: '(%s)' % re, self.commands))
 		self.re_botcommand += r")\s*$"
 		self.re_botcommand = re.compile(self.re_botcommand, re.IGNORECASE)
 
 		i = 1
-		for regex, function in self.commands.items():
-			self.command_groups[i] = (function, i+regex.groups)
-			i += 1+regex.groups
+		for val in self.commands.values():
+			self.command_groups[i] = (val["func"], i+val["groups"])
+			i += 1+val["groups"]
 
 	def add_server_event(self, name, function):
 		self.server_events[name.lower()] = function

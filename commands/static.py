@@ -34,8 +34,8 @@ def generate_docstring():
 			yield fragment
 	return "\n--command\n".join(generator())
 
-def generate_expression(node):
-	return "(%s)" % "|".join(re.escape(c).replace("\\ ", " ") for c in node)
+def generate_expression():
+	return "(%s)" % "|".join(re.escape(c).replace("\\ ", " ") for c in storage.data["responses"])
 
 @utils.throttle(5, params=[4])
 def static_response(lrrbot, conn, event, respond_to, command):
@@ -55,11 +55,17 @@ def static_response(lrrbot, conn, event, respond_to, command):
 	conn.privmsg(respond_to, response)
 
 def modify_commands(commands):
-    bot.remove_command(generate_expression(storage.data["responses"]))
-    storage.data["responses"] = {" ".join(k.lower().split()): v for k,v in commands.items()}
-    storage.save()
-    static_response.__doc__ = generate_docstring()
-    bot.add_command(generate_expression(storage.data["responses"]), static_response)
+	storage.data["responses"] = {" ".join(k.lower().split()): v for k,v in commands.items()}
+	storage.save()
+	generate_hook()
 
-static_response.__doc__ = generate_docstring()
-bot.add_command(generate_expression(storage.data["responses"]), static_response)
+command_expression = None
+def generate_hook():
+	global command_expression
+	if command_expression is not None:
+		bot.remove_command(command_expression)
+	static_response.__doc__ = generate_docstring()
+	command_expression = generate_expression()
+	bot.add_command(command_expression, static_response)
+
+generate_hook()
