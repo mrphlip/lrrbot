@@ -8,6 +8,7 @@ import twitch
 import json
 import logging
 import urllib.error
+import irc.client
 
 log = logging.getLogger('misc')
 
@@ -176,10 +177,11 @@ def fandraft(lrrbot, conn, event, respond_to, user):
 	user = user.lower()
 	try:
 		utils.http_request(CHAT_INVITE_URI, {
-			'oauth_token': config['twitch_token'],
 			'irc_channel': FANDRAFT_CHANNEL,
 			'username': user,
-		}, method='POST', maxtries=1)
+		}, method='POST', maxtries=1, headers={
+			'Authorization': "OAuth %s" % config['twitch_token'],
+		})
 	except urllib.error.HTTPError: # This happens relatively often, given Group Chat is a relatively new feature... 502s abound
 		log.exception("Error inviting %s" % user)
 		conn.privmsg(respond_to, "An error occurred inviting %s to the fandraft chat, please try again later" % user)
