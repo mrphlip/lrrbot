@@ -99,7 +99,7 @@ def get_next_event(calendar, after=None, include_current=False):
 	lookahead_end = events[first_future_event]['start'] + LOOKAHEAD_PERIOD
 	return [ev for i,ev in enumerate(events) if (i >= first_future_event or include_current) and ev['start'] < lookahead_end]
 
-def get_next_event_text(calendar, after=None, include_current=None, tz=None):
+def get_next_event_text(calendar, after=None, include_current=None, tz=None, verbose=True):
 	"""
 	Build the actual human-readable response to the !next command.
 
@@ -126,18 +126,23 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None):
 	for i, ev in enumerate(events):
 		# If several events are at the same time, just show the time once after all of them
 		if i == len(events) - 1 or ev['start'] != events[i+1]['start']:
-			if ev['start'] < after:
-				nice_duration = utils.nice_duration(after - ev['start'], 1) + " ago"
+			if verbose:
+				if ev['start'] < after:
+					nice_duration = utils.nice_duration(after - ev['start'], 1) + " ago"
+				else:
+					nice_duration = utils.nice_duration(ev['start'] - after, 1) + " from now"
+				strs.append("%s at %s (%s)" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT), nice_duration))
 			else:
-				nice_duration = utils.nice_duration(ev['start'] - after, 1) + " from now"
-			strs.append("%s at %s (%s)" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT), nice_duration))
+				strs.append("%s at %s" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT)))
 		else:
 			strs.append(ev['title'])
 	response = ', '.join(strs)
 
-	if calendar == CALENDAR_LRL:
-		response = "Next scheduled stream: " + response
-	elif calendar == CALENDAR_FAN:
-		response = "Next scheduled fan stream: " + response
+	if verbose:
+		if calendar == CALENDAR_LRL:
+			response = "Next scheduled stream: " + response
+		elif calendar == CALENDAR_FAN:
+			response = "Next scheduled fan stream: " + response
 
 	return utils.shorten(response, 450) # For safety
+

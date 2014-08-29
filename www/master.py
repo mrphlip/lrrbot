@@ -11,6 +11,7 @@ import commands
 import spam
 import botinteract
 import history
+import api
 import secrets
 
 server.app.secret_key = secrets.session_secret
