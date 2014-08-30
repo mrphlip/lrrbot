@@ -176,6 +176,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def log_outgoing(self, func):
 		@functools.wraps(func, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_throttled",))
 		def wrapper(target, message):
+			# Don't log server commands like .timeout
+			if message[0] in "./":
+				return
+
 			username = config["username"]
 			chatlog.log_chat(irc.client.Event("pubmsg", username, target, [message]), SELF_METADATA)
 			return func(target, message)
