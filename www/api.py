@@ -11,9 +11,9 @@ TIMEZONE = pytz.timezone("America/Vancouver")
 def api_stats(stat):
     game_id = botinteract.get_current_game()
     if game_id is None:
-        return "Not currently playing any game"
+        return "-"
     count = botinteract.get_data(["games", game_id, "stats", stat])
-    if isinstance(count, dict):
+    if not count:
         count = 0
     return str(count)
 
