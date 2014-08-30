@@ -242,6 +242,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		subscribe_match = self.re_subscription.match(event.arguments[0])
 		if subscribe_match:
 			notifyparams['subuser'] = subscribe_match.group(1)
+
+			# Twitch sometimes sends the same sub through multiple times
+			if notifyparams['subuser'] == storage.data.get("storm",{}).get("lastuser"):
+				return
+
 			try:
 				channel_info = twitch.get_info(subscribe_match.group(1))
 			except:
@@ -249,6 +254,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			else:
 				if channel_info.get('logo'):
 					notifyparams['avatar'] = channel_info['logo']
+			
 			# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
 			today = datetime.datetime.now(config['timezone']).date().toordinal()
 			if today != storage.data.get("storm",{}).get("date"):
@@ -257,6 +263,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					"count": 0,
 				}
 			storage.data["storm"]["count"] += 1
+			storage.data["storm"]["lastuser"] = notifyparams['subuser']
 			storage.save()
 			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
 
