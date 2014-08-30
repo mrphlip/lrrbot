@@ -4,6 +4,7 @@ import storage
 import commands.static, commands.explain
 import random
 import re
+import googlecalendar
 
 @bot.server_event()
 def current_game(lrrbot, user, data):
@@ -110,3 +111,7 @@ def get_header_info(lrrbot, user, data):
 	else:
 		data['is_mod'] = data['is_sub'] = False
 	return data
+
+@bot.server_event()
+def nextstream(lrrbot, user, data):
+	return googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)

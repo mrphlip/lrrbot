@@ -68,3 +68,6 @@ def get_commands():
 
 def get_header_info():
 	return send_bot_command("get_header_info", None)
+
+def nextstream():
+	return send_bot_command("nextstream", None)
