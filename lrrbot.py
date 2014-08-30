@@ -178,7 +178,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		def wrapper(target, message):
 			# Don't log server commands like .timeout
 			if message[0] in "./":
-				return
+				return func(target, message)
 
 			username = config["username"]
 			chatlog.log_chat(irc.client.Event("pubmsg", username, target, [message]), SELF_METADATA)
