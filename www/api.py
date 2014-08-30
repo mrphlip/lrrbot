@@ -15,12 +15,7 @@ def api_stats(stat):
     count = botinteract.get_data(["games", game_id, "stats", stat])
     if isinstance(count, dict):
         count = 0
-    stat_info = botinteract.get_data(["stats", stat])
-    if count == 1:
-        word = stat_info.get("singular", stat)
-    else:
-        word = stat_info.get("plural", stat_info.get("singular", stat) + "s")
-    return "%s %s" % (count, word)
+    return str(count)
 
 @server.app.route("/api/stormcount")
 def stormcount():
