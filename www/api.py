@@ -33,7 +33,7 @@ def nextstream():
 def api_votes():
     game_id = botinteract.get_current_game()
     if game_id is None:
-        return "Not currently playing any game"
+        return "-"
     data = botinteract.get_data(["games", game_id, "votes"])
     count = len(data)
     good = sum(data.values())
