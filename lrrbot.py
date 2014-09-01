@@ -47,6 +47,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.ircobj.add_global_handler('join', self.on_channel_join)
 		self.ircobj.add_global_handler('pubmsg', self.on_message)
 		self.ircobj.add_global_handler('privmsg', self.on_message)
+		self.ircobj.add_global_handler('action', self.on_message_action)
 		self.ircobj.add_global_handler('mode', self.on_mode)
 
 		# Commands
@@ -71,6 +72,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.subs = set(storage.data.get('subs', []))
 
 		self.metadata = {}
+		self.globalflags = {}
 
 		# Let us run on windows, without the socket
 		if hasattr(socket, 'AF_UNIX'):
@@ -176,10 +178,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def log_outgoing(self, func):
 		@functools.wraps(func, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_throttled",))
 		def wrapper(target, message):
-			# Don't log server commands like .timeout
-			if message[0] in "./":
-				return func(target, message)
-
 			username = config["username"]
 			chatlog.log_chat(irc.client.Event("pubmsg", username, target, [message]), SELF_METADATA)
 			return func(target, message)
@@ -193,9 +191,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if (nick == config['metadatauser']):
 			self.on_metadata(conn, event)
 			return
+		# The flags in self.metadata are sent before every message, so pop those from
+		# the storage once we're done... the ones in self.globalflags, though, are sent
+		# just once when they join the channel, so need to keep those around.
 		metadata = self.metadata.pop(nick, {})
+		metadata.setdefault('specialuser', set()).update(self.globalflags.get(nick, []))
 		if self.is_mod(event):
-			metadata.setdefault('specialuser', set()).add('mod')
+			metadata['specialuser'].add('mod')
 		if config['debug']:
 			log.debug("Message metadata: %r" % metadata)
 
@@ -232,6 +234,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				proc, end = self.command_groups[command_match.lastindex]
 				params = command_match.groups()[command_match.lastindex:end]
 				proc(self, conn, event, respond_to, *params)
+
+	def on_message_action(self, conn, event):
+		# Treat CTCP ACTION messages as the raw "/me does whatever" message that
+		# was actually typed in. Mostly for passing it through to the chat log
+		# but also to make sure the subscriber flags are updated etc.
+		event.arguments[0] = "/me " + event.arguments[0]
+		return self.on_message(conn, event)
 
 	def on_notification(self, conn, event, respond_to):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
@@ -289,7 +298,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""
 		bits = event.arguments[0].split()
 		if bits[0] == "SPECIALUSER":
-			self.metadata.setdefault(bits[1], {}).setdefault('specialuser', set()).update(bits[2:])
+			if irc.client.is_channel(event.target):
+				self.metadata.setdefault(bits[1], {}).setdefault('specialuser', set()).update(bits[2:])
+			else:
+				self.globalflags.setdefault(bits[1], set()).update(bits[2:])
 		elif bits[0] == "USERCOLOR":
 			self.metadata.setdefault(bits[1], {})['usercolor'] = bits[2]
 		elif bits[0] == "EMOTESET":

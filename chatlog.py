@@ -59,6 +59,11 @@ def do_log_chat(time, event, metadata):
 	"""
 	Add a new message to the chat log.
 	"""
+	# Don't log server commands like .timeout
+	message = event.arguments[0]
+	if message[0] in "./" and message[1:4].lower() != "me ":
+		return
+
 	source = irc.client.NickMask(event.source).nick
 	with mysql_conn as cur:
 		cur.execute("INSERT INTO LOG (TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET, MESSAGEHTML) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (
@@ -119,6 +124,12 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	if source.lower() == config['notifyuser']:
 		return '<div class="notification line" data-timestamp="%d">%s</div>' % (time, escape(message))
 
+	if message[:4].lower() in (".me ", "/me "):
+		is_action = True
+		message = message[4:]
+	else:
+		is_action = False
+
 	ret = []
 	ret.append('<div class="line" data-timestamp="%d">' % time)
 	if 'staff' in specialuser:
@@ -136,7 +147,15 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	ret.append('<span class="nick"')
 	if usercolor:
 		ret.append(' style="color:%s"' % escape(usercolor))
-	ret.append('>%s</span>: ' % escape(get_display_name(source)))
+	ret.append('>%s</span>' % escape(get_display_name(source)))
+
+	if is_action:
+		ret.append(' <span class="action"')
+		if usercolor:
+			ret.append(' style="color:%s"' % escape(usercolor))
+		ret.append('>')
+	else:
+		ret.append(": ")
 
 	if 'cleared' in specialuser:
 		ret.append('<span class="deleted">&lt;message deleted&gt;</span>')
@@ -149,6 +168,8 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 			messagehtml = emote['regex'].sub(emote['html'], messagehtml)
 		ret.append('<span class="message">%s</span>' % messagehtml)
 
+	if is_action:
+		ret.append('</span>')
 	ret.append('</div>')
 	return ''.join(ret)
 
