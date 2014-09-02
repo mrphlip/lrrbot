@@ -74,7 +74,7 @@ def load_session(include_url=True, include_header=True):
 	"""
 	# could potentially add other things here in the future...
 	session = {
-		"user": flask.session.get('user'),
+		"user": flask.session.get('user', secrets.apipass.get(flask.request.values.get("apipass"))),
 	}
 	if include_url:
 		session['url'] = flask.request.url
