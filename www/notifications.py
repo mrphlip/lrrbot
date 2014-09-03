@@ -53,9 +53,10 @@ def updates(conn, cur):
 	return flask.json.jsonify(notifications=get_notifications(cur, int(flask.request.values['after'])))
 
 @server.app.route('/notifications/newmessage', methods=['POST'])
+@login.with_session
 @utils.with_mysql
-def new_message(conn, cur):
-	if flask.request.values['apipass'] != secrets.apipass:
+def new_message(conn, cur, session):
+	if session["user"] != secrets.twitch_username:
 		return flask.json.jsonify(error='apipass')
 	data = {
 		'message': flask.request.values['message'],
