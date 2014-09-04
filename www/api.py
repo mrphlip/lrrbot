@@ -3,6 +3,7 @@ import flask
 import botinteract
 import pytz
 import datetime
+import login
 
 # FIXME(#35): pull this from the config file
 TIMEZONE = pytz.timezone("America/Vancouver")
@@ -41,5 +42,8 @@ def api_votes():
 
 @server.app.route("/api/show/<show>")
 def set_show(show):
-    # TODO: Not implemented. Blocked on #33.
-    return flask.abort(501)
+    response = botinteract.set_show(show)
+    if response["status"] == "OK":
+        return ""
+    return response["status"]
+
