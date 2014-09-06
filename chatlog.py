@@ -8,7 +8,7 @@ import json
 import re
 import time
 import irc.client
-from jinja2.utils import escape, urlize
+from jinja2.utils import Markup, escape, urlize
 from config import config
 
 __all__ = ["log_chat", "clear_chat_log", "exitthread"]
@@ -119,6 +119,20 @@ def do_rebuild_all():
 			))
 	print("\r%d/%d" % (count, count))
 
+def format_message(message, emotes):
+	ret = ""
+	while message != "":
+		for emote in emotes:
+			parts = emote["regex"].split(message, 1)
+			if len(parts) == 3:
+				ret += Markup(urlize(parts[0]).replace('<a ', '<a target="_blank" '))
+				ret += Markup(emote["html"].format(escape(parts[1])))
+				message = parts[2]
+				break
+		else:
+			ret += Markup(urlize(message).replace('<a ', '<a target="_blank" '))
+			break
+	return ret
 
 def build_message_html(time, source, target, message, specialuser, usercolor, emoteset):
 	if source.lower() == config['notifyuser']:
@@ -163,9 +177,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 		# either for users to accidentally click, or for Google to see
 		ret.append('<span class="message cleared">%s</span>' % escape(message))
 	else:
-		messagehtml = urlize(message).replace('<a ', '<a target="_blank" ')
-		for emote in get_filtered_emotes(emoteset):
-			messagehtml = emote['regex'].sub(emote['html'], messagehtml)
+		messagehtml = format_message(message, get_filtered_emotes(emoteset))
 		ret.append('<span class="message">%s</span>' % messagehtml)
 
 	if is_action:
@@ -190,7 +202,7 @@ def get_twitch_emotes():
 	for emote in data:
 		regex = re.compile("(%s)" % emote['regex'])
 		for image in emote['images']:
-			html = '<img src="%s" width="%d" height="%d" alt="\\1" title="\\1">' % (image['url'], image['width'], image['height'])
+			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (image['url'], image['width'], image['height'])
 			emotesets.setdefault(image.get("emoticon_set"), {})[emote['regex']] = {
 				"regex": regex,
 				"html": html,
