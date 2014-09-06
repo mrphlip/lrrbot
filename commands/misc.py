@@ -12,9 +12,6 @@ import irc.client
 
 log = logging.getLogger('misc')
 
-CHAT_INVITE_URI = "http://chatdepot.twitch.tv/room_memberships"
-FANDRAFT_CHANNEL = "_omnicrat_1407637069536"
-
 @bot.command("test")
 @utils.mod_only
 def test(lrrbot, conn, event, respond_to):
@@ -159,35 +156,3 @@ def viewers(lrrbot, conn, event, respond_to):
 	else:
 		chatters = "No-one in the chat."
 	conn.privmsg(respond_to, "%s %s" % (viewers, chatters))
-
-@bot.command("fandraft")
-def fandraft_invite_me(lrrbot, conn, event, respond_to):
-	source = irc.client.NickMask(event.source)
-	fandraft_invite(lrrbot, conn, event, respond_to, source.nick)
-
-@bot.command("fandraft (.+)")
-@utils.throttle(60, notify=True, params=[4])
-def fandraft(lrrbot, conn, event, respond_to, user):
-	"""
-	Command: !fandraft
-	Command: !fandraft USERNAME
-
-	Get an invite (or invite another user) to the LRR Fandraft chat channel.
-	"""
-	user = user.lower()
-	try:
-		utils.http_request(CHAT_INVITE_URI, {
-			'irc_channel': FANDRAFT_CHANNEL,
-			'username': user,
-		}, method='POST', maxtries=1, headers={
-			'Authorization': "OAuth %s" % config['twitch_token'],
-		})
-	except urllib.error.HTTPError: # This happens relatively often, given Group Chat is a relatively new feature... 502s abound
-		log.exception("Error inviting %s" % user)
-		conn.privmsg(respond_to, "An error occurred inviting %s to the fandraft chat, please try again later" % user)
-	else:
-		source = irc.client.NickMask(event.source)
-		if source.nick.lower() == user:
-			conn.privmsg(respond_to, "%s: You have been invited to the Fan Draft channel. Click the menu button in the top left of chat to access it." % user)
-		else:
-			conn.privmsg(respond_to, "%s: %s has been invited to the Fan Draft channel. Click the menu button in the top left of chat to access it." % (source.nick.lower(), user))
