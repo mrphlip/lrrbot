@@ -6,7 +6,6 @@ import server
 import urllib.request, urllib.parse
 import secrets
 import uuid
-import botinteract
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -29,6 +28,26 @@ def with_session(func):
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
 		kwargs['session'] = load_session()
+		return func(*args, **kwargs)
+	return wrapper
+
+def with_minimal_session(func):
+	"""
+	Pass the current login session information to the function
+
+	Do not include extra session information, intended for master.html. Useful for
+	places that need the current user id, but shouldn't (or don't need to) call
+	botinteract.
+
+	Usage:
+	@server.app.route('/path')
+	@with_minimal_session
+	def handler(session):
+		...
+	"""
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		kwargs['session'] = load_session(include_url=False, include_header=False)
 		return func(*args, **kwargs)
 	return wrapper
 
@@ -72,6 +91,7 @@ def load_session(include_url=True, include_header=True):
 
 	Includes all the information needed by the master.html template.
 	"""
+	import botinteract
 	# could potentially add other things here in the future...
 	session = {
 		"user": flask.session.get('user', secrets.apipass.get(flask.request.values.get("apipass"))),
