@@ -121,17 +121,17 @@ def do_rebuild_all():
 
 def format_message(message, emotes):
 	ret = ""
-	while message != "":
+	stack = [(message, "")]
+	while len(stack) != 0:
+		prefix, suffix = stack.pop()
 		for emote in emotes:
-			parts = emote["regex"].split(message, 1)
-			if len(parts) == 3:
-				ret += Markup(urlize(parts[0]).replace('<a ', '<a target="_blank" '))
-				ret += Markup(emote["html"].format(escape(parts[1])))
-				message = parts[2]
+			parts = emote["regex"].split(prefix, 1)
+			if len(parts) >= 3:
+				stack.append((parts[-1], suffix))
+				stack.append((parts[0], Markup(emote["html"].format(escape(parts[1])))))
 				break
 		else:
-			ret += Markup(urlize(message).replace('<a ', '<a target="_blank" '))
-			break
+			ret += Markup(urlize(prefix).replace('<a ', '<a target="_blank" ')) + suffix
 	return ret
 
 def build_message_html(time, source, target, message, specialuser, usercolor, emoteset):
@@ -200,6 +200,7 @@ def get_twitch_emotes():
 	data = json.loads(data)['emoticons']
 	emotesets = {}
 	for emote in data:
+		emote['regex'] = emote['regex'].replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
 		regex = re.compile("(%s)" % emote['regex'])
 		for image in emote['images']:
 			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (image['url'], image['width'], image['height'])
