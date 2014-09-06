@@ -56,6 +56,7 @@ def get_upcoming_events(calendar, after=None):
 			"creator": item['creator']['displayName'],
 			"start": dateutil.parser.parse(item['start']['dateTime']),
 			"end": dateutil.parser.parse(item['end']['dateTime']),
+			"location": item.get('location'),
 		})
 	return formatted_items
 
@@ -127,6 +128,8 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 		# If several events are at the same time, just show the time once after all of them
 		if i == len(events) - 1 or ev['start'] != events[i+1]['start']:
 			if verbose:
+				if ev['location'] is not None:
+					ev['title'] = "%(title)s (%(location)s)" % ev
 				if ev['start'] < after:
 					nice_duration = utils.nice_duration(after - ev['start'], 1) + " ago"
 				else:
