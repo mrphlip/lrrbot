@@ -129,12 +129,14 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 		if i == len(events) - 1 or ev['start'] != events[i+1]['start']:
 			if verbose:
 				if ev['location'] is not None:
-					ev['title'] = "%(title)s (%(location)s)" % ev
+					title = "%(title)s (%(location)s)" % ev
+				else:
+					title = ev['title']
 				if ev['start'] < after:
 					nice_duration = utils.nice_duration(after - ev['start'], 1) + " ago"
 				else:
 					nice_duration = utils.nice_duration(ev['start'] - after, 1) + " from now"
-				strs.append("%s at %s (%s)" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT), nice_duration))
+				strs.append("%s at %s (%s)" % (title, ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT), nice_duration))
 			else:
 				strs.append("%s at %s" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT)))
 		else:
