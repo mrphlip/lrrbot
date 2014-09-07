@@ -63,7 +63,7 @@ def save():
 		# Save with pretty-printing enabled, as we probably want it to be editable
 		json.dump(data, fp, indent=2, sort_keys=True)
 
-def find_game(game):
+def find_game(show, game):
 	"""
 	Look up a game by ID or by name, and keep game data up-to-date if names
 	or IDs change in Twitch's database.
@@ -75,9 +75,11 @@ def find_game(game):
 	if isinstance(game, str):
 		game = {'_id': game, 'name': game, 'is_override': True}
 
+	games = data.setdefault('shows', {}).setdefault(show, {}).setdefault('games', {})
+
 	# First try to find the game using the Twitch ID
-	if str(game['_id']) in data['games']:
-		gamedata = data['games'][str(game['_id'])]
+	if str(game['_id']) in games:
+		gamedata = games[str(game['_id'])]
 		# Check if the name has changed
 		if gamedata['name'] != game['name']:
 			gamedata['name'] = game['name']
@@ -86,12 +88,12 @@ def find_game(game):
 		return gamedata
 
 	# Next try to find the game using the name
-	for gameid, gamedata in data['games'].items():
+	for gameid, gamedata in games.items():
 		if gamedata['name'] == game['name']:
 			# If this is from Twitch, fix the ID
 			if not game.get('is_override'):
-				del data['games'][gameid]
-				data['games'][str(game['_id'])] = gamedata
+				del games[gameid]
+				games[str(game['_id'])] = gamedata
 				gamedata['id'] = str(game['_id'])
 				save()
 			else:
@@ -99,7 +101,7 @@ def find_game(game):
 			return gamedata
 
 	# Look up the game by display name as a fallback
-	for gameid, gamedata in data['games'].items():
+	for gameid, gamedata in games.items():
 		if 'display' in gamedata and gamedata['display'] == game['name']:
 			# Don't try to keep things aligned here...
 			gamedata['id'] = gameid
@@ -111,7 +113,7 @@ def find_game(game):
 		'name': game['name'],
 		'stats': {},
 	}
-	data['games'][str(game['_id'])] = gamedata
+	games[str(game['_id'])] = gamedata
 	save()
 	return gamedata
 

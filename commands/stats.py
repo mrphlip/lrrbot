@@ -2,6 +2,7 @@ from lrrbot import bot
 import storage
 import utils
 from commands.game import completed, game_name
+from commands.show import show_name
 
 def stat_update(lrrbot, stat, n, set_=False):
 	game = lrrbot.get_current_game()
@@ -66,14 +67,15 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 			conn.privmsg(respond_to, "Not currently playing any game")
 			return
 	count = game.get("stats", {}).get(stat, 0)
-	countT = sum(game.get("stats", {}).get(stat, 0) for game in storage.data["games"].values())
+	games = storage.data.get("shows", {}).get(lrrbot.show, {}).get("games", {})
+	countT = sum(game.get("stats", {}).get(stat, 0) for game in games.values())
 	stat_details = storage.data["stats"][stat]
 	display = stat_details.get("singular", stat) if count == 1 else stat_details.get("plural", stat + "s")
 	if with_emote and stat_details.get("emote"):
 		emote = stat_details["emote"] + " "
 	else:
 		emote = ""
-	conn.privmsg(respond_to, "%s%d %s for %s" % (emote, count, display, game_name(game)))
+	conn.privmsg(respond_to, "%s%d %s for %s on %s" % (emote, count, display, game_name(game), show_name(lrrbot.show)))
 	if countT == 1000:
 		conn.privmsg(respond_to, "Watch and pray for another %d %s!" % (countT, display))
 	if countT == 2500:
@@ -82,7 +84,9 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 @utils.throttle(params=[4])
 def printtotal(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
-	count = sum(game.get("stats", {}).get(stat, 0) for game in storage.data["games"].values())
+	count = 0
+	for show in storage.data.get("shows", {}).values():
+	    count += sum(game.get("stats", {}).get(stat, 0) for game in show.get("games", {}).values())
 	display = storage.data["stats"][stat]
 	display = display.get("singular", stat) if count == 1 else display.get("plural", stat + "s")
 	conn.privmsg(respond_to, "%d total %s" % (count, display))
