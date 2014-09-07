@@ -122,3 +122,7 @@ def set_show(lrrbot, user, data):
 		commands.show.set_show(lrrbot, data["show"])
 		return {"status": "OK"}
 	return {"status": "error: %s is not a mod" % user}
+
+@bot.server_event()
+def get_show(lrrbot, user, data):
+	return lrrbot.show

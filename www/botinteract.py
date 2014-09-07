@@ -71,3 +71,6 @@ def nextstream():
 
 def set_show(show):
 	return send_bot_command("set_show", {'show': show})
+
+def get_show():
+	return send_bot_command("get_show", None)

@@ -13,7 +13,8 @@ def api_stats(stat):
     game_id = botinteract.get_current_game()
     if game_id is None:
         return "-"
-    count = botinteract.get_data(["games", game_id, "stats", stat])
+    show = botinteract.get_show()
+    count = botinteract.get_data(["shows", show, "games", game_id, "stats", stat])
     if not count:
         count = 0
     return str(count)
@@ -35,7 +36,8 @@ def api_votes():
     game_id = botinteract.get_current_game()
     if game_id is None:
         return "-"
-    data = botinteract.get_data(["games", game_id, "votes"])
+    show = botinteract.get_show()
+    data = botinteract.get_data(["shows", show, "games", game_id, "votes"])
     count = len(data)
     good = sum(data.values())
     return "%.0f%% (%d/%d)" % (100*good/count, good, count)
