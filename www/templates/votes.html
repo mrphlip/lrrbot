@@ -6,8 +6,13 @@
 {%endblock%}
 {%block content%}
 <p style="text-align: center">Vote on whether you feel that each game is entertaining to watch on-stream. The host may heed this or ignore it at their choice. Probably ignore it.</p>
+<ol class="menu" style="text-align: center">
 {%for show in shows%}
-<h2>{{show['name']}}</h2>
+    <li{%if loop.index == 1%} class="first"{%endif%}><a href="#show-{{show['id']}}">{{show['name']}}</a></li>
+{%endfor%}
+</ol>
+{%for show in shows%}
+<h2 id="show-{{show['id']}}" style="text-align: center">{{show['name']}}</h2>
 <table class="nicetable votes">
 {%for game in show['games']%}
 <tr class="{{loop.cycle('odd', 'even')}} {%if game['id'] == current_game_id and show['id'] == current_show_id%}current{%endif%}" data-show='{{show['id']}}' data-gameid="{{game['id']|e}}" data-currentvote="{{game['vote']|tojson}}">
