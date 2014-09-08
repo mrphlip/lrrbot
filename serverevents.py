@@ -87,6 +87,10 @@ def get_header_info(lrrbot, user, data):
 			"id": game["id"],
 			"is_override": lrrbot.game_override is not None,
 		}
+		data['current_show'] = {
+			"id": lrrbot.show,
+			"name": storage.data.get("shows", {}).get(lrrbot.show, {}).get("display", lrrbot.show),
+		}
 		stats = [{
 			"count": v,
 			"type": storage.data['stats'][k].get("singular" if v == 1 else "plural", k)

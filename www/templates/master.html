@@ -28,7 +28,7 @@
 	{%endif%}
 	{%if session['header'].get('current_game')%}
 		<span class="showmore expand"></span>
-		Currently playing: <span class="currently-playing">{{session['header']['current_game']['display']|e}}</span>
+        Currently playing: <span class="currently-playing">{{session['header']['current_game']['display']|e}}</span> on <span class="currently-playing">{{session['header']['current_show']['name']}}</span>
 		{%if session['header']['current_game'].get("rating")%}
 			<span class="rating" style="display: none">&ndash; {{"%.0f"|format(session['header']['current_game']['rating']['perc'])|e}}% ({{session['header']['current_game']['rating']['good']|e}}/{{session['header']['current_game']['rating']['total']|e}})</span>
 		{%endif%}
