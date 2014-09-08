@@ -11,12 +11,15 @@ data = {
 			'plural': '<stat-names>', # For display
 		},
 	},
-	'games': { # Games we have tracked stats for
-		<id>: { # id is the Twitch game ID, or the game name for non-Twitch override games
-			'name': '<name>', # Official game name as Twitch recognises it - to aid matching
-			'display': '<display name>' # Display name, defaults to the same as name. For games with LRL nicknames
-			'stats': {
-				'<stat-name>': <count>,
+	'shows': { # Shows we have tracked stats for
+		'<id>': { # Show ID or '' for unknown show
+			'games': { # Games we have tracked stats for
+				<id>: { # id is the Twitch game ID, or the game name for non-Twitch override games
+				'name': '<name>', # Official game name as Twitch recognises it - to aid matching
+				'display': '<display name>' # Display name, defaults to the same as name. For games with LRL nicknames
+				'stats': {
+					'<stat-name>': <count>,
+				},
 			},
 		},
 	},
@@ -33,12 +36,17 @@ data = {
 	'stats': {
 		'death': {'plural': "deaths"},
 	},
-	'games': {
-		12345: {
-			'name': "Example game",
-			'display': "Funny name for example game",
-			'stats': {
-				'death': 17,
+	'shows': {
+		'': {
+			'display': "Unknown",
+			'games': {
+				12345: {
+					'name': "Example game",
+					'display': "Funny name for example game",
+					'stats': {
+						'death': 17,
+					},
+				},
 			},
 		},
 	},
