@@ -89,7 +89,7 @@ def get_header_info(lrrbot, user, data):
 		}
 		data['current_show'] = {
 			"id": lrrbot.show,
-			"name": storage.data.get("shows", {}).get(lrrbot.show, {}).get("display", lrrbot.show),
+			"name": storage.data.get("shows", {}).get(lrrbot.show, {}).get("name", lrrbot.show),
 		}
 		stats = [{
 			"count": v,

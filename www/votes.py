@@ -15,7 +15,7 @@ def votes(session):
 		current_game_id = None
 	shows = [{
 		"id": show_id,
-		"name": show.get("display", show_id),
+		"name": show.get("name", show_id),
 		"games": sorted([{
 				"id": game_id,
 				"name": game["name"],

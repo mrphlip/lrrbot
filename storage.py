@@ -13,6 +13,7 @@ data = {
 	},
 	'shows': { # Shows we have tracked stats for
 		'<id>': { # Show ID or '' for unknown show
+                        'name': '<name>', # Name of this show
 			'games': { # Games we have tracked stats for
 				<id>: { # id is the Twitch game ID, or the game name for non-Twitch override games
 				'name': '<name>', # Official game name as Twitch recognises it - to aid matching
@@ -38,7 +39,7 @@ data = {
 	},
 	'shows': {
 		'': {
-			'display': "Unknown",
+			'name': "Unknown",
 			'games': {
 				12345: {
 					'name': "Example game",

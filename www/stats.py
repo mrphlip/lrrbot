@@ -18,7 +18,7 @@ def stats(session):
 	else:
 		games = {}
 		for show_id, show in shows.items():
-			show_name = show.get("display", show_id)
+			show_name = show.get("name", show_id)
 			for game_id, game in show['games'].items():
 				game["show_id"] = show_id
 				if "display" in game:
@@ -27,7 +27,7 @@ def stats(session):
 					game["name"] = "%s (%s)" % (game["name"], show_name)
 				games["%s-%s" % (show_id, game_id)] = game
 		show_id = None
-	shows = [{"name": show.get("display", name), "id": name} for name, show in shows.items()]
+	shows = [{"name": show.get("name", name), "id": name} for name, show in shows.items()]
 	shows = sorted(shows, key=lambda show: show["name"].lower())
 	stats = botinteract.get_data(["stats"])
 	# Calculate totals
