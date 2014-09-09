@@ -55,6 +55,7 @@ def exitthread():
 	thread.join()
 
 
+@utils.swallow_errors
 def do_log_chat(time, event, metadata):
 	"""
 	Add a new message to the chat log.
@@ -77,6 +78,7 @@ def do_log_chat(time, event, metadata):
 			build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', [])),
 		))
 
+@utils.swallow_errors
 def do_clear_chat_log(time, nick):
 	"""
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
@@ -98,6 +100,7 @@ def do_clear_chat_log(time, nick):
 				key,
 			))
 
+@utils.swallow_errors
 def do_rebuild_all():
 	"""
 	Rebuild all the message HTML blobs in the database.
