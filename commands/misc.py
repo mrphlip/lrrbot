@@ -9,6 +9,7 @@ import json
 import logging
 import urllib.error
 import irc.client
+import dateutil.parser
 
 log = logging.getLogger('misc')
 
@@ -156,3 +157,21 @@ def viewers(lrrbot, conn, event, respond_to):
 	else:
 		chatters = "No-one in the chat."
 	conn.privmsg(respond_to, "%s %s" % (viewers, chatters))
+
+@bot.command("uptime")
+@utils.throttle()
+def uptime(lrrbot, conn, event, respond_to):
+	"""
+	Command: !uptime
+
+	Post the duration the stream has been live.
+	"""
+
+	stream_info = utils.http_request("https://api.twitch.tv/kraken/streams/%s" % config['channel'])
+	stream_info = json.loads(stream_info)
+	if stream_info["stream"] is not None:
+		start = dateutil.parser.parse(stream_info["stream"]["created_at"])
+		now = datetime.datetime.now(datetime.timezone.utc)
+		conn.privmsg(respond_to, "The stream has been live for %s" % utils.nice_duration(now-start, 0))
+	else:
+		conn.privmsg(respond_to, "The stream is not live.")
