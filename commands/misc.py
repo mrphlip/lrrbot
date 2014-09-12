@@ -167,11 +167,12 @@ def uptime(lrrbot, conn, event, respond_to):
 	Post the duration the stream has been live.
 	"""
 
-	stream_info = utils.http_request("https://api.twitch.tv/kraken/streams/%s" % config['channel'])
-	stream_info = json.loads(stream_info)
-	if stream_info["stream"] is not None:
-		start = dateutil.parser.parse(stream_info["stream"]["created_at"])
+	stream_info = twitch.get_info()
+	if stream_info and stream_info.get("stream_created_at"):
+		start = dateutil.parser.parse(stream_info["stream_created_at"])
 		now = datetime.datetime.now(datetime.timezone.utc)
 		conn.privmsg(respond_to, "The stream has been live for %s" % utils.nice_duration(now-start, 0))
+	elif stream_info:
+		conn.privmsg(respond_to, "Twitch won't tell me when the stream went live.")
 	else:
 		conn.privmsg(respond_to, "The stream is not live.")
