@@ -64,6 +64,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.calendar_override = None
 		self.vote_update = None
 		self.access = "all"
+		self.show = ""
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
@@ -346,9 +347,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
 		if self.game_override is not None:
 			game_obj = {'_id': self.game_override, 'name': self.game_override, 'is_override': True}
-			return storage.find_game(game_obj)
+			return storage.find_game(self.show, game_obj)
 		else:
-			return storage.find_game(self.get_current_game_real())
+			return storage.find_game(self.show, self.get_current_game_real())
 
 	@utils.throttle(GAME_CHECK_INTERVAL, log=False)
 	def get_current_game_real(self):

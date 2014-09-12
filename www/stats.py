@@ -8,10 +8,28 @@ import botinteract
 @server.app.route('/stats')
 @login.with_session
 def stats(session):
-	data = botinteract.get_data([])
-
-	games = data['games']
-	stats = data['stats']
+	show_id = flask.request.values.get("show")
+	shows = botinteract.get_data(["shows"])
+	if show_id is not None:
+		show_id = show_id.lower()
+		games = shows.get(show_id, {}).get("games", {})
+		for game in games.values():
+		    game["show_id"] = show_id
+	else:
+		games = {}
+		for show_id, show in shows.items():
+			show_name = show.get("name", show_id)
+			for game_id, game in show['games'].items():
+				game["show_id"] = show_id
+				if "display" in game:
+					game["display"] = "%s (%s)" % (game["display"], show_name)
+				else:
+					game["name"] = "%s (%s)" % (game["name"], show_name)
+				games["%s-%s" % (show_id, game_id)] = game
+		show_id = None
+	shows = [{"name": show.get("name", name), "id": name} for name, show in shows.items()]
+	shows = sorted(shows, key=lambda show: show["name"].lower())
+	stats = botinteract.get_data(["stats"])
 	# Calculate totals
 	for statkey, stat in stats.items():
 		stat['total'] = sum(g.get('stats',{}).get(statkey,0) for g in games.values())
@@ -43,4 +61,4 @@ def stats(session):
 		stat['graphdata'] = [(game['display'], game['stats'][stat['statkey']]) for game in games if game['stats'][stat['statkey']]]
 		stat['graphdata'].sort(key=lambda pt:-pt[1])
 
-	return flask.render_template('stats.html', games=games, votegames=votegames, stats=stats, session=session)
+	return flask.render_template('stats.html', games=games, votegames=votegames, stats=stats, session=session, shows=shows, show_id=show_id)

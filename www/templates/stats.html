@@ -6,6 +6,24 @@
 <script type="text/javascript" src="{{url_for('static', filename='jquery.dataTables.min.js')|e}}"></script>
 {%endblock%}
 {%block content%}
+<ol class="menu">
+    <li class="first">
+        {%if show_id is none%}
+        <strong>All</strong>
+        {%else%}
+        <a href="{{url_for('stats')}}">All</a>
+        {%endif%}
+    </li>
+    {%for show in shows%}
+    <li>
+        {%if show_id == show['id']%}
+        <strong>{{show['name']}}</strong>
+        {%else%}
+        <a href="{{url_for('stats')}}?show={{show['id']}}">{{show['name']}}</a>
+        {%endif%}
+    </li>
+    {%endfor%}
+</ol>
 <table class="nicetable statstable" id="stats">
 <thead>
 <tr>

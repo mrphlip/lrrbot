@@ -68,3 +68,9 @@ def get_header_info():
 
 def nextstream():
 	return send_bot_command("nextstream", None)
+
+def set_show(show):
+	return send_bot_command("set_show", {'show': show})
+
+def get_show():
+	return send_bot_command("get_show", None)

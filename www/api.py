@@ -3,6 +3,7 @@ import flask
 import botinteract
 import pytz
 import datetime
+import login
 
 # FIXME(#35): pull this from the config file
 TIMEZONE = pytz.timezone("America/Vancouver")
@@ -12,7 +13,8 @@ def api_stats(stat):
     game_id = botinteract.get_current_game()
     if game_id is None:
         return "-"
-    count = botinteract.get_data(["games", game_id, "stats", stat])
+    show = botinteract.get_show()
+    count = botinteract.get_data(["shows", show, "games", game_id, "stats", stat])
     if not count:
         count = 0
     return str(count)
@@ -34,12 +36,16 @@ def api_votes():
     game_id = botinteract.get_current_game()
     if game_id is None:
         return "-"
-    data = botinteract.get_data(["games", game_id, "votes"])
+    show = botinteract.get_show()
+    data = botinteract.get_data(["shows", show, "games", game_id, "votes"])
     count = len(data)
     good = sum(data.values())
     return "%.0f%% (%d/%d)" % (100*good/count, good, count)
 
 @server.app.route("/api/show/<show>")
 def set_show(show):
-    # TODO: Not implemented. Blocked on #33.
-    return flask.abort(501)
+    response = botinteract.set_show(show)
+    if response["status"] == "OK":
+        return ""
+    return response["status"]
+

@@ -1,7 +1,7 @@
 from lrrbot import bot, log
 import utils
 import storage
-import commands.static, commands.explain
+import commands.static, commands.explain, commands.show
 import random
 import re
 import googlecalendar
@@ -87,6 +87,10 @@ def get_header_info(lrrbot, user, data):
 			"id": game["id"],
 			"is_override": lrrbot.game_override is not None,
 		}
+		data['current_show'] = {
+			"id": lrrbot.show,
+			"name": storage.data.get("shows", {}).get(lrrbot.show, {}).get("name", lrrbot.show),
+		}
 		stats = [{
 			"count": v,
 			"type": storage.data['stats'][k].get("singular" if v == 1 else "plural", k)
@@ -115,3 +119,14 @@ def get_header_info(lrrbot, user, data):
 @bot.server_event()
 def nextstream(lrrbot, user, data):
 	return googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
+
+@bot.server_event()
+def set_show(lrrbot, user, data):
+	if user is not None and lrrbot.is_mod_nick(user):
+		commands.show.set_show(lrrbot, data["show"])
+		return {"status": "OK"}
+	return {"status": "error: %s is not a mod" % user}
+
+@bot.server_event()
+def get_show(lrrbot, user, data):
+	return lrrbot.show

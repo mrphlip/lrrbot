@@ -2,6 +2,7 @@ import irc
 from lrrbot import bot
 import storage
 import utils
+from commands.show import show_name
 
 def game_name(game):
     return game.get("display", game["name"])
@@ -54,7 +55,7 @@ def vote_respond(lrrbot, conn, event, respond_to, game):
 		good = sum(game["votes"].values())
 		count = len(game["votes"])
 		
-		conn.privmsg(respond_to, "Rating for %s is now %.0f%% (%d/%d)" % (game_name(game), 100*good/count, good, count))
+		conn.privmsg(respond_to, "Rating for %s on %s is now %.0f%% (%d/%d)" % (game_name(game), show_name(lrrbot.show), 100*good/count, good, count))
 	lrrbot.vote_update = None
 bot.vote_respond = vote_respond
 
