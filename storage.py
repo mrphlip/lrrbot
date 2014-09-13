@@ -84,7 +84,7 @@ def find_game(show, game):
 	if isinstance(game, str):
 		game = {'_id': game, 'name': game, 'is_override': True}
 
-	games = data.setdefault('shows', {}).setdefault(show, {}).setdefault('games', {})
+	games = data.setdefault('shows', {}).setdefault(show, {"name":show}).setdefault('games', {})
 
 	# First try to find the game using the Twitch ID
 	if str(game['_id']) in games:
