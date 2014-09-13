@@ -5,7 +5,7 @@ import utils
 from commands.show import show_name
 
 def game_name(game):
-    return game.get("display", game["name"])
+	return game.get("display", game["name"])
 
 @bot.command("game")
 @utils.throttle()

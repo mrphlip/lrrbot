@@ -30,5 +30,5 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 	conn.privmsg(respond_to, response)
 
 def modify_explanations(commands):
-    storage.data["explanations"] = {k.lower(): v for k,v in commands.items()}
-    storage.save()
+	storage.data["explanations"] = {k.lower(): v for k,v in commands.items()}
+	storage.save()
