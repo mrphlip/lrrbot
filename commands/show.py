@@ -33,5 +33,13 @@ def show_override(lrrbot, conn, event, respond_to, show):
 
     Disable the override.
     """
-    set_show(lrrbot, show if show != "off" else "")
+    show = show.lower()
+    if show == "off":
+        show = ""
+    if show not in storage.data.get("shows", {}):
+        shows = sorted(storage.data.get("shows", {}).keys())
+        shows = [s for s in shows if s]
+        conn.privmsg(respond_to, "Recognised shows: %s" % ", ".join(shows))
+        return
+    set_show(lrrbot, show)
     return get_show.__wrapped__(lrrbot, conn, event, respond_to)
