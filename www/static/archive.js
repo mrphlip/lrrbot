@@ -55,3 +55,7 @@ function scrollChatTo(time) {
 	var chatPane = $("#chat").parent();
 	chatPane.scrollTop(chatPane.scrollTop() + line.position().top - chatPane.height());
 }
+
+// This (currently, in the browsers I have tested it on) fools the Twitch player into thinking it's playing on the real Twitch site
+// so it doesn't make it so that clicking the player takes you to the Twitch page
+window.parent = {location: {hostname: 'www.twitch.tv', search: 'force_embed=1'}}
