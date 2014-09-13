@@ -44,8 +44,9 @@ def api_votes():
 
 @server.app.route("/api/show/<show>")
 def set_show(show):
+	if show == "off":
+		show = ""
 	response = botinteract.set_show(show)
 	if response["status"] == "OK":
 		return ""
 	return response["status"]
-
