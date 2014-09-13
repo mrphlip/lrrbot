@@ -16,10 +16,12 @@ def get_show(lrrbot, conn, event, respond_to):
 
 	Post the current show.
 	"""
-	if lrrbot.show == "":
-		conn.privmsg(respond_to, "Current show not set.")
-	else:
+	if lrrbot.show_override:
+		conn.privmsg(respond_to, "Currently live: %s (overridden)" % show_name(lrrbot.show_override))
+	elif lrrbot.show:
 		conn.privmsg(respond_to, "Currently live: %s" % show_name(lrrbot.show))
+	else:
+		conn.privmsg(respond_to, "Current show not set.")
 
 @bot.command("show override (.*?)")
 @utils.mod_only
@@ -35,11 +37,12 @@ def show_override(lrrbot, conn, event, respond_to, show):
 	"""
 	show = show.lower()
 	if show == "off":
-		show = ""
-	if show not in storage.data.get("shows", {}):
+		lrrbot.show_override = None
+	elif show not in storage.data.get("shows", {}):
 		shows = sorted(storage.data.get("shows", {}).keys())
 		shows = [s for s in shows if s]
 		conn.privmsg(respond_to, "Recognised shows: %s" % ", ".join(shows))
 		return
-	set_show(lrrbot, show)
+	else:
+		lrrbot.show_override = show
 	return get_show.__wrapped__(lrrbot, conn, event, respond_to)

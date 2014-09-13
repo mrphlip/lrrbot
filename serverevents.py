@@ -87,9 +87,10 @@ def get_header_info(lrrbot, user, data):
 			"id": game["id"],
 			"is_override": lrrbot.game_override is not None,
 		}
+		show = lrrbot.show_override or lrrbot.show
 		data['current_show'] = {
-			"id": lrrbot.show,
-			"name": storage.data.get("shows", {}).get(lrrbot.show, {}).get("name", lrrbot.show),
+			"id": show,
+			"name": storage.data.get("shows", {}).get(show, {}).get("name", show),
 		}
 		stats = [{
 			"count": v,
@@ -129,4 +130,4 @@ def set_show(lrrbot, user, data):
 
 @bot.server_event()
 def get_show(lrrbot, user, data):
-	return lrrbot.show
+	return lrrbot.show_override or lrrbot.show
