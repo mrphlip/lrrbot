@@ -67,7 +67,8 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 			conn.privmsg(respond_to, "Not currently playing any game")
 			return
 	count = game.get("stats", {}).get(stat, 0)
-	games = storage.data.get("shows", {}).get(lrrbot.show, {}).get("games", {})
+	show = lrrbot.show_override or lrrbot.show
+	games = storage.data.get("shows", {}).get(show, {}).get("games", {})
 	countT = sum(game.get("stats", {}).get(stat, 0) for game in games.values())
 	stat_details = storage.data["stats"][stat]
 	display = stat_details.get("singular", stat) if count == 1 else stat_details.get("plural", stat + "s")
@@ -75,7 +76,7 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 		emote = stat_details["emote"] + " "
 	else:
 		emote = ""
-	conn.privmsg(respond_to, "%s%d %s for %s on %s" % (emote, count, display, game_name(game), show_name(lrrbot.show)))
+	conn.privmsg(respond_to, "%s%d %s for %s on %s" % (emote, count, display, game_name(game), show_name(show)))
 	if countT == 1000:
 		conn.privmsg(respond_to, "Watch and pray for another %d %s!" % (countT, display))
 	if countT == 2500:
