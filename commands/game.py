@@ -54,8 +54,9 @@ def vote_respond(lrrbot, conn, event, respond_to, game):
 	if game and game.get("votes"):
 		good = sum(game["votes"].values())
 		count = len(game["votes"])
+		show = lrrbot.show_override or lrrbot.show
 		
-		conn.privmsg(respond_to, "Rating for %s on %s is now %.0f%% (%d/%d)" % (game_name(game), show_name(lrrbot.show), 100*good/count, good, count))
+		conn.privmsg(respond_to, "Rating for %s on %s is now %.0f%% (%d/%d)" % (game_name(game), show_name(show), 100*good/count, good, count))
 	lrrbot.vote_update = None
 bot.vote_respond = vote_respond
 
