@@ -21,10 +21,7 @@ def stats(session):
 			show_name = show.get("name", show_id)
 			for game_id, game in show['games'].items():
 				game["show_id"] = show_id
-				if "display" in game:
-					game["display"] = "%s (%s)" % (game["display"], show_name)
-				else:
-					game["name"] = "%s (%s)" % (game["name"], show_name)
+				game["show"] = show_name
 				games["%s-%s" % (show_id, game_id)] = game
 		show_id = None
 	shows = [{"name": show.get("name", name), "id": name} for name, show in shows.items()]
@@ -58,7 +55,7 @@ def stats(session):
 	stats.sort(key=lambda s: -s['total'])
 	# Calculate graph datasets
 	for stat in stats:
-		stat['graphdata'] = [(game['display'], game['stats'][stat['statkey']]) for game in games if game['stats'][stat['statkey']]]
+		stat['graphdata'] = [("%s (%s)" % (game['display'], game['show']), game['stats'][stat['statkey']]) for game in games if game['stats'][stat['statkey']]]
 		stat['graphdata'].sort(key=lambda pt:-pt[1])
 
 	return flask.render_template('stats.html', games=games, votegames=votegames, stats=stats, session=session, shows=shows, show_id=show_id)

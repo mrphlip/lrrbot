@@ -40,6 +40,7 @@
 			{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
 			{{game['display']|e}}
 			{%if game['display'] != game['name']%}</span>{%endif%}
+			({{game['show']|e}})
 		</td>
 		{%for stat in stats%}
 			<td class="stat {{stat['statkey']|e}}">{{game['stats'][stat['statkey']]|e}}</td>
@@ -87,6 +88,7 @@ $(document).ready(function() {
 			{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
 			{{game['display']|e}}
 			{%if game['display'] != game['name']%}</span>{%endif%}
+			({{game['show']|e}})
 		</td>
 		<td class="rating graph">
 			<div class="rating">
