@@ -72,7 +72,7 @@ def save():
 		# Save with pretty-printing enabled, as we probably want it to be editable
 		json.dump(data, fp, indent=2, sort_keys=True)
 
-def find_game(show, game):
+def find_game(show, game, readonly):
 	"""
 	Look up a game by ID or by name, and keep game data up-to-date if names
 	or IDs change in Twitch's database.
@@ -122,8 +122,9 @@ def find_game(show, game):
 		'name': game['name'],
 		'stats': {},
 	}
-	games[str(game['_id'])] = gamedata
-	save()
+	if not readonly:
+		games[str(game['_id'])] = gamedata
+		save()
 	return gamedata
 
 load()
