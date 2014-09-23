@@ -1,5 +1,6 @@
 import json
 from config import config
+import utils
 
 """
 Data structure:
@@ -80,6 +81,8 @@ def find_game(show, game, readonly):
 	if game is None:
 		return None
 
+	maybe_immutable = utils.immutable if readonly else lambda x:x
+
 	# Allow this to be called with just a string, for simplicity
 	if isinstance(game, str):
 		game = {'_id': game, 'name': game, 'is_override': True}
@@ -94,7 +97,7 @@ def find_game(show, game, readonly):
 			gamedata['name'] = game['name']
 			save()
 		gamedata['id'] = str(game['_id'])
-		return gamedata
+		return maybe_immutable(gamedata)
 
 	# Next try to find the game using the name
 	for gameid, gamedata in games.items():
@@ -107,14 +110,14 @@ def find_game(show, game, readonly):
 				save()
 			else:
 				gamedata['id'] = gameid
-			return gamedata
+			return maybe_immutable(gamedata)
 
 	# Look up the game by display name as a fallback
 	for gameid, gamedata in games.items():
 		if 'display' in gamedata and gamedata['display'] == game['name']:
 			# Don't try to keep things aligned here...
 			gamedata['id'] = gameid
-			return gamedata
+			return maybe_immutable(gamedata)
 
 	# This is a new game
 	gamedata = {
@@ -125,6 +128,6 @@ def find_game(show, game, readonly):
 	if not readonly:
 		games[str(game['_id'])] = gamedata
 		save()
-	return gamedata
+	return maybe_immutable(gamedata)
 
 load()

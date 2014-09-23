@@ -10,6 +10,7 @@ import email.parser
 import textwrap
 import datetime
 import pytz
+import werkzeug.datastructures
 
 log = logging.getLogger('utils')
 
@@ -335,3 +336,11 @@ def get_timezone(tz):
 			return pytz.timezone(tznames[tz])
 		else:
 			raise
+
+def immutable(obj):
+	if isinstance(obj, dict):
+		return werkzeug.datastructures.ImmutableDict((k, immutable(v)) for k,v in obj.items())
+	elif isinstance(obj, list):
+		return werkzeug.datastructures.ImmutableList(immutable(v) for v in obj)
+	else:
+		return obj
