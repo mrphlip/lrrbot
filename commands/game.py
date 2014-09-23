@@ -38,7 +38,7 @@ def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 	host may heed this or ignore it at their choice. Probably ignore
 	it.
 	"""
-	game = lrrbot.get_current_game()
+	game = lrrbot.get_current_game(readonly=False)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
@@ -70,7 +70,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 
 	Change the display name of the current game to NAME.
 	"""
-	game = lrrbot.get_current_game()
+	game = lrrbot.get_current_game(readonly=False)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game, if they are yell at them to update the stream")
 		return
@@ -131,7 +131,7 @@ def completed(lrrbot, conn, event, respond_to):
 
 	Mark a game as having been completed.
 	"""
-	game = lrrbot.get_current_game()
+	game = lrrbot.get_current_game(readonly=False)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return

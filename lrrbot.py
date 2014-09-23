@@ -344,14 +344,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				# Will just have to remove users from storage.data['mods'] manually
 				# should it ever come up.
 
-	def get_current_game(self):
+	def get_current_game(self, readonly=True):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
 		show = self.show_override or self.show
 		if self.game_override is not None:
 			game_obj = {'_id': self.game_override, 'name': self.game_override, 'is_override': True}
-			return storage.find_game(show, game_obj)
+			return storage.find_game(show, game_obj, readonly)
 		else:
-			return storage.find_game(show, self.get_current_game_real())
+			return storage.find_game(show, self.get_current_game_real(), readonly)
 
 	@utils.throttle(GAME_CHECK_INTERVAL, log=False)
 	def get_current_game_real(self):

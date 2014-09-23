@@ -5,7 +5,7 @@ from commands.game import completed, game_name
 from commands.show import show_name
 
 def stat_update(lrrbot, stat, n, set_=False):
-	game = lrrbot.get_current_game()
+	game = lrrbot.get_current_game(readonly=False)
 	if game is None:
 		return None
 	game.setdefault("stats", {}).setdefault(stat, 0)
