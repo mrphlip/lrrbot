@@ -3,7 +3,9 @@ import storage
 import utils
 
 def set_show(lrrbot, show):
-	lrrbot.show = show.lower()
+	if lrrbot.show != show.lower():
+		lrrbot.show = show.lower()
+		lrrbot.get_current_game_real.reset_throttle()
 
 def show_name(show):
 	return storage.data.get("shows", {}).get(show, {}).get("name", show)
