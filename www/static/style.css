@@ -324,6 +324,7 @@ table.statstable div.rating
 	border: 1px solid black;
 	width: 20em;
 	height: 1em;
+    background: #C00;
 }
 table.statstable div.rating .good
 {
@@ -334,16 +335,6 @@ table.statstable div.rating .good
 	border: none;
 	float: left;
 }
-table.statstable div.rating .bad
-{
-	background: #C00;
-	height: 1em;
-	margin: 0;
-	padding: 0;
-	border: none;
-	float: right;
-}
-
 .highchart
 {
 	width: auto;
