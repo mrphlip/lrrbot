@@ -4,6 +4,8 @@ import utils
 from commands.game import completed, game_name
 from commands.show import show_name
 
+re_stats = "|".join(storage.data["stats"])
+
 def stat_update(lrrbot, stat, n, set_=False):
 	game = lrrbot.get_current_game(readonly=False)
 	if game is None:
@@ -16,6 +18,7 @@ def stat_update(lrrbot, stat, n, set_=False):
 	storage.save()
 	return game
 
+@bot.command("(%s)" % re_stats)
 @utils.throttle(30, notify=True, params=[4])
 def increment(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
@@ -28,6 +31,7 @@ def increment(lrrbot, conn, event, respond_to, stat):
 		return
 	stat_print.__wrapped__(lrrbot, conn, event, respond_to, stat, game, with_emote=True)
 
+@bot.command("(%s) add( \d+)?" % re_stats)
 @utils.mod_only
 def add(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
@@ -38,6 +42,7 @@ def add(lrrbot, conn, event, respond_to, stat, n):
 		return
 	stat_print.__wrapped__(lrrbot, conn, event, respond_to, stat, game)
 
+@bot.command("(%s) remove( \d+)?" % re_stats)
 @utils.mod_only
 def remove(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
@@ -48,6 +53,7 @@ def remove(lrrbot, conn, event, respond_to, stat, n):
 		return
 	stat_print.__wrapped__(lrrbot, conn, event, respond_to, stat, game)
 
+@bot.command("(%s) set (\d+)" % re_stats)
 @utils.mod_only
 def stat_set(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
@@ -58,6 +64,7 @@ def stat_set(lrrbot, conn, event, respond_to, stat, n):
 		return
 	stat_print.__wrapped__(lrrbot, conn, event, respond_to, stat, game)
 
+@bot.command("(%s)count" % re_stats)
 @utils.throttle(params=[4])
 def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=False):
 	stat = stat.lower()
@@ -82,6 +89,7 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 	if countT == 2500:
 		conn.privmsg(respond_to, "For hitting this milestone here's some code drop, Fez: 63BT5-GQ72Z-6L068 Mark of the Ninja: C03YW-YX0CA-IYC85 FTL: 5539N-PAREC-J4YGM Bastion: TE4M2-A5V64-BITNV" % (countT, display))
 
+@bot.command("total(%s)s?" % re_stats)
 @utils.throttle(params=[4])
 def printtotal(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
@@ -91,12 +99,3 @@ def printtotal(lrrbot, conn, event, respond_to, stat):
 	display = storage.data["stats"][stat]
 	display = display.get("singular", stat) if count == 1 else display.get("plural", stat + "s")
 	conn.privmsg(respond_to, "%d total %s" % (count, display))
-
-re_stats = "|".join(storage.data["stats"])
-
-bot.add_command("(%s)" % re_stats, increment)
-bot.add_command("(%s) add( \d+)?" % re_stats, add)
-bot.add_command("(%s) remove( \d+)?" % re_stats, remove)
-bot.add_command("(%s) set (\d+)" % re_stats, stat_set)
-bot.add_command("(%s)count" % re_stats, stat_print)
-bot.add_command("total(%s)s?" % re_stats, printtotal)
