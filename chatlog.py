@@ -204,14 +204,18 @@ def get_display_name(nick):
 	except:
 		return nick
 
+re_just_words = re.compile("^\w+$")
 @utils.throttle(CACHE_EXPIRY, log=False)
 def get_twitch_emotes():
 	data = utils.http_request("https://api.twitch.tv/kraken/chat/emoticons")
 	data = json.loads(data)['emoticons']
 	emotesets = {}
 	for emote in data:
-		emote['regex'] = emote['regex'].replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
-		regex = re.compile("(%s)" % emote['regex'])
+		regex = emote['regex']
+		regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
+		if re_just_words.match(regex):
+			regex = r"\b%s\b" % regex
+		regex = re.compile("(%s)" % regex)
 		for image in emote['images']:
 			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (image['url'], image['width'], image['height'])
 			emotesets.setdefault(image.get("emoticon_set"), {})[emote['regex']] = {
@@ -222,7 +226,7 @@ def get_twitch_emotes():
 
 def get_filtered_emotes(setids):
 	emotesets = get_twitch_emotes()
-	emotes = emotesets[None]
+	emotes = dict(emotesets[None])
 	for setid in setids:
 		emotes.update(emotesets.get(setid, {}))
 	return emotes.values()
