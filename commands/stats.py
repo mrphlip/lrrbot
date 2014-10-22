@@ -75,8 +75,6 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 			return
 	count = game.get("stats", {}).get(stat, 0)
 	show = lrrbot.show_override or lrrbot.show
-	games = storage.data.get("shows", {}).get(show, {}).get("games", {})
-	countT = sum(game.get("stats", {}).get(stat, 0) for game in games.values())
 	stat_details = storage.data["stats"][stat]
 	display = stat_details.get("singular", stat) if count == 1 else stat_details.get("plural", stat + "s")
 	if with_emote and stat_details.get("emote"):
@@ -84,10 +82,6 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 	else:
 		emote = ""
 	conn.privmsg(respond_to, "%s%d %s for %s on %s" % (emote, count, display, game_name(game), show_name(show)))
-	if countT == 1000:
-		conn.privmsg(respond_to, "Watch and pray for another %d %s!" % (countT, display))
-	if countT == 2500:
-		conn.privmsg(respond_to, "For hitting this milestone here's some code drop, Fez: 63BT5-GQ72Z-6L068 Mark of the Ninja: C03YW-YX0CA-IYC85 FTL: 5539N-PAREC-J4YGM Bastion: TE4M2-A5V64-BITNV" % (countT, display))
 
 @bot.command("total(%s)s?" % re_stats)
 @utils.throttle(params=[4])
