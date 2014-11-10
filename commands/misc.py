@@ -10,6 +10,7 @@ import logging
 import urllib.error
 import irc.client
 import dateutil.parser
+import pytz
 
 log = logging.getLogger('misc')
 
