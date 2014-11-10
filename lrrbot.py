@@ -117,14 +117,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.ircobj.process_timeout()
 
 	def add_command(self, pattern, function):
-		pattern = pattern.replace(" ", r"\s+")
+		pattern = pattern.replace(" ", r"(?:\s+)")
 		self.commands[pattern] = {
 			"groups": re.compile(pattern, re.IGNORECASE).groups,
 			"func": function,
 		}
 
 	def remove_command(self, pattern):
-		del self.commands[pattern.replace(" ", r"\s+")]
+		del self.commands[pattern.replace(" ", r"(?:\s+)")]
 
 	def command(self, pattern):
 		def wrapper(function):

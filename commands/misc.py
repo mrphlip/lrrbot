@@ -76,6 +76,10 @@ def spamcount(lrrbot, conn, event, respond_to):
 		storage.save()
 	conn.privmsg(respond_to, "Today's spam counts: %d hits, %d repeat offenders, %d bannings" % tuple(storage.data["spam"]["count"]))
 
+DESERTBUS_START = 1415988000
+DESERTBUS_START = datetime.datetime.utcfromtimestamp(DESERTBUS_START).replace(tzinfo=datetime.timezone.utc)
+DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6) # Six days of plugs should be long enough
+
 @bot.command("(?:next(?:stream)?|sched(?:ule)?)( .*)?")
 @utils.throttle()
 def next(lrrbot, conn, event, respond_to, timezone):
@@ -89,9 +93,36 @@ def next(lrrbot, conn, event, respond_to, timezone):
 
 	Can specify a timezone, to show stream in your local time, eg: !next America/New_York
 
-	If no time is specified, times will be shown in Moonbase time.
+	If no time zone is specified, times will be shown in Moonbase time.
 	"""
-	conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
+	if datetime.datetime.now(datetime.timezone.utc) < DESERTBUS_END:
+		# If someone says !next before/during Desert Bus, plug that instead
+		desertbus(lrrbot, conn, event, respond_to, timezone)
+	else:
+		conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
+
+@bot.command("desert ?bus( .*)?")
+@utils.throttle()
+def desertbus(lrrbot, conn, event, respond_to, timezone):
+	if not timezone:
+		timezone = config['timezone']
+	else:
+		timezone = timezone.strip()
+		try:
+			timezone = utils.get_timezone(timezone)
+		except pytz.exceptions.UnknownTimeZoneError:
+			conn.privmsg(respond_to, "Unknown timezone: %s" % timezone)
+
+	now = datetime.datetime.now(datetime.timezone.utc)
+
+	if now < DESERTBUS_START:
+		nice_duration = utils.nice_duration(DESERTBUS_START - now, 1) + " from now"
+		conn.privmsg(respond_to, "Desert Bus for Hope will begin at %s (%s)" % (DESERTBUS_START.astimezone(timezone).strftime(googlecalendar.DISPLAY_FORMAT), nice_duration))
+	elif now < DESERTBUS_END:
+		conn.privmsg(respond_to, "Desert Bus for Hope is currently live! Go watch it now at http://desertbus.org/live/")
+	else:
+		conn.privmsg(respond_to, "Desert Bus for Hope will return next year, start saving your donation money now!")
+
 
 @bot.command("(?:nextfan(?:stream)?|fansched(?:ule)?)( .*)?")
 @utils.throttle()
@@ -119,7 +150,7 @@ def time(lrrbot, conn, event, respond_to):
 	
 @bot.command("time 24")
 @utils.throttle()
-def time(lrrbot, conn, event, respond_to):
+def time24(lrrbot, conn, event, respond_to):
 	"""
 	Command: !time 24
 
