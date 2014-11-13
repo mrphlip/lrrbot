@@ -19,7 +19,7 @@
 			<param  name="allowScriptAccess" value="always" />
 			<param  name="allowNetworking" value="all" />
 			<param  name="allowFullScreen" value="true" />
-			<param  name="flashvars" value="channel={{video['channel']|e}}&amp;auto_play=true&amp;{{video['type']|e}}_id={{video['id']|e}}" />
+			<param  name="flashvars" value="channel={{video['channel']|e}}&amp;auto_play=true&amp;{{video['type']|e}}_id={{video['id']|e}}{%if starttime%}&amp;initial_time={{starttime|e}}{%endif%}" />
 		</object>
 	</div></div>
 	<div><div id="chat">

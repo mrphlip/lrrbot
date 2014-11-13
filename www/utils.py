@@ -13,6 +13,7 @@ import server
 import socket
 import time
 import datetime
+import re
 
 def nice_duration(s, detail=1):
 	"""
@@ -132,6 +133,36 @@ class throttle(object):
 	def reset_throttle(self):
 		self.lastrun = {}
 		self.lastreturn = {}
+
+re_timefmt1 = re.compile("^\s*(?:\s*(\d*)\s*d)?(?:\s*(\d*)\s*h)?(?:\s*(\d*)\s*m)?(?:\s*(\d*)\s*s?)?\s*$")
+re_timefmt2 = re.compile("^(?:(?:(?:\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*$")
+def parsetime(s):
+	"""
+	Parse user-supplied times in one of two formats:
+	"10s"
+	"5m3s"
+	"7h2m"
+	"1d7m52s"
+	or:
+	"10"
+	"5:03"
+	"7:02:00"
+	"1:00:07:52"
+
+	Returns a timedelta object of the appropriate duration, or None if the parse fails
+	"""
+	if s is None:
+		return None
+	match = re_timefmt1.match(s)
+	if not match:
+		match = re_timefmt2.match(s)
+	if not match:
+		return None
+	d = int(match.group(1) or 0)
+	h = int(match.group(2) or 0)
+	m = int(match.group(3) or 0)
+	s = int(match.group(4) or 0)
+	return datetime.timedelta(days=d, hours=h, minutes=m, seconds=s)
 
 # oursql uses the same config flag to control "What codec should we tell MySQL we are sending"
 # and "what codec should we use for str.encode to actually send"... the former needs to be

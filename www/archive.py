@@ -118,8 +118,11 @@ def get_video_data(videoid):
 @server.app.route('/archive/<videoid>')
 @utils.with_mysql
 def archive_watch(conn, cur, videoid):
+	starttime = utils.parsetime(flask.request.values.get('t'))
+	if starttime:
+		starttime = int(starttime.total_seconds())
 	video = get_video_data(videoid)
 	if video is None:
 		return "Unrecognised video"
 	chat = chat_data(conn, cur, video["start"] - BEFORE_BUFFER, video["end"] + AFTER_BUFFER)
-	return flask.render_template("archive_watch.html", video=video, chat=chat)
+	return flask.render_template("archive_watch.html", video=video, chat=chat, starttime=starttime)
