@@ -86,18 +86,18 @@ def new_field(doc, name, value):
 VIDEO_CACHE = {}
 
 def twitch_videos():
-	next_data = {"start": 0, "limit": 10, "broadcasts": "true"}
+	next_data = {"offset": 0, "limit": 10, "broadcasts": "true"}
 	last_length = 1
 	while last_length > 0:
-		if next_data["start"] in VIDEO_CACHE:
-			videos = VIDEO_CACHE[next_data["start"]]
+		if next_data["offset"] in VIDEO_CACHE:
+			videos = VIDEO_CACHE[next_data["offset"]]
 		else:
 			videos = json.loads(utils.http_request("https://api.twitch.tv/kraken/channels/%s/videos" % config["channel"], data = next_data))["videos"]
-			VIDEO_CACHE[next_data["start"]] = videos
+			VIDEO_CACHE[next_data["offset"]] = videos
 		last_length = len(next_data)
 		for video in videos:
 			yield video
-		next_data["start"] += next_data["limit"]
+		next_data["offset"] += next_data["limit"]
 		last_length = len(videos)
 
 def twitch_lookup(highlight):
