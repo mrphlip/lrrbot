@@ -66,6 +66,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.vote_update = None
 		self.access = "all"
 		self.show = ""
+		self.polls = []
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
@@ -218,6 +219,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			
 		if self.vote_update is not None:
 			self.vote_respond(self, conn, event, respond_to, self.vote_update)
+		self.check_polls(self, conn, event, respond_to)
 		
 		if (nick == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)

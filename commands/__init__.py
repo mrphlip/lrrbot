@@ -7,3 +7,4 @@ import commands.card
 import commands.highlights
 import commands.lockdown
 import commands.show
+import commands.strawpoll
