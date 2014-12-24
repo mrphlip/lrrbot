@@ -11,15 +11,15 @@
         {%if show_id is none%}
         <strong>All</strong>
         {%else%}
-        <a href="{{url_for('stats')}}">All</a>
+        <a href="{{url_for('stats')|e}}">All</a>
         {%endif%}
     </li>
     {%for show in shows%}
     <li>
         {%if show_id == show['id']%}
-        <strong>{{show['name']}}</strong>
+        <strong>{{show['name']|e}}</strong>
         {%else%}
-        <a href="{{url_for('stats')}}?show={{show['id']}}">{{show['name']}}</a>
+        <a href="{{url_for('stats')|e}}?show={{show['id']|urlencode|e}}">{{show['name']|e}}</a>
         {%endif%}
     </li>
     {%endfor%}
@@ -35,7 +35,7 @@
 </thead>
 <tbody>
 {%for game in games%}
-	<tr class="{{loop.cycle('odd', 'even')}}">
+	<tr class="{{loop.cycle('odd', 'even')|e}}">
 		<td class="game">
 			{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
 			{{game['display']|e}}
@@ -83,7 +83,7 @@ $(document).ready(function() {
 </thead>
 <tbody>
 {%for game in votegames%}
-	<tr class="{{loop.cycle('odd', 'even')}}">
+	<tr class="{{loop.cycle('odd', 'even')|e}}">
 		<td class="game">
 			{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
 			{{game['display']|e}}
@@ -92,10 +92,10 @@ $(document).ready(function() {
 		</td>
 		<td class="rating graph">
 			<div class="rating">
-				<div class="good" style="width: {{game['voteperc']}}%"></div>
+				<div class="good" style="width: {{game['voteperc']|e}}%"></div>
 			</div>
 		</td>
-		<td class="rating numbers">{{game['votegood']}} / {{game['votecount']}}</td>
+		<td class="rating numbers">{{game['votegood']|e}} / {{game['votecount']|e}}</td>
 	</tr>
 {%endfor%}
 </tbody>

@@ -16,9 +16,9 @@
 	<h1><a href="{{url_for('index')|e}}"><img src="{{url_for('static', filename='logo.png')|e}}" alt="LRRbot" width="98" height="100"></a> {%block header%}{%endblock%}</h1>
 	<div class="login">
 		{%if session['user']%}
-			<a href="{{url_for('logout')|e}}{%if session['url']%}?return_to={{session['url']|e}}{%endif%}">Log out ({{session['user']|e}})</a>
+			<a href="{{url_for('logout')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log out ({{session['user']|e}})</a>
 		{%else%}
-			<a href="{{url_for('login')|e}}{%if session['url']%}?return_to={{session['url']|e}}{%endif%}">Log in</a>
+			<a href="{{url_for('login')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log in</a>
 		{%endif%}
 	</div>
 </div>
