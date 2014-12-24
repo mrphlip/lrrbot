@@ -532,6 +532,24 @@ table.spam input
 .label.subonly {
     background-color: #5BC0DE;
 }
+dd {
+	margin: 0;
+	padding: 0 0 0 2.5em;
+}
+dt.modonly, dd.modonly {
+	background-color: #F3CBCA;
+}
+dt.subonly, dd.subonly {
+	background-color: #CDECF5;
+}
+dt.modonly, dt.subonly {
+	border-top-left-radius: 0.25em;
+	border-top-right-radius: 0.25em;
+}
+dd.modonly, dd.subonly {
+	border-bottom-left-radius: 0.25em;
+	border-bottom-right-radius: 0.25em;
+}
 
 .label.timeout {
     background-color: #5cb85c;

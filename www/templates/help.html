@@ -24,12 +24,12 @@ window.onload = modonly;
 <h3>Information</h3>
 <dl>
 {% for command in commands %}
-    <dt{% if command["mod-only"] %} class="modonly"{% endif %}>{{ command["aliases"] | safe }}
+    <dt{% if command["mod-only"] %} class="modonly"{% elif command["sub-only"] %} class="subonly"{% endif %}>{{ command["aliases"] | safe }}
     {% if command["throttled"] != None %}<span class="label timeout">&#x231B; {{ command["throttled"] }}</span>{% endif %}
     {% if command["sub-only"] %}<span class="label subonly">Sub only</span>{% endif %}
     {% if command["mod-only"] %}<span class="label modonly">Mod only</span>{% endif %}
     {% for paragraph in command["description"] %}
-    <dd{% if command["mod-only"] %} class="modonly"{% endif %}>{% if command["literal-response"] %}<code>{% endif %}{{ paragraph | urlize }}{% if command["literal-response"] %}</code>{% endif %}</dd>
+    <dd{% if command["mod-only"] %} class="modonly"{% elif command["sub-only"] %} class="subonly"{% endif %}>{% if command["literal-response"] %}<code>{% endif %}{{ paragraph | urlize }}{% if command["literal-response"] %}</code>{% endif %}</dd>
     {% endfor %}
 {% endfor %}
 </dl>
