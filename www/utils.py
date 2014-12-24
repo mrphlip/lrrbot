@@ -164,6 +164,10 @@ def parsetime(s):
 	s = int(match.group(4) or 0)
 	return datetime.timedelta(days=d, hours=h, minutes=m, seconds=s)
 
+def error_page(message):
+	import login
+	return flask.render_template("error.html", message=message, session=login.load_session(include_url=False))
+
 # oursql uses the same config flag to control "What codec should we tell MySQL we are sending"
 # and "what codec should we use for str.encode to actually send"... the former needs to be
 # "utf8mb4" because MySQL is the dumbs, so we need to make sure the latter will accept
