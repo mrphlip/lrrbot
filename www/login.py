@@ -118,12 +118,10 @@ def login(return_to=None):
 		flask.session['login_return_to'] = return_to
 
 		if 'as' in flask.request.values:
-			flask.session['login_as'] = flask.request.values['as']
-			if flask.session['login_as'] not in SPECIAL_USERS:
-				return utils.error_page("Not a recognised user name: %s" % flask.session['login_as'])
-			scope = SPECIAL_USERS[flask.session['login_as']]
+			if flask.request.values['as'] not in SPECIAL_USERS:
+				return utils.error_page("Not a recognised user name: %s" % flask.request.values['as'])
+			scope = SPECIAL_USERS[flask.request.values['as']]
 		else:
-			flask.session['login_as'] = None
 			scope = REQUEST_SCOPES
 
 		# Generate a random nonce so we can verify that the user who comes back is the same user we sent away
