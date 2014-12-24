@@ -16,7 +16,7 @@ def card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	Command: !card card-name
 
-	Show the details of a given Magic; the Gathering card.
+	Show the details of a given Magic: the Gathering card.
 	"""
 	search = search.split()
 	search = [clean_text(i) for i in search]

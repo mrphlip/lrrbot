@@ -324,7 +324,7 @@ table.statstable div.rating
 	border: 1px solid black;
 	width: 20em;
 	height: 1em;
-    background: #C00;
+	background: #C00;
 }
 table.statstable div.rating .good
 {
@@ -516,21 +516,21 @@ table.spam input
 }
 
 .label {
-    float: right;
-    margin-right: 1em;
-    padding: 2px;
-    border-radius: 2px;
-    color: #FFF;
-    font-size: small;
-    min-width: 5em;
-    text-align: center;
+	float: right;
+	margin-right: 1em;
+	padding: 2px;
+	border-radius: 2px;
+	color: #FFF;
+	font-size: small;
+	min-width: 5em;
+	text-align: center;
 }
 
 .label.modonly {
-    background-color: #D9534F;
+	background-color: #D9534F;
 }
 .label.subonly {
-    background-color: #5BC0DE;
+	background-color: #5BC0DE;
 }
 dd {
 	margin: 0;
@@ -552,11 +552,11 @@ dd.modonly, dd.subonly {
 }
 
 .label.timeout {
-    background-color: #5cb85c;
+	background-color: #5cb85c;
 }
 
 dt code {
-    line-height: 150%;
+	line-height: 150%;
 }
 
 table.historyshow {
