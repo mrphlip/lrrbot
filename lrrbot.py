@@ -28,7 +28,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		server = irc.bot.ServerSpec(
 			host=config['hostname'],
 			port=config['port'],
-			password=config['password'],
+			password="oauth:%s" % storage.data['twitch_oauth'][config['username']] if config['password'] == "oauth" else config['password'],
 		)
 		super(LRRBot, self).__init__(
 			server_list=[server],

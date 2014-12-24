@@ -63,7 +63,5 @@ config['timezone'] = pytz.timezone(config.get('timezone', 'America/Vancouver'))
 # socket_filename - Filename for the UDS channel that the webserver uses to communicate with the bot
 config.setdefault('socket_filename', 'lrrbot.sock')
 
-# twitch_token - Twitch OAuth token
-config.setdefault('twitch_token', '')
 # google_key - Google API key
 config.setdefault('google_key', '')

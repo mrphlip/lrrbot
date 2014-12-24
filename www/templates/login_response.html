@@ -12,7 +12,9 @@
 {%if return_to%}
 <p><a href="{{return_to|e}}">Return to the previous page</a></p>
 {%endif%}
+{%elif special_user%}
+<p class="error">Twitch has not given us the required permissions to access your account. Most likely you did not access the login page with the <code>?as={{special_user|urlencode|e}}</code> parameter. This will break our existing access to your account - please <a href="{{url_for('login')|e}}?as={{special_user|urlencode|e}}">log in again</a>.</p>
 {%else%}
-<p>Login failed - please try again, and contact us if you have continued problems...</p>
+<p class="error">Login failed - please try again, and contact us if you have continued problems...</p>
 {%endif%}
 {%endblock%}
