@@ -2,6 +2,7 @@ from lrrbot import bot
 import utils
 import time
 import json
+import random
 
 def strawpoll_format(data):
     i, (name, count) = data
@@ -13,9 +14,11 @@ def check_polls(lrrbot, conn, event, respond_to):
 		if end < now:
 			url = "http://strawpoll.me/api/v2/polls/%s" % poll_id
 			data = json.loads(utils.http_request(url))
-			options = sorted(zip(data["options"], data["votes"]), key=lambda e: e[1], reverse=True)
+			options = sorted(zip(data["options"], data["votes"]), key=lambda e: (e[1], random.random()), reverse=True)
 			options = "; ".join(map(strawpoll_format, enumerate(options)))
-			conn.privmsg(respond_to, "Poll complete: %s: %s" % (data["title"], options))
+			response = "Poll complete: %s: %s" % (data["title"], options)
+			response = utils.shorten(response, 450)
+			conn.privmsg(respond_to, response)
 	lrrbot.polls = list(filter(lambda e: e[0] >= now, lrrbot.polls))
 bot.check_polls = check_polls
 
@@ -35,7 +38,7 @@ def polls(lrrbot, conn, event, respond_to):
 		messages += ["%s (http://strawpoll.me/%s\u200B): %s from now" % (title, poll_id, utils.nice_duration(end - now, 1))]
 	conn.privmsg(respond_to, utils.shorten("Active polls: "+"; ".join(messages), 450))
 
-@bot.command("(multi)?poll (\d+) (?:(?:(?:http://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/(?:r)?)?)|(?:([^:]+): ?([^;]+(?:; ?[^;]+)*);?))")
+@bot.command("(multi)?poll (?:(\d+) )?(?:(?:http://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/r?)?|(?:([^:]+) ?: ?)?(.*))")
 @utils.mod_only
 def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, options):
 	"""
@@ -46,16 +49,26 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	Start a new Strawpoll poll. Post results in N seconds. Multiple polls can be active at the
 	same time.
 	"""
-	timeout = int(timeout)
-	end = time.time() + int(timeout)
 	if poll_id is not None:
 		url = "http://strawpoll.me/api/v2/polls/%s" % poll_id
 		data = json.loads(utils.http_request(url))
 		title = data["title"]
 	else:
-		options = [option.strip() for option in options.split(';')]
-		data = json.dumps({"options": options, "title": title})
+		if title is None:
+			title = "LoadingReadyLive poll"
+		if ';' in options:
+			options = [option.strip() for option in options.split(';')]
+		elif ',' in options:
+			options = [option.strip() for option in options.split(',')]
+		else:
+			options = options.split()
+		data = json.dumps({"options": options, "title": title, "multi": multi is not None})
 		response = utils.http_request("http://strawpoll.me/api/v2/polls", data, "POST", headers = {"Content-Type": "application/json"})
 		poll_id = json.loads(response)["id"]
-	lrrbot.polls += [(end, title, poll_id)]
-	conn.privmsg(respond_to, "New poll: %s (http://strawpoll.me/%s\u200B): %s from now" % (title, poll_id, utils.nice_duration(timeout, 1)))
+	if timeout is not None:
+		timeout = int(timeout)
+		end = time.time() + int(timeout)
+		lrrbot.polls += [(end, title, poll_id)]
+		conn.privmsg(respond_to, "New poll: %s (http://strawpoll.me/%s\u200B): %s from now" % (title, poll_id, utils.nice_duration(timeout, 1)))
+	else:
+		conn.privmsg(respond_to, "New poll: %s (http://strawpoll.me/%s\u200B)" % (title, poll_id))
