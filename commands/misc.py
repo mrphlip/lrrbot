@@ -210,6 +210,8 @@ def uptime(lrrbot, conn, event, respond_to):
 	else:
 		conn.privmsg(respond_to, "The stream is not live.")
 
+PATREON_URL = "http://www.patreon.com/loadingreadyrun"
+
 @bot.command("patreon")
 @utils.throttle()
 def patreon(lrrbot, conn, event, respond_to):
@@ -218,7 +220,7 @@ def patreon(lrrbot, conn, event, respond_to):
 
 	Post the number of patrons and the total earnings per month.
 	"""
-	patreon_body = utils.http_request("http://www.patreon.com/loadingreadyrun")
+	patreon_body = utils.http_request(PATREON_URL)
 	patreon_soup = bs4.BeautifulSoup(patreon_body)
 
 	tag_patrons = patreon_soup.find("div", id="totalPatrons")
@@ -227,5 +229,5 @@ def patreon(lrrbot, conn, event, respond_to):
 	tag_earnings = patreon_soup.find("span", id="totalEarnings")
 	total_earnings = tag_earnings.string if tag_earnings else "N/A"
 
-	conn.privmsg(respond_to,
-			"{0} patrons for a total of ${1} per month.".format(nof_patrons, total_earnings))
+	conn.privmsg(respond_to, "{0} patrons for a total of ${1} per month. {2}".format(
+            nof_patrons, total_earnings, PATREON_URL))
