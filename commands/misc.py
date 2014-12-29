@@ -11,6 +11,7 @@ import urllib.error
 import irc.client
 import dateutil.parser
 import pytz
+import bs4
 
 log = logging.getLogger('misc')
 
@@ -208,3 +209,25 @@ def uptime(lrrbot, conn, event, respond_to):
 		conn.privmsg(respond_to, "Twitch won't tell me when the stream went live.")
 	else:
 		conn.privmsg(respond_to, "The stream is not live.")
+
+PATREON_URL = "http://www.patreon.com/loadingreadyrun"
+
+@bot.command("patreon")
+@utils.throttle()
+def patreon(lrrbot, conn, event, respond_to):
+	"""
+	Command: !patreon
+
+	Post the number of patrons and the total earnings per month.
+	"""
+	patreon_body = utils.http_request(PATREON_URL)
+	patreon_soup = bs4.BeautifulSoup(patreon_body)
+
+	tag_patrons = patreon_soup.find("div", id="totalPatrons")
+	nof_patrons = tag_patrons.string if tag_patrons else "N/A"
+
+	tag_earnings = patreon_soup.find("span", id="totalEarnings")
+	total_earnings = tag_earnings.string if tag_earnings else "N/A"
+
+	conn.privmsg(respond_to, "{0} patrons for a total of ${1} per month. {2}".format(
+            nof_patrons, total_earnings, PATREON_URL))
