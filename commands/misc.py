@@ -216,7 +216,7 @@ PATREON_URL = "http://www.patreon.com/loadingreadyrun"
 @utils.throttle()
 def patreon(lrrbot, conn, event, respond_to):
 	"""
-	Command !patreon
+	Command: !patreon
 
 	Post the number of patrons and the total earnings per month.
 	"""
