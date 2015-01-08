@@ -1,5 +1,6 @@
 import json
 import utils
+import storage
 from config import config
 
 def get_info(username=None, use_fallback=True):
@@ -71,3 +72,24 @@ def get_game_playing(username=None):
 	if channel_data['game'] is not None:
 		return get_game(name=channel_data['game'])
 	return None
+
+def get_subscribers(channel=None, count=5, offset=None, latest=True):
+	if channel is None:
+		channel = config['channel']
+	if channel not in storage.data['twitch_oauth']:
+		return None
+	headers = {
+		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][channel],
+	}
+	data = {
+		"limit": count,
+		"direction": "desc" if latest else "asc",
+	}
+	if offset is not None:
+		data['offset'] = offset
+	res = utils.http_request("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
+	subscriber_data = json.loads(res)
+	return [
+		(sub['user']['name'], sub['user']['display_name'], sub['user'].get('logo'), sub['created_at'])
+		for sub in subscriber_data['subscriptions']
+	]
