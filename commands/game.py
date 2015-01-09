@@ -46,11 +46,11 @@ def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 	game.setdefault("votes", {})
 	game["votes"][nick.lower()] = vote_good is not None
 	storage.save()
-	lrrbot.vote_update = game
+	lrrbot.vote_update = respond_to, game
 	vote_respond(lrrbot, conn, event, respond_to, game)
 
 @utils.throttle(60, log=False)
-def vote_respond(lrrbot, conn, event, respond_to, game):
+def vote_respond(lrrbot, conn, respond_to, game):
 	if game and game.get("votes"):
 		good = sum(game["votes"].values())
 		count = len(game["votes"])
@@ -58,7 +58,6 @@ def vote_respond(lrrbot, conn, event, respond_to, game):
 		
 		conn.privmsg(respond_to, "Rating for %s on %s is now %.0f%% (%d/%d)" % (game_name(game), show_name(show), 100*good/count, good, count))
 	lrrbot.vote_update = None
-bot.vote_respond = vote_respond
 
 @bot.command("game display (.*?)")
 @utils.mod_only

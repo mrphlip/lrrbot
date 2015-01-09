@@ -8,9 +8,9 @@ def strawpoll_format(data):
     i, (name, count) = data
     return "%s: %s (%d vote%s)" % (i+1, name, count, '' if count == 1 else 's')
 
-def check_polls(lrrbot, conn, event, respond_to):
+def check_polls(lrrbot, conn):
 	now = time.time()
-	for end, title, poll_id in lrrbot.polls:
+	for end, title, poll_id, respond_to in lrrbot.polls:
 		if end < now:
 			url = "http://strawpoll.me/api/v2/polls/%s" % poll_id
 			data = json.loads(utils.http_request(url))
@@ -20,7 +20,6 @@ def check_polls(lrrbot, conn, event, respond_to):
 			response = utils.shorten(response, 450)
 			conn.privmsg(respond_to, response)
 	lrrbot.polls = list(filter(lambda e: e[0] >= now, lrrbot.polls))
-bot.check_polls = check_polls
 
 @bot.command("polls")
 @utils.throttle()
@@ -34,7 +33,7 @@ def polls(lrrbot, conn, event, respond_to):
 		return conn.privmsg(respond_to, "No active polls.")
 	now = time.time()
 	messages = []
-	for end, title, poll_id in lrrbot.polls:
+	for end, title, poll_id, respond_to in lrrbot.polls:
 		messages += ["%s (http://strawpoll.me/%s\u200B): %s from now" % (title, poll_id, utils.nice_duration(end - now, 1))]
 	conn.privmsg(respond_to, utils.shorten("Active polls: "+"; ".join(messages), 450))
 
@@ -68,7 +67,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	if timeout is not None:
 		timeout = int(timeout)
 		end = time.time() + int(timeout)
-		lrrbot.polls += [(end, title, poll_id)]
+		lrrbot.polls += [(end, title, poll_id, respond_to)]
 		conn.privmsg(respond_to, "New poll: %s (http://strawpoll.me/%s\u200B): %s from now" % (title, poll_id, utils.nice_duration(timeout, 1)))
 	else:
 		conn.privmsg(respond_to, "New poll: %s (http://strawpoll.me/%s\u200B)" % (title, poll_id))

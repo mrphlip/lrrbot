@@ -42,6 +42,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# if it triggers while the connection is down, so do this instead
 		self.connection.irclibobj.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
 
+		self.connection.irclibobj.execute_every(period=5, function=self.check_polls)
+		self.connection.irclibobj.execute_every(period=5, function=self.vote_respond)
+
 		# IRC event handlers
 		self.ircobj.add_global_handler('welcome', self.on_connect)
 		self.ircobj.add_global_handler('join', self.on_channel_join)
@@ -217,10 +220,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			respond_to = source.nick
 			
-		if self.vote_update is not None:
-			self.vote_respond(self, conn, event, respond_to, self.vote_update)
-		self.check_polls(self, conn, event, respond_to)
-		
 		if (nick == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
 		elif self.check_spam(conn, event, event.arguments[0]):
@@ -448,6 +447,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		log.debug("Returning: %r" % ret)
 		conn.send((json.dumps(ret) + "\n").encode())
 		conn.close()
+
+	@utils.swallow_errors
+	def check_polls(self):
+		commands.strawpoll.check_polls(self, self.connection)
+
+	@utils.swallow_errors
+	def vote_respond(self):
+		if self.vote_update is not None:
+			commands.game.vote_respond(self, self.connection, *self.vote_update)
 
 bot = LRRBot()
 
