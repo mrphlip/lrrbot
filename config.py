@@ -24,6 +24,8 @@ config.setdefault('channel', 'loadingreadyrun')
 config['reconnecttime'] = int(config.get('reconnecttime', 15))
 # keepalivetime - seconds between sending keep-alive ping messages
 config['keepalivetime'] = int(config.get('keepalivetime', 60))
+# checksubstime - seconds between checking for new subscribers via Twitch API
+config['checksubstime'] = int(config.get('checksubstime', 60))
 
 # debug - boolean option
 config.setdefault('debug', False)

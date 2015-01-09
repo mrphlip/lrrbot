@@ -5,6 +5,7 @@ import os
 import re
 import time
 import datetime
+import dateutil.parser
 import json
 import logging
 import socket
@@ -44,6 +45,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.connection.irclibobj.execute_every(period=5, function=self.check_polls)
 		self.connection.irclibobj.execute_every(period=5, function=self.vote_respond)
+		self.connection.irclibobj.execute_every(period=config['checksubstime'], function=self.check_subscriber_list)
 
 		# IRC event handlers
 		self.ircobj.add_global_handler('welcome', self.on_connect)
@@ -70,6 +72,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.access = "all"
 		self.show = ""
 		self.polls = []
+		self.lastsubs = []
+		self.havesublist = False
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
@@ -248,45 +252,60 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_notification(self, conn, event, respond_to):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
 		log.info("Notification: %s" % event.arguments[0])
-		notifyparams = {
-			'apipass': config['apipass'],
-			'message': event.arguments[0],
-			'eventtime': time.time(),
-		}
-		if irc.client.is_channel(event.target):
-			notifyparams['channel'] = event.target[1:]
 		subscribe_match = self.re_subscription.match(event.arguments[0])
-		if subscribe_match:
-			notifyparams['subuser'] = subscribe_match.group(1)
-
-			# Twitch sometimes sends the same sub through multiple times
-			if notifyparams['subuser'] == storage.data.get("storm",{}).get("lastuser"):
+		if subscribe_match and irc.client.is_channel(event.target):
+			# Don't highlight the same sub via both the chat and the API
+			if subscribe_match.group(1).lower() in self.lastsubs:
 				return
 
+			self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time())
+		else:
+			notifyparams = {
+				'apipass': config['apipass'],
+				'message': event.arguments[0],
+				'eventtime': time.time(),
+			}
+			if irc.client.is_channel(event.target):
+				notifyparams['channel'] = event.target[1:]
+			utils.api_request('notifications/newmessage', notifyparams, 'POST')
+
+	def on_subscriber(self, conn, channel, user, eventtime, logo=None):
+		notifyparams = {
+			'apipass': config['apipass'],
+			'message': "%s just subscribed!" % user,
+			'eventtime': eventtime,
+			'subuser': user,
+			'channel': channel,
+		}
+
+		if logo is None:
 			try:
-				channel_info = twitch.get_info(subscribe_match.group(1))
+				channel_info = twitch.get_info(user)
 			except:
 				pass
 			else:
 				if channel_info.get('logo'):
 					notifyparams['avatar'] = channel_info['logo']
+		else:
+			notifyparams['avatar'] = logo
 			
-			# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
-			today = datetime.datetime.now(config['timezone']).date().toordinal()
-			if today != storage.data.get("storm",{}).get("date"):
-				storage.data["storm"] = {
-					"date": today,
-					"count": 0,
-				}
-			storage.data["storm"]["count"] += 1
-			storage.data["storm"]["lastuser"] = notifyparams['subuser']
-			storage.save()
-			conn.privmsg(respond_to, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
-
-			self.subs.add(subscribe_match.group(1).lower())
-			storage.data['subs'] = list(self.subs)
-			storage.save()
+		# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
+		today = datetime.datetime.now(config['timezone']).date().toordinal()
+		if today != storage.data.get("storm",{}).get("date"):
+			storage.data["storm"] = {
+				"date": today,
+				"count": 0,
+			}
+		storage.data["storm"]["count"] += 1
+		self.lastsubs.append(user.lower())
+		self.lastsubs = self.lastsubs[-10:]
+		storage.save()
+		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
 		utils.api_request('notifications/newmessage', notifyparams, 'POST')
+
+		self.subs.add(user.lower())
+		storage.data['subs'] = list(self.subs)
+		storage.save()
 
 	def on_metadata(self, conn, event):
 		"""
@@ -456,6 +475,28 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def vote_respond(self):
 		if self.vote_update is not None:
 			commands.game.vote_respond(self, self.connection, *self.vote_update)
+
+	@utils.swallow_errors
+	def check_subscriber_list(self):
+		sublist = twitch.get_subscribers(config['channel'])
+		if not sublist:
+			log.info("Failed to get subscriber list from Twitch")
+			self.havesublist = False
+			return
+		# If this is the first time we've gotten the sub list then don't notify for all of them
+		# as all of them will appear "new" even if we saw them on a previous run
+		# Just add them to the "seen" list
+		if not self.havesublist:
+			log.debug("Got initial subscriber list from Twitch")
+			self.lastsubs += [i[0].lower() for i in sublist]
+			self.havesublist = True
+			return
+
+		for user, logo, eventtime in sublist:
+			if user.lower() not in self.lastsubs:
+				log.info("Found new subscriber via Twitch API: %s" % user)
+				eventtime = dateutil.parser.parse(eventtime).timestamp()
+				self.on_subscriber(self.connection, "#%s" % config['channel'], user, eventtime, logo)
 
 bot = LRRBot()
 
