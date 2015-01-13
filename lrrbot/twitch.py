@@ -2,7 +2,7 @@ import json
 
 from common import utils
 from common.config import config
-import storage
+from lrrbot import storage
 
 
 def get_info(username=None, use_fallback=True):

@@ -13,10 +13,10 @@ sys.argv = sys.argv[:1]
 
 from common import utils
 from common.config import config
+from lrrbot import twitch
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
-import twitch
 import socket
 import json
 import time

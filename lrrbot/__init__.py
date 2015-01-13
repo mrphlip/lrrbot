@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -18,9 +17,7 @@ import irc.modes
 
 from common import utils
 from common.config import config
-import storage
-import twitch
-import chatlog
+from lrrbot import chatlog, storage, twitch
 
 
 log = logging.getLogger('lrrbot')
@@ -474,12 +471,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.swallow_errors
 	def check_polls(self):
-		commands.strawpoll.check_polls(self, self.connection)
+		from commands.strawpoll import check_polls
+		check_polls(self, self.connection)
 
 	@utils.swallow_errors
 	def vote_respond(self):
+		from commands.game import vote_respond
 		if self.vote_update is not None:
-			commands.game.vote_respond(self, self.connection, *self.vote_update)
+			vote_respond(self, self.connection, *self.vote_update)
 
 	@utils.swallow_errors
 	def check_subscriber_list(self):
@@ -504,34 +503,3 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				self.on_subscriber(self.connection, "#%s" % config['channel'], user, eventtime, logo)
 
 bot = LRRBot()
-
-def init_logging():
-	logging.basicConfig(level=config['loglevel'], format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")
-	if config['logfile'] is not None:
-		fileHandler = logging.FileHandler(config['logfile'], 'a', 'utf-8')
-		fileHandler.formatter = logging.root.handlers[0].formatter
-		logging.root.addHandler(fileHandler)
-
-if __name__ == '__main__':
-	# Fix module names
-	import sys
-	sys.modules["lrrbot"] = sys.modules["__main__"]
-
-	init_logging()
-
-	import commands
-	import serverevents
-
-	bot.compile()
-
-	chatlog.createthread()
-	
-	try:
-		log.info("Bot startup")
-		bot.start()
-	except (KeyboardInterrupt, SystemExit):
-		pass
-	finally:
-		log.info("Bot shutdown")
-		logging.shutdown()
-		chatlog.exitthread()

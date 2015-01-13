@@ -7,11 +7,7 @@ import pytz
 
 from common import utils
 from common.config import config
-from lrrbot import bot
-import googlecalendar
-import storage
-import twitch
-
+from lrrbot import bot, googlecalendar, storage, twitch
 
 log = logging.getLogger('misc')
 
@@ -76,7 +72,8 @@ def spamcount(lrrbot, conn, event, respond_to):
 			"count": [0, 0, 0],
 		}
 		storage.save()
-	conn.privmsg(respond_to, "Today's spam counts: %d hits, %d repeat offenders, %d bannings" % tuple(storage.data["spam"]["count"]))
+	conn.privmsg(respond_to, "Today's spam counts: %d hits, %d repeat offenders, %d bannings" % tuple(
+		storage.data["spam"]["count"]))
 
 DESERTBUS_START = 1415988000
 DESERTBUS_START = datetime.datetime.utcfromtimestamp(DESERTBUS_START).replace(tzinfo=datetime.timezone.utc)
@@ -119,7 +116,8 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 
 	if now < DESERTBUS_START:
 		nice_duration = utils.nice_duration(DESERTBUS_START - now, 1) + " from now"
-		conn.privmsg(respond_to, "Desert Bus for Hope will begin at %s (%s)" % (DESERTBUS_START.astimezone(timezone).strftime(googlecalendar.DISPLAY_FORMAT), nice_duration))
+		conn.privmsg(respond_to, "Desert Bus for Hope will begin at %s (%s)" % (DESERTBUS_START.astimezone(timezone).strftime(
+			googlecalendar.DISPLAY_FORMAT), nice_duration))
 	elif now < DESERTBUS_END:
 		conn.privmsg(respond_to, "Desert Bus for Hope is currently live! Go watch it now at http://desertbus.org/live/")
 	else:

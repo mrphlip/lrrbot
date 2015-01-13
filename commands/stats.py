@@ -1,6 +1,5 @@
 from common import utils
-from lrrbot import bot
-import storage
+from lrrbot import bot, storage
 from commands.game import completed, game_name
 from commands.show import show_name
 

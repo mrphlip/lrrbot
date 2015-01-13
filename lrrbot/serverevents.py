@@ -2,12 +2,10 @@ import random
 import re
 
 from common import utils
-from lrrbot import bot, log
-import storage
+from lrrbot import bot, log, googlecalendar, storage
 import commands.static
 import commands.explain
 import commands.show
-import googlecalendar
 
 
 @bot.server_event()
