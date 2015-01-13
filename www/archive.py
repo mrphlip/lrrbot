@@ -9,6 +9,7 @@ import os
 import dateutil.parser
 import utils
 import contextlib
+import tempfile
 
 CACHE_TIMEOUT = 15*60
 
@@ -16,7 +17,7 @@ BEFORE_BUFFER = 15*60
 AFTER_BUFFER = 15*60
 
 def archive_feed_data(channel, broadcasts):
-	fn = "../twitchcache_%s_%s.json" % (channel, broadcasts)
+	fn = "twitchcache_%s_%s.json" % (channel, broadcasts)
 
 	try:
 		fileage = time.time() - os.stat(fn).st_mtime
@@ -31,8 +32,10 @@ def archive_feed_data(channel, broadcasts):
 		fp = urllib.request.urlopen(url)
 		data = fp.read().decode()
 		fp.close()
-		with open(fn, "wb") as fp:
-			fp.write(data.encode("utf-8"))
+		fd, tempname = tempfile.mkstemp(".json", "twitchcache-", dir=os.path.dirname(os.path.abspath(fn)))
+		with os.fdopen(fd, "w") as fp:
+			fp.write(data)
+		os.replace(tempname, fn)
 
 	# For broadcasts:
 	# {'videos': [{'_id': 'a508090853',
