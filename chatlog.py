@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-import oursql
-import www.secrets
 import utils
 import queue
 import threading
@@ -17,7 +15,6 @@ CACHE_EXPIRY = 7*24*60*60
 PURGE_PERIOD = 15*60
 
 queue = queue.Queue()
-mysql_conn = oursql.connect(**www.secrets.mysqlopts)
 thread = None
 
 # Chat-log handling functions live in their own thread, so that functions that take
@@ -56,7 +53,8 @@ def exitthread():
 
 
 @utils.swallow_errors
-def do_log_chat(time, event, metadata):
+@utils.with_mysql
+def do_log_chat(conn, cur, time, event, metadata):
 	"""
 	Add a new message to the chat log.
 	"""
@@ -66,60 +64,59 @@ def do_log_chat(time, event, metadata):
 		return
 
 	source = irc.client.NickMask(event.source).nick
-	with mysql_conn as cur:
-		cur.execute("INSERT INTO LOG (TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET, MESSAGEHTML) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (
-			time,
-			source,
-			event.target,
-			event.arguments[0],
-			','.join(metadata.get('specialuser',[])),
-			metadata.get('usercolor'),
-			','.join(str(i) for i in metadata.get('emoteset', [])),
-			build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', [])),
-		))
+	cur.execute("INSERT INTO LOG (TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET, MESSAGEHTML) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (
+		time,
+		source,
+		event.target,
+		event.arguments[0],
+		','.join(metadata.get('specialuser',[])),
+		metadata.get('usercolor'),
+		','.join(str(i) for i in metadata.get('emoteset', [])),
+		build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', [])),
+	))
 
 @utils.swallow_errors
-def do_clear_chat_log(time, nick):
+@utils.with_mysql
+def do_clear_chat_log(conn, cur, time, nick):
 	"""
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
 	"""
-	with mysql_conn as cur:
-		cur.execute("SELECT ID, TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET FROM LOG  WHERE SOURCE=? AND TIME>=?", (
-			nick,
-			time - PURGE_PERIOD,
+	cur.execute("SELECT ID, TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET FROM LOG  WHERE SOURCE=? AND TIME>=?", (
+		nick,
+		time - PURGE_PERIOD,
+	))
+	for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(cur):
+		specialuser = set(specialuser.split(',')) if specialuser else set()
+		emoteset = set(int(i) for i in emoteset.split(',')) if emoteset else set()
+
+		specialuser.add("cleared")
+
+		cur.execute("UPDATE LOG SET SPECIALUSER=?, MESSAGEHTML=? WHERE ID=?", (
+			','.join(specialuser),
+			build_message_html(time, source, target, message, specialuser, usercolor, emoteset),
+			key,
 		))
-		for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(cur):
-			specialuser = set(specialuser.split(',')) if specialuser else set()
-			emoteset = set(int(i) for i in emoteset.split(',')) if emoteset else set()
-
-			specialuser.add("cleared")
-
-			cur.execute("UPDATE LOG SET SPECIALUSER=?, MESSAGEHTML=? WHERE ID=?", (
-				','.join(specialuser),
-				build_message_html(time, source, target, message, specialuser, usercolor, emoteset),
-				key,
-			))
 
 @utils.swallow_errors
-def do_rebuild_all():
+@utils.with_mysql
+def do_rebuild_all(conn, cur):
 	"""
 	Rebuild all the message HTML blobs in the database.
 	"""
-	with mysql_conn as cur:
-		count = None
-		cur.execute("SELECT COUNT(*) FROM LOG")
-		for count, in cur:
-			pass
-		cur.execute("SELECT ID, TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET FROM LOG")
-		for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(cur):
-			if i % 100 == 0:
-				print("\r%d/%d" % (i, count), end='')
-			specialuser = set(specialuser.split(',')) if specialuser else set()
-			emoteset = set(int(i) for i in emoteset.split(',')) if emoteset else set()
-			cur.execute("UPDATE LOG SET MESSAGEHTML=? WHERE ID=?", (
-				build_message_html(time, source, target, message, specialuser, usercolor, emoteset),
-				key,
-			))
+	count = None
+	cur.execute("SELECT COUNT(*) FROM LOG")
+	for count, in cur:
+		pass
+	cur.execute("SELECT ID, TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET FROM LOG")
+	for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(cur):
+		if i % 100 == 0:
+			print("\r%d/%d" % (i, count), end='')
+		specialuser = set(specialuser.split(',')) if specialuser else set()
+		emoteset = set(int(i) for i in emoteset.split(',')) if emoteset else set()
+		cur.execute("UPDATE LOG SET MESSAGEHTML=? WHERE ID=?", (
+			build_message_html(time, source, target, message, specialuser, usercolor, emoteset),
+			key,
+		))
 	print("\r%d/%d" % (count, count))
 
 def format_message(message, emotes):
