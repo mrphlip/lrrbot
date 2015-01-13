@@ -41,19 +41,19 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# Send a keep-alive message every minute, to catch network dropouts
 		# self.connection has a set_keepalive method, but it crashes
 		# if it triggers while the connection is down, so do this instead
-		self.connection.irclibobj.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
+		self.reactor.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
 
-		self.connection.irclibobj.execute_every(period=5, function=self.check_polls)
-		self.connection.irclibobj.execute_every(period=5, function=self.vote_respond)
-		self.connection.irclibobj.execute_every(period=config['checksubstime'], function=self.check_subscriber_list)
+		self.reactor.execute_every(period=5, function=self.check_polls)
+		self.reactor.execute_every(period=5, function=self.vote_respond)
+		self.reactor.execute_every(period=config['checksubstime'], function=self.check_subscriber_list)
 
 		# IRC event handlers
-		self.ircobj.add_global_handler('welcome', self.on_connect)
-		self.ircobj.add_global_handler('join', self.on_channel_join)
-		self.ircobj.add_global_handler('pubmsg', self.on_message)
-		self.ircobj.add_global_handler('privmsg', self.on_message)
-		self.ircobj.add_global_handler('action', self.on_message_action)
-		self.ircobj.add_global_handler('mode', self.on_mode)
+		self.reactor.add_global_handler('welcome', self.on_connect)
+		self.reactor.add_global_handler('join', self.on_channel_join)
+		self.reactor.add_global_handler('pubmsg', self.on_message)
+		self.reactor.add_global_handler('privmsg', self.on_message)
+		self.reactor.add_global_handler('action', self.on_message_action)
+		self.reactor.add_global_handler('mode', self.on_mode)
 
 		# Commands
 		self.commands = {}
@@ -105,11 +105,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self._connect()
 
 		# Don't fall over if the server sends something that's not real UTF-8
-		for conn in self.ircobj.connections:
+		for conn in self.reactor.connections:
 			conn.buffer.errors = "replace"
 
 		while True:
-			sockets = [conn.socket for conn in self.ircobj.connections if conn and conn.socket]
+			sockets = [conn.socket for conn in self.reactor.connections if conn and conn.socket]
 			sockets.append(self.event_socket)
 			(i, o, e) = select.select(sockets, [], [], 0.2)
 			if self.event_socket in i:
@@ -121,8 +121,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					conn.setblocking(True) # docs say this "may" be necessary :-/
 					self.on_server_event(conn)
 			else:
-				self.ircobj.process_data(i)
-			self.ircobj.process_timeout()
+				self.reactor.process_data(i)
+			self.reactor.process_timeout()
 
 	def add_command(self, pattern, function):
 		pattern = pattern.replace(" ", r"(?:\s+)")
