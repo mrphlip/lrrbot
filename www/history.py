@@ -1,13 +1,13 @@
 import flask
 import flask.json
+from utils import with_mysql
 from www import server
 from www import login
-from www import utils
 import difflib
 
 @server.app.route('/history')
 @login.require_mod
-@utils.with_mysql
+@with_mysql
 def history(conn, cur, session):
 	page = flask.request.values.get('page', 'all')
 	assert page in ('responses', 'explanations', 'spam', 'all')
@@ -38,7 +38,7 @@ def history(conn, cur, session):
 
 @server.app.route('/history/<int:historykey>')
 @login.require_mod
-@utils.with_mysql
+@with_mysql
 def history_show(conn, cur, session, historykey):
 	cur.execute("""
 		SELECT SECTION, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, JSONDATA
@@ -65,7 +65,7 @@ def history_show(conn, cur, session, historykey):
 
 @server.app.route('/history/<int:fromkey>/<int:tokey>')
 @login.require_mod
-@utils.with_mysql
+@with_mysql
 def history_diff(conn, cur, session, fromkey, tokey):
 	cur.execute("""
 		SELECT SECTION, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, JSONDATA
@@ -181,7 +181,7 @@ def build_headdata(cur, fromkey, tokey, section, user, time):
 		"isdiff": fromkey != tokey,
 	}
 
-@utils.with_mysql
+@with_mysql
 def store(conn, cur, section, user, jsondata):
 	cur.execute("""
 		INSERT INTO HISTORY(SECTION, CHANGETIME, CHANGEUSER, JSONDATA)

@@ -13,8 +13,12 @@ import www.botinteract
 import www.history
 import www.api
 import www.secrets
+import utils
 
 www.server.app.secret_key = www.secrets.session_secret
+www.server.app.add_template_filter(utils.nice_duration)
+www.server.app.add_template_filter(utils.ucfirst)
+www.server.app.add_template_filter(utils.timestamp)
 
 app = www.server.app
 __all__ = ['app']

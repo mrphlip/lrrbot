@@ -1,12 +1,13 @@
 import flask
 import flask.json
+from utils import with_mysql, parsetime
 from www import server
 from www import login
 import urllib.request, urllib.parse
 import time
 import os
 import dateutil.parser
-from www import utils
+import utils
 import contextlib
 
 CACHE_TIMEOUT = 15*60
@@ -112,9 +113,9 @@ def get_video_data(videoid):
 		return None
 
 @server.app.route('/archive/<videoid>')
-@utils.with_mysql
+@with_mysql
 def archive_watch(conn, cur, videoid):
-	starttime = utils.parsetime(flask.request.values.get('t'))
+	starttime = parsetime(flask.request.values.get('t'))
 	if starttime:
 		starttime = int(starttime.total_seconds())
 	video = get_video_data(videoid)

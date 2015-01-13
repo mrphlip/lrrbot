@@ -1,11 +1,11 @@
 import flask
 import flask.json
 import functools
+from utils import error_page
 from www import server
 import urllib.request, urllib.parse
 from www import secrets
 import uuid
-from www import utils
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -118,7 +118,7 @@ def login(return_to=None):
 
 		if 'as' in flask.request.values:
 			if flask.request.values['as'] not in SPECIAL_USERS:
-				return utils.error_page("Not a recognised user name: %s" % flask.request.values['as'])
+				return error_page("Not a recognised user name: %s" % flask.request.values['as'])
 			scope = SPECIAL_USERS[flask.request.values['as']]
 		else:
 			scope = REQUEST_SCOPES
