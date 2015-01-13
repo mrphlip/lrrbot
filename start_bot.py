@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import logging
+
 from lrrbot import bot, log, chatlog
 from common.config import config
+
 
 logging.basicConfig(level=config['loglevel'], format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")
 if config['logfile'] is not None:
@@ -10,7 +12,7 @@ if config['logfile'] is not None:
 	fileHandler.formatter = logging.root.handlers[0].formatter
 	logging.root.addHandler(fileHandler)
 
-import commands
+import lrrbot.commands
 bot.compile()
 
 chatlog.createthread()

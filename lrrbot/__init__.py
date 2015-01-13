@@ -471,12 +471,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.swallow_errors
 	def check_polls(self):
-		from commands.strawpoll import check_polls
+		from lrrbot.commands.strawpoll import check_polls
 		check_polls(self, self.connection)
 
 	@utils.swallow_errors
 	def vote_respond(self):
-		from commands.game import vote_respond
+		from lrrbot.commands.game import vote_respond
 		if self.vote_update is not None:
 			vote_respond(self, self.connection, *self.vote_update)
 

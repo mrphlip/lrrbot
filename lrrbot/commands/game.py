@@ -2,7 +2,7 @@ import irc
 
 from common import utils
 from lrrbot import bot, storage
-from commands.show import show_name
+from lrrbot.commands.show import show_name
 
 
 def game_name(game):
