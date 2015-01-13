@@ -1,6 +1,5 @@
 import flask
 import flask.json
-from utils import with_mysql, sse_send_event
 from www import server
 import time
 import utils
@@ -27,7 +26,7 @@ def get_notifications(cur, after=None):
 
 @server.app.route('/notifications')
 @login.with_session
-@with_mysql
+@utils.with_mysql
 def notifications(conn, cur, session):
 	row_data = get_notifications(cur)
 	for row in row_data:
@@ -48,13 +47,13 @@ def notifications(conn, cur, session):
 	return flask.render_template('notifications.html', row_data=row_data, maxkey=maxkey, session=session)
 
 @server.app.route('/notifications/updates', methods=['GET', 'POST'])
-@with_mysql
+@utils.with_mysql
 def updates(conn, cur):
 	return flask.json.jsonify(notifications=get_notifications(cur, int(flask.request.values['after'])))
 
 @server.app.route('/notifications/newmessage', methods=['POST'])
 @login.with_minimal_session
-@with_mysql
+@utils.with_mysql
 def new_message(conn, cur, session):
 	if session["user"] != secrets.twitch_username:
 		return flask.json.jsonify(error='apipass')
@@ -75,5 +74,5 @@ def new_message(conn, cur, session):
 		data['avatar'],
 		data['time'],
 	))
-	sse_send_event("/notifications/events", event="newmessage", data=flask.json.dumps(data))
+	utils.sse_send_event("/notifications/events", event="newmessage", data=flask.json.dumps(data))
 	return flask.json.jsonify(success='OK')

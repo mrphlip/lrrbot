@@ -1,7 +1,7 @@
 import flask
 import flask.json
 import functools
-from utils import error_page
+import utils
 from www import server
 import urllib.request, urllib.parse
 from www import secrets
@@ -118,7 +118,7 @@ def login(return_to=None):
 
 		if 'as' in flask.request.values:
 			if flask.request.values['as'] not in SPECIAL_USERS:
-				return error_page("Not a recognised user name: %s" % flask.request.values['as'])
+				return utils.error_page("Not a recognised user name: %s" % flask.request.values['as'])
 			scope = SPECIAL_USERS[flask.request.values['as']]
 		else:
 			scope = REQUEST_SCOPES

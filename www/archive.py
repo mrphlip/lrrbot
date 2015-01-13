@@ -1,6 +1,5 @@
 import flask
 import flask.json
-from utils import with_mysql, parsetime
 from www import server
 from www import login
 import urllib.request, urllib.parse
@@ -116,9 +115,9 @@ def get_video_data(videoid):
 		return None
 
 @server.app.route('/archive/<videoid>')
-@with_mysql
+@utils.with_mysql
 def archive_watch(conn, cur, videoid):
-	starttime = parsetime(flask.request.values.get('t'))
+	starttime = utils.parsetime(flask.request.values.get('t'))
 	if starttime:
 		starttime = int(starttime.total_seconds())
 	video = get_video_data(videoid)
