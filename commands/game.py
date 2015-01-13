@@ -47,7 +47,7 @@ def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 	game["votes"][nick.lower()] = vote_good is not None
 	storage.save()
 	lrrbot.vote_update = respond_to, game
-	vote_respond(lrrbot, conn, event, respond_to, game)
+	vote_respond(lrrbot, conn, respond_to, game)
 
 @utils.throttle(60, log=False)
 def vote_respond(lrrbot, conn, respond_to, game):
