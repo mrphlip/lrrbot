@@ -2,8 +2,8 @@ import flask
 import flask.json
 import functools
 import oursql
-import secrets
-import server
+from www import secrets
+from www import server
 import socket
 import time
 import datetime
@@ -159,7 +159,7 @@ def parsetime(s):
 	return datetime.timedelta(days=d, hours=h, minutes=m, seconds=s)
 
 def error_page(message):
-	import login
+	from www import login
 	return flask.render_template("error.html", message=message, session=login.load_session(include_url=False))
 
 # oursql uses the same config flag to control "What codec should we tell MySQL we are sending"

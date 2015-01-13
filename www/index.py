@@ -1,6 +1,6 @@
 import flask
-import server
-import login
+from www import server
+from www import login
 
 @server.app.route('/')
 @login.with_session

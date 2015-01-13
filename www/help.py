@@ -1,11 +1,11 @@
 import flask
-import server
-import login
-import botinteract
-import cgi
+from www import server
+from www import login
+from www import botinteract
+import html
 
 def command_format(cmd):
-	cmd["aliases"] = "<code>" + "</code> or <code>".join(map(cgi.escape, sorted(cmd["aliases"]))) + "</code>"
+	cmd["aliases"] = "<code>" + "</code> or <code>".join(map(html.escape, sorted(cmd["aliases"]))) + "</code>"
 	cmd["description"] = cmd["description"].split("\n\n")
 	return cmd
 

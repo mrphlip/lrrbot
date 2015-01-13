@@ -1,5 +1,5 @@
-import server
-import botinteract
+from www import server
+from www import botinteract
 import pytz
 import datetime
 

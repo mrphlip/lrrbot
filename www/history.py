@@ -1,8 +1,8 @@
 import flask
 import flask.json
-import server
-import login
-import utils
+from www import server
+from www import login
+from www import utils
 import difflib
 
 @server.app.route('/history')

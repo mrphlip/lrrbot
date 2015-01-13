@@ -1,11 +1,11 @@
 import flask
 import flask.json
 import functools
-import server
+from www import server
 import urllib.request, urllib.parse
-import secrets
+from www import secrets
 import uuid
-import utils
+from www import utils
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -96,7 +96,7 @@ def load_session(include_url=True, include_header=True):
 
 	Includes all the information needed by the master.html template.
 	"""
-	import botinteract
+	from www import botinteract
 	# could potentially add other things here in the future...
 	session = {
 		"user": flask.session.get('user', secrets.apipass.get(flask.request.values.get("apipass"))),
@@ -182,7 +182,7 @@ def login(return_to=None):
 				if any(i not in granted_scopes for i in SPECIAL_USERS[user_name]):
 					server.app.logger.error("User %s has not granted us the required permissions" % user_name)
 					return flask.render_template("login_response.html", success=False, special_user=user_name, session=load_session(include_url=False))
-				import botinteract
+				from www import botinteract
 				botinteract.set_data(["twitch_oauth", user_name], access_token)
 
 			# Store the user name into the session

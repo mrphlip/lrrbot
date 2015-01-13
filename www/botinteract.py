@@ -1,6 +1,6 @@
 import flask.json
 import socket
-import login
+from www import login
 
 @login.with_minimal_session
 def send_bot_command(command, param, timeout=5, session=None):
@@ -11,7 +11,7 @@ def send_bot_command(command, param, timeout=5, session=None):
 	"""
 	conn = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 	conn.settimeout(timeout)
-	conn.connect("../lrrbot.sock")
+	conn.connect("lrrbot.sock")
 	data = {
 		"command": command,
 		"param": param,

@@ -1,10 +1,10 @@
 import flask
 import flask.json
-import server
+from www import server
 import time
-import utils
-import secrets
-import login
+from www import utils
+from www import secrets
+from www import login
 
 def get_notifications(cur, after=None):
 	if after is None:

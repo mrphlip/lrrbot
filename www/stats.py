@@ -1,8 +1,8 @@
 import flask
 import flask.json
-import server
-import login
-import botinteract
+from www import server
+from www import login
+from www import botinteract
 
 @server.app.route('/stats')
 @login.with_session
