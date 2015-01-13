@@ -1,8 +1,10 @@
-from lrrbot import bot
-import utils
 import time
 import json
 import random
+
+from common import utils
+from lrrbot import bot
+
 
 def strawpoll_format(data):
     i, (name, count) = data

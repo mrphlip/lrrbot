@@ -1,10 +1,13 @@
+import time
+
 import flask
 import flask.json
+
+from common import utils
+from common.config import config
 from www import server
-import time
-import utils
-from config import config
 from www import login
+
 
 def get_notifications(cur, after=None):
 	if after is None:

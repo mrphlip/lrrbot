@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys, argparse
+import sys
+import argparse
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-t', '--test', action='store_const', help="Test mode", default=False, const=True)
 argv = parser.parse_args()
@@ -9,7 +11,8 @@ del parser
 # Remove arguments from argv before the lrrbot commandline module is indirectly imported...
 sys.argv = sys.argv[:1]
 
-from config import config
+from common import utils
+from common.config import config
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
@@ -18,7 +21,6 @@ import socket
 import json
 import time
 import base64
-import utils
 import xml.dom
 import xml.dom.minidom
 import dateutil.parser
@@ -154,7 +156,7 @@ def main():
 		root.appendChild(new_field(doc, "SHOW", highlight["title"]))
 		root.appendChild(new_field(doc, "QUOTE or MOMENT", highlight["description"]))
 		root.appendChild(new_field(doc, "YOUTUBE VIDEO LINK", highlight["url"]))
-		root.appendChild(new_field(doc, "ROUGH TIME THEREIN", "before "+utils.nice_duration(highlight["time"], 0)))
+		root.appendChild(new_field(doc, "ROUGH TIME THEREIN", "before "+ utils.nice_duration(highlight["time"], 0)))
 		root.appendChild(new_field(doc, "NOTES", "From chat user '%s'." % highlight["user"]))
 
 		if argv.test:

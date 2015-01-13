@@ -5,18 +5,23 @@ import os
 import re
 import time
 import datetime
-import dateutil.parser
 import json
 import logging
 import socket
 import select
-import irc.bot, irc.client, irc.modes
-from config import config
+import functools
+
+import dateutil.parser
+import irc.bot
+import irc.client
+import irc.modes
+
+from common import utils
+from common.config import config
 import storage
 import twitch
-import utils
-import functools
 import chatlog
+
 
 log = logging.getLogger('lrrbot')
 
@@ -516,6 +521,7 @@ if __name__ == '__main__':
 
 	import commands
 	import serverevents
+
 	bot.compile()
 
 	chatlog.createthread()

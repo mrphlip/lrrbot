@@ -1,11 +1,14 @@
+import functools
+import urllib.request
+import urllib.parse
+import uuid
+
 import flask
 import flask.json
-import functools
-import utils
+
+from common import utils
 from www import server
-import urllib.request, urllib.parse
-import uuid
-from config import config, apipass
+from common.config import config, apipass
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present

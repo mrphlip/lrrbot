@@ -1,8 +1,10 @@
 import irc
+
+from common import utils
 from lrrbot import bot
 import storage
-import utils
 from commands.show import show_name
+
 
 def game_name(game):
 	return game.get("display", game["name"])

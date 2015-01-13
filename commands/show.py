@@ -1,6 +1,7 @@
+from common import utils
 from lrrbot import bot
 import storage
-import utils
+
 
 def set_show(lrrbot, show):
 	if lrrbot.show != show.lower():

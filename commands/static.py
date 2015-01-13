@@ -1,10 +1,11 @@
-from lrrbot import bot, log
-from config import config
-import storage
 import random
-import utils
 import re
-import logging
+
+from common import utils
+from common.config import config
+from lrrbot import bot, log
+import storage
+
 
 def generate_docstring():
 	inverse_responses = {}

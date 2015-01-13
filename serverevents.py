@@ -1,10 +1,14 @@
-from lrrbot import bot, log
-import utils
-import storage
-import commands.static, commands.explain, commands.show
 import random
 import re
+
+from common import utils
+from lrrbot import bot, log
+import storage
+import commands.static
+import commands.explain
+import commands.show
 import googlecalendar
+
 
 @bot.server_event()
 def current_game(lrrbot, user, data):

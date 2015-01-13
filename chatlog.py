@@ -1,13 +1,16 @@
 #!/usr/bin/python3
-import utils
 import queue
 import threading
 import json
 import re
 import time
+
 import irc.client
 from jinja2.utils import Markup, escape, urlize
-from config import config
+
+from common import utils
+from common.config import config
+
 
 __all__ = ["log_chat", "clear_chat_log", "exitthread"]
 

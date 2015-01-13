@@ -2,19 +2,22 @@ import functools
 import socket
 import time
 import logging
-import flask
-import irc.client
-import urllib.request, urllib.parse
+import urllib.request
+import urllib.parse
 import json
-import oursql
-import utils
-from config import config
 import email.parser
 import textwrap
 import datetime
+import re
+
+import flask
+import irc.client
 import pytz
 import werkzeug.datastructures
-import re
+
+from common import config
+import oursql
+
 
 log = logging.getLogger('utils')
 

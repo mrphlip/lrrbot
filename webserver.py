@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-import www.server
+from common import utils
+from common.config import config
+from www.server import app
 import www.index
 import www.help
 import www.notifications
@@ -12,15 +14,12 @@ import www.spam
 import www.botinteract
 import www.history
 import www.api
-import utils
-from config import config
 
-www.server.app.secret_key = config["session_secret"]
-www.server.app.add_template_filter(utils.nice_duration)
-www.server.app.add_template_filter(utils.ucfirst)
-www.server.app.add_template_filter(utils.timestamp)
+app.secret_key = config["session_secret"]
+app.add_template_filter(utils.nice_duration)
+app.add_template_filter(utils.ucfirst)
+app.add_template_filter(utils.timestamp)
 
-app = www.server.app
 __all__ = ['app']
 
 if __name__ == '__main__':
