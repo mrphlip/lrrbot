@@ -1,9 +1,3 @@
-#!/usr/bin/python
-if __name__ == '__main__':
-	import sys
-	sys.stderr.write("utils.py accessed directly")
-	sys.exit(1)
-
 import flask
 import flask.json
 import functools

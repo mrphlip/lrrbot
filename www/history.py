@@ -3,7 +3,6 @@ import flask.json
 import server
 import login
 import utils
-import datetime
 import difflib
 
 @server.app.route('/history')

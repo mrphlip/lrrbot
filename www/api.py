@@ -1,9 +1,7 @@
 import server
-import flask
 import botinteract
 import pytz
 import datetime
-import login
 
 # FIXME(#35): pull this from the config file
 TIMEZONE = pytz.timezone("America/Vancouver")

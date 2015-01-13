@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import flask
 import flask.json
 import server
@@ -6,12 +5,9 @@ import login
 import urllib.request, urllib.parse
 import time
 import os
-import datetime
 import dateutil.parser
 import utils
 import contextlib
-import re
-import jinja2.utils
 
 CACHE_TIMEOUT = 15*60
 

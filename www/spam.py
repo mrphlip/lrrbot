@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import flask
 import flask.json
 import server

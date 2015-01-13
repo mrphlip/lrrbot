@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import flask
 import server
 import login
