@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import queue
 import threading
 import json
@@ -223,8 +222,3 @@ def get_filtered_emotes(setids):
 	for setid in setids:
 		emotes.update(emotesets.get(setid, {}))
 	return emotes.values()
-
-if __name__ == "__main__":
-	createthread()
-	rebuild_all()
-	exitthread()
