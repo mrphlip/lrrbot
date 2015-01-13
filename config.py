@@ -7,6 +7,8 @@ CONFIG_SECTION = 'lrrbot'
 
 config = configparser.ConfigParser()
 config.read(argv.conf)
+mysqlopts = dict(config.items("mysqlopts"))
+apipass = dict(config.items("apipass"))
 config = dict(config.items(CONFIG_SECTION))
 
 # hostname - server to connect to (default Twitch)
@@ -67,3 +69,12 @@ config.setdefault('socket_filename', 'lrrbot.sock')
 
 # google_key - Google API key
 config.setdefault('google_key', '')
+
+# twitch_clientid - Twitch API client ID
+config.setdefault('twitch_clientid', '')
+
+# twitch_clientsecret - Twitch API secret key
+config.setdefault('twitch_clientsecret', '')
+
+# session_secret - Secret key for signing session cookies
+config.setdefault('session_secret', '')

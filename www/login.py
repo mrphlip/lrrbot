@@ -4,8 +4,8 @@ import functools
 import utils
 from www import server
 import urllib.request, urllib.parse
-from www import secrets
 import uuid
+from config import config, apipass
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -99,7 +99,7 @@ def load_session(include_url=True, include_header=True):
 	from www import botinteract
 	# could potentially add other things here in the future...
 	session = {
-		"user": flask.session.get('user', secrets.apipass.get(flask.request.values.get("apipass"))),
+		"user": flask.session.get('user', apipass.get(flask.request.values.get("apipass"))),
 	}
 	if include_url:
 		session['url'] = flask.request.url
@@ -126,7 +126,7 @@ def login(return_to=None):
 		# Generate a random nonce so we can verify that the user who comes back is the same user we sent away
 		flask.session['login_nonce'] = uuid.uuid4().hex
 
-		return flask.render_template("login.html", clientid=secrets.twitch_clientid, scope=' '.join(scope), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=load_session(include_url=False))
+		return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(scope), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=load_session(include_url=False))
 	else:
 		try:
 			# Check that we're expecting the user to be logging in...
@@ -148,8 +148,8 @@ def login(return_to=None):
 
 			# Call back to Twitch to get our access token
 			oauth_params = {
-				'client_id': secrets.twitch_clientid,
-				'client_secret': secrets.twitch_clientsecret,
+				'client_id': config["twitch_clientid"],
+				'client_secret': config["twitch_clientsecret"],
 				'grant_type': 'authorization_code',
 				'redirect_uri': REDIRECT_URI,
 				'code': flask.request.values['code'],

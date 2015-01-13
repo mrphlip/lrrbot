@@ -14,7 +14,6 @@ import textwrap
 import datetime
 import pytz
 import werkzeug.datastructures
-from www import secrets
 import re
 
 log = logging.getLogger('utils')
@@ -355,7 +354,7 @@ def with_mysql(func):
 	"""Decorator to pass a mysql connection and cursor to a function"""
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
-		conn = oursql.connect(**secrets.mysqlopts)
+		conn = oursql.connect(**config.mysqlopts)
 		with conn as cur:
 			return func(conn, cur, *args, **kwargs)
 	return wrapper

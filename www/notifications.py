@@ -3,7 +3,7 @@ import flask.json
 from www import server
 import time
 import utils
-from www import secrets
+from config import config
 from www import login
 
 def get_notifications(cur, after=None):
@@ -55,7 +55,7 @@ def updates(conn, cur):
 @login.with_minimal_session
 @utils.with_mysql
 def new_message(conn, cur, session):
-	if session["user"] != secrets.twitch_username:
+	if session["user"] != config["username"]:
 		return flask.json.jsonify(error='apipass')
 	data = {
 		'message': flask.request.values['message'],
