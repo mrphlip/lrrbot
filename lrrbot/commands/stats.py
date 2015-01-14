@@ -1,8 +1,7 @@
-from lrrbot import bot
-import storage
-import utils
-from commands.game import completed, game_name
-from commands.show import show_name
+from common import utils
+from lrrbot import bot, storage
+from lrrbot.commands.game import completed, game_name
+from lrrbot.commands.show import show_name
 
 re_stats = "|".join(storage.data["stats"])
 

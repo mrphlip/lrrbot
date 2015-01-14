@@ -7,15 +7,19 @@ formatted to send down the chat.
 
 import sys
 import os
-import urllib.request, urllib.error
+import urllib.request
+import urllib.error
 import contextlib
 import time
-import dateutil.parser
 import zipfile
 import io
 import json
 import re
-from commands.card import clean_text
+
+import dateutil.parser
+
+from lrrbot.commands.card import clean_text
+
 
 URL = 'http://mtgjson.com/json/AllSets.json.zip'
 ZIP_FILENAME = 'AllSets.json.zip'

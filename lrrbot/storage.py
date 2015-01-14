@@ -1,6 +1,8 @@
 import json
-from config import config
-import utils
+
+from common import utils
+from common.config import config
+
 
 """
 Data structure:

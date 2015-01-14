@@ -1,16 +1,23 @@
 import functools
+import socket
 import time
 import logging
-import irc.client
-import urllib.request, urllib.parse
+import urllib.request
+import urllib.parse
 import json
-import utils
-from config import config
 import email.parser
 import textwrap
 import datetime
+import re
+
+import flask
+import irc.client
 import pytz
 import werkzeug.datastructures
+
+from common import config
+import oursql
+
 
 log = logging.getLogger('utils')
 
@@ -344,3 +351,89 @@ def immutable(obj):
 		return werkzeug.datastructures.ImmutableList(immutable(v) for v in obj)
 	else:
 		return obj
+
+
+def with_mysql(func):
+	"""Decorator to pass a mysql connection and cursor to a function"""
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		conn = oursql.connect(**config.mysqlopts)
+		with conn as cur:
+			return func(conn, cur, *args, **kwargs)
+	return wrapper
+
+
+def sse_send_event(endpoint, event=None, data=None, event_id=None):
+	sse_event = {"endpoint": endpoint}
+	if event is not None:
+		sse_event["event"] = event
+	if data is not None:
+		sse_event["data"] = data
+	if event_id is not None:
+		sse_event["id"] = event_id
+
+	sse = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+	sse.connect("/tmp/eventserver.sock")
+	sse.send(flask.json.dumps(sse_event).encode("utf-8")+b"\n")
+	sse.close()
+
+
+def error_page(message):
+	from www import login
+	return flask.render_template("error.html", message=message, session=login.load_session(include_url=False))
+
+# oursql uses the same config flag to control "What codec should we tell MySQL we are sending"
+# and "what codec should we use for str.encode to actually send"... the former needs to be
+# "utf8mb4" because MySQL is the dumbs, so we need to make sure the latter will accept
+# that codec name as well.
+import codecs
+codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
+
+
+def timestamp(ts):
+	"""
+	Outputs a given time (either unix timestamp or datetime instance) as a human-readable time
+	and includes tags so that common.js will convert the time on page-load to the user's
+	timezone and preferred date/time format.
+	"""
+	if isinstance(ts, (int, float)):
+		ts = datetime.datetime.utcfromtimestamp(ts).replace(tzinfo=datetime.timezone.utc)
+	elif ts.tzinfo is None:
+		ts = ts.replace(tzinfo=datetime.timezone.utc)
+	else:
+		ts = ts.astimezone(datetime.timezone.utc)
+	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"%d\">%s</span>" % (ts.timestamp(), flask.escape(ts.ctime())))
+
+
+def ucfirst(s):
+	return s[0].upper() + s[1:]
+
+re_timefmt1 = re.compile("^\s*(?:\s*(\d*)\s*d)?(?:\s*(\d*)\s*h)?(?:\s*(\d*)\s*m)?(?:\s*(\d*)\s*s?)?\s*$")
+re_timefmt2 = re.compile("^(?:(?:(?:\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*$")
+def parsetime(s):
+	"""
+	Parse user-supplied times in one of two formats:
+	"10s"
+	"5m3s"
+	"7h2m"
+	"1d7m52s"
+	or:
+	"10"
+	"5:03"
+	"7:02:00"
+	"1:00:07:52"
+
+	Returns a timedelta object of the appropriate duration, or None if the parse fails
+	"""
+	if s is None:
+		return None
+	match = re_timefmt1.match(s)
+	if not match:
+		match = re_timefmt2.match(s)
+	if not match:
+		return None
+	d = int(match.group(1) or 0)
+	h = int(match.group(2) or 0)
+	m = int(match.group(3) or 0)
+	s = int(match.group(4) or 0)
+	return datetime.timedelta(days=d, hours=h, minutes=m, seconds=s)

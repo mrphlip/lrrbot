@@ -1,7 +1,8 @@
-from lrrbot import bot, log
-import storage
 import random
-import utils
+
+from common import utils
+from lrrbot import bot, log, storage
+
 
 @bot.command("explain (.*?)")
 @utils.throttle(5, params=[4])

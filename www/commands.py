@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 import flask
 import flask.json
-import server
-import login
-import botinteract
-import history
+from www import server
+from www import login
+from www import botinteract
+from www import history
 
 @server.app.route('/commands')
 @login.require_mod

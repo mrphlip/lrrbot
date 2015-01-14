@@ -1,10 +1,12 @@
+import difflib
+
 import flask
 import flask.json
-import server
-import login
-import utils
-import datetime
-import difflib
+
+from common import utils
+from www import server
+from www import login
+
 
 @server.app.route('/history')
 @login.require_mod

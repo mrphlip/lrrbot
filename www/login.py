@@ -1,12 +1,14 @@
-#!/usr/bin/env python
+import functools
+import urllib.request
+import urllib.parse
+import uuid
+
 import flask
 import flask.json
-import functools
-import server
-import urllib.request, urllib.parse
-import secrets
-import uuid
-import utils
+
+from common import utils
+from www import server
+from common.config import config, apipass
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -97,10 +99,10 @@ def load_session(include_url=True, include_header=True):
 
 	Includes all the information needed by the master.html template.
 	"""
-	import botinteract
+	from www import botinteract
 	# could potentially add other things here in the future...
 	session = {
-		"user": flask.session.get('user', secrets.apipass.get(flask.request.values.get("apipass"))),
+		"user": flask.session.get('user', apipass.get(flask.request.values.get("apipass"))),
 	}
 	if include_url:
 		session['url'] = flask.request.url
@@ -127,7 +129,7 @@ def login(return_to=None):
 		# Generate a random nonce so we can verify that the user who comes back is the same user we sent away
 		flask.session['login_nonce'] = uuid.uuid4().hex
 
-		return flask.render_template("login.html", clientid=secrets.twitch_clientid, scope=' '.join(scope), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=load_session(include_url=False))
+		return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(scope), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=load_session(include_url=False))
 	else:
 		try:
 			# Check that we're expecting the user to be logging in...
@@ -149,8 +151,8 @@ def login(return_to=None):
 
 			# Call back to Twitch to get our access token
 			oauth_params = {
-				'client_id': secrets.twitch_clientid,
-				'client_secret': secrets.twitch_clientsecret,
+				'client_id': config["twitch_clientid"],
+				'client_secret': config["twitch_clientsecret"],
 				'grant_type': 'authorization_code',
 				'redirect_uri': REDIRECT_URI,
 				'code': flask.request.values['code'],
@@ -183,7 +185,7 @@ def login(return_to=None):
 				if any(i not in granted_scopes for i in SPECIAL_USERS[user_name]):
 					server.app.logger.error("User %s has not granted us the required permissions" % user_name)
 					return flask.render_template("login_response.html", success=False, special_user=user_name, session=load_session(include_url=False))
-				import botinteract
+				from www import botinteract
 				botinteract.set_data(["twitch_oauth", user_name], access_token)
 
 			# Store the user name into the session

@@ -1,12 +1,23 @@
 import configparser
 import logging
+
 import pytz
-from commandline import argv
+
+from common.commandline import argv
+
 
 CONFIG_SECTION = 'lrrbot'
 
 config = configparser.ConfigParser()
 config.read(argv.conf)
+
+mysqlopts = dict(config.items("mysqlopts"))
+
+if "use_unicode" in mysqlopts:
+	mysqlopts["use_unicode"] = mysqlopts["use_unicode"].lower() == "true"
+
+apipass = dict(config.items("apipass"))
+
 config = dict(config.items(CONFIG_SECTION))
 
 # hostname - server to connect to (default Twitch)
@@ -51,7 +62,10 @@ config.setdefault('commandprefix', '!')
 # siteurl - root of web site
 config.setdefault('siteurl', 'http://lrrbot.mrphlip.com/')
 # apipass - secret string needed to communicate with web site
-config.setdefault('apipass', None)
+config["apipass"] = None
+for secret, user in apipass.items():
+	if user == config["username"]:
+		config["apipass"] = secret
 
 # mods - comma-separated list of moderators for the bot, in addition to people with chanop privileges
 config['mods'] = set(i.strip().lower() for i in config.get('mods', 'd3fr0st5,mrphlip,lord_hosk,admiralmemo,dixonij').split(','))
@@ -67,3 +81,12 @@ config.setdefault('socket_filename', 'lrrbot.sock')
 
 # google_key - Google API key
 config.setdefault('google_key', '')
+
+# twitch_clientid - Twitch API client ID
+config.setdefault('twitch_clientid', '')
+
+# twitch_clientsecret - Twitch API secret key
+config.setdefault('twitch_clientsecret', '')
+
+# session_secret - Secret key for signing session cookies
+config.setdefault('session_secret', '')

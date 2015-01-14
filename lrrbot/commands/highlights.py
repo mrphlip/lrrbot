@@ -1,9 +1,10 @@
-from lrrbot import bot
-import twitch
-import utils
 import time
-import storage
+
 import irc.client
+
+from common import utils
+from lrrbot import bot, storage, twitch
+
 
 @bot.command("highlight (.*?)")
 @utils.sub_only

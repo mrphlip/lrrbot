@@ -1,12 +1,7 @@
-import server
-import flask
-import botinteract
-import pytz
+from www import server
+from www import botinteract
+from common.config import config
 import datetime
-import login
-
-# FIXME(#35): pull this from the config file
-TIMEZONE = pytz.timezone("America/Vancouver")
 
 @server.app.route("/api/stats/<stat>")
 def api_stats(stat):
@@ -21,7 +16,7 @@ def api_stats(stat):
 
 @server.app.route("/api/stormcount")
 def stormcount():
-	today = datetime.datetime.now(TIMEZONE).date().toordinal()
+	today = datetime.datetime.now(config["timezone"]).date().toordinal()
 	data = botinteract.get_data("storm")
 	if data.get("date") != today:
 		return "0"

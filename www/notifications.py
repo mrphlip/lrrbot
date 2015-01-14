@@ -1,11 +1,13 @@
-#!/usr/bin/env python
+import time
+
 import flask
 import flask.json
-import server
-import time
-import utils
-import secrets
-import login
+
+from common import utils
+from common.config import config
+from www import server
+from www import login
+
 
 def get_notifications(cur, after=None):
 	if after is None:
@@ -56,7 +58,7 @@ def updates(conn, cur):
 @login.with_minimal_session
 @utils.with_mysql
 def new_message(conn, cur, session):
-	if session["user"] != secrets.twitch_username:
+	if session["user"] != config["username"]:
 		return flask.json.jsonify(error='apipass')
 	data = {
 		'message': flask.request.values['message'],
