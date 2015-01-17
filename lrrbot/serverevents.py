@@ -2,7 +2,7 @@ import random
 import re
 
 from common import utils
-from lrrbot import bot, log, googlecalendar, storage
+from lrrbot import bot, log, googlecalendar, storage, commands
 
 
 @bot.server_event()
@@ -40,12 +40,12 @@ def set_data(lrrbot, user, data):
 
 @bot.server_event()
 def modify_commands(lrrbot, user, data):
-	lrrbot.commands.static.modify_commands(data)
+	commands.static.modify_commands(data)
 	bot.compile()
 
 @bot.server_event()
 def modify_explanations(lrrbot, user, data):
-	lrrbot.commands.explain.modify_explanations(data)
+	commands.explain.modify_explanations(data)
 	bot.compile()
 
 @bot.server_event()
@@ -123,7 +123,7 @@ def nextstream(lrrbot, user, data):
 @bot.server_event()
 def set_show(lrrbot, user, data):
 	if user is not None and lrrbot.is_mod_nick(user):
-		lrrbot.commands.show.set_show(lrrbot, data["show"])
+		commands.show.set_show(lrrbot, data["show"])
 		return {"status": "OK"}
 	return {"status": "error: %s is not a mod" % user}
 

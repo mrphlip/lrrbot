@@ -294,7 +294,7 @@ def http_request(url, data=None, method='GET', maxtries=3, headers={}, **kwargs)
 def api_request(uri, *args, **kwargs):
 	# Send the information to the server
 	try:
-		res = utils.http_request(config['siteurl'] + uri, *args, **kwargs)
+		res = http_request(config.config['siteurl'] + uri, *args, **kwargs)
 	except:
 		log.exception("Error at server in %s" % uri)
 	else:

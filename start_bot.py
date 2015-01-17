@@ -13,6 +13,7 @@ if config['logfile'] is not None:
 	logging.root.addHandler(fileHandler)
 
 import lrrbot.commands
+import lrrbot.serverevents
 bot.compile()
 
 chatlog.createthread()
