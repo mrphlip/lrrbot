@@ -86,6 +86,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.metadata = {}
 		self.globalflags = {}
 
+	def start(self):
 		# Let us run on windows, without the socket
 		if hasattr(socket, 'AF_UNIX'):
 			# TODO: To be more robust, the code really should have a way to shut this socket down
@@ -103,7 +104,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			self.event_socket = None
 
-	def start(self):
 		self._connect()
 
 		# Don't fall over if the server sends something that's not real UTF-8
