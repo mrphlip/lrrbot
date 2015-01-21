@@ -135,7 +135,7 @@ function save()
 	$.ajax({
 		'type': 'POST',
 		'url': "commands/submit",
-		'data': "data=" + encodeURIComponent(data) + "&mode=" + encodeURIComponent(mode),
+		'data': "data=" + encodeURIComponent(data) + "&mode=" + encodeURIComponent(mode) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,
@@ -166,8 +166,9 @@ function getAsJSON()
 	return JSON.stringify(data);
 }
 
-function saveSuccess()
+function saveSuccess(data)
 {
+	window.csrf_token = data["csrf_token"];
 	$('div.loading').hide();
 	$('button.save').show();
 	alert("Saved");

@@ -2,6 +2,7 @@ import time
 
 import flask
 import flask.json
+from flaskext.csrf import csrf_exempt
 
 from common import utils
 from common.config import config
@@ -49,11 +50,12 @@ def notifications(conn, cur, session):
 
 	return flask.render_template('notifications.html', row_data=row_data, maxkey=maxkey, session=session)
 
-@server.app.route('/notifications/updates', methods=['GET', 'POST'])
+@server.app.route('/notifications/updates')
 @utils.with_mysql
 def updates(conn, cur):
 	return flask.json.jsonify(notifications=get_notifications(cur, int(flask.request.values['after'])))
 
+@csrf_exempt
 @server.app.route('/notifications/newmessage', methods=['POST'])
 @login.with_minimal_session
 @utils.with_mysql

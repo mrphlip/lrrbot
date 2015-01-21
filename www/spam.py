@@ -35,11 +35,11 @@ def spam_submit(session):
 	# Validation checks
 	error = verify_rules(data)
 	if error:
-		return flask.json.jsonify(error=error)
+		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
 
 	botinteract.modify_spam_rules(data)
 	history.store("spam", session['user'], data)
-	return flask.json.jsonify(success='OK')
+	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
 
 @server.app.route('/spam/test', methods=['POST'])
 @login.require_mod
@@ -50,7 +50,7 @@ def spam_test(session):
 	# Validation checks
 	error = verify_rules(data)
 	if error:
-		return flask.json.jsonify(error=error)
+		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
 
 	for rule in data:
 		rule['re'] = re.compile(rule['re'])
@@ -86,4 +86,4 @@ def spam_test(session):
 			'line': line,
 			'spam': False,
 		})
-	return flask.json.jsonify(result=result)
+	return flask.json.jsonify(result=result, csrf_token=server.app.csrf_token())

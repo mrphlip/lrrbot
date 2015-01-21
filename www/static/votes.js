@@ -19,7 +19,7 @@ function clickVote(row, vote)
 	$.ajax({
 		'type': 'POST',
 		'url': "votes/submit",
-		'data': "show=" + encodeURIComponent(row.data('show')) + "&id=" + encodeURIComponent(row.data('gameid')) + "&vote=" + (vote ? 1 : 0),
+		'data': "show=" + encodeURIComponent(row.data('show')) + "&id=" + encodeURIComponent(row.data('gameid')) + "&vote=" + (vote ? 1 : 0) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,
@@ -28,8 +28,9 @@ function clickVote(row, vote)
 	})
 }
 
-function voteSuccess(row, vote)
+function voteSuccess(row, vote, data)
 {
+	window.csrf_token = data["csrf_token"];
 	row.data('currentvote', vote);
 	row.find('div.votes').show();
 	row.find('div.loading').hide();

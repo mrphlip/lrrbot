@@ -19,6 +19,7 @@ app.secret_key = config["session_secret"]
 app.add_template_filter(utils.nice_duration)
 app.add_template_filter(utils.ucfirst)
 app.add_template_filter(utils.timestamp)
+app.csrf_token = app.jinja_env.globals["csrf_token"]
 
 __all__ = ['app']
 

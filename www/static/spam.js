@@ -80,7 +80,7 @@ function save()
 	$.ajax({
 		'type': 'POST',
 		'url': "spam/submit",
-		'data': "data=" + encodeURIComponent(data),
+		'data': "data=" + encodeURIComponent(data) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,
@@ -98,7 +98,7 @@ function test()
 	$.ajax({
 		'type': 'POST',
 		'url': "spam/test",
-		'data': "data=" + encodeURIComponent(data) + "&message=" + encodeURIComponent(message),
+		'data': "data=" + encodeURIComponent(data) + "&message=" + encodeURIComponent(message) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,
@@ -122,6 +122,7 @@ function getAsJSON()
 
 function saveSuccess(data)
 {
+	window.csrf_token = data["csrf_token"];
 	$('div.save.loading').hide();
 	$('button.save').show();
 	if (saveFailure(data))
@@ -131,6 +132,7 @@ function saveSuccess(data)
 
 function testSuccess(data)
 {
+	window.csrf_token = data["csrf_token"];
 	$('div.test.loading').hide();
 	$('button.test').show();
 	if (saveFailure(data))

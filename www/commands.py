@@ -64,4 +64,4 @@ def commands_submit(session):
 	elif mode == 'explanations':
 		botinteract.modify_explanations(data)
 	history.store(mode, session['user'], data)
-	return flask.json.jsonify(success='OK')
+	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
