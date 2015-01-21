@@ -111,8 +111,7 @@ def get_video_data(videoid):
 			"start": start,
 			"end": start + video["length"],
 			"title": video["title"],
-			"type": {"a": "archive", "c": "chapter"}[videoid[0]],
-			"id": videoid[1:],
+			"id": videoid,
 			"channel": video["channel"]["name"]
 		}
 	except:
