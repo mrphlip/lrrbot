@@ -65,7 +65,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.server_events = {}
 
 		# Precompile regular expressions
-		self.re_subscription = re.compile(r"^(.*) just subscribed!", re.IGNORECASE)
+		self.re_subscription = re.compile(r"^(.*) just subscribed!$", re.IGNORECASE)
+		self.re_resubscription = re.compile(r"^(.*) just subscribed! (\d+) months? in a row!$", re.IGNORECASE)
 
 		# Set up bot state
 		self.game_override = None
@@ -258,21 +259,26 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		subscribe_match = self.re_subscription.match(event.arguments[0])
 		if subscribe_match and irc.client.is_channel(event.target):
 			# Don't highlight the same sub via both the chat and the API
-			if subscribe_match.group(1).lower() in self.lastsubs:
-				return
+			if subscribe_match.group(1).lower() not in self.lastsubs:
+				self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time())
+			return
 
-			self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time())
-		else:
-			notifyparams = {
-				'apipass': config['apipass'],
-				'message': event.arguments[0],
-				'eventtime': time.time(),
-			}
-			if irc.client.is_channel(event.target):
-				notifyparams['channel'] = event.target[1:]
-			utils.api_request('notifications/newmessage', notifyparams, 'POST')
+		subscribe_match = self.re_resubscription.match(event.arguments[0])
+		if subscribe_match and irc.client.is_channel(event.target):
+			if subscribe_match.group(1).lower() not in self.lastsubs:
+				self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time(), monthcount=int(subscribe_match.group(2)))
+			return
 
-	def on_subscriber(self, conn, channel, user, eventtime, logo=None):
+		notifyparams = {
+			'apipass': config['apipass'],
+			'message': event.arguments[0],
+			'eventtime': time.time(),
+		}
+		if irc.client.is_channel(event.target):
+			notifyparams['channel'] = event.target[1:]
+		utils.api_request('notifications/newmessage', notifyparams, 'POST')
+
+	def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None):
 		notifyparams = {
 			'apipass': config['apipass'],
 			'message': "%s just subscribed!" % user,
@@ -291,6 +297,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					notifyparams['avatar'] = channel_info['logo']
 		else:
 			notifyparams['avatar'] = logo
+
+		if monthcount is not None:
+			notifyparams['monthcount'] = monthcount
 			
 		# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
 		today = datetime.datetime.now(config['timezone']).date().toordinal()

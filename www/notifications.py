@@ -13,20 +13,20 @@ from www import login
 def get_notifications(cur, after=None):
 	if after is None:
 		cur.execute("""
-			SELECT NOTIFICATIONKEY, MESSAGE, CHANNEL, SUBUSER, USERAVATAR, UNIX_TIMESTAMP(EVENTTIME)
+			SELECT NOTIFICATIONKEY, MESSAGE, CHANNEL, SUBUSER, USERAVATAR, UNIX_TIMESTAMP(EVENTTIME), MONTHCOUNT
 			FROM NOTIFICATION
 			WHERE EVENTTIME >= (UTC_TIMESTAMP() - INTERVAL 2 DAY)
 			ORDER BY NOTIFICATIONKEY
 		""")
 	else:
 		cur.execute("""
-			SELECT NOTIFICATIONKEY, MESSAGE, CHANNEL, SUBUSER, USERAVATAR, UNIX_TIMESTAMP(EVENTTIME)
+			SELECT NOTIFICATIONKEY, MESSAGE, CHANNEL, SUBUSER, USERAVATAR, UNIX_TIMESTAMP(EVENTTIME), MONTHCOUNT
 			FROM NOTIFICATION
 			WHERE EVENTTIME >= (UTC_TIMESTAMP() - INTERVAL 2 DAY)
 			AND NOTIFICATIONKEY > ?
 			ORDER BY NOTIFICATIONKEY
 		""", (after,))
-	return [dict(zip(('key', 'message', 'channel', 'user', 'avatar', 'time'), row)) for row in cur.fetchall()]
+	return [dict(zip(('key', 'message', 'channel', 'user', 'avatar', 'time', 'monthcount'), row)) for row in cur.fetchall()]
 
 @server.app.route('/notifications')
 @login.with_session
@@ -68,16 +68,18 @@ def new_message(conn, cur, session):
 		'user': flask.request.values.get('subuser'),
 		'avatar': flask.request.values.get('avatar'),
 		'time': float(flask.request.values['eventtime']) if 'eventtime' in flask.request.values else None,
+		'monthcount': int(flask.request.values['monthcount']) if 'monthcount' in flask.request.values else None,
 	}
 	cur.execute("""
-		INSERT INTO NOTIFICATION(MESSAGE, CHANNEL, SUBUSER, USERAVATAR, EVENTTIME)
-		VALUES (?, ?, ?, ?, FROM_UNIXTIME(?))
+		INSERT INTO NOTIFICATION(MESSAGE, CHANNEL, SUBUSER, USERAVATAR, EVENTTIME, MONTHCOUNT)
+		VALUES (?, ?, ?, ?, FROM_UNIXTIME(?), ?)
 		""", (
 		data['message'],
 		data['channel'],
 		data['user'],
 		data['avatar'],
 		data['time'],
+		data['monthcount'],
 	))
 	utils.sse_send_event("/notifications/events", event="newmessage", data=flask.json.dumps(data))
 	return flask.json.jsonify(success='OK')

@@ -46,7 +46,10 @@ function newMessage(message)
 		if (message.avatar)
 			userDiv.append($('<a>').attr('href', url).append($('<img>').attr('src', message.avatar))).append(' ');
 		$('<a>').attr('href', url).text(message.user).appendTo(userDiv);
-		userDiv.append(" just subscribed!").appendTo(newRow);
+		userDiv.append(" just subscribed!");
+		if (message.monthcount)
+			userDiv.append(" " + message.monthcount + " month" + (message.monthcount == 1 ? "" : "s") + " in a row!");
+		userDiv.appendTo(newRow);
 	}
 	else
 	{

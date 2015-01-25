@@ -364,6 +364,7 @@ def with_mysql(func):
 
 
 def sse_send_event(endpoint, event=None, data=None, event_id=None):
+	return
 	sse_event = {"endpoint": endpoint}
 	if event is not None:
 		sse_event["event"] = event

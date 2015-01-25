@@ -14,6 +14,7 @@
 		<div class="user">
 		{%if row['avatar']%}<a href="http://www.twitch.tv/{{row['user']|e}}"><img class="avatar" src="{{row['avatar']|e}}"></a>{%endif%}
 		<a href="http://www.twitch.tv/{{row['user']|e}}">{{row['user']|e}}</a> just subscribed!
+		{%if row['monthcount']%}{{row['monthcount']|e}} month{%if row['monthcount'] != 1%}s{%endif%} in a row!{%endif%}
 		</div>
 	{%else%}
 		<div class="message">{{row['message']|e}}</div>
