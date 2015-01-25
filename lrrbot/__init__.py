@@ -9,6 +9,7 @@ import logging
 import socket
 import select
 import functools
+import queue
 
 import dateutil.parser
 import irc.bot
@@ -17,7 +18,7 @@ import irc.modes
 
 from common import utils
 from common.config import config
-from lrrbot import chatlog, storage, twitch
+from lrrbot import chatlog, storage, twitch, twitchsubs
 
 
 log = logging.getLogger('lrrbot')
@@ -47,7 +48,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.reactor.execute_every(period=5, function=self.check_polls)
 		self.reactor.execute_every(period=5, function=self.vote_respond)
-		self.reactor.execute_every(period=config['checksubstime'], function=self.check_subscriber_list)
+		self.reactor.execute_every(period=5, function=self.check_subscriber_list)
 
 		# IRC event handlers
 		self.reactor.add_global_handler('welcome', self.on_connect)
@@ -482,24 +483,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	@utils.swallow_errors
 	def check_subscriber_list(self):
-		sublist = twitch.get_subscribers(config['channel'])
-		if not sublist:
-			log.info("Failed to get subscriber list from Twitch")
-			self.havesublist = False
-			return
-		# If this is the first time we've gotten the sub list then don't notify for all of them
-		# as all of them will appear "new" even if we saw them on a previous run
-		# Just add them to the "seen" list
-		if not self.havesublist:
-			log.debug("Got initial subscriber list from Twitch")
-			self.lastsubs += [i[0].lower() for i in sublist]
-			self.havesublist = True
-			return
-
-		for user, logo, eventtime in sublist:
-			if user.lower() not in self.lastsubs:
-				log.info("Found new subscriber via Twitch API: %s" % user)
-				eventtime = dateutil.parser.parse(eventtime).timestamp()
-				self.on_subscriber(self.connection, "#%s" % config['channel'], user, eventtime, logo)
+		try:
+			user, logo, eventtime, channel = twitchsubs.new_subs.get_nowait()
+		except queue.Empty:
+			pass
+		else:
+			self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
 
 bot = LRRBot()
