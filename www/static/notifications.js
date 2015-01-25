@@ -136,7 +136,7 @@ function ajax_update()
 	window.timesrun++;
 
 	$.ajax({
-		'type': 'POST',
+		'type': 'GET',
 		'url': "notifications/updates",
 		'data': "after=" + encodeURIComponent(window.maxkey),
 		'dataType': 'json',

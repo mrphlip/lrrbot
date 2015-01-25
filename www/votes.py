@@ -31,4 +31,4 @@ def votes(session):
 @login.require_login
 def vote_submit(session):
 	botinteract.set_data(['shows', flask.request.values['show'], 'games', flask.request.values['id'], 'votes', session['user']], bool(int(flask.request.values['vote'])))
-	return flask.json.jsonify(success='OK')
+	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
