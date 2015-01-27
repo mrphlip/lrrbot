@@ -77,7 +77,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.show = ""
 		self.polls = []
 		self.lastsubs = []
-		self.havesublist = False
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
@@ -497,6 +496,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		except queue.Empty:
 			pass
 		else:
-			self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
+			if user.lower() not in self.lastsubs:
+				self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
 
 bot = LRRBot()
