@@ -17,6 +17,7 @@ if "use_unicode" in mysqlopts:
 	mysqlopts["use_unicode"] = mysqlopts["use_unicode"].lower() == "true"
 
 apipass = dict(config.items("apipass"))
+from_apipass = {p:u for u,p in apipass.items()}
 
 config = dict(config.items(CONFIG_SECTION))
 
@@ -62,10 +63,7 @@ config.setdefault('commandprefix', '!')
 # siteurl - root of web site
 config.setdefault('siteurl', 'http://lrrbot.mrphlip.com/')
 # apipass - secret string needed to communicate with web site
-config["apipass"] = None
-for secret, user in apipass.items():
-	if user == config["username"]:
-		config["apipass"] = secret
+config["apipass"] = apipass.get(config["username"])
 
 # mods - comma-separated list of moderators for the bot, in addition to people with chanop privileges
 config['mods'] = set(i.strip().lower() for i in config.get('mods', 'd3fr0st5,mrphlip,lord_hosk,admiralmemo,dixonij').split(','))

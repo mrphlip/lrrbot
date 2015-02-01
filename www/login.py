@@ -8,7 +8,7 @@ import flask.json
 
 from common import utils
 from www import server
-from common.config import config, apipass
+from common.config import config, from_apipass
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -102,8 +102,10 @@ def load_session(include_url=True, include_header=True):
 	from www import botinteract
 	# could potentially add other things here in the future...
 	session = {
-		"user": flask.session.get('user', apipass.get(flask.request.values.get("apipass"))),
+		"user": flask.session.get('user'),
 	}
+	if 'apipass' in flask.request.values and flask.request.values['apipass'] in from_apipass:
+		session['user'] = from_apipass[flask.request.values["apipass"]]
 	if include_url:
 		session['url'] = flask.request.url
 	else:
