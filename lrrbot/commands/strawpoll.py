@@ -5,6 +5,7 @@ import random
 from common import utils
 from lrrbot import bot
 
+DEFAULT_TIMEOUT = 180
 
 def strawpoll_format(data):
     i, (name, count) = data
@@ -68,8 +69,8 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 		poll_id = json.loads(response)["id"]
 	if timeout is not None:
 		timeout = int(timeout)
-		end = time.time() + int(timeout)
-		lrrbot.polls += [(end, title, poll_id, respond_to)]
-		conn.privmsg(respond_to, "New poll: %s (http://strawpoll.me/%s\u200B): %s from now" % (title, poll_id, utils.nice_duration(timeout, 1)))
 	else:
-		conn.privmsg(respond_to, "New poll: %s (http://strawpoll.me/%s\u200B)" % (title, poll_id))
+		timeout = DEFAULT_TIMEOUT
+	end = time.time() + int(timeout)
+	lrrbot.polls += [(end, title, poll_id, respond_to)]
+	conn.privmsg(respond_to, "New poll: %s (http://strawpoll.me/%s\u200B): %s from now" % (title, poll_id, utils.nice_duration(timeout, 1)))
