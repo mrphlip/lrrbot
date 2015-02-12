@@ -16,7 +16,7 @@ import pytz
 import werkzeug.datastructures
 
 from common import config
-import oursql
+import psycopg2
 
 
 log = logging.getLogger('utils')
@@ -353,13 +353,13 @@ def immutable(obj):
 		return obj
 
 
-def with_mysql(func):
-	"""Decorator to pass a mysql connection and cursor to a function"""
+def with_postgres(func):
+	"""Decorator to pass a PostgreSQL connection and cursor to a function"""
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
-		conn = oursql.connect(**config.mysqlopts)
-		with conn as cur:
-			return func(conn, cur, *args, **kwargs)
+		with psycopg2.connect(config.config["postgres"]) as conn:
+			with conn.cursor() as cur:
+				return func(conn, cur, *args, **kwargs)
 	return wrapper
 
 
@@ -381,14 +381,6 @@ def sse_send_event(endpoint, event=None, data=None, event_id=None):
 def error_page(message):
 	from www import login
 	return flask.render_template("error.html", message=message, session=login.load_session(include_url=False))
-
-# oursql uses the same config flag to control "What codec should we tell MySQL we are sending"
-# and "what codec should we use for str.encode to actually send"... the former needs to be
-# "utf8mb4" because MySQL is the dumbs, so we need to make sure the latter will accept
-# that codec name as well.
-import codecs
-codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
-
 
 def timestamp(ts):
 	"""

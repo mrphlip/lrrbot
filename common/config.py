@@ -11,11 +11,6 @@ CONFIG_SECTION = 'lrrbot'
 config = configparser.ConfigParser()
 config.read(argv.conf)
 
-mysqlopts = dict(config.items("mysqlopts"))
-
-if "use_unicode" in mysqlopts:
-	mysqlopts["use_unicode"] = mysqlopts["use_unicode"].lower() == "true"
-
 apipass = dict(config.items("apipass"))
 from_apipass = {p:u for u,p in apipass.items()}
 
@@ -31,6 +26,10 @@ config.setdefault('username', 'lrrbot')
 config.setdefault('password', None)
 # channel - without the hash
 config.setdefault('channel', 'loadingreadyrun')
+
+# postgres - libpg connection string
+# See http://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
+config.setdefault('postgres', 'postgres:///lrrbot')
 
 # reconnecttime - seconds to wait before reconnecting after a disconnect
 config['reconnecttime'] = int(config.get('reconnecttime', 15))

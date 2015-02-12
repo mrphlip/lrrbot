@@ -92,8 +92,9 @@ def archive_feed():
 	rss = flask.render_template("archive_feed.xml", videos=archive_feed_data(channel, broadcasts), broadcasts=broadcasts)
 	return flask.Response(rss, mimetype="application/xml")
 
+@utils.with_postgres
 def chat_data(conn, cur, starttime, endtime, target="#loadingreadyrun"):
-	cur.execute("SELECT MESSAGEHTML FROM LOG WHERE TARGET=? AND TIME BETWEEN ? AND ? ORDER BY TIME ASC", (
+	cur.execute("SELECT messagehtml FROM log WHERE target = %s AND time BETWEEN %s AND %s ORDER BY time ASC", (
 		target,
 		starttime,
 		endtime
@@ -118,13 +119,12 @@ def get_video_data(videoid):
 		return None
 
 @server.app.route('/archive/<videoid>')
-@utils.with_mysql
-def archive_watch(conn, cur, videoid):
+def archive_watch(videoid):
 	starttime = utils.parsetime(flask.request.values.get('t'))
 	if starttime:
 		starttime = int(starttime.total_seconds())
 	video = get_video_data(videoid)
 	if video is None:
 		return "Unrecognised video"
-	chat = chat_data(conn, cur, video["start"] - BEFORE_BUFFER, video["end"] + AFTER_BUFFER)
+	chat = chat_data(video["start"] - BEFORE_BUFFER, video["end"] + AFTER_BUFFER)
 	return flask.render_template("archive_watch.html", video=video, chat=chat, starttime=starttime)

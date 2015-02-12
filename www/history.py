@@ -7,25 +7,26 @@ from common import utils
 from www import server
 from www import login
 
+from psycopg2.extras import Json
 
 @server.app.route('/history')
 @login.require_mod
-@utils.with_mysql
+@utils.with_postgres
 def history(conn, cur, session):
 	page = flask.request.values.get('page', 'all')
 	assert page in ('responses', 'explanations', 'spam', 'all')
 	if page == 'all':
 		cur.execute("""
-			SELECT HISTORYKEY, SECTION, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, LENGTH(JSONDATA)
-			FROM HISTORY
-			ORDER BY CHANGETIME
+			SELECT historykey, section, changetime, changeuser, LENGTH(jsondata :: text)
+			FROM history
+			ORDER BY changetime
 		""", ())
 	else:
 		cur.execute("""
-			SELECT HISTORYKEY, SECTION, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, LENGTH(JSONDATA)
-			FROM HISTORY
-			WHERE SECTION = ?
-			ORDER BY CHANGETIME
+			SELECT historykey, section, changetime, changeuser, LENGTH(jsondata :: text)
+			FROM history
+			WHERE section = %s
+			ORDER BY changetime
 		""", (page,))
 	data = [dict(zip(('key', 'section', 'time', 'user', 'datalen'), row)) for row in cur.fetchall()]
 	lastlen = {}
@@ -41,16 +42,15 @@ def history(conn, cur, session):
 
 @server.app.route('/history/<int:historykey>')
 @login.require_mod
-@utils.with_mysql
+@utils.with_postgres
 def history_show(conn, cur, session, historykey):
 	cur.execute("""
-		SELECT SECTION, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, JSONDATA
-		FROM HISTORY
-		WHERE HISTORYKEY = ?
+		SELECT section, changetime, changeuser, jsondata
+		FROM history
+		WHERE historykey = %s
 	""", (historykey,))
 	section, time, user, data = cur.fetchone()
 	assert cur.fetchone() is None
-	data = flask.json.loads(data)
 	if section in ('responses', 'explanations'):
 		for row in data.values():
 			if not isinstance(row['response'], (tuple, list)):
@@ -68,26 +68,24 @@ def history_show(conn, cur, session, historykey):
 
 @server.app.route('/history/<int:fromkey>/<int:tokey>')
 @login.require_mod
-@utils.with_mysql
+@utils.with_postgres
 def history_diff(conn, cur, session, fromkey, tokey):
 	cur.execute("""
-		SELECT SECTION, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, JSONDATA
-		FROM HISTORY
-		WHERE HISTORYKEY = ?
+		SELECT section, changetime, changeuser, jsondata
+		FROM history
+		WHERE historykey = %s
 	""", (fromkey,))
 	fromsection, fromtime, fromuser, fromdata = cur.fetchone()
 	assert cur.fetchone() is None
 	cur.execute("""
-		SELECT SECTION, UNIX_TIMESTAMP(CHANGETIME), CHANGEUSER, JSONDATA
-		FROM HISTORY
-		WHERE HISTORYKEY = ?
+		SELECT section, changetime, changeuser, jsondata
+		FROM history
+		WHERE historykey = %s
 	""", (tokey,))
 	tosection, totime, touser, todata = cur.fetchone()
 	assert cur.fetchone() is None
 	assert fromsection == tosection
 
-	fromdata = flask.json.loads(fromdata)
-	todata = flask.json.loads(todata)
 	if tosection in ('responses', 'explanations'):
 		data = {}
 		keys = set(fromdata.keys()) | set(todata.keys())
@@ -154,9 +152,9 @@ def history_diff(conn, cur, session, fromkey, tokey):
 
 def build_headdata(cur, fromkey, tokey, section, user, time):
 	cur.execute("""
-		SELECT MAX(HISTORYKEY)
-		FROM HISTORY
-		WHERE HISTORYKEY < ? AND SECTION = ?
+		SELECT MAX(historykey)
+		FROM history
+		WHERE historykey < %s AND section = %s
 	""", (fromkey, section))
 	prevkey = cur.fetchone()
 	if prevkey is not None:
@@ -164,9 +162,9 @@ def build_headdata(cur, fromkey, tokey, section, user, time):
 		assert cur.fetchone() is None
 
 	cur.execute("""
-		SELECT MIN(HISTORYKEY)
-		FROM HISTORY
-		WHERE HISTORYKEY > ? AND SECTION = ?
+		SELECT MIN(historykey)
+		FROM history
+		WHERE historykey > %s AND section = %s
 	""", (tokey, section))
 	nextkey = cur.fetchone()
 	if nextkey is not None:
@@ -184,9 +182,9 @@ def build_headdata(cur, fromkey, tokey, section, user, time):
 		"isdiff": fromkey != tokey,
 	}
 
-@utils.with_mysql
+@utils.with_postgres
 def store(conn, cur, section, user, jsondata):
 	cur.execute("""
-		INSERT INTO HISTORY(SECTION, CHANGETIME, CHANGEUSER, JSONDATA)
-		VALUES (?, UTC_TIMESTAMP(), ?, ?)
-	""", (section, user, flask.json.dumps(jsondata)))
+		INSERT INTO history(section, changetime, changeuser, jsondata)
+		VALUES (%s, CURRENT_TIMESTAMP, %s, %s)
+	""", (section, user, Json(jsondata)))
