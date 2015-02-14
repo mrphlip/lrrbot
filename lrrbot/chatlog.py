@@ -3,6 +3,8 @@ import threading
 import json
 import re
 import time
+import pytz
+import datetime
 
 import irc.client
 from jinja2.utils import Markup, escape, urlize
@@ -41,7 +43,7 @@ def run_thread():
 
 
 def log_chat(event, metadata):
-	queue.put(("log_chat", (time.time(), event, metadata)))
+	queue.put(("log_chat", (datetime.datetime.now(pytz.utc), event, metadata)))
 
 def clear_chat_log(nick):
 	queue.put(("clear_chat_log", (time.time(), nick)))
@@ -55,7 +57,7 @@ def exitthread():
 
 
 @utils.swallow_errors
-@utils.with_mysql
+@utils.with_postgres
 def do_log_chat(conn, cur, time, event, metadata):
 	"""
 	Add a new message to the chat log.
@@ -66,56 +68,56 @@ def do_log_chat(conn, cur, time, event, metadata):
 		return
 
 	source = irc.client.NickMask(event.source).nick
-	cur.execute("INSERT INTO LOG (TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET, MESSAGEHTML) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (
+	cur.execute("INSERT INTO log (time, source, target, message, specialuser, usercolor, emoteset, messagehtml) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (
 		time,
 		source,
 		event.target,
 		event.arguments[0],
-		','.join(metadata.get('specialuser',[])),
+		list(metadata.get('specialuser', [])),
 		metadata.get('usercolor'),
-		','.join(str(i) for i in metadata.get('emoteset', [])),
+		list(metadata.get('emoteset', [])),
 		build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', [])),
 	))
 
 @utils.swallow_errors
-@utils.with_mysql
+@utils.with_postgres
 def do_clear_chat_log(conn, cur, time, nick):
 	"""
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
 	"""
-	cur.execute("SELECT ID, TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET FROM LOG  WHERE SOURCE=? AND TIME>=?", (
+	cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset FROM log WHERE source=%s AND time>=%s", (
 		nick,
 		time - PURGE_PERIOD,
 	))
 	for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(cur):
-		specialuser = set(specialuser.split(',')) if specialuser else set()
-		emoteset = set(int(i) for i in emoteset.split(',')) if emoteset else set()
+		specialuser = set(specialuser) if specialuser else set()
+		emoteset = set(emoteset) if emoteset else set()
 
 		specialuser.add("cleared")
 
-		cur.execute("UPDATE LOG SET SPECIALUSER=?, MESSAGEHTML=? WHERE ID=?", (
-			','.join(specialuser),
+		cur.execute("UPDATE log SET specialuser=?, messagehtml=%s WHERE id=%s", (
+			list(specialuser),
 			build_message_html(time, source, target, message, specialuser, usercolor, emoteset),
 			key,
 		))
 
 @utils.swallow_errors
-@utils.with_mysql
+@utils.with_postgres
 def do_rebuild_all(conn, cur):
 	"""
 	Rebuild all the message HTML blobs in the database.
 	"""
 	count = None
-	cur.execute("SELECT COUNT(*) FROM LOG")
+	cur.execute("SELECT COUNT(*) FROM log")
 	for count, in cur:
 		pass
-	cur.execute("SELECT ID, TIME, SOURCE, TARGET, MESSAGE, SPECIALUSER, USERCOLOR, EMOTESET FROM LOG")
+	cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset FROM log")
 	for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(cur):
 		if i % 100 == 0:
 			print("\r%d/%d" % (i, count), end='')
-		specialuser = set(specialuser.split(',')) if specialuser else set()
-		emoteset = set(int(i) for i in emoteset.split(',')) if emoteset else set()
-		cur.execute("UPDATE LOG SET MESSAGEHTML=? WHERE ID=?", (
+		specialuser = set(specialuser) if specialuser else set()
+		emoteset = set(emoteset) if emoteset else set()
+		cur.execute("UPDATE log SET messagehtml=%s WHERE id=%s", (
 			build_message_html(time, source, target, message, specialuser, usercolor, emoteset),
 			key,
 		))
@@ -138,7 +140,7 @@ def format_message(message, emotes):
 
 def build_message_html(time, source, target, message, specialuser, usercolor, emoteset):
 	if source.lower() == config['notifyuser']:
-		return '<div class="notification line" data-timestamp="%d">%s</div>' % (time, escape(message))
+		return '<div class="notification line" data-timestamp="%d">%s</div>' % (time.timestamp(), escape(message))
 
 	if message[:4].lower() in (".me ", "/me "):
 		is_action = True
@@ -147,7 +149,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 		is_action = False
 
 	ret = []
-	ret.append('<div class="line" data-timestamp="%d">' % time)
+	ret.append('<div class="line" data-timestamp="%d">' % time.timestamp())
 	if 'staff' in specialuser:
 		ret.append('<span class="badge staff"></span> ')
 	if 'admin' in specialuser:
