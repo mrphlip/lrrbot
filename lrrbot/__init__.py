@@ -66,7 +66,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Precompile regular expressions
 		self.re_subscription = re.compile(r"^(.*) just subscribed!$", re.IGNORECASE)
-		self.re_resubscription = re.compile(r"^(.*) just subscribed! (\d+) months? in a row!$", re.IGNORECASE)
+		self.re_resubscription = re.compile(r"^(.*) subscribed for (\d+) months? in a row!$", re.IGNORECASE)
 
 		# Set up bot state
 		self.game_override = None
