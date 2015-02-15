@@ -389,7 +389,7 @@ def timestamp(ts):
 	timezone and preferred date/time format.
 	"""
 	if isinstance(ts, (int, float)):
-		ts = datetime.datetime.utcfromtimestamp(ts).replace(tzinfo=datetime.timezone.utc)
+		ts = datetime.datetime.fromtimestamp(ts, tz=pytz.utc)
 	elif ts.tzinfo is None:
 		ts = ts.replace(tzinfo=datetime.timezone.utc)
 	else:

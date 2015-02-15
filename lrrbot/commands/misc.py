@@ -76,7 +76,7 @@ def spamcount(lrrbot, conn, event, respond_to):
 		storage.data["spam"]["count"]))
 
 DESERTBUS_START = 1415988000
-DESERTBUS_START = datetime.datetime.utcfromtimestamp(DESERTBUS_START).replace(tzinfo=datetime.timezone.utc)
+DESERTBUS_START = datetime.datetime.fromtimestamp(DESERTBUS_START, tz=pytz.utc)
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6) # Six days of plugs should be long enough
 
 @bot.command("(?:next(?:stream)?|sched(?:ule)?)( .*)?")
