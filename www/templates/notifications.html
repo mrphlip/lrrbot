@@ -7,7 +7,7 @@
 {%block content%}
 <ol id="notificationlist" data-maxkey="{{maxkey}}">
 {%for row in row_data%}
-	<li {%if row['time']%}data-timestamp="{{row['time']}}"{%endif%} class="{{loop.cycle('even', 'odd')}}">
+	<li {%if row['time']%}data-timestamp="{{row['time'].timestamp()}}"{%endif%} class="{{loop.cycle('even', 'odd')}}">
 	{%if row['duration']%}<div class="duration">{{row['duration']|e}}</div>{%endif%}
 	{%if row['channel']%}<div class="channel">{{row['channel']|e}}</div>{%endif%}
 	{%if row['user']%}
