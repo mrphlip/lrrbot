@@ -1,4 +1,5 @@
 import json
+import os
 
 from common import utils
 from common.config import config
@@ -71,9 +72,16 @@ def load():
 
 def save():
 	"""Save data to storage"""
-	with open(config['datafile'], "w") as fp:
+	realfile = config['datafile']
+	tempfile = ".%s.tmp" % config['datafile']
+	backupfile = "%s~" % config['datafile']
+
+	with open(tempfile, "w") as fp:
 		# Save with pretty-printing enabled, as we probably want it to be editable
 		json.dump(data, fp, indent=2, sort_keys=True)
+
+	os.rename(realfile, backupfile)
+	os.rename(tempfile, realfile)
 
 def find_game(show, game, readonly):
 	"""
