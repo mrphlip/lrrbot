@@ -8,7 +8,7 @@
 <script type="text/javascript" src="{{url_for('static', filename='jquery.splitter-0.14.0.js')|e}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='archive.js')|e}}"></script>
 <script>
-	window.start = {{video["start"]|tojson}};
+	window.start = {{video["start"].timestamp()|tojson}};
 </script>
 </head>
 <body>

@@ -4,6 +4,7 @@ import time
 import os
 import contextlib
 import tempfile
+import datetime
 
 import flask
 import flask.json
@@ -16,8 +17,8 @@ from www import login
 
 CACHE_TIMEOUT = 15*60
 
-BEFORE_BUFFER = 15*60
-AFTER_BUFFER = 15*60
+BEFORE_BUFFER = datetime.timedelta(minutes=15)
+AFTER_BUFFER = datetime.timedelta(minutes=15)
 
 def archive_feed_data(channel, broadcasts):
 	fn = "twitchcache_%s_%s.json" % (channel, broadcasts)
@@ -99,18 +100,17 @@ def chat_data(conn, cur, starttime, endtime, target="#loadingreadyrun"):
 		starttime,
 		endtime
 	))
-	for message, in cur:
-		yield message
+	return [message for (message,) in cur]
 
 @utils.throttle(24*60*60, params=[0])
 def get_video_data(videoid):
 	try:
 		with contextlib.closing(urllib.request.urlopen("https://api.twitch.tv/kraken/videos/%s" % videoid)) as fp:
 			video = flask.json.load(fp)
-		start = dateutil.parser.parse(video["recorded_at"]).timestamp()
+		start = dateutil.parser.parse(video["recorded_at"])
 		return {
 			"start": start,
-			"end": start + video["length"],
+			"end": start + datetime.timedelta(seconds=video["length"]),
 			"title": video["title"],
 			"id": videoid,
 			"channel": video["channel"]["name"]

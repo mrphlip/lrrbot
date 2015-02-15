@@ -55,7 +55,11 @@ def notifications(conn, cur, session):
 @server.app.route('/notifications/updates')
 @utils.with_postgres
 def updates(conn, cur):
-	return flask.json.jsonify(notifications=get_notifications(cur, int(flask.request.values['after'])))
+	notifications = get_notifications(cur, int(flask.request.values['after']))
+	for n in notifications:
+		if n['time'] is not None:
+			n['time'] = n['time'].timestamp()
+	return flask.json.jsonify(notifications=notifications)
 
 @csrf_exempt
 @server.app.route('/notifications/newmessage', methods=['POST'])
@@ -80,7 +84,7 @@ def new_message(conn, cur, session):
 		data['channel'],
 		data['user'],
 		data['avatar'],
-		datetime.datetime.fromtimestamp(data['time'], pytz.utc),
+		datetime.datetime.fromtimestamp(data['time'], pytz.utc) if data['time'] is not None else None,
 		data['monthcount'],
 	))
 	utils.sse_send_event("/notifications/events", event="newmessage", data=flask.json.dumps(data))
