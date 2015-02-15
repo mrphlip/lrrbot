@@ -9,6 +9,7 @@ import email.parser
 import textwrap
 import datetime
 import re
+import os.path
 
 import flask
 import irc.client
@@ -364,6 +365,9 @@ def with_postgres(func):
 
 
 def sse_send_event(endpoint, event=None, data=None, event_id=None):
+	if not os.path.exists(config.config['eventsocket']):
+		return
+
 	sse_event = {"endpoint": endpoint}
 	if event is not None:
 		sse_event["event"] = event
@@ -373,7 +377,7 @@ def sse_send_event(endpoint, event=None, data=None, event_id=None):
 		sse_event["id"] = event_id
 
 	sse = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-	sse.connect("/tmp/eventserver.sock")
+	sse.connect(config.config['eventsocket'])
 	sse.send(flask.json.dumps(sse_event).encode("utf-8")+b"\n")
 	sse.close()
 

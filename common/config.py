@@ -75,6 +75,8 @@ config['timezone'] = pytz.timezone(config.get('timezone', 'America/Vancouver'))
 
 # socket_filename - Filename for the UDS channel that the webserver uses to communicate with the bot
 config.setdefault('socket_filename', 'lrrbot.sock')
+# eventsocket - Filename for the UDS channel that the webserver uses to communicate with SSE clients
+config.setdefault('eventsocket', "/tmp/eventserver.sock")
 
 # google_key - Google API key
 config.setdefault('google_key', '')
