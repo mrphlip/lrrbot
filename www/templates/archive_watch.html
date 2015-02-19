@@ -9,6 +9,7 @@
 <script type="text/javascript" src="{{url_for('static', filename='archive.js')|e}}"></script>
 <script>
 	window.start = {{video["start"].timestamp()|tojson}};
+	window.initial_time = {%if starttime%}{{starttime|e}}{%else%}0{%endif%};
 </script>
 </head>
 <body>
@@ -19,13 +20,14 @@
 			<param  name="allowScriptAccess" value="always" />
 			<param  name="allowNetworking" value="all" />
 			<param  name="allowFullScreen" value="true" />
-			<param  name="flashvars" value="channel={{video['channel']|e}}&amp;auto_play=true&amp;videoId={{video['id']|e}}{%if starttime%}&amp;initial_time={{starttime|e}}{%endif%}" />
+			<param  name="flashvars" value="channel={{video['channel']|e}}&amp;auto_play=true&amp;videoId={{video['id']|e}}{%if starttime%}&amp;initial_time={{starttime|e}}{%endif%}&amp;eventsCallback=onPlayerEvents" />
 		</object>
 	</div></div>
 	<div><div id="chat">
 	{%for line in chat%}
 		{{line|safe}}
 	{%endfor%}
+	<div id="chatbottom"></div>
 	</div></div>
 </div>
 </body>
