@@ -1,5 +1,17 @@
 $(function(){
-	$("#content").split({orientation:"vertical", limit:50, position: "80%"});
+	// Resize handling from https://github.com/jcubic/jquery.splitter/issues/32#issuecomment-65424376
+	var splitPosition = 80;
+	var splitter = $("#content").split({
+		orientation:"vertical",
+		limit:50,
+		position: splitPosition + "%",
+		onDragEnd: function(){
+			splitPosition = Math.round(splitter.position() / splitter.width() * 100);
+		},
+	});
+	$(window).resize(function(){
+		splitter.position(splitPosition + "%");
+	});
 
 	// Only scroll the chat vertically
 	$("#chat").parent().css("overflow-x", "hidden");
