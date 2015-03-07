@@ -16,7 +16,7 @@ from common.config import config
 __all__ = ["log_chat", "clear_chat_log", "exitthread"]
 
 CACHE_EXPIRY = 7*24*60*60
-PURGE_PERIOD = 15*60
+PURGE_PERIOD = datetime.timedelta(minutes=15)
 
 queue = queue.Queue()
 thread = None
@@ -46,7 +46,7 @@ def log_chat(event, metadata):
 	queue.put(("log_chat", (datetime.datetime.now(pytz.utc), event, metadata)))
 
 def clear_chat_log(nick):
-	queue.put(("clear_chat_log", (time.time(), nick)))
+	queue.put(("clear_chat_log", (datetime.datetime.now(pytz.utc), nick)))
 
 def rebuild_all():
 	queue.put(("rebuild_all", ()))
