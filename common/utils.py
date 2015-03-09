@@ -261,7 +261,7 @@ class Request(urllib.request.Request):
 		else:
 			return super().get_method()
 
-def http_request(url, data=None, method='GET', maxtries=3, headers={}, **kwargs):
+def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=1, **kwargs):
 	"""Download a webpage, with retries on failure."""
 	# Let's be nice.
 	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
@@ -281,7 +281,7 @@ def http_request(url, data=None, method='GET', maxtries=3, headers={}, **kwargs)
 	firstex = None
 	while True:
 		try:
-			return urllib.request.urlopen(req).read().decode("utf-8")
+			return urllib.request.urlopen(req, timeout=timeout).read().decode("utf-8")
 		except Exception as e:
 			maxtries -= 1
 			if firstex is None:
