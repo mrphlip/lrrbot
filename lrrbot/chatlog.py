@@ -5,6 +5,7 @@ import re
 import time
 import pytz
 import datetime
+import logging
 
 import irc.client
 from jinja2.utils import Markup, escape, urlize
@@ -14,6 +15,8 @@ from common.config import config
 
 
 __all__ = ["log_chat", "clear_chat_log", "exitthread"]
+
+log = logging.getLogger('chatlog')
 
 CACHE_EXPIRY = 7*24*60*60
 PURGE_PERIOD = datetime.timedelta(minutes=15)
@@ -219,8 +222,12 @@ def get_twitch_emotes():
 	return emotesets
 
 def get_filtered_emotes(setids):
-	emotesets = get_twitch_emotes()
-	emotes = dict(emotesets[None])
-	for setid in setids:
-		emotes.update(emotesets.get(setid, {}))
-	return emotes.values()
+	try:
+		emotesets = get_twitch_emotes()
+		emotes = dict(emotesets[None])
+		for setid in setids:
+			emotes.update(emotesets.get(setid, {}))
+		return emotes.values()
+	except:
+		log.exception("Error fetching emotes")
+		return []
