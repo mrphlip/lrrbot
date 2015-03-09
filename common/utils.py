@@ -261,7 +261,7 @@ class Request(urllib.request.Request):
 		else:
 			return super().get_method()
 
-def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=1, **kwargs):
+def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **kwargs):
 	"""Download a webpage, with retries on failure."""
 	# Let's be nice.
 	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
