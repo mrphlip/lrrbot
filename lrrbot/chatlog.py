@@ -98,7 +98,7 @@ def do_clear_chat_log(conn, cur, time, nick):
 
 		specialuser.add("cleared")
 
-		cur.execute("UPDATE log SET specialuser=?, messagehtml=%s WHERE id=%s", (
+		cur.execute("UPDATE log SET specialuser=%s, messagehtml=%s WHERE id=%s", (
 			list(specialuser),
 			build_message_html(time, source, target, message, specialuser, usercolor, emoteset),
 			key,
