@@ -221,9 +221,29 @@ def get_twitch_emotes():
 			}
 	return emotesets
 
+@utils.throttle(CACHE_EXPIRY, log=False)
+def get_twitch_emotes_undocumented():
+	# This endpoint is not documented, however `/chat/emoticons` might be deprecated soon.
+	data = utils.http_request("https://api.twitch.tv/kraken/chat/emoticon_images")
+	data = json.loads(data)["emoticons"]
+	emotesets = {}
+	for emote in data:
+		regex = emote["code"]
+		regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
+		if re_just_words.match(regex):
+			regex = r"\b%s\b" % regex
+		emotesets.setdefault(emote["emoticon_set"], {})[emote["code"]] = {
+			"regex": re.compile("(%s)" % regex),
+			"html": '<img src="https://static-cdn.jtvnw.net/emoticons/v1/%s/1.0" alt="{0}" title="{0}">' % emote["id"]
+		}
+	return emotesets
+
 def get_filtered_emotes(setids):
 	try:
-		emotesets = get_twitch_emotes()
+		try:
+			emotesets = get_twitch_emotes()
+		except:
+			emotesets = get_twitch_emotes_undocumented()
 		emotes = dict(emotesets[None])
 		for setid in setids:
 			emotes.update(emotesets.get(setid, {}))
