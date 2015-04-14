@@ -19,7 +19,7 @@ __all__ = ["log_chat", "clear_chat_log", "exitthread"]
 log = logging.getLogger('chatlog')
 
 CACHE_EXPIRY = 7*24*60*60
-PURGE_PERIOD = datetime.timedelta(minutes=15)
+PURGE_PERIOD = datetime.timedelta(minutes=5)
 
 queue = queue.Queue()
 thread = None
@@ -92,7 +92,8 @@ def do_clear_chat_log(conn, cur, time, nick):
 		nick,
 		time - PURGE_PERIOD,
 	))
-	for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(cur):
+	rows = list(cur)
+	for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(rows):
 		specialuser = set(specialuser) if specialuser else set()
 		emoteset = set(emoteset) if emoteset else set()
 
