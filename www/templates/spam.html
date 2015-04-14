@@ -6,6 +6,7 @@
 <script type="text/javascript" src="{{url_for('static', filename='spam.js')|e}}"></script>
 {%endblock%}
 {%block content%}
+<p><a href="{{url_for('spam_find')|e}}">Find potential spambots</a></p>
 <div style="text-align:right; margin: 1em">
 	<button class="save">Save</button>
 	<div class="save loading" style="display: none; margin: 0 0 0 auto"></div>

@@ -4,7 +4,10 @@ from www import server
 from www import login
 from www import botinteract
 from www import history
+from common import utils
 import re
+import datetime
+import pytz
 
 @server.app.route('/spam')
 @login.require_mod
@@ -87,3 +90,14 @@ def spam_test(session):
 			'spam': False,
 		})
 	return flask.json.jsonify(result=result, csrf_token=server.app.csrf_token())
+
+@server.app.route('/spam/find')
+@login.require_mod
+@utils.with_postgres
+def spam_find(conn, cur, session):
+	starttime = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(days=14)
+	cur.execute("SELECT source, message, time FROM log WHERE time >= %s AND 'cleared' = ANY(specialuser) ORDER BY time ASC LIMIT 10", (
+		starttime,
+	))
+	data = list(cur)
+	return flask.render_template("spam_find.html", data=data, session=session)

@@ -515,6 +515,11 @@ table.spam input
 	background: #D88;
 }
 
+table.spam-find td.message
+{
+	font-family: monospace;
+}
+
 .label {
 	float: right;
 	margin-right: 1em;

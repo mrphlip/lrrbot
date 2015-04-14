@@ -1,0 +1,11 @@
+{%extends "master.html"%}
+{%block title%}Find Spam{%endblock%}
+{%block header%}Find Spam{%endblock%}
+{%block content%}
+<p>These are all the messages that got people timed out or banned in the last couple weeks... any patterns here might be spam bots that could be added to the automated banlist.</p>
+<table class="nicetable spam-find">
+{%for line in data%}
+<tr><td class="time">{{line[2]|timestamp}}</td><td class="username">{{line[0]|e}}</td><td class="message">{{line[1]|e}}</td>
+{%endfor%}
+</table>
+{%endblock%}
