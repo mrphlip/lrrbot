@@ -44,60 +44,68 @@ def spam_submit(session):
 	history.store("spam", session['user'], data)
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
 
+def do_check(line, rules):
+	for rule in rules:
+		matches = rule['re'].search(line)
+		if matches:
+			groups = {str(i+1):v for i,v in enumerate(matches.groups())}
+			return rule['message'] % groups
+	return None
+
 @server.app.route('/spam/test', methods=['POST'])
 @login.require_mod
 def spam_test(session):
-	data = flask.json.loads(flask.request.values['data'])
+	rules = flask.json.loads(flask.request.values['data'])
 	message = flask.request.values['message']
 
 	# Validation checks
-	error = verify_rules(data)
+	error = verify_rules(rules)
 	if error:
 		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
 
-	for rule in data:
+	for rule in rules:
 		rule['re'] = re.compile(rule['re'])
 
 	result = []
-
-	def do_check(s, line):
-		for rule in data:
-			matches = rule['re'].search(s)
-			if matches:
-				groups = {str(i+1):v for i,v in enumerate(matches.groups())}
-				result.append({
-					'line': line,
-					'spam': True,
-					'message': rule['message'] % groups,
-				})
-				return True
-		return False
 
 	re_twitchchat = re.compile("^\w*:\s*(.*)$")
 	re_irc = re.compile("<[^<>]*>\s*(.*)$")
 	lines = message.split('\n')
 	for line in lines:
-		if do_check(line, line):
-			continue
-		match = re_twitchchat.search(line)
-		if match and do_check(match.group(1), line):
-			continue
-		match = re_irc.search(line)
-		if match and do_check(match.group(1), line):
-			continue
-		result.append({
-			'line': line,
-			'spam': False,
-		})
+		res = do_check(line, rules)
+		if res is None:
+			match = re_twitchchat.search(line)
+			if match:
+				res = do_check(match.group(1), rules)
+		if res is None:
+			match = re_irc.search(line)
+			if match:
+				res = do_check(match.group(1), rules)
+		if res is not None:
+			result.append({
+				'line': line,
+				'spam': True,
+				'message': res,
+			})
+		else:
+			result.append({
+				'line': line,
+				'spam': False,
+			})
 	return flask.json.jsonify(result=result, csrf_token=server.app.csrf_token())
 
 @server.app.route('/spam/find')
 @login.require_mod
 @utils.with_postgres
 def spam_find(conn, cur, session):
+	rules = botinteract.get_data('spam_rules')
+	for rule in rules:
+		rule['re'] = re.compile(rule['re'])
+
 	starttime = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(days=14)
-	cur.execute("SELECT source, message, time FROM log WHERE time >= %s AND 'cleared' = ANY(specialuser) ORDER BY time ASC LIMIT 10", (
+	cur.execute("SELECT source, message, time FROM log WHERE time >= %s AND 'cleared' = ANY(specialuser) ORDER BY time ASC", (
 		starttime,
 	))
-	data = list(cur)
+	data = [row + (do_check(row[1], rules),) for row in cur]
+
 	return flask.render_template("spam_find.html", data=data, session=session)
