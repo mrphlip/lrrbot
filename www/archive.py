@@ -30,16 +30,17 @@ def archive_feed_data(channel, broadcasts):
 
 	if fileage < CACHE_TIMEOUT:
 		with open(fn, "rb") as fp:
-			data = fp.read()
+			data = fp.read().decode()
 	else:
 		url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.parse.quote(channel, safe=""), "true" if broadcasts else "false", 100)
 		fp = urllib.request.urlopen(url)
-		data = fp.read().decode()
+		data = fp.read()
 		fp.close()
 		fd, tempname = tempfile.mkstemp(".json", "twitchcache-", dir=os.path.dirname(os.path.abspath(fn)))
-		with os.fdopen(fd, "w") as fp:
+		with os.fdopen(fd, "wb") as fp:
 			fp.write(data)
 		os.replace(tempname, fn)
+		data = data.decode()
 
 	# For broadcasts:
 	# {'videos': [{'_id': 'a508090853',
