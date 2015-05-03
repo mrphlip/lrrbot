@@ -42,20 +42,20 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 		cur.execute("""
 			SELECT qid, quote, attrib_name, attrib_date
 			FROM quotes
-			WHERE qid = %s AND deleted = FALSE
+			WHERE qid = %s AND NOT deleted
 		""", (int(qid),))
 		
 	elif attrib:
 		cur.execute("""
 			SELECT qid, quote, attrib_name, attrib_date
 			FROM quotes
-			WHERE LOWER(attrib_name) LIKE %s AND deleted = FALSE
+			WHERE LOWER(attrib_name) LIKE %s AND NOT deleted
 		""", ("%"+attrib.lower()+"%",))
 	else:
 		cur.execute("""
 			SELECT qid, quote, attrib_name, attrib_date
 			FROM quotes
-			WHERE deleted = FALSE
+			WHERE NOT deleted
 		""")
 	try:
 		(qid, quote, name, date) = random.choice(list(cur))
@@ -122,7 +122,7 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 	cur.execute("""
 		UPDATE quotes
 		SET quote = %s, attrib_name = %s, attrib_date = %s
-		WHERE qid = %s AND deleted = FALSE
+		WHERE qid = %s AND NOT deleted
 	""", (quote, name, date, qid))
 	if cur.rowcount == 1:
 		quote_msg = "Modified quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)

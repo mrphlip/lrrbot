@@ -14,6 +14,7 @@ import www.spam
 import www.botinteract
 import www.history
 import www.api
+import www.quotes
 
 app.secret_key = config["session_secret"]
 app.add_template_filter(utils.nice_duration)
