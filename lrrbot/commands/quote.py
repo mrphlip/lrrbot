@@ -30,50 +30,68 @@ import datetime
 @utils.with_postgres
 def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	"""
-	Handle !quote [id] command.
-	Post either the specified or a random quote.
+	Command: !quote [ATTRIB]
+	
+	Post a randomly selected quotation, optionally filtered by attribution.
+	--command
+	Command: !quote ID
+	
+	Post the quotation with the specified ID.
 	"""
 	if qid:
-		qid = int(qid)
+		cur.execute("""
+			SELECT qid, quote, attrib_name, attrib_date
+			FROM quotes
+			WHERE qid = %s AND deleted = FALSE
+		""", (int(qid),))
+		
+	elif attrib:
+		cur.execute("""
+			SELECT qid, quote, attrib_name, attrib_date
+			FROM quotes
+			WHERE LOWER(attrib_name) LIKE %s AND deleted = FALSE
+		""", ("%"+attrib.lower()+"%",))
+	else:
+		cur.execute("""
+			SELECT qid, quote, attrib_name, attrib_date
+			FROM quotes
+			WHERE deleted = FALSE
+		""")
+	try:
+		(qid, quote, name, date) = random.choice(list(cur))
+		quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
+		if name:
+			quote_msg += " —{name}".format(name=name)
+		if date:
+			quote_msg += " [{date!s}]".format(date=date)
+		conn.privmsg(respond_to, quote_msg)
+	except IndexError:
+		conn.privmsg(respond_to, "Could not find any matching quotes.")
 
-		(qid, quote, name, date) = yield from dbutils.get_quote(qid=qid, attrib=attrib)
+@bot.command("addquote(?: \((.+?)\))?(?: \[(\d{4}-[01]\d-[0-3]\d)\])? (.+)")
+@utils.mod_only
+@utils.with_postgres
+def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
+	"""
+	Command: !addquote (NAME) [DATE] QUOTE
+	Command: !addquote (NAME) QUOTE
+	Command: !addquote [DATE] QUOTE
+	Command: !addquote QUOTE
 
-	if not qid:
-		no_quote_msg = "Could not find any matching quotes."
-		yield from self.client.privmsg(target, no_quote_msg)
-		return
-
-	quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-	if name:
-		quote_msg += " —{name}".format(name=name)
+	 Add a quotation with optional attribution to the quotation database. 
+	"""
 	if date:
-		quote_msg += " [{date!s}]".format(date=date)
-
-	yield from self.client.privmsg(target, quote_msg)
-
-def handle_command_addquote(self, target, nick, *, quote=None, attrib_name=None, attrib_date=None):
-	"""
-	Handle !addquote (<attrib_name>) [<attrib_date>] <quote> command.
-	Add the provided quote to the database.
-	Only moderators may add new quotes.
-	"""
-	if not quote:
-		return
-
-        if attrib_date:
 		try:
-			parsed = datetime.datetime.strptime(attrib_date, "%Y-%m-%d")
-			attrib_date = parsed.date()
+			date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
 		except ValueError:
-			self.logger.error("Got invalid date string {date}.", date=attrib_date)
-		no_quote_msg = "Could not add quote due to invalid date."
-		yield from self.client.privmsg(target, no_quote_msg)
-		return
+			return conn.privmsg(respond_to, "Could not add quote due to invalid date.")
 
-        if not (self.override == nick or (yield from twitch.is_moderator("loadingreadyrun", nick))):
-		return
-
-	(qid, quote, name, date) = yield from dbutils.add_quote(quote, attrib_name=attrib_name, attrib_date=attrib_date)
+	cur.execute("""
+		INSERT INTO quotes
+		(quote, attrib_name, attrib_date) VALUES (%s, %s, %s)
+		RETURNING qid
+	""", (quote, name, date))
+	qid, = next(cur)
 
 	quote_msg = "New quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
 	if name:
@@ -81,85 +99,58 @@ def handle_command_addquote(self, target, nick, *, quote=None, attrib_name=None,
 	if date:
 		quote_msg += " [{date!s}]".format(date=date)
 
-	yield from self.client.privmsg(target, quote_msg)
+	conn.privmsg(respond_to, quote_msg)
 
-def handle_command_modquote(self, target, nick, *, qid=None, quote=None, attrib_name=None, attrib_date=None):
+@bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(\d{4}-[01]\d-[0-3]\d)\])? (.+)")
+@utils.mod_only
+@utils.with_postgres
+def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quote):
 	"""
-	Handle !modquote <qid> (<attrib_name>) [<attrib_date>] <quote> command.
-	Update the provided quote in the database.
-	Only moderators may modify quotes.
+	Command: !modquote QID (NAME) [DATE] QUOTE
+	Command: !modquote QID (NAME) QUOTE
+	Command: !modquote QID [DATE] QUOTE
+	Command: !modquote QID QUOTE
+
+	Modify an existing quotation with optional attribution. All fields are updated and/or deleted in case they're omitted. 
 	"""
-	if not qid or not quote:
-		return
-	qid = int(qid)
-
-	if attrib_date:
-		try:
-			parsed = datetime.datetime.strptime(attrib_date, "%Y-%m-%d")
-			attrib_date = parsed.date()
-		except ValueError:
-			self.logger.error("Got invalid date string {date}.", date=attrib_date)
-		no_quote_msg = "Could not modify quote due to invalid date."
-		yield from self.client.privmsg(target, no_quote_msg)
-		return
-
-	if not (self.override == nick or (yield from twitch.is_moderator("loadingreadyrun", nick))):
-		return
-
-	(qid, quote, name, date) = yield from dbutils.mod_quote(qid, quote, attrib_name=attrib_name, attrib_date=attrib_date)
-
-	if not qid:
-		no_quote_msg = "Could not modify quote."
-		yield from self.client.privmsg(target, no_quote_msg)
-		return
-
-	quote_msg = "Modified quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-	if name:
-		quote_msg += " —{name}".format(name=name)
 	if date:
-		quote_msg += " [{date!s}]".format(date=date)
+		try:
+			date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+		except ValueError:
+			return conn.privmsg(respond_to, "Could not modify quote due to invalid date.")
 
-	yield from self.client.privmsg(target, quote_msg)
-
-def handle_command_delquote(self, target, nick, *, qid=None):
-	"""
-	Handle !delquote <qid> command.
-	Delete the provided quote ID from the database.
-	Only moderators may delete quotes.
-	"""
-	if not qid:
-		return
-	qid = int(qid)
-
-	if not (self.override == nick or (yield from twitch.is_moderator("loadingreadyrun", nick))):
-		return
-
-	success = yield from dbutils.del_quote(qid)
-	if success:
-		quote_msg = "Marked quote #{qid} as deleted.".format(qid=qid)
+	cur.execute("""
+		UPDATE quotes
+		SET quote = %s, attrib_name = %s, attrib_date = %s
+		WHERE qid = %s AND deleted = FALSE
+	""", (quote, name, date, qid))
+	if cur.rowcount == 1:
+		quote_msg = "Modified quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
+		if name:
+			quote_msg += " —{name}".format(name=name)
+		if date:
+			quote_msg += " [{date!s}]".format(date=date)
+		conn.privmsg(respond_to, quote_msg)
 	else:
-		quote_msg = "Could not find quote #{qid}.".format(qid=qid)
+		conn.privmsg(respond_to, "Could not modify quote.")
 
-	yield from self.client.privmsg(target, quote_msg)
-
-def handle_command_goodquote(self, target, nick, *, qid=None):
+@bot.command("delquote (\d+)")
+@utils.mod_only
+@utils.with_postgres
+def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 	"""
-	Handle !goodquote <qid> command.
-	Rate the provided quote ID from the database.
+	Command: !delquote QID
+	
+	Remove the quotation with the specified ID from the quotation database. 
 	"""
-	if not qid:
-		return
 	qid = int(qid)
 
-	yield from dbutils.rate_quote(qid, nick, True)
-
-def handle_command_badquote(self, target, nick, *, qid=None):
-	"""
-	Handle !badquote <qid> command.
-	Rate the provided quote ID from the database.
-	"""
-	if not qid:
-		return
-	qid = int(qid)
-
-	yield from dbutils.rate_quote(qid, nick, False)
+	cur.execute("""
+		UPDATE quotes
+		SET deleted = TRUE
+		WHERE qid = %s
+	""", (qid,))
+	if cur.rowcount == 1:
+		conn.privmsg(respond_to, "Marked quote #{qid} as deleted.".format(qid=qid))
+	else:
+		conn.privmsg(respond_to, "Could not find quote #{qid}.".format(qid=qid))
