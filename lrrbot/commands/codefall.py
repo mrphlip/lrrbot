@@ -32,16 +32,29 @@ import urllib.parse
 @utils.with_postgres
 def codefall(pg_conn, cur, lrrbot, conn, event, respond_to):
 	"""
-	Handle !codefall command.
-	If available, post a single unclaimed codefall URL.
+	Command: !codefall
+	
+	Post one of your unclaimed codefall entries. 
 	"""
-	(secret_url, description, code_type) = yield from dbutils.get_codefall_entry(nick)
+	source = irc.client.NickMask(event.source)
+	nick = source.nick.lower()
 
-	if not secret_url:
-		no_codefall_msg = "Could not find any unclaimed codes."
-		yield from self.client.privmsg(target, no_codefall_msg)
-		return
+	cur.execute("""
+		SELECT cid, description, code_type
+		FROM codefall
+		WHERE user_name = %s AND NOT claimed
+	""", (nick,))
 
-	codefall_msg = "Codefall: {desc} ({ctype}) {url}".format(desc=description, ctype=code_type, url=secret_url)
+	try:
+		cid, description, code_type = random.choice(list(cur))
+		cid = utils.hmac_sign(str(cid).encode("utf-8")).decode("utf-8")
 
-	yield from self.client.privmsg(target, codefall_msg)
+		url = urllib.parse.urljoin(config["siteurl"], "codefall/"+cid)
+
+		conn.privmsg(respond_to, "Codefall: {desc} ({ctype}) {url}".format(
+			desc=description,
+			ctype=code_type,
+			url=url
+		))
+	except IndexError:
+		conn.privmsg(respond_to, "Could not find any unclaimed codes.")

@@ -20,6 +20,9 @@ import werkzeug.datastructures
 from common import config
 import psycopg2
 
+import Crypto.Hash.HMAC
+import Crypto.Hash.SHA256
+import base64
 
 log = logging.getLogger('utils')
 
@@ -448,3 +451,17 @@ def strtodate(s):
 	if dt.time() != datetime.time(0):
 		dt = dt.astimezone(config.config['timezone'])
 	return dt.date()
+
+HASH_ALGORITHM = Crypto.Hash.SHA256
+def hmac_sign(message):
+	mac = Crypto.Hash.HMAC.new(
+		config.config["session_secret"].encode("utf-8"),
+		msg=message,
+		digestmod=HASH_ALGORITHM
+	)
+	return base64.urlsafe_b64encode(mac.digest() + message)
+
+def hmac_verify(signature):
+	message = base64.urlsafe_b64decode(signature)[HASH_ALGORITHM.digest_size:]
+	if hmac_sign(message) == signature:
+		return message
