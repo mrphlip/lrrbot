@@ -1,0 +1,11 @@
+{%extends "master.html"%}
+{%block title%}Codefall{%endblock%}
+{%block header%}Codefall{%endblock%}
+{%block content%}
+<h2>{{ description }} ({{ code_type }})</h2>
+{% if claimed %}
+	<p>Code already claimed.</p>
+{% else %}
+	<p><a href="{{ url }}">Claim code</a></p>
+{% endif %}
+{%endblock%}

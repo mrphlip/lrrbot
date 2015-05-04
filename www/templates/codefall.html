@@ -1,0 +1,81 @@
+{%extends "master.html"%}
+{%block title%}Codefall{%endblock%}
+{%block header%}Codefall{%endblock%}
+{%block headextra%}
+<style>
+form {
+	display: table;
+}
+
+form div {
+	display: table-row;
+}
+
+form div label, form div span {
+	display: table-cell;
+	padding: 0.25ex 0.5ex;
+}
+
+form div span {
+	text-align: center;
+}
+
+form div label {
+	text-align: right;
+	font-weight: bold;
+}
+
+</style>
+{%endblock%}
+{%block content%}
+<h2>Unclaimed entries</h2>
+<table class="nicetable">
+	<thead><tr><th>Description</th><th>Type</th><th>URL</th></tr></thead>
+	{% for entry in unclaimed %}
+		<tr>
+			<td>{{ entry["description"] }}</td>
+			<td>{{ entry["code_type"] }}</td>
+			<td><a href="{{ entry["url"] }}"><code>{{ entry["url"] }}</code></a></td>
+		</tr>
+	{% endfor %}
+	<tbody>
+	</tbody>
+</table>
+
+<h2>Add a new entry</h2>
+<form action="{{ url_for("codefall_add") }}" method="POST">
+	<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+	<div>
+		<label for="description">Description:</label>
+		<span><input type="text" name="description" size="40" required></span>
+	</div>
+	<div>
+		<label for="code">Link or key:</label>
+		<span><input type="text" name="code" size="40" required></span>
+	</div>
+	<div>
+		<label for="code_type">Type:</label>
+		<span><select name="code_type">
+			<option>Humble Bundle</option>
+			<option>Steam</option>
+			<option>GOG</option>
+			<option>Desura</option>
+			<option>Other</option>
+		</select></span>
+	</div>
+	<div><span><input type="reset"></span><span><input type="submit"></span></div>
+</form>
+
+<h2>Claimed entries</h2>
+<table class="nicetable">
+	<thead><tr><th>Description</th><th>Type</th></tr></thead>
+	{% for entry in claimed %}
+		<tr>
+			<td>{{ entry["description"] }}</td>
+			<td>{{ entry["code_type"] }}</td>
+		</tr>
+	{% endfor %}
+	<tbody>
+	</tbody>
+</table>
+{%endblock%}
