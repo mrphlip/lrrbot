@@ -1,0 +1,30 @@
+{%extends "master.html"%}
+{%block title%}Quotes{%endblock%}
+{%block header%}Quotes{%endblock%}
+{%block content%}
+<ol>
+{% for qid, quote, name, date in quotes %}
+<li value="{{ qid }}"><blockquote>
+	<p class="quote">{{ quote }}</p>
+	{% if name is not none or date is not none %}
+	<p class="quote-attrib">&#8212;
+		{% if name is not none %}{{ name }}{% endif %}
+		{% if date is not none %}[{{ date }}]{% endif %}
+	</p>
+	{% endif %}
+</blockquote></li>
+{% endfor %}
+</ol>
+
+<ul class="menu">
+{% for page_no in range(1, pages+1) %}
+	<li {% if page_no == 1 %}class="first"{% endif %}>
+	{% if page_no == page+1 %}
+		<strong>{{ page_no }}</strong>
+	{% else %}
+		<a href="{{ url_for("quotes", page=page_no) }}">{{ page_no }}</a>
+	{% endif %}
+	</li>
+{% endfor %}
+</ul>
+{%endblock%}
