@@ -1,0 +1,43 @@
+{%extends "master.html"%}
+{%block content%}
+{%block precontent%}
+{%endblock%}
+<ul class="pagination">
+	{%if page > 1 %}
+	<li><a href="{{url_for(request.url_rule.endpoint, page=1)|e}}">&lt;&lt;</a></li>
+	<li><a href="{{url_for(request.url_rule.endpoint, page=page-1)|e}}">&lt;</a></li>
+	{%endif%}
+	{%for page_no in range(max(1, page-3), min(pages, page+3)+1)%}
+		{%if page_no == page%}
+			<li class="current">{{page_no|e}}</li>
+		{%else%}
+			<li><a href="{{url_for(request.url_rule.endpoint, page=page_no)|e}}">{{page_no|e}}</a></li>
+		{%endif%}
+	{%endfor%}
+	{%if page < pages %}
+	<li><a href="{{url_for(request.url_rule.endpoint, page=page+1)|e}}">&gt;</a></li>
+	<li><a href="{{url_for(request.url_rule.endpoint, page=pages)|e}}">&gt;&gt;</a></li>
+	{%endif%}
+</ul>
+{%block pagecontent%}
+{%endblock%}
+<ul class="pagination">
+	{%if page > 1 %}
+	<li><a href="{{url_for(request.url_rule.endpoint, page=1)|e}}">&lt;&lt;</a></li>
+	<li><a href="{{url_for(request.url_rule.endpoint, page=page-1)|e}}">&lt;</a></li>
+	{%endif%}
+	{%for page_no in range(max(1, page-3), min(pages, page+3)+1)%}
+		{%if page_no == page%}
+			<li class="current">{{page_no|e}}</li>
+		{%else%}
+			<li><a href="{{url_for(request.url_rule.endpoint, page=page_no)|e}}">{{page_no|e}}</a></li>
+		{%endif%}
+	{%endfor%}
+	{%if page < pages %}
+	<li><a href="{{url_for(request.url_rule.endpoint, page=page+1)|e}}">&gt;</a></li>
+	<li><a href="{{url_for(request.url_rule.endpoint, page=pages)|e}}">&gt;&gt;</a></li>
+	{%endif%}
+</ul>
+{%block postcontent%}
+{%endblock%}
+{%endblock%}

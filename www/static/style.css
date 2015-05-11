@@ -172,6 +172,35 @@ div.button.disabled {
 	font-size: 0;
 }
 
+ul.pagination {
+	display: block;
+	list-style: none;
+	text-align: center;
+	font-size: 90%;
+	margin: 0.5em 0;
+	padding: 0;
+	border: none;
+}
+ul.pagination li {
+	display: inline;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border: 1px solid #666;
+	background: #DDD;
+	color: black;
+}
+ul.pagination li.current {
+	font-weight: bold;
+	padding: 0.1em;
+}
+ul.pagination li :link,
+ul.pagination li :visited {
+	color: black;
+	text-decoration: none;
+	padding: 0.1em;
+}
+
 #notificationlist, #notificationlist li {
 	margin: 0;
 	border: none;
@@ -492,4 +521,49 @@ table.historyshow tr.to td, table.historyshow td.to {
 .historyhead .nextlink {
 	float: right;
 	text-align: right;
+}
+
+.quote-disclaimer {
+	border: 1px solid #666;
+	background: #DDD;
+	padding: 0.25em;
+	margin: 0 0 0.5em;
+}
+ol.quotes {
+	display: block;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+ol.quotes li {
+	display: block;
+	list-style: none;
+	border-bottom: 1px solid #666;
+	margin: 0;
+	padding: 0.5em;
+}
+ol.quotes li.first {
+	border-top: 1px solid #666;
+}
+ol.quotes .num {
+	float: right;
+	background: #9DE;
+	border-radius: 0.75em;
+	padding: 0.25em 0.5em;
+	font-size: 85%;
+	margin: 0 0 0.25em 0.5em;
+	line-height: 1em;
+}
+ol.quotes blockquote {
+	margin: 0;
+	padding: 0;
+}
+ol.quotes .attrib {
+	margin: 0.5em 0 0 1em;
+	font-size: 80%;
+	font-style: italic;
+}
+ol.quotes .date {
+	font-size: 80%;
 }

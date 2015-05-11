@@ -21,6 +21,8 @@ app.add_template_filter(utils.nice_duration)
 app.add_template_filter(utils.ucfirst)
 app.add_template_filter(utils.timestamp)
 app.csrf_token = app.jinja_env.globals["csrf_token"]
+app.jinja_env.globals["min"] = min
+app.jinja_env.globals["max"] = max
 
 __all__ = ['app']
 

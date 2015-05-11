@@ -10,12 +10,12 @@ QUOTES_PER_PAGE = 25
 @server.app.route('/quotes/<int:page>')
 @login.with_session
 @utils.with_postgres
-def quotes(conn, cur, session, page = 1):
+def quotes(conn, cur, session, page=1):
 	cur.execute("SELECT COUNT(*) FROM quotes WHERE deleted = FALSE")
 	count, = next(cur)
-	pages = math.ceil(count / QUOTES_PER_PAGE)
+	pages = (count - 1) // QUOTES_PER_PAGE + 1
 
-	page = max(0, min(page - 1, pages))
+	page = max(1, min(page, pages))
 
 	cur.execute("""
 		SELECT qid, quote, attrib_name, attrib_date
@@ -24,6 +24,6 @@ def quotes(conn, cur, session, page = 1):
 		ORDER BY qid DESC
 		OFFSET %s
 		LIMIT %s
-	""", (page * QUOTES_PER_PAGE, QUOTES_PER_PAGE))
+	""", ((page-1) * QUOTES_PER_PAGE, QUOTES_PER_PAGE))
 
-	return flask.render_template('quotes.html', session=session, page=page, quotes=list(cur), pages=pages)
+	return flask.render_template('quotes.html', session=session, quotes=list(cur), page=page, pages=pages)
