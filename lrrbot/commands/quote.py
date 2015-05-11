@@ -76,7 +76,7 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 		quote_msg += " [{date!s}]".format(date=date)
 	conn.privmsg(respond_to, quote_msg)
 
-@bot.command("addquote(?: \((.+?)\))?(?: \[(\d{4}-[01]\d-[0-3]\d)\])? (.+)")
+@bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
 @utils.mod_only
 @utils.with_postgres
 def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
@@ -90,7 +90,7 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	"""
 	if date:
 		try:
-			date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+			date = utils.strtotime(date).date()
 		except ValueError:
 			return conn.privmsg(respond_to, "Could not add quote due to invalid date.")
 
@@ -109,7 +109,7 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 
 	conn.privmsg(respond_to, quote_msg)
 
-@bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(\d{4}-[01]\d-[0-3]\d)\])? (.+)")
+@bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
 @utils.mod_only
 @utils.with_postgres
 def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quote):
@@ -123,7 +123,7 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 	"""
 	if date:
 		try:
-			date = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+			date = utils.strtotime(date).date()
 		except ValueError:
 			return conn.privmsg(respond_to, "Could not modify quote due to invalid date.")
 

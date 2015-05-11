@@ -10,6 +10,7 @@ import textwrap
 import datetime
 import re
 import os.path
+import timelib
 
 import flask
 import irc.client
@@ -433,3 +434,8 @@ def parsetime(s):
 	m = int(match.group(3) or 0)
 	s = int(match.group(4) or 0)
 	return datetime.timedelta(days=d, hours=h, minutes=m, seconds=s)
+
+def strtotime(s):
+	if isinstance(s, str):
+		s = s.encode("utf-8")
+	return datetime.datetime.fromtimestamp(timelib.strtotime(s), tz=pytz.utc)
