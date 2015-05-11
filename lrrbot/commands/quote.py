@@ -39,34 +39,42 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	Post the quotation with the specified ID.
 	"""
 	if qid:
-		cur.execute("""
-			SELECT qid, quote, attrib_name, attrib_date
-			FROM quotes
+		where, params = """
 			WHERE qid = %s AND NOT deleted
-		""", (int(qid),))
-		
+		""", (int(qid),)
 	elif attrib:
-		cur.execute("""
-			SELECT qid, quote, attrib_name, attrib_date
-			FROM quotes
+		where, params = """
 			WHERE LOWER(attrib_name) LIKE %s AND NOT deleted
-		""", ("%"+attrib.lower()+"%",))
+		""", ("%" + attrib.lower().replace('\\','\\\\').replace('%','\\%').replace('_','\\_') + "%",)
 	else:
-		cur.execute("""
-			SELECT qid, quote, attrib_name, attrib_date
-			FROM quotes
+		where, params = """
 			WHERE NOT deleted
-		""")
-	try:
-		(qid, quote, name, date) = random.choice(list(cur))
-		quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-		if name:
-			quote_msg += " —{name}".format(name=name)
-		if date:
-			quote_msg += " [{date!s}]".format(date=date)
-		conn.privmsg(respond_to, quote_msg)
-	except IndexError:
+		""", ()
+
+	cur.execute("""
+		SELECT COUNT(*)
+		FROM quotes
+		%s
+	""" % where, params)
+	quotecount = list(cur)[0][0]
+	if quotecount <= 0:
 		conn.privmsg(respond_to, "Could not find any matching quotes.")
+		return
+
+	cur.execute("""
+		SELECT qid, quote, attrib_name, attrib_date
+		FROM quotes
+		%s
+		OFFSET %%s LIMIT 1
+	""" % where, params + (random.randrange(quotecount),))
+	((qid, quote, name, date),) = list(cur)
+
+	quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
+	if name:
+		quote_msg += " —{name}".format(name=name)
+	if date:
+		quote_msg += " [{date!s}]".format(date=date)
+	conn.privmsg(respond_to, quote_msg)
 
 @bot.command("addquote(?: \((.+?)\))?(?: \[(\d{4}-[01]\d-[0-3]\d)\])? (.+)")
 @utils.mod_only
