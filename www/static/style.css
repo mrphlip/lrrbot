@@ -1,12 +1,10 @@
-body
-{
+body {
 	font: 100% sans-serif;
 	background: white;
 	color: black;
 }
 
-.header
-{
+.header {
 	position: relative;
 	border-top-left-radius: 0.5em;
 	border-top-right-radius: 0.5em;
@@ -21,27 +19,23 @@ body
 	background-image: -ms-linear-gradient(bottom, #CCCCCC 75%, #EEEEEE 100%);
 	background-image: linear-gradient(to bottom, #CCCCCC 75%, #EEEEEE 100%);
 }
-.header h1
-{
+.header h1 {
 	margin: 0;
 	padding: 0;
 	font: bold 150% sans-serif;
 	color: white;
 	text-shadow: 1px 1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, -1px -1px 0 #000, 2px 2px 2px #000;
 }
-.header img
-{
+.header img {
 	vertical-align: middle;
 	margin: 0 0.5em 0 0;
 }
-.header .login
-{
+.header .login {
 	position: absolute;
 	bottom: 0.5em;
 	right: 0.5em;
 }
-.infobar, .menu
-{
+.infobar, .menu {
 	position: relative;
 	border-radius: 0.5em;
 	padding: 0.25em;
@@ -49,42 +43,35 @@ body
 	color: black;
 	background-color: #EEE;
 }
-.infobar
-{
+.infobar {
 	border-top-left-radius: 0;
 	border-top-right-radius: 0;
 }
-.infobar ul, .menu ul
-{
+.infobar ul, .menu ul {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 }
-.infobar li, .menu li
-{
+.infobar li, .menu li {
 	list-style: none;
 	display: inline;
 	margin: 0;
 	padding: 0 0.5em;
 	border-left: 1px dotted grey;
 }
-.infobar li.first, .menu li.first
-{
+.infobar li.first, .menu li.first {
 	border-left: none;
 }
-.infobar
-{
+.infobar {
 	font-size: 90%;
 }
-.infobar .advice
-{
+.infobar .advice {
 	float: right;
 	margin: 0 0.5em;
 	font-size: 80%;
 	font-style: italic;
 }
-.infobar .showmore
-{
+.infobar .showmore {
 	display: inline-block;
 	width: 17px;
 	height: 17px;
@@ -93,25 +80,20 @@ body
 	background: url(expandcollapse.png) no-repeat;
 	cursor: pointer;
 }
-.infobar .showmore.expand
-{
+.infobar .showmore.expand {
 	background-position: center left;
 }
-.infobar .showmore.collapse
-{
+.infobar .showmore.collapse {
 	background-position: center right;
 }
-.infobar .currently-playing, .infobar .stat-count
-{
+.infobar .currently-playing, .infobar .stat-count {
 	font-weight: bold;
 }
-.menu :link, .menu :visited
-{
+.menu :link, .menu :visited {
 	color: #00E;
 	text-decoration: none;
 }
-.body-content
-{
+.body-content {
 	position: relative;
 	border-radius: 0.5em;
 	padding: 1em;
@@ -119,8 +101,7 @@ body
 	color: black;
 	background-color: #EEE;
 }
-.footer
-{
+.footer {
 	position: relative;
 	border-radius: 0.5em;
 	padding: 1em;
@@ -130,42 +111,34 @@ body
 	font-size: 80%;
 }
 
-h1, h2, h3, h4, p
-{
+h1, h2, h3, h4, p {
 	margin: 0 0 0.25em;
 	padding: 0;
 }
-h2
-{
+h2 {
 	margin-top: 1em;
 }
-p.lastupdated
-{
+p.lastupdated {
 	color: grey;
 }
-p.author
-{
+p.author {
 	font-size: 90%;
 }
 
-p.error
-{
+p.error {
 	color: red;
 }
-input.error
-{
+input.error {
 	background: #F88;
 }
 
-div.loading
-{
+div.loading {
 	background: url(loading.gif);
 	width: 18px;
 	height: 18px;
 }
 
-div.button
-{
+div.button {
 	background: url(icons.png);
 	width: 22px;
 	height: 22px;
@@ -173,161 +146,130 @@ div.button
 	float: left;
 	cursor: pointer;
 }
-div.button.add
-{
+div.button.add {
 	background-position: 0 0;
 }
-div.button.remove
-{
+div.button.remove {
 	background-position: -22px 0;
 }
-div.button.disabled
-{
+div.button.disabled {
 	background: none;
 	cursor: inherit;
 }
 
-.splash
-{
+.splash {
 	float: right;
 	margin: 0 0 0.5em 1em;
 }
-.splash img
-{
+.splash img {
 	border: none;
 	display: block;
 }
-.clear
-{
+.clear {
 	clear: both;
 	height: 0;
 	line-height: 0;
 	font-size: 0;
 }
 
-#notificationlist, #notificationlist li
-{
+#notificationlist, #notificationlist li {
 	margin: 0;
 	border: none;
 	list-style: none;
 }
-#notificationlist
-{
+#notificationlist {
 	padding: 0;
 }
-#notificationlist li
-{
+#notificationlist li {
 	padding: 0.5em;
 	border: 1px outset grey;
 	background: grey;
 	color: black;
 	text-align: center;
 }
-#notificationlist li.even
-{
+#notificationlist li.even {
 	border-color: #BBB;
 	background: #BBB;
 }
-#notificationlist li.odd
-{
+#notificationlist li.odd {
 	border-color: #DDD;
 	background: #DDD;
 }
-#notificationlist li.new
-{
+#notificationlist li.new {
 	cursor: pointer;
 }
-#notificationlist li.even.new
-{
+#notificationlist li.even.new {
 	border-color: #3F3;
 	background: #CEC;
 }
-#notificationlist li.odd.new
-{
+#notificationlist li.odd.new {
 	border-color: #8F8;
 	background: #DFD;
 }
-#notificationlist .duration
-{
+#notificationlist .duration {
 	color: #666;
 	font: italic 80% sans-serif;
 	float: right;
 }
-#notificationlist .channel
-{
+#notificationlist .channel {
 	color: #666;
 	font: italic 80% sans-serif;
 	float: left;
 }
-#notificationlist .user a
-{
+#notificationlist .user a {
 	color: black;
 	font-weight: bold;
 	text-decoration: none;
 }
-#notificationlist .user img
-{
+#notificationlist .user img {
 	height: 64px;
 	width: 64px;
 	vertical-align: middle;
 }
 
-table.nicetable, table.nicetable tr, table.nicetable td, table.nicetable th
-{
+table.nicetable, table.nicetable tr, table.nicetable td, table.nicetable th {
 	border: 1px solid black;
 	border-collapse: collapse;
 }
-table.nicetable
-{
+table.nicetable {
 	margin: 0 auto 1em;
 }
-table.nicetable td, table.nicetable th
-{
+table.nicetable td, table.nicetable th {
 	padding: 0.1em 0.25em;
 }
-table.nicetable tr.odd
-{
+table.nicetable tr.odd {
 	background: #EEE;
 }
-table.nicetable tr.even
-{
+table.nicetable tr.even {
 	background: #DDD;
 }
-table.nicetable th
-{
+table.nicetable th {
 	background: #CCC;
 }
 
-table.statstable td.game
-{
+table.statstable td.game {
 	text-align: right;
 }
-table.statstable thead th, table.statstable tfoot th.total
-{
+table.statstable thead th, table.statstable tfoot th.total {
 	text-align: center;
 }
-table.statstable td.stat, table.statstable tfoot th.stat
-{
+table.statstable td.stat, table.statstable tfoot th.stat {
 	text-align: right;
 }
-table.statstable td.game
-{
+table.statstable td.game {
 	text-align: left;
 }
-.alias
-{
+.alias {
 	border-bottom: 1px dotted black;
 }
-table.statstable div.rating
-{
+table.statstable div.rating {
 	margin: 0.25em;
 	border: 1px solid black;
 	width: 20em;
 	height: 1em;
 	background: #C00;
 }
-table.statstable div.rating .good
-{
+table.statstable div.rating .good {
 	background: #0C0;
 	height: 1em;
 	margin: 0;
@@ -335,192 +277,151 @@ table.statstable div.rating .good
 	border: none;
 	float: left;
 }
-.highchart
-{
+.highchart {
 	width: auto;
 	height: 25em;
 	margin: 0.5em 0;
 }
 
-table.votes tr.current
-{
+table.votes tr.current {
 	background: #DFD;
 }
-table.votes th
-{
+table.votes th {
 	background: #CCC;
 }
-table.votes td.game
-{
+table.votes td.game {
 	text-align: right;
 }
-table.votes .current td.game
-{
+table.votes .current td.game {
 	font-size: 200%;
 }
-table.votes td.votes
-{
+table.votes td.votes {
 	text-align: center;
 	border-left: hidden;
 }
-table.votes div.votes
-{
+table.votes div.votes {
 	width: 36px;
 	height: 24px;
 	position: relative;
 	margin: 0 auto;
 }
-table.votes div.vote
-{
+table.votes div.vote {
 	width: 18px;
 	height: 24px;
 	background: url(thumbs24.png);
 	position: absolute;
 }
-table.votes .current div.votes
-{
+table.votes .current div.votes {
 	width: 72px;
 	height: 48px;
 }
-table.votes .current div.vote
-{
+table.votes .current div.vote {
 	width: 36px;
 	height: 48px;
 	background: url(thumbs48.png);
 }
-table.votes div.vote.down
-{
+table.votes div.vote.down {
 	top: 0;
 	left: 0;
 }
-table.votes div.vote.up
-{
+table.votes div.vote.up {
 	top: 0;
 	right: 0;
 }
-table.votes div.vote.down.inactive
-{
+table.votes div.vote.down.inactive {
 	background-position: top left;
 }
-table.votes div.vote.up.inactive
-{
+table.votes div.vote.up.inactive {
 	background-position: top right;
 }
-table.votes div.vote.down.inactive:hover
-{
+table.votes div.vote.down.inactive:hover {
 	background-position: center left;
 }
-table.votes div.vote.up.inactive:hover
-{
+table.votes div.vote.up.inactive:hover {
 	background-position: center right;
 }
-table.votes div.vote.down.active
-{
+table.votes div.vote.down.active {
 	background-position: bottom left;
 }
-table.votes div.vote.up.active
-{
+table.votes div.vote.up.active {
 	background-position: bottom right;
 }
-table.votes div.vote.inactive
-{
+table.votes div.vote.inactive {
 	cursor: pointer;
 }
-table.votes div.loading
-{
+table.votes div.loading {
 	margin: 0 auto;
 }
 
-table.commands
-{
+table.commands {
 	width: 100%;
 }
-table.commands thead td
-{
+table.commands thead td {
 	border-top: hidden;
 	border-left: hidden;
 	border-right: hidden;
 }
-table.commands td.command
-{
+table.commands td.command {
 	width: 15%;
 }
-table.commands td.response
-{
+table.commands td.response {
 	width: 75%;
 }
-table.commands td.access
-{
+table.commands td.access {
 	width: 6%;
 }
-table.commands td.button
-{
+table.commands td.button {
 	width: 4%;
 }
-table.commands input, table.commands select, table.commands button
-{
+table.commands input, table.commands select, table.commands button {
 	width: 100%;
 }
-table.commands div.input
-{
+table.commands div.input {
 	height: 22px;
 	margin-left: 30px;
 }
 
-table.spam
-{
+table.spam {
 	width: 100%;
 }
-table.spam tfoot td
-{
+table.spam tfoot td {
 	border-bottom: hidden;
 	border-left: hidden;
 	border-right: hidden;
 }
-table.spam td.action
-{
+table.spam td.action {
 	width: auto;
 }
-table.spam td.re
-{
+table.spam td.re {
 	width: 25%;
 }
-table.spam td.response
-{
+table.spam td.response {
 	width: 75%;
 }
-table.spam input
-{
+table.spam input {
 	width: 100%;
 }
 
-#spamresults
-{
+#spamresults {
 	font-family: monospace;
 }
-#spamresults .odd
-{
+#spamresults .odd {
 	background: #EEE;
 }
-#spamresults .even
-{
+#spamresults .even {
 	background: #DDD;
 }
-#spamresults .spam.odd
-{
+#spamresults .spam.odd {
 	background: #E88;
 }
-#spamresults .spam.even
-{
+#spamresults .spam.even {
 	background: #D88;
 }
 
-table.spam-find td.message
-{
+table.spam-find td.message {
 	font-family: monospace;
 }
-table.spam-find tr.spam
-{
+table.spam-find tr.spam {
 	background: #E88;
 }
 
