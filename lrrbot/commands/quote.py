@@ -25,8 +25,8 @@ from lrrbot import bot
 import random
 import datetime
 
-@utils.throttle()
 @bot.command("quote(?: (?:(\d+)|(.+)))?")
+@utils.throttle()
 @utils.with_postgres
 def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	"""
