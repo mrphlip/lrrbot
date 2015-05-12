@@ -439,3 +439,12 @@ def strtotime(s):
 	if isinstance(s, str):
 		s = s.encode("utf-8")
 	return datetime.datetime.fromtimestamp(timelib.strtotime(s), tz=pytz.utc)
+
+def strtodate(s):
+	dt = strtotime(s)
+	# if the time is exactly midnight, then the user probably entered a date
+	# without time info (eg "yesterday"), so just return that date. Otherwise, they
+	# did enter time info (eg "now") so convert timezone first
+	if dt.time() != datetime.time(0):
+		dt = dt.astimezone(config.config['timezone'])
+	return dt.date()
