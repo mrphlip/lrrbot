@@ -11,8 +11,20 @@ import pytz
 
 @server.app.route('/spam')
 @login.require_mod
-def spam(session):
-	data = botinteract.get_data('spam_rules')
+@utils.with_postgres
+def spam(conn, cur, session):
+	cur.execute("""
+		SELECT jsondata
+		FROM history
+		WHERE
+			historykey = (
+				SELECT MAX(historykey)
+				FROM history
+				WHERE
+					section = 'spam'
+			)
+	""")
+	data, = cur.fetchone()
 	return flask.render_template("spam.html", rules=data, session=session)
 
 def verify_rules(rules):
@@ -40,8 +52,8 @@ def spam_submit(session):
 	if error:
 		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
 
-	botinteract.modify_spam_rules(data)
 	history.store("spam", session['user'], data)
+	botinteract.reload_spam_rules()
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
 
 def do_check(line, rules):
@@ -98,7 +110,18 @@ def spam_test(session):
 @login.require_mod
 @utils.with_postgres
 def spam_find(conn, cur, session):
-	rules = botinteract.get_data('spam_rules')
+	cur.execute("""
+		SELECT jsondata
+		FROM history
+		WHERE
+			historykey = (
+				SELECT MAX(historykey)
+				FROM history
+				WHERE
+					section = 'spam'
+			)
+	""")
+	rules, = cur.fetchone()
 	for rule in rules:
 		rule['re'] = re.compile(rule['re'])
 

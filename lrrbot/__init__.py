@@ -79,7 +79,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.polls = []
 		self.lastsubs = []
 
-		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
+		self.spam_rules = []
 		self.spammers = {}
 
 		self.mods = set(storage.data.get('mods', config['mods']))

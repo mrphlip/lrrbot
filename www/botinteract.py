@@ -52,11 +52,11 @@ def reload_commands():
 	"""
 	send_bot_command("reload_commands", None)
 
-def modify_spam_rules(data):
+def reload_spam_rules():
 	"""
 	Send a message to the bot, to replace the spam rules.
 	"""
-	send_bot_command("modify_spam_rules", data)
+	send_bot_command("reload_spam_rules", None)
 
 def get_commands():
 	return send_bot_command("get_commands", None)
