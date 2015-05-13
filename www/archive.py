@@ -20,27 +20,13 @@ CACHE_TIMEOUT = 5*60
 BEFORE_BUFFER = datetime.timedelta(minutes=15)
 AFTER_BUFFER = datetime.timedelta(minutes=15)
 
+@utils.throttle(CACHE_TIMEOUT, params=[0, 1])
 def archive_feed_data(channel, broadcasts):
-	fn = "twitchcache_%s_%s.json" % (channel, broadcasts)
-
-	try:
-		fileage = time.time() - os.stat(fn).st_mtime
-	except IOError:
-		fileage = CACHE_TIMEOUT
-
-	if fileage < CACHE_TIMEOUT:
-		with open(fn, "rb") as fp:
-			data = fp.read().decode()
-	else:
-		url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.parse.quote(channel, safe=""), "true" if broadcasts else "false", 100)
-		fp = urllib.request.urlopen(url)
-		data = fp.read()
-		fp.close()
-		fd, tempname = tempfile.mkstemp(".json", "twitchcache-", dir=os.path.dirname(os.path.abspath(fn)))
-		with os.fdopen(fd, "wb") as fp:
-			fp.write(data)
-		os.replace(tempname, fn)
-		data = data.decode()
+	url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.parse.quote(channel, safe=""), "true" if broadcasts else "false", 100)
+	fp = urllib.request.urlopen(url)
+	data = fp.read()
+	fp.close()
+	data = data.decode()
 
 	# For broadcasts:
 	# {'videos': [{'_id': 'a508090853',
