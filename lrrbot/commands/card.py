@@ -20,12 +20,16 @@ def card_lookup(lrrbot, conn, event, respond_to, search):
 
 	Show the details of a given Magic: the Gathering card.
 	"""
-	search = search.split()
-	search = [clean_text(i) for i in search]
+	cleansearch = clean_text(search)
+	searchwords = search.split()
+	searchwords = [clean_text(i) for i in searchwords]
 
 	cards = []
 	for card in CARD_DATA:
-		if all(i in card[0] for i in search):
+		if card[0] == cleansearch:
+			cards = [card]
+			break
+		elif all(i in card[0] for i in searchwords):
 			cards.append(card)
 
 	if len(cards) == 0:
