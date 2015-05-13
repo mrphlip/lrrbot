@@ -12,6 +12,7 @@ import re
 import os.path
 import timelib
 import random
+import uuid
 
 import flask
 import irc.client
@@ -161,6 +162,15 @@ class throttle(object):
 		self.lastrun = {}
 		self.lastreturn = {}
 
+@throttle(params=[2], log=False)
+def mod_complaint(conn, event, command):
+	source = irc.client.NickMask(event.source)
+	if irc.client.is_channel(event.target):
+		respond_to = event.target
+	else:
+		respond_to = source.nick
+	conn.privmsg(respond_to, "%s: That is a mod-only command" % source.nick)
+
 def mod_only(func):
 	"""Prevent an event-handler function from being called by non-moderators
 
@@ -170,28 +180,27 @@ def mod_only(func):
 		...
 	"""
 
-	# Only complain about non-mods with throttle
-	# but allow the command itself to be run without throttling
-	@throttle()
-	def mod_complaint(conn, event):
-		source = irc.client.NickMask(event.source)
-		if irc.client.is_channel(event.target):
-			respond_to = event.target
-		else:
-			respond_to = source.nick
-		conn.privmsg(respond_to, "%s: That is a mod-only command" % source.nick)
-
+	command = uuid.uuid4().hex
 	@functools.wraps(func)
 	def wrapper(self, conn, event, *args, **kwargs):
 		if self.is_mod(event):
 			return func(self, conn, event, *args, **kwargs)
 		else:
 			log.info("Refusing %s due to not-a-mod" % func.__name__)
-			mod_complaint(conn, event)
+			mod_complaint(conn, event, command)
 			return None
 	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
 		"Mod-Only", "true"))
 	return wrapper
+
+@throttle(params=[2], log=False)
+def sub_complaint(conn, event, command):
+	source = irc.client.NickMask(event.source)
+	if irc.client.is_channel(event.target):
+		respond_to = event.target
+	else:
+		respond_to = source.nick
+	conn.privmsg(respond_to, "%s: That is a subscriber-only command" % source.nick)
 
 def sub_only(func):
 	"""Prevent an event-handler function from being called by non-subscribers
@@ -202,22 +211,14 @@ def sub_only(func):
 		...
 	"""
 
-	@throttle()
-	def sub_complaint(conn, event):
-		source = irc.client.NickMask(event.source)
-		if irc.client.is_channel(event.target):
-			respond_to = event.target
-		else:
-			respond_to = source.nick
-		conn.privmsg(respond_to, "%s: That is a subscriber-only command" % source.nick)
-
+	command = uuid.uuid4().hex
 	@functools.wraps(func)
 	def wrapper(self, conn, event, *args, **kwargs):
 		if self.is_sub(event) or self.is_mod(event):
 			return func(self, conn, event, *args, **kwargs)
 		else:
 			log.info("Refusing %s due to not-a-sub" % func.__name__)
-			sub_complaint(conn, event)
+			sub_complaint(conn, event, command)
 			return None
 	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
 		"Sub-Only", "true"))

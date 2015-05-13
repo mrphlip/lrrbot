@@ -45,10 +45,12 @@ def static_response(lrrbot, conn, event, respond_to, command):
 	response_data = storage.data["responses"][command.lower()]
 	if response_data["access"] == "sub":
 		if not lrrbot.is_sub(event) and not lrrbot.is_mod(event):
+			utils.sub_complaint(conn, event, command)
 			log.info("Refusing %s due to inadequate access" % command)
 			return
 	if response_data["access"] == "mod":
 		if not lrrbot.is_mod(event):
+			utils.mod_complaint(conn, event, command)
 			log.info("Refusing %s due to inadequate access" % command)
 			return
 	response = response_data["response"]
