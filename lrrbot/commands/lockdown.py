@@ -8,6 +8,7 @@ def mod_only(lrrbot, conn, event, respond_to, level):
 	"""
 	Command: !modonly
 	Command: !subonly
+	Section: misc
 
 	Ignore all subsequent commands from non-mods or non-subscribers.
 	"""
@@ -20,6 +21,7 @@ def mod_only_off(lrrbot, conn, event, respond_to):
 	"""
 	Command: !modonly off
 	Command: !subonly off
+	Section: misc
 
 	Disable lockdown.
 	"""

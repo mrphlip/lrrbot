@@ -13,6 +13,7 @@ def game_name(game):
 def current_game(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game
+	Section: info
 
 	Post the game currently being played.
 	"""
@@ -33,6 +34,7 @@ def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 	"""
 	Command: !game good
 	Command: !game bad
+	Section: info
 
 	Declare whether you believe this game is entertaining to watch
 	on-stream. Voting a second time replaces your existing vote. The
@@ -65,6 +67,7 @@ def vote_respond(lrrbot, conn, respond_to, game):
 def set_game_name(lrrbot, conn, event, respond_to, name):
 	"""
 	Command: !game display NAME
+	Section: info
 
 	eg. !game display Resident Evil: Man Fellating Giraffe
 
@@ -83,6 +86,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 def override_game(lrrbot, conn, event, respond_to, game):
 	"""
 	Command: !game override NAME
+	Section: info
 	
 	eg: !game override Prayer Warriors: A.O.F.G.
 	
@@ -90,6 +94,7 @@ def override_game(lrrbot, conn, event, respond_to, game):
 
 	--command
 	Command: !game override off
+	Section: info
 	
 	Disable override, go back to getting current game from Twitch stream settings.
 	Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.
@@ -115,6 +120,7 @@ def override_game(lrrbot, conn, event, respond_to, game):
 def refresh(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game refresh
+	Section: info
 
 	Force a refresh of the current Twitch game (normally this is updated at most once every 15 minutes)
 	"""
@@ -128,6 +134,7 @@ def refresh(lrrbot, conn, event, respond_to):
 def completed(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game completed
+	Section: info
 
 	Mark a game as having been completed.
 	"""

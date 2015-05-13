@@ -21,6 +21,7 @@ def test(lrrbot, conn, event, respond_to):
 def music(lrrbot, conn, event, respond_to):
 	"""
 	Command: !music
+	Section: misc
 	
 	Displays the string currently stored in Music: playing:
 	"""
@@ -31,6 +32,7 @@ def music(lrrbot, conn, event, respond_to):
 def music(lrrbot, conn, event, respond_to, name):
 	"""
 	Command: !music playing NAME
+	Section: misc
 	
 	Replaces current Music: playing: string with NAME
 	"""
@@ -44,6 +46,7 @@ def stormcount(lrrbot, conn, event, respond_to):
 	"""
 	Command: !storm
 	Command: !stormcount
+	Section: info
 
 	Show the current storm count (the number of viewers who have subscribed today)
 	"""
@@ -62,6 +65,7 @@ def spamcount(lrrbot, conn, event, respond_to):
 	"""
 	Command: !spam
 	Command: !spamcount
+	Section: misc
 
 	Show the number of users who have been automatically banned today for spamming
 	"""
@@ -87,6 +91,7 @@ def next(lrrbot, conn, event, respond_to, timezone):
 	Command: !nextstream
 	Command: !sched
 	Command: !schedule
+	Section: info
 
 	Gets the next scheduled stream from the LoadingReadyLive calendar
 
@@ -132,6 +137,7 @@ def nextfan(lrrbot, conn, event, respond_to, timezone):
 	Command: !nextfanstream
 	Command: !fansched
 	Command: !fanschedule
+	Section: info
 
 	Gets the next scheduled stream from the fan-streaming calendar
 	"""
@@ -142,6 +148,7 @@ def nextfan(lrrbot, conn, event, respond_to, timezone):
 def time(lrrbot, conn, event, respond_to):
 	"""
 	Command: !time
+	Section: misc
 
 	Post the current moonbase time.
 	"""
@@ -153,6 +160,7 @@ def time(lrrbot, conn, event, respond_to):
 def time24(lrrbot, conn, event, respond_to):
 	"""
 	Command: !time 24
+	Section: misc
 
 	Post the current moonbase time using a 24-hour clock.
 	"""
@@ -164,6 +172,7 @@ def time24(lrrbot, conn, event, respond_to):
 def viewers(lrrbot, conn, event, respond_to):
 	"""
 	Command: !viewers
+	Section: info
 
 	Post the number of viewers currently watching the stream
 	"""
@@ -194,6 +203,7 @@ def viewers(lrrbot, conn, event, respond_to):
 def uptime(lrrbot, conn, event, respond_to):
 	"""
 	Command: !uptime
+	Section: info
 
 	Post the duration the stream has been live.
 	"""

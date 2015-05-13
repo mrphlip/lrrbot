@@ -12,6 +12,7 @@ from lrrbot import bot, storage, twitch
 def highlight(lrrbot, conn, event, respond_to, description):
 	"""
 	Command: !highlight DESCRIPTION
+	Section: misc
 
 	For use when something particularly awesome happens onstream, adds an entry on the Highlight Reel spreadsheet: https://docs.google.com/spreadsheets/d/1yrf6d7dPyTiWksFkhISqEc-JR71dxZMkUoYrX4BR40Y
 

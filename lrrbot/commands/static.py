@@ -18,7 +18,7 @@ def generate_docstring():
 		for (response, access), command in inverse_responses.items():
 			fragment = ""
 			if isinstance(command, list):
-				for cmd in command:
+				for cmd in sorted(command):
 					fragment += "Command: %s%s\n" % (config["commandprefix"], cmd)
 			else:
 				fragment += "Command: %s%s\n" % (config["commandprefix"], cmd)
@@ -28,6 +28,7 @@ def generate_docstring():
 				fragment += "Sub-Only: true\n"
 			elif access == "mod":
 				fragment += "Mod-Only: true\n"
+			fragment += "Section: text\n"
 			fragment += "\n"
 			response = response if isinstance(response, str) else random.choice(response)
 			fragment += response + "\n"

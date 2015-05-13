@@ -29,6 +29,7 @@ def check_polls(lrrbot, conn):
 def polls(lrrbot, conn, event, respond_to):
 	"""
 	Command: !polls
+	Section: misc
 
 	List all currently active polls.
 	"""
@@ -47,6 +48,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	Command: !poll N http://strawpoll.me/ID
 	Command: !poll N TITLE: OPTION1; OPTION2
 	Command: !multipoll N TITLE: OPTION1; OPTION2
+	Section: misc
 
 	Start a new Strawpoll poll. Post results in N seconds. Multiple polls can be active at the
 	same time.

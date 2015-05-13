@@ -10,11 +10,13 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 	"""
 	Command: !explain TOPIC
 	Mod-Only: true
+	Section: text
 	
 	Provide an explanation for a given topic.
 	--command
 	Command: !explain show
 	Mod-Only: true
+	Section: text
 
 	Provide an explanation for the currently-live show.
 	"""

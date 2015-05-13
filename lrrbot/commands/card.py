@@ -17,6 +17,7 @@ with open("mtgcards.json") as fp:
 def card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	Command: !card card-name
+	Section: misc
 
 	Show the details of a given Magic: the Gathering card.
 	"""

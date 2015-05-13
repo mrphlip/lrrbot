@@ -71,6 +71,7 @@ def get_commands(lrrbot, user, data):
 				"sub-only": cmd.get("sub-only") == "true",
 				"throttled": bind(cmd.get("throttled"), int),
 				"literal-response": cmd.get("literal-response") == "true",
+				"section": cmd.get("section"),
 				"description": cmd.get_payload(),
 			}]
 	return ret

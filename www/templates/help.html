@@ -6,24 +6,24 @@
 function modonly()
 {
 	var show = document.getElementById("showmodonly").checked;
-	setmodonly(document.body, show ? "" : "none");
+	if (show)
+		$(".modonly").show();
+	else
+		$(".modonly").hide();
 }
-function setmodonly(node, display)
-{
-	if (node.className == "modonly")
-		node.style.display = display;
-	for(i in node.childNodes)
-		setmodonly(node.childNodes[i], display);
-}
-window.onload = modonly;
+$(modonly);
 </script>
 {%endblock%}
 {%block content%}
 <h2>Commands</h2>
 <p><label><input type="checkbox" id="showmodonly" onclick="modonly()" {% if session['header']['is_mod'] %}checked{% endif %}> Show mod-only commands</label></p>
-<h3>Information</h3>
-<dl>
-{% for command in commands %}
+{%for section in sections%}
+{%if commands[section] or section == "stats"%}
+<h3{%if commands[section] and commands[section]['mod-only']%} class="modonly"{%endif%}>{{sections[section]|e}}</h3>
+{%endif%}
+{%if commands[section]%}
+<dl{%if commands[section]['mod-only']%} class="modonly"{%endif%}>
+{% for command in commands[section]['list'] %}
     <dt{% if command["mod-only"] %} class="modonly"{% elif command["sub-only"] %} class="subonly"{% endif %}>{{ command["aliases"] | safe }}
     {% if command["throttled"] != None %}<span class="label timeout">&#x231B; {{ command["throttled"] }}</span>{% endif %}
     {% if command["sub-only"] %}<span class="label subonly">Sub only</span>{% endif %}
@@ -33,15 +33,18 @@ window.onload = modonly;
     {% endfor %}
 {% endfor %}
 </dl>
-<h3>Stats tracking</h3>
+{%endif%}
+{%if section == "stats"%}
 <p>The system can track several stats for each game. The stats available are:</p>
 <ul>
-	<li><code>death</code> &ndash; self-explanatory</li>
-	<li><code>diamond</code> &ndash; mostly for Minecraft</li>
-	<li><code>flunge</code> &ndash; mostly for Magic: the Gathering, whenever a strong offensive maneuver is made without thinking through the consequences</li>
-	<li><code>pardonfuck</code> &ndash; for when a game is ridiculously cheap and/or buggy</li>
-	<li><code>tilt</code> &ndash; when the host gets... upset... about a game</li>
+	<li><code>death</code> &ndash; the streamer dies ingame</li>
+	<li><code>diamond</code> &ndash; mostly for Minecraft, any time the streamer finds something extremely rare</li>
+	<li><code>flunge</code> &ndash; mostly for Magic: the Gathering, whenever a reckless attack is made without thinking through the consequences</li>
+	<li><code>pardonfuck</code> &ndash; something bizzare happens in the game</li>
+	<li><code>tilt</code> &ndash; when the host gets upset/angry at the game, especially to the point of nearly giving up on the game</li>
 	<li><code>scream</code> &ndash; when the host reacts loudly to a horror game</li>
+	<li><code>russell</code> &ndash; the atomsphere of a game is heigtened by the apparance of crows</li>
+	<li><code>pave</code> &ndash; the streamer purges old mistakes and starts anew</li>
 	<li><code>busstop</code> &ndash; you can't prove it won't happen</li>
 </ul>
 <dl>
@@ -64,4 +67,6 @@ window.onload = modonly;
 	<dd>eg: <code>!totaldeath</code></dd>
 	<dd>Post total count for every game</dd>
 </dl>
+{%endif%}
+{%endfor%}
 {%endblock%}

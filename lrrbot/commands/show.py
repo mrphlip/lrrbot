@@ -15,6 +15,7 @@ def show_name(show):
 def get_show(lrrbot, conn, event, respond_to):
 	"""
 	Command: !show
+	Section: info
 
 	Post the current show.
 	"""
@@ -30,10 +31,12 @@ def get_show(lrrbot, conn, event, respond_to):
 def show_override(lrrbot, conn, event, respond_to, show):
 	"""
 	Command: !show override ID
+	Section: info
 
 	Override the current show.
 	--command
 	Command: !show override off
+	Section: info
 
 	Disable the override.
 	"""

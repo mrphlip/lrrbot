@@ -30,11 +30,14 @@ import datetime
 @utils.with_postgres
 def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	"""
-	Command: !quote [ATTRIB]
+	Command: !quote
+	Command: !quote ATTRIB
+	Section: quotes
 	
 	Post a randomly selected quotation, optionally filtered by attribution.
 	--command
 	Command: !quote ID
+	Section: quotes
 	
 	Post the quotation with the specified ID.
 	"""
@@ -85,6 +88,7 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	Command: !addquote (NAME) QUOTE
 	Command: !addquote [DATE] QUOTE
 	Command: !addquote QUOTE
+	Section: quotes
 
 	 Add a quotation with optional attribution to the quotation database. 
 	"""
@@ -118,6 +122,7 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 	Command: !modquote QID (NAME) QUOTE
 	Command: !modquote QID [DATE] QUOTE
 	Command: !modquote QID QUOTE
+	Section: quotes
 
 	Modify an existing quotation with optional attribution. All fields are updated and/or deleted in case they're omitted. 
 	"""
@@ -148,6 +153,7 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 	"""
 	Command: !delquote QID
+	Section: quotes
 	
 	Remove the quotation with the specified ID from the quotation database. 
 	"""
