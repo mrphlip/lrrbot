@@ -48,13 +48,8 @@ def set_data(lrrbot, user, data):
 	storage.save()
 
 @bot.server_event()
-def modify_commands(lrrbot, user, data):
-	commands.static.modify_commands(data)
-	bot.compile()
-
-@bot.server_event()
-def modify_explanations(lrrbot, user, data):
-	commands.explain.modify_explanations(data)
+def reload_commands(lrrbot, user, data):
+	commands.static.reload_commands()
 	bot.compile()
 
 @bot.server_event()

@@ -4,14 +4,27 @@ from www import server
 from www import login
 from www import botinteract
 from www import history
+from common import utils
 
 @server.app.route('/commands')
 @login.require_mod
-def commands(session):
+@utils.with_postgres
+def commands(conn, cur, session):
 	mode = flask.request.values.get('mode', 'responses')
 	assert(mode in ('responses', 'explanations'))
 
-	data = botinteract.get_data(mode)
+	cur.execute("""
+		SELECT jsondata
+		FROM history
+		WHERE
+			historykey = (
+				SELECT MAX(historykey)
+				FROM history
+				WHERE
+					section = %s
+			)
+	""", (mode,))
+	data, = cur.fetchone()
 
 	# Prepare the data, and group equivalent commands together
 	data_reverse = {}
@@ -59,9 +72,8 @@ def commands_submit(session):
 			response_data['response'] = response_data['response'][0]
 		if response_data['access'] not in ('any', 'sub', 'mod'):
 			raise ValueError("Invalid access level")
-	if mode == 'responses':
-		botinteract.modify_commands(data)
-	elif mode == 'explanations':
-		botinteract.modify_explanations(data)
+	data = {command.lower(): response_data for command, response_data in data.items()}
 	history.store(mode, session['user'], data)
+	if mode == 'responses':
+		botinteract.reload_commands()
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())

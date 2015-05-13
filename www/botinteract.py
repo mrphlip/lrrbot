@@ -46,17 +46,11 @@ def set_data(key, value):
 		'value': value,
 	})
 
-def modify_commands(data):
+def reload_commands():
 	"""
 	Send a message to the bot, to replace the static command responses.
 	"""
-	send_bot_command("modify_commands", data)
-
-def modify_explanations(data):
-	"""
-	Send a message to the bot, to replace the explain responses.
-	"""
-	send_bot_command("modify_explanations", data)
+	send_bot_command("reload_commands", None)
 
 def modify_spam_rules(data):
 	"""
