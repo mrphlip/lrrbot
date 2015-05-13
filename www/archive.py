@@ -15,7 +15,7 @@ from www import server
 from www import login
 
 
-CACHE_TIMEOUT = 15*60
+CACHE_TIMEOUT = 5*60
 
 BEFORE_BUFFER = datetime.timedelta(minutes=15)
 AFTER_BUFFER = datetime.timedelta(minutes=15)
@@ -103,7 +103,7 @@ def chat_data(conn, cur, starttime, endtime, target="#loadingreadyrun"):
 	))
 	return [message for (message,) in cur]
 
-@utils.throttle(24*60*60, params=[0])
+@utils.throttle(CACHE_TIMEOUT, params=[0])
 def get_video_data(videoid):
 	try:
 		with contextlib.closing(urllib.request.urlopen("https://api.twitch.tv/kraken/videos/%s" % videoid)) as fp:
