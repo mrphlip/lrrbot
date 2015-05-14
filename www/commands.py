@@ -13,18 +13,7 @@ def commands(conn, cur, session):
 	mode = flask.request.values.get('mode', 'responses')
 	assert(mode in ('responses', 'explanations'))
 
-	cur.execute("""
-		SELECT jsondata
-		FROM history
-		WHERE
-			historykey = (
-				SELECT MAX(historykey)
-				FROM history
-				WHERE
-					section = %s
-			)
-	""", (mode,))
-	data, = cur.fetchone()
+	key, data = history.load(mode)
 
 	# Prepare the data, and group equivalent commands together
 	data_reverse = {}
@@ -41,15 +30,21 @@ def commands(conn, cur, session):
 	data = [(commands, response[0], response[1]) for response, commands in data_reverse.items()]
 	data.sort()
 
-	return flask.render_template("commands.html", commands=data, len=len, mode=mode, session=session)
+	return flask.render_template("commands.html", commands=data, len=len, mode=mode, session=session, key=key)
 
 @server.app.route('/commands/submit', methods=['POST'])
 @login.require_mod
-def commands_submit(session):
+@utils.with_postgres
+def commands_submit(conn, cur, session):
 	mode = flask.request.values.get('mode', 'responses')
 	assert(mode in ('responses', 'explanations'))
 	data = flask.json.loads(flask.request.values['data'])
+	key = flask.json.loads(flask.request.values['key'])
 	# Server-side sanity checking
+	
+	if history.load(mode)[0] != key:
+		return flask.json.jsonify(success='ERROR',
+			    message="Responses changed by somebody else. Reload and try again.")
 	for command, response_data in data.items():
 		if not isinstance(command, str):
 			raise ValueError("Key is not a string")
