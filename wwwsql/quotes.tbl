@@ -5,3 +5,4 @@ CREATE TABLE IF NOT EXISTS quotes (
     attrib_date DATE,
     deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
+CREATE INDEX quotes_fts_idx ON quotes USING GIN(TO_TSVECTOR('english', quote));

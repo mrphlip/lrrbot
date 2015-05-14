@@ -567,3 +567,19 @@ ol.quotes .attrib {
 ol.quotes .date {
 	font-size: 80%;
 }
+
+table.quote-search {
+	width: 100%
+}
+
+table.quote-search tr.submit {
+	width: 20%;
+}
+
+.quote-search .searchbar {
+	width: 80%;
+}
+
+table.quote-search input {
+	width: 100%
+}

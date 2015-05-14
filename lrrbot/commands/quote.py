@@ -54,23 +54,16 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 			WHERE NOT deleted
 		""", ()
 
-	cur.execute("""
-		SELECT COUNT(*)
-		FROM quotes
-		%s
-	""" % where, params)
-	quotecount = list(cur)[0][0]
-	if quotecount <= 0:
-		conn.privmsg(respond_to, "Could not find any matching quotes.")
-		return
-
-	cur.execute("""
+	row = utils.pick_random_row(cur, """
 		SELECT qid, quote, attrib_name, attrib_date
 		FROM quotes
 		%s
-		OFFSET %%s LIMIT 1
-	""" % where, params + (random.randrange(quotecount),))
-	((qid, quote, name, date),) = list(cur)
+	""" % where, params)
+	if row is None:
+		conn.privmsg(respond_to, "Could not find any matching quotes.")
+		return
+
+	qid, quote, name, date = row
 
 	quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
 	if name:
@@ -168,3 +161,31 @@ def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 		conn.privmsg(respond_to, "Marked quote #{qid} as deleted.".format(qid=qid))
 	else:
 		conn.privmsg(respond_to, "Could not find quote #{qid}.".format(qid=qid))
+
+@bot.command("findquote (.*)")
+@utils.throttle()
+@utils.with_postgres
+def findquote(pg_conn, cur, lrrbot, conn, event, respond_to, query):
+	"""
+	Command: !findquote QUERY
+	Section: quotes
+	
+	Search for a quote in the quote database.
+	"""
+
+	row = utils.pick_random_row(cur, """
+		SELECT qid, quote, attrib_name, attrib_date
+		FROM quotes
+		WHERE
+			TO_TSVECTOR('english', quote) @@ PLAINTO_TSQUERY('english', %s)
+			AND NOT deleted
+	""", (query, ))
+	if row is None:
+		return conn.privmsg(respond_to, "Could not find any matching quotes.")
+	qid, quote, name, date = row
+	quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
+	if name:
+		quote_msg += " —{name}".format(name=name)
+	if date:
+		quote_msg += " [{date!s}]".format(date=date)
+	conn.privmsg(respond_to, quote_msg)

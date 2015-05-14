@@ -3,6 +3,14 @@
 {%block header%}Quotes{%endblock%}
 {%block precontent%}
 <div class="quote-disclaimer">Please keep in mind that many of the following quotes are taken out of context, be it for comedic effect or out of necessity. Take all of them with a grain of salt and bear in mind they don't necessarily reflect their originators' views and opinions. That being said, if you find any quote to be particularly awful, please notify the moderator of your choice to have its removal evaluated.</div>
+<table class="quote-search">
+	<tr>
+		<form action="{{url_for('quote_search')}}">
+			<td class="searchbar"><input type="text" name="q" placeholder="Search..."{%if args['q'] is defined%} value="{{args['q']}}"{%endif%}></td>
+			<td class="submit"><input type="submit" value="Search"></td>
+		</form>
+	</tr>
+</table>
 {%endblock%}
 {%block pagecontent%}
 <ol class="quotes">

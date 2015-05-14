@@ -448,3 +448,14 @@ def strtodate(s):
 	if dt.time() != datetime.time(0):
 		dt = dt.astimezone(config.config['timezone'])
 	return dt.date()
+
+def pick_random_row(cur, query, params = ()):
+	" Return a random row of a SELECT query. "
+	# CSE - common subexpression elimination, an optimisation Postgres doesn't do
+	cur.execute("CREATE TEMP TABLE cse AS " + query, params)
+	if cur.rowcount <= 0:
+		return None
+	cur.execute("SELECT * FROM cse OFFSET %s LIMIT 1", (random.randrange(cur.rowcount), ))
+	row = cur.fetchone()
+	cur.execute("DROP TABLE cse")
+	return row
