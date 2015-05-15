@@ -97,14 +97,18 @@ class throttle(object):
 	watched parameters are the same are throttled together, but calls where they
 	are different are throttled separately. Should be a list of ints (for positional
 	parameters) and strings (for keyword parameters).
+
+	count allows the function to be called a given number of times during the period,
+	but no more.
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=False, params=[], log=True):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=False, params=[], log=True, count=1):
 		self.period = period
 		self.notify = notify
 		self.watchparams = params
 		self.lastrun = {}
 		self.lastreturn = {}
 		self.log = log
+		self.count = count
 
 	def watchedparams(self, args, kwargs):
 		params = []
@@ -122,10 +126,11 @@ class throttle(object):
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
 			params = self.watchedparams(args, kwargs)
-			if params not in self.lastrun or (self.period and time.time() - self.lastrun[params] >= self.period):
+			if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
 				self.lastreturn[params] = func(*args, **kwargs)
-				self.lastrun[params] = time.time()
-				return self.lastreturn[params]
+				self.lastrun.setdefault(params, []).append(time.time())
+				if len(self.lastrun[params]) > self.count:
+					self.lastrun[params] = self.lastrun[params][-self.count:]
 			else:
 				if self.log:
 					log.info("Skipping %s due to throttling" % func.__name__)
@@ -138,11 +143,11 @@ class throttle(object):
 					else:
 						respond_to = source.nick
 					conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
-				return self.lastreturn[params]
+			return self.lastreturn[params]
 		# Copy this method across so it can be accessed on the wrapped function
 		wrapper.reset_throttle = self.reset_throttle
-		wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
-			"Throttled", str(self.period)))
+		wrapper.__doc__ = encode_docstring(add_header(add_header(parse_docstring(wrapper.__doc__),
+			"Throttled", str(self.period)), "Throttle-Count", str(self.count)))
 		return wrapper
 
 	def reset_throttle(self):

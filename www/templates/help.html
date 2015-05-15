@@ -25,9 +25,12 @@ $(modonly);
 <dl{%if commands[section]['mod-only']%} class="modonly"{%endif%}>
 {% for command in commands[section]['list'] %}
     <dt{% if command["mod-only"] %} class="modonly"{% elif command["sub-only"] %} class="subonly"{% endif %}>{{ command["aliases"] | safe }}
-    {% if command["throttled"] != None %}<span class="label timeout">&#x231B; {{ command["throttled"] }}</span>{% endif %}
-    {% if command["sub-only"] %}<span class="label subonly">Sub only</span>{% endif %}
-    {% if command["mod-only"] %}<span class="label modonly">Mod only</span>{% endif %}
+    {% if command["throttled"] != None %}<span class="label timeout" title="This command can be used at most {{ command["throttled"][0] }} time{%if command["throttled"][0] != 1%}s{%endif%} every {{ command["throttled"][1] }} second{%if command["throttled"][1] != 1%}s{%endif%}">
+    	&#x231B; {%if command["throttled"][0] > 1%}{{ command["throttled"][0] }}/{%endif%}{{ command["throttled"][1] }}
+   	</span>{% endif %}
+    {% if command["sub-only"] %}<span class="label subonly" title="This command can only be used by subscribers to the channel">Sub only</span>{% endif %}
+    {% if command["mod-only"] %}<span class="label modonly" title="This command can only be used by moderators of the channel">Mod only</span>{% endif %}
+  	</dt>
     {% for paragraph in command["description"] %}
     <dd{% if command["mod-only"] %} class="modonly"{% elif command["sub-only"] %} class="subonly"{% endif %}>{% if command["literal-response"] %}<code>{% endif %}{{ paragraph | urlize }}{% if command["literal-response"] %}</code>{% endif %}</dd>
     {% endfor %}
@@ -48,22 +51,22 @@ $(modonly);
 	<li><code>busstop</code> &ndash; you can't prove it won't happen</li>
 </ul>
 <dl>
-    <dt><code>!</code><i>stat</i><span class="label timeout">&#x231B; 30</span></dt>
+    <dt><code>!</code><i>stat</i><span class="label timeout" title="This command can be used at most 1 time every 30 seconds">&#x231B; 30</span></dt>
 	<dd>eg: <code>!death</code></dd>
 	<dd>Adds 1 to the stat counter for the current game</dd>
-    <dt class="modonly"><code>!</code><i>stat</i><code> add </code><i>#</i><span class="label modonly">Mod only</span></dt>
+    <dt class="modonly"><code>!</code><i>stat</i><code> add </code><i>#</i><span class="label modonly" title="This command can only be used by moderators of the channel">Mod only</span></dt>
 	<dd class="modonly">eg: <code>!diamond add 3</code></dd>
 	<dd class="modonly">Adds # to counter for the current game</dd>
-    <dt class="modonly"><code>!</code><i>stat</i><code> remove </code><i>#</i><span class="label modonly">Mod only</span></dt>
+    <dt class="modonly"><code>!</code><i>stat</i><code> remove </code><i>#</i><span class="label modonly" title="This command can only be used by moderators of the channel">Mod only</span></dt>
 	<dd class="modonly">eg: <code>!flunge remove</code></dd>
 	<dd class="modonly">Removes # (default 1) from counter for the current game</dd>
-	<dt class="modonly"><code>!</code><i>stat</i><code> set </code><i>#</i><span class="label modonly">Mod only</span></dt>
+	<dt class="modonly"><code>!</code><i>stat</i><code> set </code><i>#</i><span class="label modonly" title="This command can only be used by moderators of the channel">Mod only</span></dt>
 	<dd class="modonly">eg: <code>!busstop set 0</code></dd>
 	<dd class="modonly">Resets the counter to the specified number for the current game</dd>
-	<dt><code>!</code><i>stat</i><code>Count</code><span class="label timeout">&#x231B; 15</span></dt>
+	<dt><code>!</code><i>stat</i><code>Count</code><span class="label timeout" title="This command can be used at most 1 time every 15 seconds">&#x231B; 15</span></dt>
 	<dd>eg: <code>!deathcount</code></dd>
 	<dd>Post total count for the current game</dd>
-    <dt><code>!total</code><i>stat</i><code></code><span class="label timeout">&#x231B; 15</span></dt>
+    <dt><code>!total</code><i>stat</i><code></code><span class="label timeout" title="This command can be used at most 1 time every 15 seconds">&#x231B; 15</span></dt>
 	<dd>eg: <code>!totaldeath</code></dd>
 	<dd>Post total count for every game</dd>
 </dl>

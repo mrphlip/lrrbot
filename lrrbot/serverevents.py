@@ -56,7 +56,6 @@ def modify_spam_rules(lrrbot, user, data):
 
 @bot.server_event()
 def get_commands(lrrbot, user, data):
-	bind = lambda maybe, f: f(maybe) if maybe is not None else None
 	ret = []
 	for command in lrrbot.commands.values():
 		doc = utils.parse_docstring(command['func'].__doc__)
@@ -69,7 +68,7 @@ def get_commands(lrrbot, user, data):
 				"aliases": cmd.get_all("command"),
 				"mod-only": cmd.get("mod-only") == "true",
 				"sub-only": cmd.get("sub-only") == "true",
-				"throttled": bind(cmd.get("throttled"), int),
+				"throttled": (int(cmd.get("throttle-count", 1)), int(cmd.get("throttled"))) if "throttled" in cmd else None,
 				"literal-response": cmd.get("literal-response") == "true",
 				"section": cmd.get("section"),
 				"description": cmd.get_payload(),
