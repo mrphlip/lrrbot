@@ -11,6 +11,7 @@ import datetime
 import re
 import os.path
 import timelib
+import random
 
 import flask
 import irc.client

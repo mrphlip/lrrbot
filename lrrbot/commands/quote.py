@@ -22,7 +22,6 @@
 
 from common import utils
 from lrrbot import bot
-import random
 import datetime
 
 @bot.command("quote(?: (?:(\d+)|(.+)))?")
