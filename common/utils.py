@@ -85,8 +85,8 @@ class throttle(object):
 	def func(...):
 		...
 
-	@throttle([period], notify=True)
-	def func(self, conn, event, ...):
+	@throttle([period], notify=True, modoverride=True)
+	def func(lrrbot, conn, event, ...):
 		...
 
 	When called within the throttle period, the last return value is returned,
@@ -101,9 +101,10 @@ class throttle(object):
 	count allows the function to be called a given number of times during the period,
 	but no more.
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=False, params=[], log=True, count=1):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=False, modoverride=False, params=[], log=True, count=1):
 		self.period = period
 		self.notify = notify
+		self.modoverride = modoverride
 		self.watchparams = params
 		self.lastrun = {}
 		self.lastreturn = {}
@@ -125,6 +126,12 @@ class throttle(object):
 	def __call__(self, func):
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
+			if self.modoverride:
+				lrrbot = args[0]
+				event = args[2]
+				if lrrbot.is_mod(event):
+					return func(*args, **kwargs)
+
 			params = self.watchedparams(args, kwargs)
 			if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
 				self.lastreturn[params] = func(*args, **kwargs)
