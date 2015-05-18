@@ -210,6 +210,8 @@ def get_twitch_emotes():
 	emotesets = {}
 	for emote in data:
 		regex = emote['regex']
+		if regex == r"\:-?[\\/]": # Don't match :/ inside URLs
+			regex = r"\:-?[\\/](?![\\/])"
 		regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
 		if re_just_words.match(regex):
 			regex = r"\b%s\b" % regex
