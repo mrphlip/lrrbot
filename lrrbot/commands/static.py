@@ -31,7 +31,7 @@ def generate_docstring():
 				fragment += "Mod-Only: true\n"
 			fragment += "Section: text\n"
 			fragment += "\n"
-			response = response if isinstance(response, str) else random.choice(response)
+			response = response if isinstance(response, str) else response[0]
 			fragment += response + "\n"
 			yield fragment
 	return "\n--command\n".join(generator())
