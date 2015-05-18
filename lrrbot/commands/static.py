@@ -22,7 +22,7 @@ def generate_docstring():
 					fragment += "Command: %s%s\n" % (config["commandprefix"], cmd)
 			else:
 				fragment += "Command: %s%s\n" % (config["commandprefix"], cmd)
-			fragment += "Throttled: 15\n"
+			fragment += "Throttled: 30\n"
 			fragment += "Throttle-Count: 2\n"
 			fragment += "Literal-Response: true\n"
 			if access == "sub":
@@ -39,7 +39,7 @@ def generate_docstring():
 def generate_expression():
 	return "(%s)" % "|".join(re.escape(c).replace("\\ ", " ") for c in storage.data["responses"])
 
-@utils.throttle(15, params=[4], count=2, modoverride=True)
+@utils.throttle(30, params=[4], count=2, modoverride=True)
 def static_response(lrrbot, conn, event, respond_to, command):
 	command = " ".join(command.split())
 	response_data = storage.data["responses"][command.lower()]
