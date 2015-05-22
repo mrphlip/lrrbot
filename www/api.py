@@ -45,3 +45,7 @@ def set_show(show):
 	if response["status"] == "OK":
 		return ""
 	return response["status"]
+
+@server.app.route("/api/show")
+def get_show():
+	return botinteract.get_show(show)
