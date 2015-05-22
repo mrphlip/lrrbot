@@ -41,7 +41,7 @@ def api_votes():
 def set_show(show):
 	if show == "off":
 		show = ""
-	response = botinteract.set_show(show)
+	response = botinteract.set_show()
 	if response["status"] == "OK":
 		return ""
 	return response["status"]
