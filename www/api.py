@@ -48,4 +48,4 @@ def set_show(show):
 
 @server.app.route("/api/show")
 def get_show():
-	return botinteract.get_show(show)
+	return botinteract.get_show()
