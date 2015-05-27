@@ -56,4 +56,4 @@ def get_show():
 
 @server.app.route("/api/tweet")
 def get_tweet():
-	return botinteract.get_tweet()
+	return botinteract.get_tweet() or "-"
