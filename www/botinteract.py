@@ -78,3 +78,6 @@ def set_show(show):
 
 def get_show():
 	return send_bot_command("get_show", None)
+
+def get_tweet():
+	return send_bot_command("get_tweet", None)

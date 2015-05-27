@@ -53,3 +53,7 @@ def get_game():
 @server.app.route("/api/show")
 def get_show():
 	return botinteract.get_show()
+
+@server.app.route("/api/tweet")
+def get_tweet():
+	return botinteract.get_tweet()

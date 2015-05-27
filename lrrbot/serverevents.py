@@ -138,3 +138,39 @@ def set_show(lrrbot, user, data):
 @bot.server_event()
 def get_show(lrrbot, user, data):
 	return lrrbot.show_override or lrrbot.show
+
+@bot.server_event()
+@utils.with_postgres
+def get_tweet(conn, cur, lrrbot, user, data):
+	if user is not None and lrrbot.is_mod_nick(user):
+		mode = random.random()
+		if mode < 0.6: # 60% chance to get random !advice
+			return random.choice(storage.data['responses']['advice']['response'])
+		elif mode < 0.9: # 30% chance to get a random !quote
+			row = utils.pick_random_row(cur, """
+				SELECT qid, quote, attrib_name, attrib_date
+				FROM quotes
+				WHERE NOT deleted
+			""")
+			if row is None:
+				return None
+
+			qid, quote, name, date = row
+
+			quote_msg = "\"{quote}\"".format(quote=quote)
+			if name:
+				quote_msg += " —{name}".format(name=name)
+			return quote_msg
+		else: # 10% chance to get a random statistic
+			show, game_id, stat = random.choice([
+				(show, game_id, stat)
+				for show in storage.data['shows']
+				for game_id in storage.data['shows'][show]['games']
+				for stat in storage.data['stats']
+				if storage.data['shows'][show]['games'][game_id]['stats'].get(stat)
+			])
+			game = storage.data['shows'][show]['games'][game_id]
+			count = game['stats'][stat]
+			display = storage.data['stats'][stat].get("singular", stat) if count == 1 else storage.data['stats'][stat].get("plural", stat + "s")
+			return "%d %s for %s on %s" % (count, display, commands.game.game_name(game), commands.show.show_name(show))
+	return None
