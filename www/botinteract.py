@@ -27,6 +27,9 @@ def send_bot_command(command, param, timeout=5, session=None):
 def get_current_game():
 	return send_bot_command("current_game", None)
 
+def get_current_game_name():
+	return send_bot_command("current_game_name", None)
+
 def get_data(key):
 	return send_bot_command("get_data", {
 		'key': key,

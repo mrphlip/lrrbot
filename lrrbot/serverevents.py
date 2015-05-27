@@ -14,6 +14,14 @@ def current_game(lrrbot, user, data):
 		return None
 
 @bot.server_event()
+def current_game_name(lrrbot, user, data):
+	game = lrrbot.get_current_game()
+	if game:
+		return game['name']
+	else:
+		return None
+
+@bot.server_event()
 def get_data(lrrbot, user, data):
 	if not isinstance(data['key'], (list, tuple)):
 		data['key'] = [data['key']]

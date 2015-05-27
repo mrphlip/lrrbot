@@ -46,6 +46,10 @@ def set_show(show):
 		return ""
 	return response["status"]
 
+@server.app.route("/api/game")
+def get_game():
+	return botinteract.get_current_game_name()
+
 @server.app.route("/api/show")
 def get_show():
 	return botinteract.get_show()
