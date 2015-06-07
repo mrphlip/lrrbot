@@ -1,5 +1,6 @@
 import random
 import re
+import math
 
 from common import utils
 from lrrbot import bot, log, googlecalendar, storage, commands
@@ -143,10 +144,10 @@ def get_show(lrrbot, user, data):
 @utils.with_postgres
 def get_tweet(conn, cur, lrrbot, user, data):
 	if user is not None and lrrbot.is_mod_nick(user):
-		mode = random.random()
-		if mode < 0.6: # 60% chance to get random !advice
+		mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
+		if mode == 0: # get random !advice
 			return random.choice(storage.data['responses']['advice']['response'])
-		elif mode < 0.9: # 30% chance to get a random !quote
+		elif mode == 1: # get a random !quote
 			row = utils.pick_random_row(cur, """
 				SELECT qid, quote, attrib_name, attrib_date
 				FROM quotes
@@ -161,14 +162,15 @@ def get_tweet(conn, cur, lrrbot, user, data):
 			if name:
 				quote_msg += " —{name}".format(name=name)
 			return quote_msg
-		else: # 10% chance to get a random statistic
-			show, game_id, stat = random.choice([
-				(show, game_id, stat)
+		else: # get a random statistic
+			show, game_id, stat = utils.weighted_choice(
+				((show, game_id, stat), math.log(count))
 				for show in storage.data['shows']
 				for game_id in storage.data['shows'][show]['games']
 				for stat in storage.data['stats']
-				if storage.data['shows'][show]['games'][game_id]['stats'].get(stat)
-			])
+				for count in [storage.data['shows'][show]['games'][game_id]['stats'].get(stat)]
+				if count
+			)
 			game = storage.data['shows'][show]['games'][game_id]
 			count = game['stats'][stat]
 			display = storage.data['stats'][stat].get("singular", stat) if count == 1 else storage.data['stats'][stat].get("plural", stat + "s")

@@ -472,3 +472,35 @@ def pick_random_row(cur, query, params = ()):
 	row = cur.fetchone()
 	cur.execute("DROP TABLE cse")
 	return row
+
+def weighted_choice(options):
+	"""
+	Weighted random selection. Call with a list of choices and their weights:
+	weighted_choice([
+		("foo", 2),
+		("bar", 1),
+	])
+	will return "foo" twice as often as "bar".
+
+	Also, unlike random.choice, this can accept a generator:
+	weighted_choice((i, len(i)) for i in lst)
+	"""
+	values = []
+	weights = [0.0]
+	total_weight = 0.0
+	for value, weight in options:
+		values.append(value)
+		total_weight += weight
+		weights.append(total_weight)
+	if total_weight <= 0:
+		raise ValueError("No options to choose")
+
+	choice = random.uniform(0, total_weight)
+	left, right = 0, len(weights)
+	while left < right - 1:
+		mid = (left + right) // 2
+		if choice < weights[mid]:
+			right = mid
+		else:
+			left = mid
+	return values[left]
