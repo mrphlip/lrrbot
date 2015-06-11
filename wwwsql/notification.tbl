@@ -5,6 +5,7 @@ CREATE TABLE notification (
 	subuser TEXT COLLATE "en_US.utf8",
 	useravatar TEXT COLLATE "en_US.utf8",
 	eventtime TIMESTAMP WITH TIME ZONE NULL,
-	monthcount INTEGER NULL
+	monthcount INTEGER NULL,
+	test BOOLEAN NOT NULL DEFAULT FALSE
 );
 CREATE INDEX notification_idx1 ON notification(eventtime DESC);
