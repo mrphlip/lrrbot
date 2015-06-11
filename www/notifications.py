@@ -66,7 +66,7 @@ def updates(conn, cur):
 @login.with_minimal_session
 @utils.with_postgres
 def new_message(conn, cur, session):
-	if session["user"] != config["username"]:
+	if not session["header"]["is_mod"]:
 		return flask.json.jsonify(error='apipass')
 	data = {
 		'message': flask.request.values['message'],
