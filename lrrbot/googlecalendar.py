@@ -133,7 +133,7 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 		if i == len(events) - 1 or ev['start'] != events[i+1]['start']:
 			if verbose:
 				if ev['location'] is not None:
-					title = "%(title)s (%(location)s\u200B)" % ev # U+200B is for zero-width space
+					title = "%(title)s (%(location)s)" % ev
 				else:
 					title = ev['title']
 				if ev['start'] < after:
