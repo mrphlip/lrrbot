@@ -71,7 +71,7 @@ def do_log_chat(conn, cur, time, event, metadata):
 		return
 
 	source = irc.client.NickMask(event.source).nick
-	cur.execute("INSERT INTO log (time, source, target, message, specialuser, usercolor, emoteset, messagehtml) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (
+	cur.execute("INSERT INTO log (time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname, messagehtml) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (
 		time,
 		source,
 		event.target,
@@ -79,7 +79,9 @@ def do_log_chat(conn, cur, time, event, metadata):
 		list(metadata.get('specialuser', [])),
 		metadata.get('usercolor'),
 		list(metadata.get('emoteset', [])),
-		build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', [])),
+		metadata.get('emotes'),
+		metadata.get('display-name'),
+		build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', []), metadata.get('emotes'), metadata.get('display-name')),
 	))
 
 @utils.swallow_errors
@@ -88,12 +90,12 @@ def do_clear_chat_log(conn, cur, time, nick):
 	"""
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
 	"""
-	cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset FROM log WHERE source=%s AND time>=%s", (
+	cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log WHERE source=%s AND time>=%s", (
 		nick,
 		time - PURGE_PERIOD,
 	))
 	rows = list(cur)
-	for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(rows):
+	for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(rows):
 		specialuser = set(specialuser) if specialuser else set()
 		emoteset = set(emoteset) if emoteset else set()
 
@@ -101,7 +103,7 @@ def do_clear_chat_log(conn, cur, time, nick):
 
 		cur.execute("UPDATE log SET specialuser=%s, messagehtml=%s WHERE id=%s", (
 			list(specialuser),
-			build_message_html(time, source, target, message, specialuser, usercolor, emoteset),
+			build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname),
 			key,
 		))
 
@@ -115,14 +117,14 @@ def do_rebuild_all(conn, cur):
 	cur.execute("SELECT COUNT(*) FROM log")
 	for count, in cur:
 		pass
-	cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset FROM log")
-	for i, (key, time, source, target, message, specialuser, usercolor, emoteset) in enumerate(cur):
+	cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log")
+	for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(cur):
 		if i % 100 == 0:
 			print("\r%d/%d" % (i, count), end='')
 		specialuser = set(specialuser) if specialuser else set()
 		emoteset = set(emoteset) if emoteset else set()
 		cur.execute("UPDATE log SET messagehtml=%s WHERE id=%s", (
-			build_message_html(time, source, target, message, specialuser, usercolor, emoteset),
+			build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname),
 			key,
 		))
 	print("\r%d/%d" % (count, count))
@@ -142,7 +144,41 @@ def format_message(message, emotes):
 			ret += Markup(urlize(prefix).replace('<a ', '<a target="_blank" ')) + suffix
 	return ret
 
-def build_message_html(time, source, target, message, specialuser, usercolor, emoteset):
+def format_message_explicit_emotes(message, emotes, size="1.0"):
+	if not emotes:
+		return Markup(urlize(message).replace('<a ', '<a target="_blank" '))
+
+	# emotes format is
+	# <emoteid>:<start>-<end>[,<start>-<end>,...][/<emoteid>:<start>-<end>,.../...]
+	# eg:
+	# 123:0-2/456:3-6,7-10
+	# means that chars 0-2 (inclusive, 0-based) are emote 123,
+	# and chars 3-6 and 7-10 are two copies of emote 456
+	parsed_emotes = []
+	for emote in emotes.split('/'):
+		emoteid, positions = emote.split(':')
+		emoteid = int(emoteid)
+		for position in positions.split(','):
+			start, end = position.split('-')
+			start = int(start)
+			end = int(end) + 1 # make it left-inclusive, to be more consistent with how Python does things
+			parsed_emotes.append((start, end, emoteid))
+	parsed_emotes.sort(key=lambda x:x[0])
+
+	bits = []
+	prev = 0
+	for start, end, emoteid in parsed_emotes:
+		if prev < start:
+			bits.append(urlize(message[prev:start]).replace('<a ', '<a target="_blank" '))
+		url = escape("http://static-cdn.jtvnw.net/emoticons/v1/%d/%s" % (emoteid, size))
+		command = escape(message[start:end])
+		bits.append('<img src="%s" alt="%s" title="%s">' % (url, command, command))
+		prev = end
+	if prev < len(message):
+		bits.append(urlize(message[prev:]).replace('<a ', '<a target="_blank" '))
+	return Markup(''.join(bits))
+
+def build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname):
 	if source.lower() == config['notifyuser']:
 		return '<div class="notification line" data-timestamp="%d">%s</div>' % (time.timestamp(), escape(message))
 
@@ -169,7 +205,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	ret.append('<span class="nick"')
 	if usercolor:
 		ret.append(' style="color:%s"' % escape(usercolor))
-	ret.append('>%s</span>' % escape(get_display_name(source)))
+	ret.append('>%s</span>' % escape(displayname or get_display_name(source)))
 
 	if is_action:
 		ret.append(' <span class="action"')
@@ -184,6 +220,9 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 		# Use escape() rather than urlize() so as not to have live spam links
 		# either for users to accidentally click, or for Google to see
 		ret.append('<span class="message cleared">%s</span>' % escape(message))
+	elif emotes is not None:
+		messagehtml = format_message_explicit_emotes(message, emotes)
+		ret.append('<span class="message">%s</span>' % messagehtml)
 	else:
 		messagehtml = format_message(message, get_filtered_emotes(emoteset))
 		ret.append('<span class="message">%s</span>' % messagehtml)

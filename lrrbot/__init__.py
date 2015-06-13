@@ -57,6 +57,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.reactor.add_global_handler('privmsg', self.on_message)
 		self.reactor.add_global_handler('action', self.on_message_action)
 		self.reactor.add_global_handler('mode', self.on_mode)
+		self.reactor.add_global_handler('clearchat', self.on_clearchat)
 
 		# Commands
 		self.commands = {}
@@ -83,9 +84,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.mods = set(storage.data.get('mods', config['mods']))
 		self.subs = set(storage.data.get('subs', []))
-
-		self.metadata = {}
-		self.globalflags = {}
 
 	def start(self):
 		# Let us run on windows, without the socket
@@ -172,7 +170,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
-		self.twitchclient(conn, 3)
+		conn.cap("REQ", "twitch.tv/membership") # get join/part messages
+		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
+		conn.cap("REQ", "twitch.tv/commands") # get special commands
 		conn.join("#%s" % config['channel'])
 
 	def on_channel_join(self, conn, event):
@@ -201,18 +201,23 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_message(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		nick = source.nick.lower()
-		if (nick == config['metadatauser']):
-			self.on_metadata(conn, event)
-			return
-		# The flags in self.metadata are sent before every message, so pop those from
-		# the storage once we're done... the ones in self.globalflags, though, are sent
-		# just once when they join the channel, so need to keep those around.
-		metadata = self.metadata.pop(nick, {})
-		metadata.setdefault('specialuser', set()).update(self.globalflags.get(nick, []))
+
+		tags = dict((i['key'], i['value']) for i in event.tags)
+		metadata = {
+			'usercolor': tags.get('color'),
+			'emotes': tags.get('emotes'),
+			'display-name': tags.get('display-name') or nick,
+			'specialuser': set(),
+		}
+		if int(tags.get('subscriber', 0)):
+			metadata['specialuser'].add('subscriber')
+		if int(tags.get('turbo', 0)):
+			metadata['specialuser'].add('subscriber')
+		if tags.get('user-type'):
+			metadata['specialuser'].add(tags.get('user-type'))
 		if self.is_mod(event):
 			metadata['specialuser'].add('mod')
-		if config['debug']:
-			log.debug("Message metadata: %r" % metadata)
+		log.debug("Message metadata: %r", metadata)
 
 		chatlog.log_chat(event, metadata)
 		if not hasattr(conn.privmsg, "is_throttled"):
@@ -318,35 +323,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		storage.data['subs'] = list(self.subs)
 		storage.save()
 
-	def on_metadata(self, conn, event):
-		"""
-		Takes metadata messages from jtv and stores them for the following message they apply to.
-
-		Recognised flags in metadata dict:
-		{
-			'specialuser': set('subscriber', 'turbo'),
-			'usercolor': '#123456',
-			'emoteset': set(317, 4269), # 317 is is loadingreadyrun
-		}
-		"""
-		bits = event.arguments[0].split()
-		if bits[0] == "SPECIALUSER":
-			if irc.client.is_channel(event.target):
-				self.metadata.setdefault(bits[1], {}).setdefault('specialuser', set()).update(bits[2:])
-			else:
-				self.globalflags.setdefault(bits[1], set()).update(bits[2:])
-		elif bits[0] == "USERCOLOR":
-			self.metadata.setdefault(bits[1], {})['usercolor'] = bits[2]
-		elif bits[0] == "EMOTESET":
-			# bits[2] == "[123,456,789]"
-			emoteset = ''.join(bits[2:]).lstrip('[').rstrip(']').split(',')
-			self.metadata.setdefault(bits[1], {})['emoteset'] = set(int(i) for i in emoteset)
-		elif bits[0] == "CLEARCHAT":
-			# This message is both "CLEARCHAT" to clear the whole chat
-			# or "CLEARCHAT someuser" to purge a single user
-			if len(bits) >= 2:
-				chatlog.clear_chat_log(bits[1])
-
 	def check_subscriber(self, conn, nick, metadata):
 		"""
 		Whenever a user says something, update the subscriber list according to whether
@@ -361,6 +337,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.subs.add(nick)
 			storage.data['subs'] = list(self.subs)
 			storage.save()
+
+	@utils.swallow_errors
+	def on_clearchat(self, conn, event):
+		# This message is both "CLEARCHAT" to clear the whole chat
+		# or "CLEARCHAT :someuser" to purge a single user
+		if len(event.arguments) >= 1:
+			chatlog.clear_chat_log(event.arguments[0])
 
 	def on_mode(self, conn, event):
 		if irc.client.is_channel(event.target):
@@ -442,27 +425,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				storage.save()
 				return True
 		return False
-
-	def twitchclient(self, conn, level):
-		"""
-		Undocumented Twitch command that sets how TMI behaves in a variety of
-		interesting ways...
-
-		Options:
-		1 - The default. Behaves mostly like a real IRC server, with joins and parts
-		    (though on a delay) and the like. The jtv user tells you about staff
-		    members, but otherwise stays silent.
-		2 - Behaves like the previous version of the Twitch web chat. No joins or
-		    parts (there's a REST API call to get the current user list). The jtv user
-		    sends PMs before every single chat message, to say whether the chat user
-		    is a subscriber, what colour the user's name should be, and what channel
-		    emote sets the user has enabled.
-		3 - The same as 2, but the user "twitchnotify" also sends messages to the chat
-		    for notifications, currently only for new subscribers.
-
-		This may also have other effects... it is, after all, undocumented. Good luck!
-		"""
-		conn.send_raw("TWITCHCLIENT %d" % level)
 
 	@utils.swallow_errors
 	def on_server_event(self, conn):
