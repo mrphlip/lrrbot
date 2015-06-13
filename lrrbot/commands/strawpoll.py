@@ -76,3 +76,16 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	end = time.time() + int(timeout)
 	lrrbot.polls += [(end, title, poll_id, respond_to)]
 	conn.privmsg(respond_to, "New poll: %s (http://strawpoll.me/%s): %s from now" % (title, poll_id, utils.nice_duration(timeout, 1)))
+
+@bot.command("pollsclear")
+@utils.mod_only
+def clear_polls(lrrbot, conn, event, respond_to):
+	"""
+	Command: !pollsclear
+	Section: misc
+
+	Stop tracking all active polls. The poll will still exist on strawpoll, but the bot
+	will stop watching it for results.
+	"""
+	lrrbot.polls = []
+	conn.privmsg(respond_to, "No active polls.")
