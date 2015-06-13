@@ -90,6 +90,18 @@ img
 	display: none;
 }
 
+#resetscroll
+{
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	background: black;
+	color: white;
+	margin: 0 1em 0 0;
+	padding: 0.25em;
+	cursor: pointer;
+}
+
 /* These are ad-related divs that the twitch player creates, that are sometimes at the edge of view, and push out the scrollbars */
 #adaptvSpotDiv_1,
 #adaptvSpotDiv_2,

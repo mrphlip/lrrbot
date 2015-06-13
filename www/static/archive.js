@@ -21,6 +21,11 @@ $(function(){
 		$(this).hide().next(".message").show();
 	});
 
+	// Stop scrolling automatically if the user scrolls manually
+	$("#chat").parent().scroll(stopScrolling);
+	$("#resetscroll").click(startScrolling);
+	window.scrollenable = true;
+
 	// Prepare timestamp lookup table
 	window.chatlines = [];
 	$(".line").each(function(){
@@ -49,6 +54,9 @@ function getVideoTime() {
 }
 
 function doScroll() {
+	if (!window.scrollenable)
+		return;
+
 	var time = getVideoTime();
 	if (time < 0)
 		return
@@ -80,6 +88,7 @@ function scrollChatTo(time) {
 	} else {
 		line = $("#chatbottom");
 	}
+	window.autoscroll = true;
 	var chatPane = $("#chat").parent();
 	chatPane.scrollTop(chatPane.scrollTop() + line.position().top - chatPane.height());
 }
@@ -104,6 +113,21 @@ function onPlayerEvent(e) {
 			window.player.videoSeek(window.initial_time);
 		}
 	}
+}
+
+function stopScrolling() {
+	// don't trigger off our own scrolling
+	if (window.autoscroll) {
+		window.autoscroll = false;
+		return;
+	}
+	window.scrollenable = false;
+	$("#resetscroll").show();
+}
+function startScrolling() {
+	window.scrollenable = true;
+	$("#resetscroll").hide();
+	doScroll();
 }
 
 // This (currently, in the browsers I have tested it on) fools the Twitch player into thinking it's playing on the real Twitch site
