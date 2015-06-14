@@ -170,7 +170,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
-		conn.cap("REQ", "twitch.tv/membership") # get join/part messages
+		#conn.cap("REQ", "twitch.tv/membership") # get join/part messages
 		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
 		conn.cap("REQ", "twitch.tv/commands") # get special commands
 		conn.join("#%s" % config['channel'])
@@ -212,7 +212,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if int(tags.get('subscriber', 0)):
 			metadata['specialuser'].add('subscriber')
 		if int(tags.get('turbo', 0)):
-			metadata['specialuser'].add('subscriber')
+			metadata['specialuser'].add('turbo')
 		if tags.get('user-type'):
 			metadata['specialuser'].add(tags.get('user-type'))
 		if self.is_mod(event):
