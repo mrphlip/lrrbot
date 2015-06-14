@@ -7,6 +7,8 @@ CREATE TABLE log (
     messagehtml TEXT COLLATE "en_US.utf8" NOT NULL,
     specialuser TEXT[] COLLATE "en_US.utf8",
     usercolor TEXT COLLATE "en_US.utf8",
-    emoteset INTEGER[]
+    emoteset INTEGER[],
+    emotes TEXT,
+    displayname TEXT
 );
 CREATE INDEX log_idx1 ON log(time);
