@@ -116,7 +116,11 @@ def load_session(include_url=True, include_header=True):
 
 @server.app.route('/login')
 def login(return_to=None):
-	if 'code' not in flask.request.values:
+	if 'apipass' in flask.request.values:
+		session = load_session(include_url=False)
+		flask.session['user'] = session['user']
+		return flask.render_template("login_response.html", success=True, session=session)
+	elif 'code' not in flask.request.values:
 		if return_to is None:
 			return_to = flask.request.values.get('return_to')
 		flask.session['login_return_to'] = return_to
