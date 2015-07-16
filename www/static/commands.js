@@ -135,7 +135,7 @@ function save()
 	$.ajax({
 		'type': 'POST',
 		'url': "commands/submit",
-		'data': "data=" + encodeURIComponent(data) + "&mode=" + encodeURIComponent(mode) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
+		'data': "data=" + encodeURIComponent(data) + "&mode=" + encodeURIComponent(mode) + "&_csrf_token=" + encodeURIComponent(window.csrf_token) + "&key=" + window.command_key,
 		'dataType': 'json',
 		'async': true,
 		'cache': false,
@@ -169,14 +169,20 @@ function getAsJSON()
 function saveSuccess(data)
 {
 	window.csrf_token = data["csrf_token"];
+	window.command_key = data["new_key"];
 	$('div.loading').hide();
 	$('button.save').show();
 	alert("Saved");
 }
 
-function saveError()
+function saveError(data)
 {
 	$('div.loading').hide();
 	$('button.save').show();
-	alert("Error saving commands");
+	if (typeof data.responseJSON != "undefined") {
+		window.csrf_token = data.responseJSON["csrf_token"];
+		alert("Error saving commands: " + data.responseJSON["message"]);
+	} else {
+		alert("Error saving commands");
+	}
 }

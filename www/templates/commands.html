@@ -2,7 +2,10 @@
 {%block title%}{{mode|ucfirst|e}}{%endblock%}
 {%block header%}{{mode|ucfirst|e}}{%endblock%}
 {%block headextra%}
-<script type="text/javascript">window.csrf_token = {{csrf_token()|tojson}}</script>
+<script type="text/javascript">
+    window.csrf_token = {{csrf_token()|tojson}};
+    window.command_key = {{key|tojson}};
+</script>
 <script type="text/javascript" src="{{url_for('static', filename='commands.js')|e}}"></script>
 {%endblock%}
 {%block content%}
