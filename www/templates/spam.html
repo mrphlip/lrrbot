@@ -2,7 +2,10 @@
 {%block title%}Spam Rules{%endblock%}
 {%block header%}Spam Rules{%endblock%}
 {%block headextra%}
-<script type="text/javascript">window.csrf_token = {{csrf_token()|tojson}}</script>
+<script type="text/javascript">
+    window.csrf_token = {{csrf_token()|tojson}};
+    window.spam_key = {{key|tojson}};
+</script>
 <script type="text/javascript" src="{{url_for('static', filename='spam.js')|e}}"></script>
 {%endblock%}
 {%block content%}

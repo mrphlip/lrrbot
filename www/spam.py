@@ -14,7 +14,7 @@ import pytz
 @utils.with_postgres
 def spam(conn, cur, session):
 	cur.execute("""
-		SELECT jsondata
+		SELECT historykey, jsondata
 		FROM history
 		WHERE
 			historykey = (
@@ -24,8 +24,8 @@ def spam(conn, cur, session):
 					section = 'spam'
 			)
 	""")
-	data, = cur.fetchone()
-	return flask.render_template("spam.html", rules=data, session=session)
+	key, data = cur.fetchone()
+	return flask.render_template("spam.html", rules=data, session=session, key=key)
 
 def verify_rules(rules):
 	for ix, rule in enumerate(rules):
@@ -46,15 +46,17 @@ def verify_rules(rules):
 @login.require_mod
 def spam_submit(session):
 	data = flask.json.loads(flask.request.values['data'])
-
+	key = flask.json.loads(flask.request.values['key'])
+	if key != history.load("spam")[0]:
+		return flask.json.jsonify(error={"msg": "Spam rules changed by somebody else. Refresh and try again."}, csrf_token=server.app.csrf_token())
 	# Validation checks
 	error = verify_rules(data)
 	if error:
 		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
 
-	history.store("spam", session['user'], data)
+	key = history.store("spam", session['user'], data)
 	botinteract.reload_spam_rules()
-	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
+	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token(), new_key=key)
 
 def do_check(line, rules):
 	for rule in rules:

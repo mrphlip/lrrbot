@@ -80,7 +80,7 @@ function save()
 	$.ajax({
 		'type': 'POST',
 		'url': "spam/submit",
-		'data': "data=" + encodeURIComponent(data) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
+		'data': "data=" + encodeURIComponent(data) + "&_csrf_token=" + encodeURIComponent(window.csrf_token) + "&key=" + window.spam_key,
 		'dataType': 'json',
 		'async': true,
 		'cache': false,
@@ -123,6 +123,7 @@ function getAsJSON()
 function saveSuccess(data)
 {
 	window.csrf_token = data["csrf_token"];
+        window.spam_key = data["new_key"];
 	$('div.save.loading').hide();
 	$('button.save').show();
 	if (saveFailure(data))
