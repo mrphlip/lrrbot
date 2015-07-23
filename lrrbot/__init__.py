@@ -170,9 +170,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
-		#conn.cap("REQ", "twitch.tv/membership") # get join/part messages
 		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
-		#conn.cap("REQ", "twitch.tv/commands") # get special commands
+		conn.cap("REQ", "twitch.tv/commands") # get special commands
 		conn.join("#%s" % config['channel'])
 
 	def on_channel_join(self, conn, event):
