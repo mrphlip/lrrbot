@@ -1,4 +1,5 @@
 import json
+import random
 
 from common import utils
 from common.config import config
@@ -95,3 +96,32 @@ def get_subscribers(channel=None, count=5, offset=None, latest=True):
 		(sub['user']['display_name'], sub['user'].get('logo'), sub['created_at'])
 		for sub in subscriber_data['subscriptions']
 	]
+
+@utils.throttle(15*60)
+def get_group_servers():
+	"""
+	Get the secondary Twitch chat servers
+	"""
+	res = utils.http_request("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': storage.data['twitch_oauth'][config['username']]}, maxtries=1)
+	res = json.loads(res)
+	def parse_server(s):
+		if ':' in s:
+			bits = s.split(':')
+			return bits[0], int(bits[1])
+		else:
+			return s, 6667
+	servers = set(parse_server(s) for m in res['memberships'] for s in m['room']['servers'])
+	# each server appears in this multiple times with different ports... pick one port we prefer for each server
+	server_dict = {}
+	for host, port in servers:
+		server_dict.setdefault(host, set()).add(port)
+	def preferred_port(ports):
+		if 6667 in ports:
+			return 6667
+		elif ports - {80, 443}:
+			return random.choice(list(ports - {80, 443}))
+		else:
+			return random.choice(list(ports))
+	servers = [(host, preferred_port(ports)) for host,ports in server_dict.items()]
+	random.shuffle(servers)
+	return servers
