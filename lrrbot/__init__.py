@@ -18,7 +18,7 @@ import irc.modes
 
 from common import utils
 from common.config import config
-from lrrbot import chatlog, storage, twitch, twitchsubs
+from lrrbot import chatlog, storage, twitch, twitchsubs, whisper
 
 
 log = logging.getLogger('lrrbot')
@@ -40,6 +40,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			nickname=config['username'],
 			reconnection_interval=config['reconnecttime'],
 		)
+		self.current_connection = None
 
 		# Send a keep-alive message every minute, to catch network dropouts
 		# self.connection has a set_keepalive method, but it crashes
@@ -50,6 +51,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.reactor.execute_every(period=5, function=self.vote_respond)
 		self.reactor.execute_every(period=5, function=self.check_subscriber_list)
 
+		# create secondary connection
+		self.whisperconn = whisper.TwitchWhisper()
+
 		# IRC event handlers
 		self.reactor.add_global_handler('welcome', self.on_connect)
 		self.reactor.add_global_handler('join', self.on_channel_join)
@@ -58,6 +62,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.reactor.add_global_handler('action', self.on_message_action)
 		self.reactor.add_global_handler('mode', self.on_mode)
 		self.reactor.add_global_handler('clearchat', self.on_clearchat)
+		self.whisperconn.add_whisper_handler(self.on_whisper)
 
 		# Commands
 		self.commands = {}
@@ -104,14 +109,20 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.event_socket = None
 
 		self._connect()
+		self.whisperconn._connect()
 
 		# Don't fall over if the server sends something that's not real UTF-8
 		for conn in self.reactor.connections:
 			conn.buffer.errors = "replace"
+		for conn in self.whisperconn.reactor.connections:
+			conn.buffer.errors = "replace"
 
 		while True:
-			sockets = [conn.socket for conn in self.reactor.connections if conn and conn.socket]
-			sockets.append(self.event_socket)
+			conn_sockets = [conn.socket for conn in self.reactor.connections if conn and conn.socket]
+			whisperconn_sockets = [conn.socket for conn in self.whisperconn.reactor.connections if conn and conn.socket]
+			sockets = conn_sockets + whisperconn_sockets
+			if self.event_socket:
+				sockets.append(self.event_socket)
 			(i, o, e) = select.select(sockets, [], [], 0.2)
 			if self.event_socket in i:
 				try:
@@ -121,9 +132,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				else:
 					conn.setblocking(True) # docs say this "may" be necessary :-/
 					self.on_server_event(conn)
-			else:
-				self.reactor.process_data(i)
+			elif any(socket in conn_sockets for socket in i):
+				self.reactor.process_data([socket for socket in i if socket in conn_sockets])
+			elif any(socket in whisperconn_sockets for socket in i):
+				self.whisperconn.reactor.process_data([socket for socket in i if socket in whisperconn_sockets])
 			self.reactor.process_timeout()
+			self.whisperconn.reactor.process_timeout()
 
 	def add_command(self, pattern, function):
 		pattern = pattern.replace(" ", r"(?:\s+)")
@@ -173,6 +187,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
 		conn.cap("REQ", "twitch.tv/commands") # get special commands
 		conn.join("#%s" % config['channel'])
+		self.current_connection = conn
+		self.check_privmsg_wrapper(conn)
 
 	def on_channel_join(self, conn, event):
 		source = irc.client.NickMask(event.source)
@@ -187,46 +203,37 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		except irc.client.ServerNotConnectedError:
 			pass
 
-	def log_outgoing(self, func):
-		@functools.wraps(func, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_throttled",))
-		def wrapper(target, message):
-			username = config["username"]
-			chatlog.log_chat(irc.client.Event("pubmsg", username, target, [message]), SELF_METADATA)
-			return func(target, message)
-		wrapper.is_logged = True
-		return wrapper
-
 	@utils.swallow_errors
 	def on_message(self, conn, event):
+		self.check_privmsg_wrapper(conn)
+
 		source = irc.client.NickMask(event.source)
 		nick = source.nick.lower()
 
-		tags = dict((i['key'], i['value']) for i in event.tags)
-		metadata = {
-			'usercolor': tags.get('color'),
-			'emotes': tags.get('emotes'),
-			'display-name': tags.get('display-name') or nick,
-			'specialuser': set(),
-		}
-		if int(tags.get('subscriber', 0)):
-			metadata['specialuser'].add('subscriber')
-		if int(tags.get('turbo', 0)):
-			metadata['specialuser'].add('turbo')
-		if tags.get('user-type'):
-			metadata['specialuser'].add(tags.get('user-type'))
-		if self.is_mod(event):
-			metadata['specialuser'].add('mod')
-		log.debug("Message metadata: %r", metadata)
+		if event.type == "pubmsg":
+			tags = dict((i['key'], i['value']) for i in event.tags)
+			metadata = {
+				'usercolor': tags.get('color'),
+				'emotes': tags.get('emotes'),
+				'display-name': tags.get('display-name') or nick,
+				'specialuser': set(),
+			}
+			if int(tags.get('subscriber', 0)):
+				metadata['specialuser'].add('subscriber')
+			if int(tags.get('turbo', 0)):
+				metadata['specialuser'].add('turbo')
+			if tags.get('user-type'):
+				metadata['specialuser'].add(tags.get('user-type'))
+			if self.is_mod(event):
+				metadata['specialuser'].add('mod')
+			log.debug("Message metadata: %r", metadata)
+			chatlog.log_chat(event, metadata)
+			self.check_subscriber(conn, nick, metadata)
 
-		chatlog.log_chat(event, metadata)
-		if not hasattr(conn.privmsg, "is_throttled"):
-			conn.privmsg = utils.twitch_throttle()(conn.privmsg)
-		if not hasattr(conn.privmsg, "is_logged"):
-			conn.privmsg = self.log_outgoing(conn.privmsg)
 		source = irc.client.NickMask(event.source)
 		# If the message was sent to a channel, respond in the channel
 		# If it was sent via PM, respond via PM		
-		if irc.client.is_channel(event.target):
+		if event.type == "pubmsg":
 			respond_to = event.target
 		else:
 			respond_to = source.nick
@@ -236,7 +243,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		elif self.check_spam(conn, event, event.arguments[0]):
 			return
 		else:
-			self.check_subscriber(conn, nick, metadata)
 			if self.access == "mod" and not self.is_mod(event):
 				return
 			if self.access == "sub" and not self.is_mod(event) and not self.is_sub(event):
@@ -459,5 +465,33 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			if user.lower() not in self.lastsubs:
 				self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
+
+	def check_privmsg_wrapper(self, conn):
+		"""
+		Install a wrapper around privmsg that handles:
+		* Throttle messages sent so we don't get banned by Twitch
+		* Turn private messages into Twitch whispers
+		* Log public messages in the chat log
+		"""
+		if hasattr(conn.privmsg, "is_wrapped"):
+			return
+		original_privmsg = conn.privmsg
+		@functools.wraps(original_privmsg)
+		@utils.twitch_throttle()
+		def new_privmsg(target, text):
+			if irc.client.is_channel(target):
+				username = config["username"]
+				chatlog.log_chat(irc.client.Event("pubmsg", username, target, [text]), SELF_METADATA)
+				original_privmsg(target, text)
+			else:
+				self.whisperconn.whisper(target, text)
+		new_privmsg.is_wrapped = True
+		conn.privmsg = new_privmsg
+
+	def on_whisper(self, conn, event):
+		# Act like this is a private message
+		event.type = "privmsg"
+		event.target = config['username']
+		self.on_message(self.current_connection, event)
 
 bot = LRRBot()
