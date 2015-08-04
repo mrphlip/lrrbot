@@ -87,3 +87,7 @@ config.setdefault('twitch_clientsecret', '')
 
 # session_secret - Secret key for signing session cookies
 config.setdefault('session_secret', '')
+
+# whispers - boolean option, whether to connect to group chat server and respond to whispers
+config.setdefault('whispers', False)
+config['whispers'] = str(config['whispers']).lower() != 'false'

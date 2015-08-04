@@ -52,7 +52,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.reactor.execute_every(period=5, function=self.check_subscriber_list)
 
 		# create secondary connection
-		self.whisperconn = whisper.TwitchWhisper()
+		if config['whispers']:
+			self.whisperconn = whisper.TwitchWhisper()
+		else:
+			self.whisperconn = None
 
 		# IRC event handlers
 		self.reactor.add_global_handler('welcome', self.on_connect)
@@ -62,7 +65,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.reactor.add_global_handler('action', self.on_message_action)
 		self.reactor.add_global_handler('mode', self.on_mode)
 		self.reactor.add_global_handler('clearchat', self.on_clearchat)
-		self.whisperconn.add_whisper_handler(self.on_whisper)
+		if self.whisperconn:
+			self.whisperconn.add_whisper_handler(self.on_whisper)
 
 		# Commands
 		self.commands = {}
@@ -109,17 +113,22 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.event_socket = None
 
 		self._connect()
-		self.whisperconn._connect()
+		if self.whisperconn:
+			self.whisperconn._connect()
 
 		# Don't fall over if the server sends something that's not real UTF-8
 		for conn in self.reactor.connections:
 			conn.buffer.errors = "replace"
-		for conn in self.whisperconn.reactor.connections:
-			conn.buffer.errors = "replace"
+		if self.whisperconn:
+			for conn in self.whisperconn.reactor.connections:
+				conn.buffer.errors = "replace"
 
 		while True:
 			conn_sockets = [conn.socket for conn in self.reactor.connections if conn and conn.socket]
-			whisperconn_sockets = [conn.socket for conn in self.whisperconn.reactor.connections if conn and conn.socket]
+			if self.whisperconn:
+				whisperconn_sockets = [conn.socket for conn in self.whisperconn.reactor.connections if conn and conn.socket]
+			else:
+				whisperconn_sockets = []
 			sockets = conn_sockets + whisperconn_sockets
 			if self.event_socket:
 				sockets.append(self.event_socket)
@@ -137,7 +146,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			elif any(socket in whisperconn_sockets for socket in i):
 				self.whisperconn.reactor.process_data([socket for socket in i if socket in whisperconn_sockets])
 			self.reactor.process_timeout()
-			self.whisperconn.reactor.process_timeout()
+			if self.whisperconn:
+				self.whisperconn.reactor.process_timeout()
 
 	def add_command(self, pattern, function):
 		pattern = pattern.replace(" ", r"(?:\s+)")
@@ -483,8 +493,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				username = config["username"]
 				chatlog.log_chat(irc.client.Event("pubmsg", username, target, [text]), SELF_METADATA)
 				original_privmsg(target, text)
-			else:
+			elif self.whisperconn:
 				self.whisperconn.whisper(target, text)
+			else:
+				log.debug("Not sending private message to %s: %s", target, text)
 		new_privmsg.is_wrapped = True
 		conn.privmsg = new_privmsg
 
