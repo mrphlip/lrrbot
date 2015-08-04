@@ -97,7 +97,6 @@ def get_subscribers(channel=None, count=5, offset=None, latest=True):
 		for sub in subscriber_data['subscriptions']
 	]
 
-@utils.throttle(15*60)
 def get_group_servers():
 	"""
 	Get the secondary Twitch chat servers
