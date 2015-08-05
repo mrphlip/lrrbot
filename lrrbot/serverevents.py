@@ -77,6 +77,7 @@ def get_commands(lrrbot, user, data):
 				"aliases": cmd.get_all("command"),
 				"mod-only": cmd.get("mod-only") == "true",
 				"sub-only": cmd.get("sub-only") == "true",
+				"public-only": cmd.get("public-only") == "true",
 				"throttled": (int(cmd.get("throttle-count", 1)), int(cmd.get("throttled"))) if "throttled" in cmd else None,
 				"literal-response": cmd.get("literal-response") == "true",
 				"section": cmd.get("section"),

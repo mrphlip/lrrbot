@@ -28,6 +28,7 @@ $(modonly);
     {% if command["throttled"] != None %}<span class="label timeout" title="This command can be used at most {{ command["throttled"][0] }} time{%if command["throttled"][0] != 1%}s{%endif%} every {{ command["throttled"][1] }} second{%if command["throttled"][1] != 1%}s{%endif%}">
     	&#x231B; {%if command["throttled"][0] > 1%}{{ command["throttled"][0] }}/{%endif%}{{ command["throttled"][1] }}
    	</span>{% endif %}
+    {% if command["public-only"] %}<span class="label publiconly" title="This command cannot be used via whispers (private messaging)">Public only</span>{% endif %}
     {% if command["sub-only"] %}<span class="label subonly" title="This command can only be used by subscribers to the channel">Sub only</span>{% endif %}
     {% if command["mod-only"] %}<span class="label modonly" title="This command can only be used by moderators of the channel">Mod only</span>{% endif %}
   	</dt>
@@ -51,7 +52,7 @@ $(modonly);
 	<li><code>busstop</code> &ndash; you can't prove it won't happen</li>
 </ul>
 <dl>
-    <dt><code>!</code><i>stat</i><span class="label timeout" title="This command can be used at most 1 time every 30 seconds">&#x231B; 30</span></dt>
+    <dt><code>!</code><i>stat</i><span class="label timeout" title="This command can be used at most 1 time every 30 seconds">&#x231B; 30</span><span class="label publiconly" title="This command cannot be used via whispers (private messaging)">Public only</span></dt>
 	<dd>eg: <code>!death</code></dd>
 	<dd>Adds 1 to the stat counter for the current game</dd>
     <dt class="modonly"><code>!</code><i>stat</i><code> add </code><i>#</i><span class="label modonly" title="This command can only be used by moderators of the channel">Mod only</span></dt>
