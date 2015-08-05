@@ -77,6 +77,10 @@ shorten = getattr(textwrap, "shorten", shorten_fallback)
 
 DEFAULT_THROTTLE = 15
 
+SILENT = 0
+PRIVATE = 1
+PUBLIC = 2
+
 class throttle(object):
 	"""Prevent a function from being called more often than once per period
 
@@ -85,7 +89,7 @@ class throttle(object):
 	def func(...):
 		...
 
-	@throttle([period], notify=True, modoverride=True)
+	@throttle([period], notify=PUBLIC, modoverride=True)
 	def func(lrrbot, conn, event, ...):
 		...
 
@@ -101,7 +105,7 @@ class throttle(object):
 	count allows the function to be called a given number of times during the period,
 	but no more.
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=False, modoverride=False, params=[], log=True, count=1):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=SILENT, modoverride=False, params=[], log=True, count=1):
 		self.period = period
 		self.notify = notify
 		self.modoverride = modoverride
@@ -145,7 +149,7 @@ class throttle(object):
 					conn = args[1]
 					event = args[2]
 					source = irc.client.NickMask(event.source)
-					if irc.client.is_channel(event.target):
+					if irc.client.is_channel(event.target) and self.notify == PUBLIC:
 						respond_to = event.target
 					else:
 						respond_to = source.nick

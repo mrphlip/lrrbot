@@ -11,7 +11,7 @@ def show_name(show):
 	return storage.data.get("shows", {}).get(show, {}).get("name", show)
 
 @bot.command("show")
-@utils.throttle()
+@utils.throttle(notify=utils.PRIVATE)
 def get_show(lrrbot, conn, event, respond_to):
 	"""
 	Command: !show

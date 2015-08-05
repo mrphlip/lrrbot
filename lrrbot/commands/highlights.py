@@ -8,7 +8,7 @@ from lrrbot import bot, storage, twitch
 
 @bot.command("highlight (.*?)")
 @utils.sub_only
-@utils.throttle(60)
+@utils.throttle(60, notify=utils.PUBLIC)
 def highlight(lrrbot, conn, event, respond_to, description):
 	"""
 	Command: !highlight DESCRIPTION
