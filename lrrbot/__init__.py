@@ -93,6 +93,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.mods = set(storage.data.get('mods', config['mods']))
 		self.subs = set(storage.data.get('subs', []))
+		self.autostatus = set(storage.data.get('autostatus', []))
+
+		self.jointime = 0
 
 	def start(self):
 		# Let us run on windows, without the socket
@@ -194,9 +197,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
+		conn.cap("REQ", "twitch.tv/membership") # get join/part messages
 		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
 		conn.cap("REQ", "twitch.tv/commands") # get special commands
 		conn.join("#%s" % config['channel'])
+		self.jointime = time.time()
 		self.current_connection = conn
 		self.check_privmsg_wrapper(conn)
 
@@ -204,6 +209,17 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		source = irc.client.NickMask(event.source)
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
+			return
+
+		# When we join a channel, Twitch sends a list of who's in the channel as a
+		# batch of join messages, as much as a minute afterward...
+		# So we need to ignore joins that are received shortly after we join the
+		# channel, as they're probably not really people who just joined ... no need
+		# to spam everyone in the channel just cause we restarted the bot.
+		if time.time() - self.jointime > 75:
+			if source.nick.lower() in self.autostatus:
+				from lrrbot.commands.misc import send_status
+				send_status(self, conn, source.nick)
 
 	@utils.swallow_errors
 	def do_keepalive(self):
