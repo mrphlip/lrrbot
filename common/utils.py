@@ -89,7 +89,7 @@ class throttle(object):
 	def func(...):
 		...
 
-	@throttle([period], notify=PUBLIC, modoverride=True)
+	@throttle([period], notify=PUBLIC, modoverride=True, allowprivate=True)
 	def func(lrrbot, conn, event, ...):
 		...
 
@@ -105,7 +105,7 @@ class throttle(object):
 	count allows the function to be called a given number of times during the period,
 	but no more.
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=SILENT, modoverride=False, params=[], log=True, count=1):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False):
 		self.period = period
 		self.notify = notify
 		self.modoverride = modoverride
@@ -114,6 +114,7 @@ class throttle(object):
 		self.lastreturn = {}
 		self.log = log
 		self.count = count
+		self.allowprivate = allowprivate
 
 	def watchedparams(self, args, kwargs):
 		params = []
@@ -134,6 +135,10 @@ class throttle(object):
 				lrrbot = args[0]
 				event = args[2]
 				if lrrbot.is_mod(event):
+					return func(*args, **kwargs)
+			if self.allowprivate:
+				event = args[2]
+				if event.type == "privmsg":
 					return func(*args, **kwargs)
 
 			params = self.watchedparams(args, kwargs)
@@ -245,6 +250,25 @@ class twitch_throttle:
 				return f(*args, **kwargs)
 		wrapper.is_throttled = True
 		return wrapper
+
+def public_only(func):
+	"""Prevent an event-handler function form being called via private message
+
+	Usage:
+	@public_only
+	def on_event(self, conn, event, ...):
+		...
+	"""
+	@functools.wraps(func)
+	def wrapper(self, conn, event, *args, **kwargs):
+		if event.type == "pubmsg" or self.is_mod(event):
+			return func(self, conn, event, *args, **kwargs)
+		else:
+			source = irc.client.NickMask(event.source)
+			conn.privmsg(source.nick, "That command cannot be used via private message")
+	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
+		"Public-Only", "true"))
+	return wrapper
 
 def log_errors(func):
 	"""Log any errors thrown by a function"""

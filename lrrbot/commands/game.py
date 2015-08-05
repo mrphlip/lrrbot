@@ -9,7 +9,7 @@ def game_name(game):
 	return game.get("display", game["name"])
 
 @bot.command("game")
-@utils.throttle(notify=utils.PRIVATE)
+@utils.throttle(notify=utils.PRIVATE, allowprivate=True)
 def current_game(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game
