@@ -79,7 +79,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.polls = []
 		self.lastsubs = []
 
-		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
+		self.spam_rules = []
 		self.spammers = {}
 
 		self.mods = set(storage.data.get('mods', config['mods']))
@@ -134,6 +134,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	def remove_command(self, pattern):
 		del self.commands[pattern.replace(" ", r"(?:\s+)")]
+
+	def remove_handler(self, handler):
+		self.commands = {
+			pattern: data
+			for pattern, data in self.commands.items()
+			if data["func"] != handler
+		}
 
 	def command(self, pattern):
 		def wrapper(function):

@@ -4,14 +4,16 @@ from www import server
 from www import login
 from www import botinteract
 from www import history
+from common import utils
 
 @server.app.route('/commands')
 @login.require_mod
-def commands(session):
+@utils.with_postgres
+def commands(conn, cur, session):
 	mode = flask.request.values.get('mode', 'responses')
 	assert(mode in ('responses', 'explanations'))
 
-	data = botinteract.get_data(mode)
+	key, data = history.load(mode)
 
 	# Prepare the data, and group equivalent commands together
 	data_reverse = {}
@@ -28,40 +30,47 @@ def commands(session):
 	data = [(commands, response[0], response[1]) for response, commands in data_reverse.items()]
 	data.sort()
 
-	return flask.render_template("commands.html", commands=data, len=len, mode=mode, session=session)
+	return flask.render_template("commands.html", commands=data, len=len, mode=mode, session=session, key=key)
+
+def error(message):
+	return flask.json.jsonify(success="ERROR", message=message, csrf_token=server.app.csrf_token()), 400
 
 @server.app.route('/commands/submit', methods=['POST'])
 @login.require_mod
-def commands_submit(session):
+@utils.with_postgres
+def commands_submit(conn, cur, session):
 	mode = flask.request.values.get('mode', 'responses')
 	assert(mode in ('responses', 'explanations'))
 	data = flask.json.loads(flask.request.values['data'])
+	key = flask.json.loads(flask.request.values['key'])
 	# Server-side sanity checking
+	
+	if history.load(mode)[0] != key:
+		return error("Responses changed by somebody else. Refresh and try again.")
 	for command, response_data in data.items():
 		if not isinstance(command, str):
-			raise ValueError("Key is not a string")
+			return error("Key is not a string")
 		if command == '':
-			raise ValueError("Command is blank")
+			return error("Command is blank")
 		if not isinstance(response_data, dict):
-			raise ValueError("Response data is not a dict")
+			return error("Response data is not a dict")
 		if set(response_data.keys()) != set(('response', 'access')):
-			raise ValueError("Incorrect keys for response_data")
+			return error("Incorrect keys for response_data")
 		if not isinstance(response_data['response'], (tuple, list)):
 			response_data['response'] = [response_data['response']]
 		for response in response_data['response']:
 			if not isinstance(response, str):
-				raise ValueError("Value is not a string or list of strings")
+				return error("Value is not a string or list of strings")
 			if response == '':
-				raise ValueError("Response is blank")
+				return error("Response is blank")
 			if len(response) > 450:
-				raise ValueError("Response is too long")
+				return error("Response is too long")
 		if len(response_data['response']) == 1:
 			response_data['response'] = response_data['response'][0]
 		if response_data['access'] not in ('any', 'sub', 'mod'):
-			raise ValueError("Invalid access level")
+			return error("Invalid access level")
+	data = {command.lower(): response_data for command, response_data in data.items()}
+	key = history.store(mode, session['user'], data)
 	if mode == 'responses':
-		botinteract.modify_commands(data)
-	elif mode == 'explanations':
-		botinteract.modify_explanations(data)
-	history.store(mode, session['user'], data)
-	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
+		botinteract.reload_commands()
+	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token(), new_key=key)

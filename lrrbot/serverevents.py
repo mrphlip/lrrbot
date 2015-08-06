@@ -48,20 +48,26 @@ def set_data(lrrbot, user, data):
 	storage.save()
 
 @bot.server_event()
-def modify_commands(lrrbot, user, data):
-	commands.static.modify_commands(data)
+def reload_commands(lrrbot, user, data):
+	commands.static.reload_commands()
 	bot.compile()
 
 @bot.server_event()
-def modify_explanations(lrrbot, user, data):
-	commands.explain.modify_explanations(data)
-	bot.compile()
-
-@bot.server_event()
-def modify_spam_rules(lrrbot, user, data):
-	storage.data['spam_rules'] = data
-	storage.save()
-	lrrbot.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
+@utils.with_postgres
+def reload_spam_rules(conn, cur, lrrbot, user, data):
+	cur.execute("""
+		SELECT jsondata
+		FROM history
+		WHERE
+			historykey = (
+				SELECT MAX(historykey)
+				FROM history
+				WHERE
+					section = 'spam'
+			)
+	""")
+	lrrbot.spam_rules = [(re.compile(i['re']), i['message']) for i in cur.fetchone()[0]]
+reload_spam_rules(bot, None, None)
 
 @bot.server_event()
 def get_commands(lrrbot, user, data):

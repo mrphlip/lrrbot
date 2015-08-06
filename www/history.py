@@ -187,4 +187,21 @@ def store(conn, cur, section, user, jsondata):
 	cur.execute("""
 		INSERT INTO history(section, changetime, changeuser, jsondata)
 		VALUES (%s, CURRENT_TIMESTAMP, %s, %s)
+		RETURNING historykey
 	""", (section, user, Json(jsondata)))
+	return cur.fetchone()[0]
+
+@utils.with_postgres
+def load(conn, cur, section):
+	cur.execute("""
+		SELECT historykey, jsondata
+		FROM history
+		WHERE
+			historykey = (
+				SELECT MAX(historykey)
+				FROM history
+				WHERE
+					section = %s
+			)
+	""", (section,))
+	return cur.fetchone()
