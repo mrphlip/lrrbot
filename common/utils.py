@@ -252,7 +252,7 @@ class twitch_throttle:
 		return wrapper
 
 def public_only(func):
-	"""Prevent an event-handler function form being called via private message
+	"""Prevent an event-handler function from being called via private message
 
 	Usage:
 	@public_only
