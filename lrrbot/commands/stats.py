@@ -19,7 +19,7 @@ def stat_update(lrrbot, stat, n, set_=False):
 
 @bot.command("(%s)" % re_stats)
 @utils.public_only
-@utils.throttle(30, notify=utils.Visibility.PUBLIC, params=[4])
+@utils.throttle(30, notify=utils.Visibility.PUBLIC, params=[4], modoverride=False, allowprivate=False)
 def increment(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
 	if stat == "completed":
@@ -65,7 +65,7 @@ def stat_set(lrrbot, conn, event, respond_to, stat, n):
 	stat_print.__wrapped__(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s)count" % re_stats)
-@utils.throttle(params=[4], notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle(params=[4])
 def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=False):
 	stat = stat.lower()
 	if game is None:
@@ -84,7 +84,7 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 	conn.privmsg(respond_to, "%s%d %s for %s on %s" % (emote, count, display, game_name(game), show_name(show)))
 
 @bot.command("total(%s)s?" % re_stats)
-@utils.throttle(params=[4], notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle(params=[4])
 def printtotal(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
 	count = 0

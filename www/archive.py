@@ -20,7 +20,7 @@ CACHE_TIMEOUT = 5*60
 BEFORE_BUFFER = datetime.timedelta(minutes=15)
 AFTER_BUFFER = datetime.timedelta(minutes=15)
 
-@utils.throttle(CACHE_TIMEOUT, params=[0, 1])
+@utils.cache(CACHE_TIMEOUT, params=[0, 1])
 def archive_feed_data(channel, broadcasts):
 	url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.parse.quote(channel, safe=""), "true" if broadcasts else "false", 100)
 	fp = urllib.request.urlopen(url)
@@ -89,7 +89,7 @@ def chat_data(conn, cur, starttime, endtime, target="#loadingreadyrun"):
 	))
 	return [message for (message,) in cur]
 
-@utils.throttle(CACHE_TIMEOUT, params=[0])
+@utils.cache(CACHE_TIMEOUT, params=[0])
 def get_video_data(videoid):
 	try:
 		with contextlib.closing(urllib.request.urlopen("https://api.twitch.tv/kraken/videos/%s" % videoid)) as fp:

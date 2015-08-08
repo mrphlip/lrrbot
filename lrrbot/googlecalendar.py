@@ -22,7 +22,7 @@ DISPLAY_FORMAT = "%a %I:%M %p %Z"
 HISTORY_PERIOD = datetime.timedelta(hours=1) # How long ago can an event have started to count as "recent"?
 LOOKAHEAD_PERIOD = datetime.timedelta(hours=1) # How close together to events have to be to count as "the same time"?
 
-@utils.throttle(CACHE_EXPIRY, params=[0])
+@utils.cache(CACHE_EXPIRY, params=[0])
 def get_upcoming_events(calendar, after=None):
 	"""
 	Get the next several events from the calendar. Will include the currently-happening

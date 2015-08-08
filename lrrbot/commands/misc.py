@@ -19,7 +19,7 @@ def test(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Test")
 
 @bot.command("storm(?:count)?")
-@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle()
 def stormcount(lrrbot, conn, event, respond_to):
 	"""
 	Command: !storm
@@ -38,7 +38,7 @@ def stormcount(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Today's storm count: %d" % storage.data["storm"]["count"])
 	
 @bot.command("spam(?:count)?")
-@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle()
 def spamcount(lrrbot, conn, event, respond_to):
 	"""
 	Command: !spam
@@ -62,7 +62,7 @@ DESERTBUS_START = datetime.datetime.fromtimestamp(DESERTBUS_START, tz=pytz.utc)
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6) # Six days of plugs should be long enough
 
 @bot.command("(?:next(?:stream)?|sched(?:ule)?)( .*)?")
-@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle()
 def next(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !next
@@ -84,7 +84,7 @@ def next(lrrbot, conn, event, respond_to, timezone):
 		conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
 
 @bot.command("desert ?bus( .*)?")
-@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle()
 def desertbus(lrrbot, conn, event, respond_to, timezone):
 	if not timezone:
 		timezone = config['timezone']
@@ -108,7 +108,7 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 
 
 @bot.command("(?:nextfan(?:stream)?|fansched(?:ule)?)( .*)?")
-@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle()
 def nextfan(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !nextfan
@@ -122,7 +122,7 @@ def nextfan(lrrbot, conn, event, respond_to, timezone):
 	conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True))
 
 @bot.command("time")
-@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle()
 def time(lrrbot, conn, event, respond_to):
 	"""
 	Command: !time
@@ -134,7 +134,7 @@ def time(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
 	
 @bot.command("time 24")
-@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle()
 def time24(lrrbot, conn, event, respond_to):
 	"""
 	Command: !time 24
@@ -146,7 +146,7 @@ def time24(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%H:%M"))
 
 @bot.command("viewers")
-@utils.throttle(30, notify=utils.Visibility.PRIVATE, allowprivate=True) # longer cooldown as this involves 2 API calls
+@utils.throttle(30) # longer cooldown as this involves 2 API calls
 def viewers(lrrbot, conn, event, respond_to):
 	"""
 	Command: !viewers
@@ -189,7 +189,7 @@ def uptime_msg(stream_info=None):
 		return "The stream is not live."
 
 @bot.command("uptime")
-@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
+@utils.throttle()
 def uptime(lrrbot, conn, event, respond_to):
 	"""
 	Command: !uptime
@@ -199,7 +199,7 @@ def uptime(lrrbot, conn, event, respond_to):
 	"""
 	conn.privmsg(respond_to, uptime_msg())
 
-@utils.throttle(30, log=False) # We could easily be sending a bunch of these at once, and the info doesn't change often
+@utils.cache(30) # We could easily be sending a bunch of these at once, and the info doesn't change often
 def get_status_msg():
 	messages = []
 	stream_info = twitch.get_info()

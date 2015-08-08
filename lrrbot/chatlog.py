@@ -232,7 +232,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	ret.append('</div>')
 	return ''.join(ret)
 
-@utils.throttle(CACHE_EXPIRY, params=[0], log=False)
+@utils.cache(CACHE_EXPIRY, params=[0])
 def get_display_name(nick):
 	try:
 		data = utils.http_request("https://api.twitch.tv/kraken/users/%s" % nick)
@@ -242,7 +242,7 @@ def get_display_name(nick):
 		return nick
 
 re_just_words = re.compile("^\w+$")
-@utils.throttle(CACHE_EXPIRY, log=False)
+@utils.cache(CACHE_EXPIRY)
 def get_twitch_emotes():
 	data = utils.http_request("https://api.twitch.tv/kraken/chat/emoticons")
 	data = json.loads(data)['emoticons']
@@ -263,7 +263,7 @@ def get_twitch_emotes():
 			}
 	return emotesets
 
-@utils.throttle(CACHE_EXPIRY, log=False)
+@utils.cache(CACHE_EXPIRY)
 def get_twitch_emotes_undocumented():
 	# This endpoint is not documented, however `/chat/emoticons` might be deprecated soon.
 	data = utils.http_request("https://api.twitch.tv/kraken/chat/emoticon_images")

@@ -83,30 +83,8 @@ class Visibility(enum.Enum):
 	PRIVATE = 1
 	PUBLIC = 2
 
-class throttle(object):
-	"""Prevent a function from being called more often than once per period
-
-	Usage:
-	@throttle([period])
-	def func(...):
-		...
-
-	@throttle([period], notify=Visibility.PUBLIC, modoverride=True, allowprivate=True)
-	def func(lrrbot, conn, event, ...):
-		...
-
-	When called within the throttle period, the last return value is returned,
-	for memoisation. period can be set to None to never expire, allowing this to
-	be used as a basic memoisation decorator.
-
-	params is a list of parameters to consider as distinct, so calls where the
-	watched parameters are the same are throttled together, but calls where they
-	are different are throttled separately. Should be a list of ints (for positional
-	parameters) and strings (for keyword parameters).
-
-	count allows the function to be called a given number of times during the period,
-	but no more.
-	"""
+class _throttle_base(object):
+	"""Prevent a function from being called more often than once per period"""
 	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False):
 		self.period = period
 		self.notify = notify
@@ -172,6 +150,40 @@ class throttle(object):
 		self.lastrun = {}
 		self.lastreturn = {}
 
+class throttle(_throttle_base):
+	"""Prevent an event function from being called more often than once per period
+
+	Usage:
+	@throttle([period])
+	def func(lrrbot, conn, event, ...):
+		...
+
+	count allows the function to be called a given number of times during the period,
+	but no more.
+	"""
+	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.PRIVATE, modoverride=True, params=[], log=True, count=1, allowprivate=True):
+		super().__init__(period=period, notify=notify, modoverride=modoverride, params=params, log=log, count=count, allowprivate=allowprivate)
+
+class cache(_throttle_base):
+	"""Cache the results of a function for a given period
+
+	Usage:
+	@cache([period])
+	def func(...):
+		...
+
+	When called within the throttle period, the last return value is returned,
+	for memoisation. period can be set to None to never expire, allowing this to
+	be used as a basic memoisation decorator.
+
+	params is a list of parameters to consider as distinct, so calls where the
+	watched parameters are the same are throttled together, but calls where they
+	are different are throttled separately. Should be a list of ints (for positional
+	parameters) and strings (for keyword parameters).
+	"""
+	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1):
+		super().__init__(period=period, notify=Visibility.SILENT, modoverride=False, params=params, log=log, count=count, allowprivate=False)
+
 def mod_only(func):
 	"""Prevent an event-handler function from being called by non-moderators
 
@@ -183,8 +195,8 @@ def mod_only(func):
 
 	# Only complain about non-mods with throttle
 	# but allow the command itself to be run without throttling
-	@throttle()
-	def mod_complaint(conn, event):
+	@throttle(notify=Visibility.SILENT, modoverride=False)
+	def mod_complaint(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		if irc.client.is_channel(event.target):
 			respond_to = event.target
@@ -198,7 +210,7 @@ def mod_only(func):
 			return func(self, conn, event, *args, **kwargs)
 		else:
 			log.info("Refusing %s due to not-a-mod" % func.__name__)
-			mod_complaint(conn, event)
+			mod_complaint(self, conn, event)
 			return None
 	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
 		"Mod-Only", "true"))
@@ -213,8 +225,8 @@ def sub_only(func):
 		...
 	"""
 
-	@throttle()
-	def sub_complaint(conn, event):
+	@throttle(notify=Visibility.SILENT, modoverride=False)
+	def sub_complaint(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		if irc.client.is_channel(event.target):
 			respond_to = event.target
@@ -228,7 +240,7 @@ def sub_only(func):
 			return func(self, conn, event, *args, **kwargs)
 		else:
 			log.info("Refusing %s due to not-a-sub" % func.__name__)
-			sub_complaint(conn, event)
+			sub_complaint(self, conn, event)
 			return None
 	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
 		"Sub-Only", "true"))
