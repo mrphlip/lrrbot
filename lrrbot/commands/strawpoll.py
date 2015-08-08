@@ -25,7 +25,7 @@ def check_polls(lrrbot, conn):
 	lrrbot.polls = list(filter(lambda e: e[0] >= now, lrrbot.polls))
 
 @bot.command("polls")
-@utils.throttle(notify=utils.PRIVATE, allowprivate=True)
+@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
 def polls(lrrbot, conn, event, respond_to):
 	"""
 	Command: !polls

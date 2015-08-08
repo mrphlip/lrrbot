@@ -5,7 +5,7 @@ from lrrbot import bot, log, storage
 
 
 @bot.command("explain (.*?)")
-@utils.throttle(30, params=[4], count=2, notify=utils.PRIVATE, modoverride=True, allowprivate=True)
+@utils.throttle(30, params=[4], count=2, notify=utils.Visibility.PRIVATE, modoverride=True, allowprivate=True)
 def explain_response(lrrbot, conn, event, respond_to, command):
 	"""
 	Command: !explain TOPIC

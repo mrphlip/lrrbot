@@ -9,7 +9,7 @@ def game_name(game):
 	return game.get("display", game["name"])
 
 @bot.command("game")
-@utils.throttle(notify=utils.PRIVATE, allowprivate=True)
+@utils.throttle(notify=utils.Visibility.PRIVATE, allowprivate=True)
 def current_game(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game
@@ -130,7 +130,7 @@ def refresh(lrrbot, conn, event, respond_to):
 
 @bot.command("game completed")
 @utils.mod_only
-@utils.throttle(30, notify=utils.PUBLIC)
+@utils.throttle(30, notify=utils.Visibility.PUBLIC)
 def completed(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game completed

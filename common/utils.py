@@ -12,6 +12,7 @@ import re
 import os.path
 import timelib
 import random
+import enum
 
 import flask
 import irc.client
@@ -77,9 +78,10 @@ shorten = getattr(textwrap, "shorten", shorten_fallback)
 
 DEFAULT_THROTTLE = 15
 
-SILENT = 0
-PRIVATE = 1
-PUBLIC = 2
+class Visibility(enum.Enum):
+	SILENT = 0
+	PRIVATE = 1
+	PUBLIC = 2
 
 class throttle(object):
 	"""Prevent a function from being called more often than once per period
@@ -89,7 +91,7 @@ class throttle(object):
 	def func(...):
 		...
 
-	@throttle([period], notify=PUBLIC, modoverride=True, allowprivate=True)
+	@throttle([period], notify=Visibility.PUBLIC, modoverride=True, allowprivate=True)
 	def func(lrrbot, conn, event, ...):
 		...
 
@@ -105,7 +107,7 @@ class throttle(object):
 	count allows the function to be called a given number of times during the period,
 	but no more.
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False):
 		self.period = period
 		self.notify = notify
 		self.modoverride = modoverride
@@ -150,11 +152,11 @@ class throttle(object):
 			else:
 				if self.log:
 					log.info("Skipping %s due to throttling" % func.__name__)
-				if self.notify:
+				if self.notify is not Visibility.SILENT:
 					conn = args[1]
 					event = args[2]
 					source = irc.client.NickMask(event.source)
-					if irc.client.is_channel(event.target) and self.notify == PUBLIC:
+					if irc.client.is_channel(event.target) and self.notify is Visibility.PUBLIC:
 						respond_to = event.target
 					else:
 						respond_to = source.nick
