@@ -1,14 +1,15 @@
 import irc.bot, irc.client
 from common import utils
 from common.config import config
-from lrrbot import twitch, storage
+from lrrbot import twitch, storage, asyncreactor
 import logging
 import select
 
 log = logging.getLogger('whisper')
 
 class TwitchWhisper(irc.bot.SingleServerIRCBot):
-	def __init__(self):
+	def __init__(self, loop):
+		self.loop = loop
 		servers = [irc.bot.ServerSpec(
 			host=host,
 			port=port,
@@ -23,6 +24,9 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 
 		self.reactor.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
 		self.reactor.add_global_handler('welcome', self.on_connect)
+
+	def reactor_class(self):
+		return asyncreactor.AsyncReactor(self.loop)
 
 	@utils.swallow_errors
 	def do_keepalive(self):

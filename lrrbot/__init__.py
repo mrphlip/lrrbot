@@ -10,6 +10,7 @@ import socket
 import select
 import functools
 import queue
+import asyncio
 
 import dateutil.parser
 import irc.bot
@@ -18,7 +19,7 @@ import irc.modes
 
 from common import utils
 from common.config import config
-from lrrbot import chatlog, storage, twitch, twitchsubs, whisper
+from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor
 
 
 log = logging.getLogger('lrrbot')
@@ -28,7 +29,8 @@ SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', '
 class LRRBot(irc.bot.SingleServerIRCBot):
 	GAME_CHECK_INTERVAL = 5*60 # Only check the current game at most once every five minutes
 
-	def __init__(self):
+	def __init__(self, loop):
+		self.loop = loop
 		server = irc.bot.ServerSpec(
 			host=config['hostname'],
 			port=config['port'],
@@ -52,7 +54,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# create secondary connection
 		if config['whispers']:
-			self.whisperconn = whisper.TwitchWhisper()
+			self.whisperconn = whisper.TwitchWhisper(self.loop)
 		else:
 			self.whisperconn = None
 
@@ -94,9 +96,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.subs = set(storage.data.get('subs', []))
 		self.autostatus = set(storage.data.get('autostatus', []))
 
+	def reactor_class(self):
+		return asyncreactor.AsyncReactor(self.loop)
+
 	def start(self):
 		# Let us run on windows, without the socket
-		if hasattr(socket, 'AF_UNIX'):
+		if hasattr(self.loop, 'create_unix_server'):
 			# TODO: To be more robust, the code really should have a way to shut this socket down
 			# when the bot exits... currently, it's assuming that there'll only be one LRRBot
 			# instance, that lasts the life of the program... which is true for now...
@@ -105,12 +110,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			except OSError:
 				if os.path.exists(config['socket_filename']):
 					raise
-			self.event_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-			self.event_socket.bind(config['socket_filename'])
-			self.event_socket.listen(5)
-			self.event_socket.setblocking(False)
+			event_server = self.loop.create_unix_server(self.rpc_server, path=config['socket_filename'])
+			self.loop.run_until_complete(event_server)
 		else:
-			self.event_socket = None
+			event_server = None
 
 		self._connect()
 		if self.whisperconn:
@@ -121,28 +124,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if self.whisperconn:
 			self.whisperconn.connection.buffer.errors = "replace"
 
-		while True:
-			sockets = [self.connection.socket]
-			if self.whisperconn:
-				sockets.append(self.whisperconn.connection.socket)
-			if self.event_socket:
-				sockets.append(self.event_socket)
-			(i, o, e) = select.select(sockets, [], [], 0.2)
-			if self.event_socket in i:
-				try:
-					conn, addr = self.event_socket.accept()
-				except (OSError, socket.error):
-					pass
-				else:
-					conn.setblocking(True) # docs say this "may" be necessary :-/
-					self.on_server_event(conn)
-			elif self.connection.socket in i:
-				self.reactor.process_data([self.connection.socket])
-			elif self.whisperconn and self.whisperconn.connection.socket in i:
-				self.whisperconn.reactor.process_data([self.whisperconn.connection.socket])
-			self.reactor.process_timeout()
-			if self.whisperconn:
-				self.whisperconn.reactor.process_timeout()
+		try:
+			self.loop.run_forever()
+		finally:
+			if event_server:
+				event_server.close()
+			self.loop.close()
 
 	def add_command(self, pattern, function):
 		pattern = pattern.replace(" ", r"(?:\s+)")
@@ -439,19 +426,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				return True
 		return False
 
-	@utils.swallow_errors
-	def on_server_event(self, conn):
-		log.debug("Received event connection from server")
-		buf = b""
-		while b"\n" not in buf:
-			buf += conn.recv(1024)
-		data = json.loads(buf.decode())
-		log.info("Command from server (%s): %s(%r)" % (data['user'], data['command'], data['param']))
-		eventproc = self.server_events[data['command'].lower()]
-		ret = eventproc(self, data['user'], data['param'])
-		log.debug("Returning: %r" % ret)
-		conn.send((json.dumps(ret) + "\n").encode())
-		conn.close()
+	def rpc_server(self):
+		return RPCServer(self)
+
+	def on_server_event(self, request):
+		eventproc = self.server_events[request['command'].lower()]
+		return eventproc(self, request['user'], request['param'])
 
 	@utils.swallow_errors
 	def check_polls(self):
@@ -504,4 +484,26 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		event.target = config['username']
 		self.on_message(self.connection, event)
 
-bot = LRRBot()
+class RPCServer(asyncio.Protocol):
+	def __init__(self, lrrbot):
+		self.lrrbot = lrrbot
+		self.buffer = b""
+	def connection_made(self, transport):
+		self.transport = transport
+		log.debug("Received event connection from server")
+	def data_received(self, data):
+		self.buffer += data
+		if b"\n" in self.buffer:
+			request = json.loads(self.buffer.decode())
+			log.info("Command from server (%s): %s(%r)", request['user'], request['command'], request['param'])
+			try:
+				response = self.lrrbot.on_server_event(request)
+			except:
+				log.exception("Exception in on_server_response")
+			else:
+				log.debug("Returning: %r", response)
+				response = json.dumps(response).encode() + b"\n"
+				self.transport.write(response)
+			self.transport.close()
+
+bot = LRRBot(asyncio.get_event_loop())
