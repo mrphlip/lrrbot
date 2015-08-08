@@ -22,7 +22,6 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 		)
 
 		self.reactor.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
-		self.current_connection = None
 		self.reactor.add_global_handler('welcome', self.on_connect)
 
 	@utils.swallow_errors
@@ -38,11 +37,10 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 		log.info("Connected to group chat server")
 		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
 		conn.cap("REQ", "twitch.tv/commands") # get special commands
-		self.current_connection = conn
 
 	def add_whisper_handler(self, handler):
 		self.reactor.add_global_handler('whisper', handler)
 
 	def whisper(self, target, text):
-		if self.current_connection:
-			self.current_connection.privmsg("#jtv", "/w %s %s" % (target, text))
+		if self.connection:
+			self.connection.privmsg("#jtv", "/w %s %s" % (target, text))

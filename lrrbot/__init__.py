@@ -40,7 +40,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			nickname=config['username'],
 			reconnection_interval=config['reconnecttime'],
 		)
-		self.current_connection = None
 
 		# Send a keep-alive message every minute, to catch network dropouts
 		# self.connection has a set_keepalive method, but it crashes
@@ -120,19 +119,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.whisperconn._connect()
 
 		# Don't fall over if the server sends something that's not real UTF-8
-		for conn in self.reactor.connections:
-			conn.buffer.errors = "replace"
+		self.connection.buffer.errors = "replace"
 		if self.whisperconn:
-			for conn in self.whisperconn.reactor.connections:
-				conn.buffer.errors = "replace"
+			self.whisperconn.connection.buffer.errors = "replace"
 
 		while True:
-			conn_sockets = [conn.socket for conn in self.reactor.connections if conn and conn.socket]
+			sockets = [self.connection.socket]
 			if self.whisperconn:
-				whisperconn_sockets = [conn.socket for conn in self.whisperconn.reactor.connections if conn and conn.socket]
-			else:
-				whisperconn_sockets = []
-			sockets = conn_sockets + whisperconn_sockets
+				sockets.append(self.whisperconn.connection.socket)
 			if self.event_socket:
 				sockets.append(self.event_socket)
 			(i, o, e) = select.select(sockets, [], [], 0.2)
@@ -144,10 +138,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				else:
 					conn.setblocking(True) # docs say this "may" be necessary :-/
 					self.on_server_event(conn)
-			elif any(socket in conn_sockets for socket in i):
-				self.reactor.process_data([socket for socket in i if socket in conn_sockets])
-			elif any(socket in whisperconn_sockets for socket in i):
-				self.whisperconn.reactor.process_data([socket for socket in i if socket in whisperconn_sockets])
+			elif self.connection.socket in i:
+				self.reactor.process_data([self.connection.socket])
+			elif self.whisperconn and self.whisperconn.connection.socket in i:
+				self.whisperconn.reactor.process_data([self.whisperconn.connection.socket])
 			self.reactor.process_timeout()
 			if self.whisperconn:
 				self.whisperconn.reactor.process_timeout()
@@ -202,7 +196,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		conn.cap("REQ", "twitch.tv/commands") # get special commands
 		conn.join("#%s" % config['channel'])
 		self.jointime = time.time()
-		self.current_connection = conn
 		self.check_privmsg_wrapper(conn)
 
 	def on_channel_join(self, conn, event):
@@ -520,6 +513,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# Act like this is a private message
 		event.type = "privmsg"
 		event.target = config['username']
-		self.on_message(self.current_connection, event)
+		self.on_message(self.connection, event)
 
 bot = LRRBot()
