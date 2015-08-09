@@ -303,6 +303,22 @@ def swallow_errors(func):
 	def wrapper(*args, **kwargs):
 		try:
 			return func(*args, **kwargs)
+		except (KeyboardInterrupt, SystemExit):
+			raise
+		except:
+			log.exception("Exception in " + func.__name__)
+			return None
+	return wrapper
+
+def swallow_errors_coro(func):
+	"""Log and absorb any errors thrown by a function"""
+	@asyncio.coroutine
+	@functools.wraps(func)
+	def wrapper(*args, **kwargs):
+		try:
+			return (yield from func(*args, **kwargs))
+		except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
+			raise
 		except:
 			log.exception("Exception in " + func.__name__)
 			return None

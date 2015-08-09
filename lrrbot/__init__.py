@@ -50,7 +50,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.reactor.execute_every(period=5, function=self.check_polls)
 		self.reactor.execute_every(period=5, function=self.vote_respond)
-		self.reactor.execute_every(period=5, function=self.check_subscriber_list)
 
 		# create secondary connection
 		if config['whispers']:
@@ -115,6 +114,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			event_server = None
 
+		# Start twitch subscriber task
+		substask = asyncio.async(twitchsubs.watch_subs(self))
+
 		self._connect()
 		if self.whisperconn:
 			self.whisperconn._connect()
@@ -129,6 +131,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		finally:
 			if event_server:
 				event_server.close()
+			substask.cancel()
+			self.loop.run_until_complete(substask)
 			self.loop.close()
 
 	def add_command(self, pattern, function):
@@ -227,12 +231,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		source = irc.client.NickMask(event.source)
 		# If the message was sent to a channel, respond in the channel
-		# If it was sent via PM, respond via PM		
+		# If it was sent via PM, respond via PM
 		if event.type == "pubmsg":
 			respond_to = event.target
 		else:
 			respond_to = source.nick
-			
+
 		if (nick == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
 		elif self.check_spam(conn, event, event.arguments[0]):
@@ -304,7 +308,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		if monthcount is not None:
 			notifyparams['monthcount'] = monthcount
-			
+
 		# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
 		today = datetime.datetime.now(config['timezone']).date().toordinal()
 		if today != storage.data.get("storm",{}).get("date"):
@@ -445,14 +449,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			vote_respond(self, self.connection, *self.vote_update)
 
 	@utils.swallow_errors
-	def check_subscriber_list(self):
-		try:
-			user, logo, eventtime, channel = twitchsubs.new_subs.get_nowait()
-		except queue.Empty:
-			pass
-		else:
-			if user.lower() not in self.lastsubs:
-				self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
+	def on_api_subscriber(self, user, logo, eventtime, channel):
+		if user.lower() not in self.lastsubs:
+			self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
 
 	def check_privmsg_wrapper(self, conn):
 		"""

@@ -2,7 +2,7 @@
 
 import logging
 
-from lrrbot import bot, log, chatlog, twitchsubs
+from lrrbot import bot, log, chatlog
 from common.config import config
 
 
@@ -17,7 +17,6 @@ import lrrbot.serverevents
 bot.compile()
 
 chatlog.createthread()
-twitchsubs.createthread()
 
 try:
 	log.info("Bot startup")

@@ -1,5 +1,6 @@
 import json
 import random
+import asyncio
 
 from common import utils
 from common.config import config
@@ -76,6 +77,7 @@ def get_game_playing(username=None):
 		return get_game(name=channel_data['game'])
 	return None
 
+@asyncio.coroutine
 def get_subscribers(channel=None, count=5, offset=None, latest=True):
 	if channel is None:
 		channel = config['channel']
@@ -90,7 +92,7 @@ def get_subscribers(channel=None, count=5, offset=None, latest=True):
 	}
 	if offset is not None:
 		data['offset'] = offset
-	res = utils.http_request("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
+	res = yield from utils.http_request_coro("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
 	subscriber_data = json.loads(res)
 	return [
 		(sub['user']['display_name'], sub['user'].get('logo'), sub['created_at'])
