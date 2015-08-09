@@ -87,7 +87,7 @@ class Visibility(enum.Enum):
 
 class _throttle_base(object):
 	"""Prevent a function from being called more often than once per period"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False, coro=False):
 		self.period = period
 		self.notify = notify
 		self.modoverride = modoverride
@@ -97,6 +97,7 @@ class _throttle_base(object):
 		self.log = log
 		self.count = count
 		self.allowprivate = allowprivate
+		self.coro = coro
 
 	def watchedparams(self, args, kwargs):
 		params = []
@@ -111,21 +112,33 @@ class _throttle_base(object):
 		return tuple(params)
 
 	def __call__(self, func):
+		if self.coro:
+			coro_func = func
+		else:
+			# if the function we're wrapping isn't a coroutine, wrap it in one
+			# and then unwrap it when we're done
+			@asyncio.coroutine
+			@functools.wraps(func)
+			def coro_func(*args, **kwargs):
+				yield from ()
+				return func(*args, **kwargs)
+
+		@asyncio.coroutine
 		@functools.wraps(func)
-		def wrapper(*args, **kwargs):
+		def coro_wrapper(*args, **kwargs):
 			if self.modoverride:
 				lrrbot = args[0]
 				event = args[2]
 				if lrrbot.is_mod(event):
-					return func(*args, **kwargs)
+					return (yield from coro_func(*args, **kwargs))
 			if self.allowprivate:
 				event = args[2]
 				if event.type == "privmsg":
-					return func(*args, **kwargs)
+					return (yield from coro_func(*args, **kwargs))
 
 			params = self.watchedparams(args, kwargs)
 			if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
-				self.lastreturn[params] = func(*args, **kwargs)
+				self.lastreturn[params] = yield from coro_func(*args, **kwargs)
 				self.lastrun.setdefault(params, []).append(time.time())
 				if len(self.lastrun[params]) > self.count:
 					self.lastrun[params] = self.lastrun[params][-self.count:]
@@ -142,6 +155,19 @@ class _throttle_base(object):
 						respond_to = source.nick
 					conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
 			return self.lastreturn[params]
+
+		if self.coro:
+			wrapper = coro_wrapper
+		else:
+			@functools.wraps(func)
+			def wrapper(*args, **kwargs):
+				x = iter(coro_wrapper(*args, **kwargs))
+				try:
+					while True:
+						next(x)
+				except StopIteration as e:
+					return e.value
+
 		# Copy this method across so it can be accessed on the wrapped function
 		wrapper.reset_throttle = self.reset_throttle
 		wrapper.__doc__ = encode_docstring(add_header(add_header(parse_docstring(wrapper.__doc__),
@@ -163,8 +189,8 @@ class throttle(_throttle_base):
 	count allows the function to be called a given number of times during the period,
 	but no more.
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.PRIVATE, modoverride=True, params=[], log=True, count=1, allowprivate=True):
-		super().__init__(period=period, notify=notify, modoverride=modoverride, params=params, log=log, count=count, allowprivate=allowprivate)
+	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.PRIVATE, modoverride=True, params=[], log=True, count=1, allowprivate=True, coro=False):
+		super().__init__(period=period, notify=notify, modoverride=modoverride, params=params, log=log, count=count, allowprivate=allowprivate, coro=coro)
 
 class cache(_throttle_base):
 	"""Cache the results of a function for a given period
@@ -183,8 +209,8 @@ class cache(_throttle_base):
 	are different are throttled separately. Should be a list of ints (for positional
 	parameters) and strings (for keyword parameters).
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1):
-		super().__init__(period=period, notify=Visibility.SILENT, modoverride=False, params=params, log=log, count=count, allowprivate=False)
+	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1, coro=False):
+		super().__init__(period=period, notify=Visibility.SILENT, modoverride=False, params=params, log=log, count=count, allowprivate=False, coro=coro)
 
 def mod_only(func):
 	"""Prevent an event-handler function from being called by non-moderators
