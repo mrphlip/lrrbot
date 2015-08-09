@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-from lrrbot.chatlog import createthread, rebuild_all, exitthread
+from lrrbot.chatlog import run_task, rebuild_all, stop_task
+import asyncio
 
-createthread()
+loop = asyncio.get_event_loop()
+task = asyncio.async(run_task())
 rebuild_all()
-exitthread()
+stop_task()
+loop.run_until_complete(task)
+loop.close()

@@ -16,8 +16,6 @@ import lrrbot.commands
 import lrrbot.serverevents
 bot.compile()
 
-chatlog.createthread()
-
 try:
 	log.info("Bot startup")
 	bot.start()
@@ -26,4 +24,3 @@ except (KeyboardInterrupt, SystemExit):
 finally:
 	log.info("Bot shutdown")
 	logging.shutdown()
-	chatlog.exitthread()

@@ -496,13 +496,15 @@ def immutable(obj):
 		return obj
 
 
+def get_postgres():
+	return psycopg2.connect(config.config["postgres"])
+
 def with_postgres(func):
 	"""Decorator to pass a PostgreSQL connection and cursor to a function"""
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
-		with psycopg2.connect(config.config["postgres"]) as conn:
-			with conn.cursor() as cur:
-				return func(conn, cur, *args, **kwargs)
+		with get_postgres() as conn, conn.cursor() as cur:
+			return func(conn, cur, *args, **kwargs)
 	return wrapper
 
 

@@ -1,11 +1,11 @@
 import queue
-import threading
 import json
 import re
 import time
 import pytz
 import datetime
 import logging
+import asyncio
 
 import irc.client
 from jinja2.utils import Markup, escape, urlize
@@ -21,47 +21,41 @@ log = logging.getLogger('chatlog')
 CACHE_EXPIRY = 7*24*60*60
 PURGE_PERIOD = datetime.timedelta(minutes=5)
 
-queue = queue.Queue()
-thread = None
+queue = asyncio.Queue()
 
-# Chat-log handling functions live in their own thread, so that functions that take
-# a long time to run, like downloading the emote list, don't block the bot... but just
-# one thread, with a message queue, so that things still happen in the right order.
-def createthread():
-	global thread
-	thread = threading.Thread(target=run_thread, name="chatlog")
-	thread.start()
-
-def run_thread():
+# Chat-log handling functions live in an asyncio task, so that functions that take
+# a long time to run, like downloading the emote list, don't block the bot... but
+# one master task, with a message queue, so that things still happen in the right order.
+@asyncio.coroutine
+def run_task():
 	while True:
-		ev, params = queue.get()
+		ev, params = yield from queue.get()
 		if ev == "log_chat":
-			do_log_chat(*params)
+			yield from do_log_chat(*params)
 		elif ev == "clear_chat_log":
-			do_clear_chat_log(*params)
+			yield from do_clear_chat_log(*params)
 		elif ev == "rebuild_all":
-			do_rebuild_all()
+			yield from do_rebuild_all()
 		elif ev == "exit":
 			break
 
 
 def log_chat(event, metadata):
-	queue.put(("log_chat", (datetime.datetime.now(pytz.utc), event, metadata)))
+	queue.put_nowait(("log_chat", (datetime.datetime.now(pytz.utc), event, metadata)))
 
 def clear_chat_log(nick):
-	queue.put(("clear_chat_log", (datetime.datetime.now(pytz.utc), nick)))
+	queue.put_nowait(("clear_chat_log", (datetime.datetime.now(pytz.utc), nick)))
 
 def rebuild_all():
-	queue.put(("rebuild_all", ()))
+	queue.put_nowait(("rebuild_all", ()))
 
-def exitthread():
-	queue.put(("exit", ()))
-	thread.join()
+def stop_task():
+	queue.put_nowait(("exit", ()))
 
 
-@utils.swallow_errors
-@utils.with_postgres
-def do_log_chat(conn, cur, time, event, metadata):
+@utils.swallow_errors_coro
+@asyncio.coroutine
+def do_log_chat(time, event, metadata):
 	"""
 	Add a new message to the chat log.
 	"""
@@ -71,63 +65,68 @@ def do_log_chat(conn, cur, time, event, metadata):
 		return
 
 	source = irc.client.NickMask(event.source).nick
-	cur.execute("INSERT INTO log (time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname, messagehtml) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (
-		time,
-		source,
-		event.target,
-		event.arguments[0],
-		list(metadata.get('specialuser', [])),
-		metadata.get('usercolor'),
-		list(metadata.get('emoteset', [])),
-		metadata.get('emotes'),
-		metadata.get('display-name'),
-		build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', []), metadata.get('emotes'), metadata.get('display-name')),
-	))
+	html = yield from build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', []), metadata.get('emotes'), metadata.get('display-name'))
+	with utils.get_postgres() as conn, conn.cursor() as cur:
+		cur.execute("INSERT INTO log (time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname, messagehtml) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (
+			time,
+			source,
+			event.target,
+			event.arguments[0],
+			list(metadata.get('specialuser', [])),
+			metadata.get('usercolor'),
+			list(metadata.get('emoteset', [])),
+			metadata.get('emotes'),
+			metadata.get('display-name'),
+			html,
+		))
 
-@utils.swallow_errors
-@utils.with_postgres
-def do_clear_chat_log(conn, cur, time, nick):
+@utils.swallow_errors_coro
+@asyncio.coroutine
+def do_clear_chat_log(time, nick):
 	"""
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
 	"""
-	cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log WHERE source=%s AND time>=%s", (
-		nick,
-		time - PURGE_PERIOD,
-	))
-	rows = list(cur)
+	with utils.get_postgres() as conn, conn.cursor() as cur:
+		cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log WHERE source=%s AND time>=%s", (
+			nick,
+			time - PURGE_PERIOD,
+		))
+		rows = list(cur)
 	for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(rows):
 		specialuser = set(specialuser) if specialuser else set()
 		emoteset = set(emoteset) if emoteset else set()
 
 		specialuser.add("cleared")
 
-		cur.execute("UPDATE log SET specialuser=%s, messagehtml=%s WHERE id=%s", (
-			list(specialuser),
-			build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname),
-			key,
-		))
+		html = yield from build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
+		with utils.get_postgres() as conn, conn.cursor() as cur:
+			cur.execute("UPDATE log SET specialuser=%s, messagehtml=%s WHERE id=%s", (
+				list(specialuser),
+				html,
+				key,
+			))
 
-@utils.swallow_errors
-@utils.with_postgres
-def do_rebuild_all(conn, cur):
+@utils.swallow_errors_coro
+@asyncio.coroutine
+def do_rebuild_all():
 	"""
 	Rebuild all the message HTML blobs in the database.
 	"""
-	count = None
-	cur.execute("SELECT COUNT(*) FROM log")
-	for count, in cur:
-		pass
-	cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log")
-	for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(cur):
+	with utils.get_postgres() as conn, conn.cursor() as cur:
+		cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log")
+		rows = list(cur)
+	for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(rows):
 		if i % 100 == 0:
-			print("\r%d/%d" % (i, count), end='')
+			print("\r%d/%d" % (i, len(rows)), end='')
 		specialuser = set(specialuser) if specialuser else set()
 		emoteset = set(emoteset) if emoteset else set()
-		cur.execute("UPDATE log SET messagehtml=%s WHERE id=%s", (
-			build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname),
-			key,
-		))
-	print("\r%d/%d" % (count, count))
+		html = yield from build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
+		with utils.get_postgres() as conn, conn.cursor() as cur:
+			cur.execute("UPDATE log SET messagehtml=%s WHERE id=%s", (
+				html,
+				key,
+			))
+	print("\r%d/%d" % (len(rows), len(rows)))
 
 def format_message(message, emotes):
 	ret = ""
@@ -178,6 +177,7 @@ def format_message_explicit_emotes(message, emotes, size="1.0"):
 		bits.append(urlize(message[prev:]).replace('<a ', '<a target="_blank" '))
 	return Markup(''.join(bits))
 
+@asyncio.coroutine
 def build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname):
 	if source.lower() == config['notifyuser']:
 		return '<div class="notification line" data-timestamp="%d">%s</div>' % (time.timestamp(), escape(message))
@@ -205,7 +205,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	ret.append('<span class="nick"')
 	if usercolor:
 		ret.append(' style="color:%s"' % escape(usercolor))
-	ret.append('>%s</span>' % escape(displayname or get_display_name(source)))
+	ret.append('>%s</span>' % escape(displayname or (yield from get_display_name(source))))
 
 	if is_action:
 		ret.append(' <span class="action"')
@@ -224,7 +224,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 		messagehtml = format_message_explicit_emotes(message, emotes)
 		ret.append('<span class="message">%s</span>' % messagehtml)
 	else:
-		messagehtml = format_message(message, get_filtered_emotes(emoteset))
+		messagehtml = format_message(message, (yield from get_filtered_emotes(emoteset)))
 		ret.append('<span class="message">%s</span>' % messagehtml)
 
 	if is_action:
@@ -232,19 +232,21 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	ret.append('</div>')
 	return ''.join(ret)
 
-@utils.cache(CACHE_EXPIRY, params=[0])
+@utils.cache(CACHE_EXPIRY, params=[0], coro=True)
+@asyncio.coroutine
 def get_display_name(nick):
 	try:
-		data = utils.http_request("https://api.twitch.tv/kraken/users/%s" % nick)
+		data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/users/%s" % nick)
 		data = json.loads(data)
 		return data['display_name']
 	except:
 		return nick
 
 re_just_words = re.compile("^\w+$")
-@utils.cache(CACHE_EXPIRY)
+@utils.cache(CACHE_EXPIRY, coro=True)
+@asyncio.coroutine
 def get_twitch_emotes():
-	data = utils.http_request("https://api.twitch.tv/kraken/chat/emoticons")
+	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/chat/emoticons")
 	data = json.loads(data)['emoticons']
 	emotesets = {}
 	for emote in data:
@@ -263,10 +265,11 @@ def get_twitch_emotes():
 			}
 	return emotesets
 
-@utils.cache(CACHE_EXPIRY)
+@utils.cache(CACHE_EXPIRY, coro=True)
+@asyncio.coroutine
 def get_twitch_emotes_undocumented():
 	# This endpoint is not documented, however `/chat/emoticons` might be deprecated soon.
-	data = utils.http_request("https://api.twitch.tv/kraken/chat/emoticon_images")
+	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/chat/emoticon_images")
 	data = json.loads(data)["emoticons"]
 	emotesets = {}
 	for emote in data:
@@ -280,12 +283,13 @@ def get_twitch_emotes_undocumented():
 		}
 	return emotesets
 
+@asyncio.coroutine
 def get_filtered_emotes(setids):
 	try:
 		try:
-			emotesets = get_twitch_emotes()
+			emotesets = yield from get_twitch_emotes()
 		except:
-			emotesets = get_twitch_emotes_undocumented()
+			emotesets = yield from get_twitch_emotes_undocumented()
 		emotes = dict(emotesets[None])
 		for setid in setids:
 			emotes.update(emotesets.get(setid, {}))

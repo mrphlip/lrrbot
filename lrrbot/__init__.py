@@ -114,8 +114,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			event_server = None
 
-		# Start twitch subscriber task
+		# Start background tasks
 		substask = asyncio.async(twitchsubs.watch_subs(self))
+		chatlogtask = asyncio.async(chatlog.run_task())
 
 		self._connect()
 		if self.whisperconn:
@@ -129,10 +130,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		try:
 			self.loop.run_forever()
 		finally:
+			log.info("Bot shutting down...")
 			if event_server:
 				event_server.close()
 			substask.cancel()
-			self.loop.run_until_complete(substask)
+			chatlog.stop_task()
+			self.loop.run_until_complete(asyncio.wait([substask, chatlogtask]))
 			self.loop.close()
 
 	def add_command(self, pattern, function):

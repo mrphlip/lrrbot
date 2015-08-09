@@ -1,4 +1,3 @@
-import threading
 import time
 import logging
 import dateutil
