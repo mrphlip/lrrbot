@@ -13,6 +13,8 @@ import os.path
 import timelib
 import random
 import enum
+import asyncio
+import aiohttp
 
 import flask
 import irc.client
@@ -343,7 +345,32 @@ def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 			if firstex is None:
 				firstex = e
 			if maxtries > 0:
-				log.info("Downloading %s failed: %s, retrying..." % (url, e))
+				log.info("Downloading %s failed: %s: %s, retrying...", url, e.__class__.__name__, e)
+			else:
+				break
+	raise firstex
+
+@asyncio.coroutine
+def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5):
+	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
+	firstex = None
+	if method == 'GET':
+		params = data
+		data = None
+	else:
+		params = None
+	while True:
+		try:
+			res = yield from asyncio.wait_for(aiohttp.request(method, url, params=params, data=data, headers=headers), timeout)
+			if res.status // 100 != 2:
+				raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
+			return (yield from res.text())
+		except Exception as e:
+			maxtries -= 1
+			if firstex is None:
+				firstex = e
+			if maxtries > 0:
+				log.info("Downloading %s failed: %s: %s, retrying...", url, e.__class__.__name__, e)
 			else:
 				break
 	raise firstex
@@ -358,10 +385,27 @@ def api_request(uri, *args, **kwargs):
 		try:
 			res = json.loads(res)
 		except:
-			log.exception("Error parsing server response from %s: %s" % (uri, res))
+			log.exception("Error parsing server response from %s: %s", uri, res)
 		else:
 			if 'success' not in res:
 				log.error("Error at server in %s" % uri)
+			return res
+
+@asyncio.coroutine
+def api_request_coro(uri, *args, **kwargs):
+	try:
+		res = yield from http_request_coro(config.config['siteurl'] + uri, *args, **kwargs)
+	except:
+		log.exception("Error at server in %s" % uri)
+	else:
+		try:
+			res = json.loads(res)
+		except:
+			log.exception("Error parsing server response from %s: %s", uri, res)
+		else:
+			if 'success' not in res:
+				log.error("Error at server in %s" % uri)
+			return res
 
 def nice_duration(s, detail=1):
 	"""
