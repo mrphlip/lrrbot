@@ -1,5 +1,5 @@
 import random
-import re
+import regex
 import math
 
 from common import utils
@@ -61,7 +61,7 @@ def modify_explanations(lrrbot, user, data):
 def modify_spam_rules(lrrbot, user, data):
 	storage.data['spam_rules'] = data
 	storage.save()
-	lrrbot.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
+	lrrbot.spam_rules = [(regex.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 
 @bot.server_event()
 def get_commands(lrrbot, user, data):
