@@ -23,6 +23,7 @@
 from common import utils
 from lrrbot import bot
 import datetime
+import itertools
 
 @bot.command("quote(?: (?:(\d+)|(.+)))?")
 @utils.sub_only
@@ -72,19 +73,26 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 		quote_msg += " [{date!s}]".format(date=date)
 	conn.privmsg(respond_to, quote_msg)
 
-@bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
+re_name = "(?: \((.+?)\))?"
+re_date = "(?: \[(.+?)\])?"
+re_quote_text = " \"(.+)\""
+re_quote = "|".join(map("".join, itertools.permutations([re_name, re_date, re_quote_text])))
+
+@bot.command("addquote(?:%s)" % re_quote)
 @utils.mod_only
 @utils.with_postgres
-def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
+def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, *args):
 	"""
-	Command: !addquote (NAME) [DATE] QUOTE
-	Command: !addquote (NAME) QUOTE
-	Command: !addquote [DATE] QUOTE
-	Command: !addquote QUOTE
+	Command: !addquote (NAME) [DATE] "QUOTE"
+	Command: !addquote (NAME) "QUOTE"
+	Command: !addquote [DATE] "QUOTE"
+	Command: !addquote "QUOTE"
 	Section: quotes
 
-	 Add a quotation with optional attribution to the quotation database. 
+	Add a quotation with optional attribution to the quotation database.
+	Quote parts may be in any order.
 	"""
+	name, date, quote = utils.unscramble(args, 3)
 	if date:
 		try:
 			date = utils.strtodate(date)
@@ -106,19 +114,21 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 
 	conn.privmsg(respond_to, quote_msg)
 
-@bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
+@bot.command("modquote (\d+)(?:%s)")
 @utils.mod_only
 @utils.with_postgres
-def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quote):
+def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, *args):
 	"""
-	Command: !modquote QID (NAME) [DATE] QUOTE
-	Command: !modquote QID (NAME) QUOTE
-	Command: !modquote QID [DATE] QUOTE
-	Command: !modquote QID QUOTE
+	Command: !modquote QID (NAME) [DATE] "QUOTE"
+	Command: !modquote QID (NAME) "QUOTE"
+	Command: !modquote QID [DATE] "QUOTE"
+	Command: !modquote QID "QUOTE"
 	Section: quotes
 
-	Modify an existing quotation with optional attribution. All fields are updated and/or deleted in case they're omitted. 
+	Modify an existing quotation with optional attribution. All fields are updated and/or deleted in case they're omitted.
+	Quote parts may be in any order.
 	"""
+	name, date, quote = utils.unscramble(args, 3)
 	if date:
 		try:
 			date = utils.strtodate(date)

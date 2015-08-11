@@ -15,6 +15,7 @@ import random
 import enum
 import asyncio
 import aiohttp
+import itertools
 
 import flask
 import irc.client
@@ -664,3 +665,9 @@ def weighted_choice(options):
 		else:
 			left = mid
 	return values[left]
+
+def unscramble(groups, n):
+	for group, indices in zip(zip(*[iter(groups)]*n), itertools.permutations(range(n))):
+		if group != (None,) * n:
+			return [x for i, x in sorted(zip(indices, group))]
+	return [None,] * n
