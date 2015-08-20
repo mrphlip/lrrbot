@@ -135,7 +135,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				event_server.close()
 			substask.cancel()
 			chatlog.stop_task()
-			self.loop.run_until_complete(asyncio.wait([substask, chatlogtask]))
+			tasks_waiting = [substask, chatlogtask]
+			if self.whisperconn:
+				tasks_waiting.append(self.whisperconn.stop_task())
+			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
 			self.loop.close()
 
 	def add_command(self, pattern, function):
@@ -465,9 +468,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""
 		if hasattr(conn.privmsg, "is_wrapped"):
 			return
-		original_privmsg = conn.privmsg
+		original_privmsg = utils.twitch_throttle()(conn.privmsg)
 		@functools.wraps(original_privmsg)
-		@utils.twitch_throttle()
 		def new_privmsg(target, text):
 			if irc.client.is_channel(target):
 				username = config["username"]

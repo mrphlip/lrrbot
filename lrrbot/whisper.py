@@ -3,7 +3,7 @@ from common import utils
 from common.config import config
 from lrrbot import twitch, storage, asyncreactor
 import logging
-import select
+import asyncio
 
 log = logging.getLogger('whisper')
 
@@ -25,8 +25,15 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 		self.reactor.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
 		self.reactor.add_global_handler('welcome', self.on_connect)
 
+		self.message_queue = asyncio.Queue(loop=loop)
+		self.message_pump_task = asyncio.async(self.message_pump())
+
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)
+
+	def stop_task(self):
+		self.message_pump_task.cancel()
+		return self.message_pump_task
 
 	@utils.swallow_errors
 	def do_keepalive(self):
@@ -46,5 +53,15 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 		self.reactor.add_global_handler('whisper', handler)
 
 	def whisper(self, target, text):
-		if self.connection:
-			self.connection.privmsg("#jtv", "/w %s %s" % (target, text))
+		self.message_queue.put_nowait((target, text))
+
+	@asyncio.coroutine
+	def message_pump(self):
+		# Throttle outgoing messages so we only send 1.5 per second (90 per minute)
+		# The limits we know are roughly 3 per second or 100 per minute but allow
+		# some buffer area due to network lag
+		while True:
+			target, text = yield from self.message_queue.get()
+			if self.connection:
+				self.connection.privmsg("#jtv", "/w %s %s" % (target, text))
+			yield from asyncio.sleep(2/3)
