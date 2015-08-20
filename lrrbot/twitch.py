@@ -1,4 +1,6 @@
 import json
+import random
+import asyncio
 
 from common import utils
 from common.config import config
@@ -75,6 +77,7 @@ def get_game_playing(username=None):
 		return get_game(name=channel_data['game'])
 	return None
 
+@asyncio.coroutine
 def get_subscribers(channel=None, count=5, offset=None, latest=True):
 	if channel is None:
 		channel = config['channel']
@@ -89,9 +92,37 @@ def get_subscribers(channel=None, count=5, offset=None, latest=True):
 	}
 	if offset is not None:
 		data['offset'] = offset
-	res = utils.http_request("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
+	res = yield from utils.http_request_coro("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
 	subscriber_data = json.loads(res)
 	return [
 		(sub['user']['display_name'], sub['user'].get('logo'), sub['created_at'])
 		for sub in subscriber_data['subscriptions']
 	]
+
+def get_group_servers():
+	"""
+	Get the secondary Twitch chat servers
+	"""
+	res = utils.http_request("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': storage.data['twitch_oauth'][config['username']]}, maxtries=1)
+	res = json.loads(res)
+	def parse_server(s):
+		if ':' in s:
+			bits = s.split(':')
+			return bits[0], int(bits[1])
+		else:
+			return s, 6667
+	servers = set(parse_server(s) for m in res['memberships'] for s in m['room']['servers'])
+	# each server appears in this multiple times with different ports... pick one port we prefer for each server
+	server_dict = {}
+	for host, port in servers:
+		server_dict.setdefault(host, set()).add(port)
+	def preferred_port(ports):
+		if 6667 in ports:
+			return 6667
+		elif ports - {80, 443}:
+			return random.choice(list(ports - {80, 443}))
+		else:
+			return random.choice(list(ports))
+	servers = [(host, preferred_port(ports)) for host,ports in server_dict.items()]
+	random.shuffle(servers)
+	return servers

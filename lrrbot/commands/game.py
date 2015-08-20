@@ -52,7 +52,7 @@ def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 	lrrbot.vote_update = respond_to, game
 	vote_respond(lrrbot, conn, respond_to, game)
 
-@utils.throttle(60, log=False)
+@utils.cache(60)
 def vote_respond(lrrbot, conn, respond_to, game):
 	if game and game.get("votes"):
 		good = sum(game["votes"].values())
@@ -130,7 +130,7 @@ def refresh(lrrbot, conn, event, respond_to):
 
 @bot.command("game completed")
 @utils.mod_only
-@utils.throttle(30, notify=True)
+@utils.throttle(30, notify=utils.Visibility.PUBLIC, modoverride=False, allowprivate=False)
 def completed(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game completed

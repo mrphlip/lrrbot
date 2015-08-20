@@ -26,7 +26,7 @@ import datetime
 
 @bot.command("quote(?: (?:(\d+)|(.+)))?")
 @utils.sub_only
-@utils.throttle(60, count=2, modoverride=True)
+@utils.throttle(60, count=2)
 @utils.with_postgres
 def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	"""
@@ -164,7 +164,7 @@ def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 
 @bot.command("findquote (.*)")
 @utils.sub_only
-@utils.throttle(60, count=2, modoverride=True)
+@utils.throttle(60, count=2)
 @utils.with_postgres
 def findquote(pg_conn, cur, lrrbot, conn, event, respond_to, query):
 	"""

@@ -10,6 +10,7 @@ import socket
 import select
 import functools
 import queue
+import asyncio
 
 import dateutil.parser
 import irc.bot
@@ -18,7 +19,7 @@ import irc.modes
 
 from common import utils
 from common.config import config
-from lrrbot import chatlog, storage, twitch, twitchsubs
+from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor
 
 
 log = logging.getLogger('lrrbot')
@@ -28,7 +29,8 @@ SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', '
 class LRRBot(irc.bot.SingleServerIRCBot):
 	GAME_CHECK_INTERVAL = 5*60 # Only check the current game at most once every five minutes
 
-	def __init__(self):
+	def __init__(self, loop):
+		self.loop = loop
 		server = irc.bot.ServerSpec(
 			host=config['hostname'],
 			port=config['port'],
@@ -48,7 +50,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.reactor.execute_every(period=5, function=self.check_polls)
 		self.reactor.execute_every(period=5, function=self.vote_respond)
-		self.reactor.execute_every(period=5, function=self.check_subscriber_list)
+
+		# create secondary connection
+		if config['whispers']:
+			self.whisperconn = whisper.TwitchWhisper(self.loop)
+		else:
+			self.whisperconn = None
 
 		# IRC event handlers
 		self.reactor.add_global_handler('welcome', self.on_connect)
@@ -58,6 +65,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.reactor.add_global_handler('action', self.on_message_action)
 		self.reactor.add_global_handler('mode', self.on_mode)
 		self.reactor.add_global_handler('clearchat', self.on_clearchat)
+		if self.whisperconn:
+			self.whisperconn.add_whisper_handler(self.on_whisper)
 
 		# Commands
 		self.commands = {}
@@ -84,10 +93,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.mods = set(storage.data.get('mods', config['mods']))
 		self.subs = set(storage.data.get('subs', []))
+		self.autostatus = set(storage.data.get('autostatus', []))
+
+	def reactor_class(self):
+		return asyncreactor.AsyncReactor(self.loop)
 
 	def start(self):
 		# Let us run on windows, without the socket
-		if hasattr(socket, 'AF_UNIX'):
+		if hasattr(self.loop, 'create_unix_server'):
 			# TODO: To be more robust, the code really should have a way to shut this socket down
 			# when the bot exits... currently, it's assuming that there'll only be one LRRBot
 			# instance, that lasts the life of the program... which is true for now...
@@ -96,34 +109,37 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			except OSError:
 				if os.path.exists(config['socket_filename']):
 					raise
-			self.event_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-			self.event_socket.bind(config['socket_filename'])
-			self.event_socket.listen(5)
-			self.event_socket.setblocking(False)
+			event_server = self.loop.create_unix_server(self.rpc_server, path=config['socket_filename'])
+			self.loop.run_until_complete(event_server)
 		else:
-			self.event_socket = None
+			event_server = None
+
+		# Start background tasks
+		substask = asyncio.async(twitchsubs.watch_subs(self))
+		chatlogtask = asyncio.async(chatlog.run_task())
 
 		self._connect()
+		if self.whisperconn:
+			self.whisperconn._connect()
 
 		# Don't fall over if the server sends something that's not real UTF-8
-		for conn in self.reactor.connections:
-			conn.buffer.errors = "replace"
+		self.connection.buffer.errors = "replace"
+		if self.whisperconn:
+			self.whisperconn.connection.buffer.errors = "replace"
 
-		while True:
-			sockets = [conn.socket for conn in self.reactor.connections if conn and conn.socket]
-			sockets.append(self.event_socket)
-			(i, o, e) = select.select(sockets, [], [], 0.2)
-			if self.event_socket in i:
-				try:
-					conn, addr = self.event_socket.accept()
-				except (OSError, socket.error):
-					pass
-				else:
-					conn.setblocking(True) # docs say this "may" be necessary :-/
-					self.on_server_event(conn)
-			else:
-				self.reactor.process_data(i)
-			self.reactor.process_timeout()
+		try:
+			self.loop.run_forever()
+		finally:
+			log.info("Bot shutting down...")
+			if event_server:
+				event_server.close()
+			substask.cancel()
+			chatlog.stop_task()
+			tasks_waiting = [substask, chatlogtask]
+			if self.whisperconn:
+				tasks_waiting.append(self.whisperconn.stop_task())
+			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
+			self.loop.close()
 
 	def add_command(self, pattern, function):
 		pattern = pattern.replace(" ", r"(?:\s+)")
@@ -173,11 +189,16 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
 		conn.cap("REQ", "twitch.tv/commands") # get special commands
 		conn.join("#%s" % config['channel'])
+		conn.cap("REQ", "twitch.tv/membership") # get join/part messages - after we join, so we don't get a flood of them when we arrive
+		self.check_privmsg_wrapper(conn)
 
 	def on_channel_join(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
+		elif source.nick.lower() in self.autostatus:
+			from lrrbot.commands.misc import send_status
+			send_status(self, conn, source.nick)
 
 	@utils.swallow_errors
 	def do_keepalive(self):
@@ -187,56 +208,46 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		except irc.client.ServerNotConnectedError:
 			pass
 
-	def log_outgoing(self, func):
-		@functools.wraps(func, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_throttled",))
-		def wrapper(target, message):
-			username = config["username"]
-			chatlog.log_chat(irc.client.Event("pubmsg", username, target, [message]), SELF_METADATA)
-			return func(target, message)
-		wrapper.is_logged = True
-		return wrapper
-
 	@utils.swallow_errors
 	def on_message(self, conn, event):
+		self.check_privmsg_wrapper(conn)
+
 		source = irc.client.NickMask(event.source)
 		nick = source.nick.lower()
 
-		tags = dict((i['key'], i['value']) for i in event.tags)
-		metadata = {
-			'usercolor': tags.get('color'),
-			'emotes': tags.get('emotes'),
-			'display-name': tags.get('display-name') or nick,
-			'specialuser': set(),
-		}
-		if int(tags.get('subscriber', 0)):
-			metadata['specialuser'].add('subscriber')
-		if int(tags.get('turbo', 0)):
-			metadata['specialuser'].add('turbo')
-		if tags.get('user-type'):
-			metadata['specialuser'].add(tags.get('user-type'))
-		if self.is_mod(event):
-			metadata['specialuser'].add('mod')
-		log.debug("Message metadata: %r", metadata)
+		if event.type == "pubmsg":
+			tags = dict((i['key'], i['value']) for i in event.tags)
+			metadata = {
+				'usercolor': tags.get('color'),
+				'emotes': tags.get('emotes'),
+				'display-name': tags.get('display-name') or nick,
+				'specialuser': set(),
+			}
+			if int(tags.get('subscriber', 0)):
+				metadata['specialuser'].add('subscriber')
+			if int(tags.get('turbo', 0)):
+				metadata['specialuser'].add('turbo')
+			if tags.get('user-type'):
+				metadata['specialuser'].add(tags.get('user-type'))
+			if self.is_mod(event):
+				metadata['specialuser'].add('mod')
+			log.debug("Message metadata: %r", metadata)
+			chatlog.log_chat(event, metadata)
+			self.check_subscriber(conn, nick, metadata)
 
-		chatlog.log_chat(event, metadata)
-		if not hasattr(conn.privmsg, "is_throttled"):
-			conn.privmsg = utils.twitch_throttle()(conn.privmsg)
-		if not hasattr(conn.privmsg, "is_logged"):
-			conn.privmsg = self.log_outgoing(conn.privmsg)
 		source = irc.client.NickMask(event.source)
 		# If the message was sent to a channel, respond in the channel
-		# If it was sent via PM, respond via PM		
-		if irc.client.is_channel(event.target):
+		# If it was sent via PM, respond via PM
+		if event.type == "pubmsg":
 			respond_to = event.target
 		else:
 			respond_to = source.nick
-			
+
 		if (nick == config['notifyuser']):
 			self.on_notification(conn, event, respond_to)
 		elif self.check_spam(conn, event, event.arguments[0]):
 			return
 		else:
-			self.check_subscriber(conn, nick, metadata)
 			if self.access == "mod" and not self.is_mod(event):
 				return
 			if self.access == "sub" and not self.is_mod(event) and not self.is_sub(event):
@@ -303,7 +314,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		if monthcount is not None:
 			notifyparams['monthcount'] = monthcount
-			
+
 		# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
 		today = datetime.datetime.now(config['timezone']).date().toordinal()
 		if today != storage.data.get("storm",{}).get("date"):
@@ -366,7 +377,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			return storage.find_game(show, self.get_current_game_real(), readonly)
 
-	@utils.throttle(GAME_CHECK_INTERVAL, log=False)
+	@utils.cache(GAME_CHECK_INTERVAL)
 	def get_current_game_real(self):
 		return twitch.get_game_playing()
 
@@ -425,19 +436,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				return True
 		return False
 
-	@utils.swallow_errors
-	def on_server_event(self, conn):
-		log.debug("Received event connection from server")
-		buf = b""
-		while b"\n" not in buf:
-			buf += conn.recv(1024)
-		data = json.loads(buf.decode())
-		log.info("Command from server (%s): %s(%r)" % (data['user'], data['command'], data['param']))
-		eventproc = self.server_events[data['command'].lower()]
-		ret = eventproc(self, data['user'], data['param'])
-		log.debug("Returning: %r" % ret)
-		conn.send((json.dumps(ret) + "\n").encode())
-		conn.close()
+	def rpc_server(self):
+		return RPCServer(self)
+
+	def on_server_event(self, request):
+		eventproc = self.server_events[request['command'].lower()]
+		return eventproc(self, request['user'], request['param'])
 
 	@utils.swallow_errors
 	def check_polls(self):
@@ -451,13 +455,59 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			vote_respond(self, self.connection, *self.vote_update)
 
 	@utils.swallow_errors
-	def check_subscriber_list(self):
-		try:
-			user, logo, eventtime, channel = twitchsubs.new_subs.get_nowait()
-		except queue.Empty:
-			pass
-		else:
-			if user.lower() not in self.lastsubs:
-				self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
+	def on_api_subscriber(self, user, logo, eventtime, channel):
+		if user.lower() not in self.lastsubs:
+			self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
 
-bot = LRRBot()
+	def check_privmsg_wrapper(self, conn):
+		"""
+		Install a wrapper around privmsg that handles:
+		* Throttle messages sent so we don't get banned by Twitch
+		* Turn private messages into Twitch whispers
+		* Log public messages in the chat log
+		"""
+		if hasattr(conn.privmsg, "is_wrapped"):
+			return
+		original_privmsg = utils.twitch_throttle()(conn.privmsg)
+		@functools.wraps(original_privmsg)
+		def new_privmsg(target, text):
+			if irc.client.is_channel(target):
+				username = config["username"]
+				chatlog.log_chat(irc.client.Event("pubmsg", username, target, [text]), SELF_METADATA)
+				original_privmsg(target, text)
+			elif self.whisperconn:
+				self.whisperconn.whisper(target, text)
+			else:
+				log.debug("Not sending private message to %s: %s", target, text)
+		new_privmsg.is_wrapped = True
+		conn.privmsg = new_privmsg
+
+	def on_whisper(self, conn, event):
+		# Act like this is a private message
+		event.type = "privmsg"
+		event.target = config['username']
+		self.on_message(self.connection, event)
+
+class RPCServer(asyncio.Protocol):
+	def __init__(self, lrrbot):
+		self.lrrbot = lrrbot
+		self.buffer = b""
+	def connection_made(self, transport):
+		self.transport = transport
+		log.debug("Received event connection from server")
+	def data_received(self, data):
+		self.buffer += data
+		if b"\n" in self.buffer:
+			request = json.loads(self.buffer.decode())
+			log.info("Command from server (%s): %s(%r)", request['user'], request['command'], request['param'])
+			try:
+				response = self.lrrbot.on_server_event(request)
+			except:
+				log.exception("Exception in on_server_response")
+			else:
+				log.debug("Returning: %r", response)
+				response = json.dumps(response).encode() + b"\n"
+				self.transport.write(response)
+			self.transport.close()
+
+bot = LRRBot(asyncio.get_event_loop())

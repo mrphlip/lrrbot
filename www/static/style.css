@@ -471,6 +471,9 @@ table.spam-find tr.spam {
 .label.subonly {
 	background-color: #5BC0DE;
 }
+.label.publiconly {
+	background-color: #AA4;
+}
 dd {
 	margin: 0;
 	padding: 0 0 0 2.5em;

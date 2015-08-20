@@ -12,6 +12,9 @@ import re
 import os.path
 import timelib
 import random
+import enum
+import asyncio
+import aiohttp
 
 import flask
 import irc.client
@@ -75,33 +78,73 @@ def shorten_fallback(text, width, **kwargs):
 
 shorten = getattr(textwrap, "shorten", shorten_fallback)
 
-DEFAULT_THROTTLE = 15
-
-class throttle(object):
-	"""Prevent a function from being called more often than once per period
+def coro_decorator(decorator):
+	"""
+	Utility decorator used when defining other decorators, so they can wrap
+	either normal functions or asyncio coroutines.
 
 	Usage:
-	@throttle([period])
-	def func(...):
-		...
+	@coro_decorator
+	def decorator(func):
+		@functools.wraps(func)
+		@asyncio.coroutine # decorator must return a coroutine, and use "yield from" to call func
+		def wrapper(...)
+			...
+			ret = yield from func(...)
+			...
+			return ...
+		return wrapper
 
-	@throttle([period], notify=True, modoverride=True)
-	def func(lrrbot, conn, event, ...):
-		...
+	@decorator
+	def normal_func():
+		pass
 
-	When called within the throttle period, the last return value is returned,
-	for memoisation. period can be set to None to never expire, allowing this to
-	be used as a basic memoisation decorator.
+	@decorator # @decorator must be above @coroutine
+	@asyncio.coroutine
+	def coro_func():
+		pass
 
-	params is a list of parameters to consider as distinct, so calls where the
-	watched parameters are the same are throttled together, but calls where they
-	are different are throttled separately. Should be a list of ints (for positional
-	parameters) and strings (for keyword parameters).
-
-	count allows the function to be called a given number of times during the period,
-	but no more.
+	Note that the decorator must *not* yield from anything *except* the function
+	it's decorating.
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=False, modoverride=False, params=[], log=True, count=1):
+	# any extra properties that we want to assign to wrappers, in any of the decorators
+	# we use this on
+	EXTRA_PARAMS = ('reset_throttle',)
+	@functools.wraps(decorator)
+	def wrapper(func):
+		is_coro = asyncio.iscoroutinefunction(func)
+		if not is_coro:
+			func = asyncio.coroutine(func)
+
+		decorated_coro = decorator(func)
+		assert asyncio.iscoroutinefunction(decorated_coro)
+
+		if is_coro:
+			return decorated_coro
+		else:
+			# Unwrap the coroutine. We know it should never yield.
+			@functools.wraps(decorated_coro, assigned=functools.WRAPPER_ASSIGNMENTS + EXTRA_PARAMS)
+			def decorated_func(*args, **kwargs):
+				x = iter(decorated_coro(*args, **kwargs))
+				try:
+					next(x)
+				except StopIteration as e:
+					return e.value
+				else:
+					raise Exception("Decorator %s behaving badly wrapping non-coroutine %s" % (decorator.__name__, func.__name__))
+			return decorated_func
+	return wrapper
+
+DEFAULT_THROTTLE = 15
+
+class Visibility(enum.Enum):
+	SILENT = 0
+	PRIVATE = 1
+	PUBLIC = 2
+
+class _throttle_base(object):
+	"""Prevent a function from being called more often than once per period"""
+	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False):
 		self.period = period
 		self.notify = notify
 		self.modoverride = modoverride
@@ -110,6 +153,15 @@ class throttle(object):
 		self.lastreturn = {}
 		self.log = log
 		self.count = count
+		self.allowprivate = allowprivate
+
+		# need to decorate this here, rather than putting a decorator on the actual
+		# function, as it needs to wrap the *bound* method, so there's no "self"
+		# parameter. Meanwhile, we're wrapping this "decorate" function instead of
+		# just wrapping __call__ as setting __call__ directly on instances doesn't
+		# work, Python gets the __call__ function from the class, not individual
+		# instances.
+		self.decorate = coro_decorator(self.decorate)
 
 	def watchedparams(self, args, kwargs):
 		params = []
@@ -124,28 +176,35 @@ class throttle(object):
 		return tuple(params)
 
 	def __call__(self, func):
+		return self.decorate(func)
+	def decorate(self, func):
+		@asyncio.coroutine
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
 			if self.modoverride:
 				lrrbot = args[0]
 				event = args[2]
 				if lrrbot.is_mod(event):
-					return func(*args, **kwargs)
+					return (yield from func(*args, **kwargs))
+			if self.allowprivate:
+				event = args[2]
+				if event.type == "privmsg":
+					return (yield from func(*args, **kwargs))
 
 			params = self.watchedparams(args, kwargs)
 			if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
-				self.lastreturn[params] = func(*args, **kwargs)
+				self.lastreturn[params] = yield from func(*args, **kwargs)
 				self.lastrun.setdefault(params, []).append(time.time())
 				if len(self.lastrun[params]) > self.count:
 					self.lastrun[params] = self.lastrun[params][-self.count:]
 			else:
 				if self.log:
 					log.info("Skipping %s due to throttling" % func.__name__)
-				if self.notify:
+				if self.notify is not Visibility.SILENT:
 					conn = args[1]
 					event = args[2]
 					source = irc.client.NickMask(event.source)
-					if irc.client.is_channel(event.target):
+					if irc.client.is_channel(event.target) and self.notify is Visibility.PUBLIC:
 						respond_to = event.target
 					else:
 						respond_to = source.nick
@@ -161,6 +220,40 @@ class throttle(object):
 		self.lastrun = {}
 		self.lastreturn = {}
 
+class throttle(_throttle_base):
+	"""Prevent an event function from being called more often than once per period
+
+	Usage:
+	@throttle([period])
+	def func(lrrbot, conn, event, ...):
+		...
+
+	count allows the function to be called a given number of times during the period,
+	but no more.
+	"""
+	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.PRIVATE, modoverride=True, params=[], log=True, count=1, allowprivate=True):
+		super().__init__(period=period, notify=notify, modoverride=modoverride, params=params, log=log, count=count, allowprivate=allowprivate)
+
+class cache(_throttle_base):
+	"""Cache the results of a function for a given period
+
+	Usage:
+	@cache([period])
+	def func(...):
+		...
+
+	When called within the throttle period, the last return value is returned,
+	for memoisation. period can be set to None to never expire, allowing this to
+	be used as a basic memoisation decorator.
+
+	params is a list of parameters to consider as distinct, so calls where the
+	watched parameters are the same are throttled together, but calls where they
+	are different are throttled separately. Should be a list of ints (for positional
+	parameters) and strings (for keyword parameters).
+	"""
+	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1):
+		super().__init__(period=period, notify=Visibility.SILENT, modoverride=False, params=params, log=log, count=count, allowprivate=False)
+
 def mod_only(func):
 	"""Prevent an event-handler function from being called by non-moderators
 
@@ -172,8 +265,8 @@ def mod_only(func):
 
 	# Only complain about non-mods with throttle
 	# but allow the command itself to be run without throttling
-	@throttle()
-	def mod_complaint(conn, event):
+	@throttle(notify=Visibility.SILENT, modoverride=False)
+	def mod_complaint(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		if irc.client.is_channel(event.target):
 			respond_to = event.target
@@ -187,7 +280,7 @@ def mod_only(func):
 			return func(self, conn, event, *args, **kwargs)
 		else:
 			log.info("Refusing %s due to not-a-mod" % func.__name__)
-			mod_complaint(conn, event)
+			mod_complaint(self, conn, event)
 			return None
 	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
 		"Mod-Only", "true"))
@@ -202,8 +295,8 @@ def sub_only(func):
 		...
 	"""
 
-	@throttle()
-	def sub_complaint(conn, event):
+	@throttle(notify=Visibility.SILENT, modoverride=False)
+	def sub_complaint(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		if irc.client.is_channel(event.target):
 			respond_to = event.target
@@ -217,7 +310,7 @@ def sub_only(func):
 			return func(self, conn, event, *args, **kwargs)
 		else:
 			log.info("Refusing %s due to not-a-sub" % func.__name__)
-			sub_complaint(conn, event)
+			sub_complaint(self, conn, event)
 			return None
 	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
 		"Sub-Only", "true"))
@@ -242,6 +335,25 @@ class twitch_throttle:
 		wrapper.is_throttled = True
 		return wrapper
 
+def public_only(func):
+	"""Prevent an event-handler function from being called via private message
+
+	Usage:
+	@public_only
+	def on_event(self, conn, event, ...):
+		...
+	"""
+	@functools.wraps(func)
+	def wrapper(self, conn, event, *args, **kwargs):
+		if event.type == "pubmsg" or self.is_mod(event):
+			return func(self, conn, event, *args, **kwargs)
+		else:
+			source = irc.client.NickMask(event.source)
+			conn.privmsg(source.nick, "That command cannot be used via private message")
+	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
+		"Public-Only", "true"))
+	return wrapper
+
 def log_errors(func):
 	"""Log any errors thrown by a function"""
 	@functools.wraps(func)
@@ -253,12 +365,16 @@ def log_errors(func):
 			raise
 	return wrapper
 
+@coro_decorator
 def swallow_errors(func):
 	"""Log and absorb any errors thrown by a function"""
+	@asyncio.coroutine
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
 		try:
-			return func(*args, **kwargs)
+			return (yield from func(*args, **kwargs))
+		except (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
+			raise
 		except:
 			log.exception("Exception in " + func.__name__)
 			return None
@@ -301,7 +417,32 @@ def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 			if firstex is None:
 				firstex = e
 			if maxtries > 0:
-				log.info("Downloading %s failed: %s, retrying..." % (url, e))
+				log.info("Downloading %s failed: %s: %s, retrying...", url, e.__class__.__name__, e)
+			else:
+				break
+	raise firstex
+
+@asyncio.coroutine
+def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5):
+	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
+	firstex = None
+	if method == 'GET':
+		params = data
+		data = None
+	else:
+		params = None
+	while True:
+		try:
+			res = yield from asyncio.wait_for(aiohttp.request(method, url, params=params, data=data, headers=headers), timeout)
+			if res.status // 100 != 2:
+				raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
+			return (yield from res.text())
+		except Exception as e:
+			maxtries -= 1
+			if firstex is None:
+				firstex = e
+			if maxtries > 0:
+				log.info("Downloading %s failed: %s: %s, retrying...", url, e.__class__.__name__, e)
 			else:
 				break
 	raise firstex
@@ -316,10 +457,27 @@ def api_request(uri, *args, **kwargs):
 		try:
 			res = json.loads(res)
 		except:
-			log.exception("Error parsing server response from %s: %s" % (uri, res))
+			log.exception("Error parsing server response from %s: %s", uri, res)
 		else:
 			if 'success' not in res:
 				log.error("Error at server in %s" % uri)
+			return res
+
+@asyncio.coroutine
+def api_request_coro(uri, *args, **kwargs):
+	try:
+		res = yield from http_request_coro(config.config['siteurl'] + uri, *args, **kwargs)
+	except:
+		log.exception("Error at server in %s" % uri)
+	else:
+		try:
+			res = json.loads(res)
+		except:
+			log.exception("Error parsing server response from %s: %s", uri, res)
+		else:
+			if 'success' not in res:
+				log.error("Error at server in %s" % uri)
+			return res
 
 def nice_duration(s, detail=1):
 	"""
@@ -368,13 +526,15 @@ def immutable(obj):
 		return obj
 
 
+def get_postgres():
+	return psycopg2.connect(config.config["postgres"])
+
 def with_postgres(func):
 	"""Decorator to pass a PostgreSQL connection and cursor to a function"""
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
-		with psycopg2.connect(config.config["postgres"]) as conn:
-			with conn.cursor() as cur:
-				return func(conn, cur, *args, **kwargs)
+		with get_postgres() as conn, conn.cursor() as cur:
+			return func(conn, cur, *args, **kwargs)
 	return wrapper
 
 

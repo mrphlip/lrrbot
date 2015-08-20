@@ -1,9 +1,11 @@
 import datetime
 import json
 import logging
+import random
 
 import dateutil.parser
 import pytz
+import irc.client
 
 from common import utils
 from common.config import config
@@ -174,6 +176,18 @@ def viewers(lrrbot, conn, event, respond_to):
 		chatters = "No-one in the chat."
 	conn.privmsg(respond_to, "%s %s" % (viewers, chatters))
 
+def uptime_msg(stream_info=None):
+	if stream_info is None:
+		stream_info = twitch.get_info()
+	if stream_info and stream_info.get("stream_created_at"):
+		start = dateutil.parser.parse(stream_info["stream_created_at"])
+		now = datetime.datetime.now(datetime.timezone.utc)
+		return "The stream has been live for %s." % utils.nice_duration(now-start, 0)
+	elif stream_info and stream_info.get('live'):
+		return "Twitch won't tell me when the stream went live."
+	else:
+		return "The stream is not live."
+
 @bot.command("uptime")
 @utils.throttle()
 def uptime(lrrbot, conn, event, respond_to):
@@ -183,13 +197,81 @@ def uptime(lrrbot, conn, event, respond_to):
 
 	Post the duration the stream has been live.
 	"""
+	conn.privmsg(respond_to, uptime_msg())
 
+@utils.cache(30) # We could easily be sending a bunch of these at once, and the info doesn't change often
+def get_status_msg():
+	messages = []
 	stream_info = twitch.get_info()
-	if stream_info and stream_info.get("stream_created_at"):
-		start = dateutil.parser.parse(stream_info["stream_created_at"])
-		now = datetime.datetime.now(datetime.timezone.utc)
-		conn.privmsg(respond_to, "The stream has been live for %s" % utils.nice_duration(now-start, 0))
-	elif stream_info:
-		conn.privmsg(respond_to, "Twitch won't tell me when the stream went live.")
+	if stream_info and stream_info.get('live'):
+		game = lrrbot.get_current_game()
+		game = game and game.get("display", game["name"])
+		show = lrrbot.show_override or lrrbot.show
+		show = show and storage.data.get("shows", {}).get(show, {}).get("name", show)
+		if game and show:
+			messages.append("Currently playing %s on %s." % (game, show))
+		elif game:
+			messages.append("Currently playing %s." % game)
+		elif show:
+			messages.append("Currently showing %s." % show)
+		messages.append(uptime_msg(stream_info))
 	else:
-		conn.privmsg(respond_to, "The stream is not live.")
+		messages.append(googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL))
+	if 'advice' in storage.data['responses']:
+		messages.append(random.choice(storage.data['responses']['advice']['response']))
+	return ' '.join(messages)
+
+def send_status(lrrbot, conn, target):
+	conn.privmsg(target, get_status_msg())
+
+@bot.command("status")
+def status(lrrbot, conn, event, respond_to):
+	"""
+	Command: !status
+	Section: info
+
+	Send you a quick status message about the stream. If the stream is live, this
+	will include what game is being played, and how long the stream has been live.
+	Otherwise, it will tell you about the next scheduled stream.
+	"""
+	source = irc.client.NickMask(event.source)
+	send_status(lrrbot, conn, source.nick)
+
+@bot.command("auto(?: |-)?status")
+def autostatus_check(lrrbot, conn, event, respond_to):
+	"""
+	Command: !autostatus
+	Section: info
+
+	Check whether you are set to be automatically sent status messages when join join the channel.
+	"""
+	source = irc.client.NickMask(event.source)
+	if source.nick.lower() in lrrbot.autostatus:
+		conn.privmsg(source.nick, "Auto-status is enabled. Disable it with: !autostatus off")
+	else:
+		conn.privmsg(source.nick, "Auto-status is disabled. Enable it with: !autostatus on")
+
+@bot.command("auto(?: |-)?status (on|off)")
+def autostatus_set(lrrbot, conn, event, respond_to, enable):
+	"""
+	Command: !autostatus on
+	Command: !autostatus off
+	Section: info
+
+	Enable or disable automatically sending status messages when you join the channel.
+	"""
+	source = irc.client.NickMask(event.source)
+	nick = source.nick.lower()
+	enable = enable.lower() == "on"
+	if enable:
+		if nick not in lrrbot.autostatus:
+			lrrbot.autostatus.add(nick)
+			storage.data['autostatus'] = list(lrrbot.autostatus)
+			storage.save()
+		conn.privmsg(source.nick, "Auto-status enabled.")
+	else:
+		if nick in lrrbot.autostatus:
+			lrrbot.autostatus.remove(nick)
+			storage.data['autostatus'] = list(lrrbot.autostatus)
+			storage.save()
+		conn.privmsg(source.nick, "Auto-status disabled.")

@@ -18,7 +18,8 @@ def stat_update(lrrbot, stat, n, set_=False):
 	return game
 
 @bot.command("(%s)" % re_stats)
-@utils.throttle(30, notify=True, params=[4])
+@utils.public_only
+@utils.throttle(30, notify=utils.Visibility.PUBLIC, params=[4], modoverride=False, allowprivate=False)
 def increment(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
 	if stat == "completed":
