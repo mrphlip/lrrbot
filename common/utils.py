@@ -78,6 +78,69 @@ def shorten_fallback(text, width, **kwargs):
 
 shorten = getattr(textwrap, "shorten", shorten_fallback)
 
+def coro_decorator(decorator):
+	"""
+	Utility decorator used when defining other decorators, so they can wrap
+	either normal functions or asyncio coroutines.
+
+	Usage:
+	@coro_decorator
+	def decorator(func):
+		@functools.wraps(func)
+		@asyncio.coroutine # decorator must return a coroutine, and use "yield from" to call func
+		def wrapper(...)
+			...
+			ret = yield from func(...)
+			...
+			return ...
+		return wrapper
+
+	@decorator
+	def normal_func():
+		pass
+
+	@decorator # @decorator must be above @coroutine
+	@asyncio.coroutine
+	def coro_func():
+		pass
+
+	Note that the decorator must *not* yield from anything *except* the function
+	it's decorating.
+	"""
+	# any extra properties that we want to assign to wrappers, in any of the decorators
+	# we use this on
+	EXTRA_PARAMS = ('reset_throttle',)
+	@functools.wraps(decorator)
+	def wrapper(func):
+		is_coro = asyncio.iscoroutinefunction(func)
+		if is_coro:
+			coro_func = func
+		else:
+			# create a coroutine function that never yields and returns the same value
+			@asyncio.coroutine
+			@functools.wraps(func)
+			def coro_func(*args, **kwargs):
+				yield from []
+				return func(*args, **kwargs)
+
+		decorated_coro = decorator(coro_func)
+
+		if is_coro:
+			return decorated_coro
+		else:
+			# Unwrap the coroutine. We know it should never yield.
+			@functools.wraps(decorated_coro, assigned=functools.WRAPPER_ASSIGNMENTS + EXTRA_PARAMS)
+			def decorated_func(*args, **kwargs):
+				x = iter(decorated_coro(*args, **kwargs))
+				try:
+					next(x)
+				except StopIteration as e:
+					return e.value
+				else:
+					raise Exception("Decorator %s behaving badly wrapping non-coroutine %s" % (decorator.__name__, func.__name__))
+			return decorated_func
+	return wrapper
+
 DEFAULT_THROTTLE = 15
 
 class Visibility(enum.Enum):
@@ -87,7 +150,7 @@ class Visibility(enum.Enum):
 
 class _throttle_base(object):
 	"""Prevent a function from being called more often than once per period"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False, coro=False):
+	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False):
 		self.period = period
 		self.notify = notify
 		self.modoverride = modoverride
@@ -97,7 +160,14 @@ class _throttle_base(object):
 		self.log = log
 		self.count = count
 		self.allowprivate = allowprivate
-		self.coro = coro
+
+		# need to decorate this here, rather than putting a decorator on the actual
+		# function, as it needs to wrap the *bound* method, so there's no "self"
+		# parameter. Meanwhile, we're wrapping this "decorate" function instead of
+		# just wrapping __call__ as setting __call__ directly on instances doesn't
+		# work, Python gets the __call__ function from the class, not individual
+		# instances.
+		self.decorate = coro_decorator(self.decorate)
 
 	def watchedparams(self, args, kwargs):
 		params = []
@@ -112,33 +182,24 @@ class _throttle_base(object):
 		return tuple(params)
 
 	def __call__(self, func):
-		if self.coro:
-			coro_func = func
-		else:
-			# if the function we're wrapping isn't a coroutine, wrap it in one
-			# and then unwrap it when we're done
-			@asyncio.coroutine
-			@functools.wraps(func)
-			def coro_func(*args, **kwargs):
-				yield from ()
-				return func(*args, **kwargs)
-
+		return self.decorate(func)
+	def decorate(self, func):
 		@asyncio.coroutine
 		@functools.wraps(func)
-		def coro_wrapper(*args, **kwargs):
+		def wrapper(*args, **kwargs):
 			if self.modoverride:
 				lrrbot = args[0]
 				event = args[2]
 				if lrrbot.is_mod(event):
-					return (yield from coro_func(*args, **kwargs))
+					return (yield from func(*args, **kwargs))
 			if self.allowprivate:
 				event = args[2]
 				if event.type == "privmsg":
-					return (yield from coro_func(*args, **kwargs))
+					return (yield from func(*args, **kwargs))
 
 			params = self.watchedparams(args, kwargs)
 			if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
-				self.lastreturn[params] = yield from coro_func(*args, **kwargs)
+				self.lastreturn[params] = yield from func(*args, **kwargs)
 				self.lastrun.setdefault(params, []).append(time.time())
 				if len(self.lastrun[params]) > self.count:
 					self.lastrun[params] = self.lastrun[params][-self.count:]
@@ -155,19 +216,6 @@ class _throttle_base(object):
 						respond_to = source.nick
 					conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
 			return self.lastreturn[params]
-
-		if self.coro:
-			wrapper = coro_wrapper
-		else:
-			@functools.wraps(func)
-			def wrapper(*args, **kwargs):
-				x = iter(coro_wrapper(*args, **kwargs))
-				try:
-					while True:
-						next(x)
-				except StopIteration as e:
-					return e.value
-
 		# Copy this method across so it can be accessed on the wrapped function
 		wrapper.reset_throttle = self.reset_throttle
 		wrapper.__doc__ = encode_docstring(add_header(add_header(parse_docstring(wrapper.__doc__),
@@ -189,8 +237,8 @@ class throttle(_throttle_base):
 	count allows the function to be called a given number of times during the period,
 	but no more.
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.PRIVATE, modoverride=True, params=[], log=True, count=1, allowprivate=True, coro=False):
-		super().__init__(period=period, notify=notify, modoverride=modoverride, params=params, log=log, count=count, allowprivate=allowprivate, coro=coro)
+	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.PRIVATE, modoverride=True, params=[], log=True, count=1, allowprivate=True):
+		super().__init__(period=period, notify=notify, modoverride=modoverride, params=params, log=log, count=count, allowprivate=allowprivate)
 
 class cache(_throttle_base):
 	"""Cache the results of a function for a given period
@@ -209,8 +257,8 @@ class cache(_throttle_base):
 	are different are throttled separately. Should be a list of ints (for positional
 	parameters) and strings (for keyword parameters).
 	"""
-	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1, coro=False):
-		super().__init__(period=period, notify=Visibility.SILENT, modoverride=False, params=params, log=log, count=count, allowprivate=False, coro=coro)
+	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1):
+		super().__init__(period=period, notify=Visibility.SILENT, modoverride=False, params=params, log=log, count=count, allowprivate=False)
 
 def mod_only(func):
 	"""Prevent an event-handler function from being called by non-moderators
@@ -323,20 +371,8 @@ def log_errors(func):
 			raise
 	return wrapper
 
+@coro_decorator
 def swallow_errors(func):
-	"""Log and absorb any errors thrown by a function"""
-	@functools.wraps(func)
-	def wrapper(*args, **kwargs):
-		try:
-			return func(*args, **kwargs)
-		except (KeyboardInterrupt, SystemExit):
-			raise
-		except:
-			log.exception("Exception in " + func.__name__)
-			return None
-	return wrapper
-
-def swallow_errors_coro(func):
 	"""Log and absorb any errors thrown by a function"""
 	@asyncio.coroutine
 	@functools.wraps(func)

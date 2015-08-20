@@ -18,7 +18,7 @@ def watch_subs(lrrbot):
 		pass
 
 last_subs = None
-@utils.swallow_errors_coro
+@utils.swallow_errors
 @asyncio.coroutine
 def do_check(lrrbot):
 	global last_subs

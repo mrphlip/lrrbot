@@ -53,7 +53,7 @@ def stop_task():
 	queue.put_nowait(("exit", ()))
 
 
-@utils.swallow_errors_coro
+@utils.swallow_errors
 @asyncio.coroutine
 def do_log_chat(time, event, metadata):
 	"""
@@ -80,7 +80,7 @@ def do_log_chat(time, event, metadata):
 			html,
 		))
 
-@utils.swallow_errors_coro
+@utils.swallow_errors
 @asyncio.coroutine
 def do_clear_chat_log(time, nick):
 	"""
@@ -106,7 +106,7 @@ def do_clear_chat_log(time, nick):
 				key,
 			))
 
-@utils.swallow_errors_coro
+@utils.swallow_errors
 @asyncio.coroutine
 def do_rebuild_all():
 	"""
@@ -232,7 +232,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	ret.append('</div>')
 	return ''.join(ret)
 
-@utils.cache(CACHE_EXPIRY, params=[0], coro=True)
+@utils.cache(CACHE_EXPIRY, params=[0])
 @asyncio.coroutine
 def get_display_name(nick):
 	try:
@@ -243,7 +243,7 @@ def get_display_name(nick):
 		return nick
 
 re_just_words = re.compile("^\w+$")
-@utils.cache(CACHE_EXPIRY, coro=True)
+@utils.cache(CACHE_EXPIRY)
 @asyncio.coroutine
 def get_twitch_emotes():
 	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/chat/emoticons")
@@ -265,7 +265,7 @@ def get_twitch_emotes():
 			}
 	return emotesets
 
-@utils.cache(CACHE_EXPIRY, coro=True)
+@utils.cache(CACHE_EXPIRY)
 @asyncio.coroutine
 def get_twitch_emotes_undocumented():
 	# This endpoint is not documented, however `/chat/emoticons` might be deprecated soon.
