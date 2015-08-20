@@ -113,17 +113,11 @@ def coro_decorator(decorator):
 	@functools.wraps(decorator)
 	def wrapper(func):
 		is_coro = asyncio.iscoroutinefunction(func)
-		if is_coro:
-			coro_func = func
-		else:
-			# create a coroutine function that never yields and returns the same value
-			@asyncio.coroutine
-			@functools.wraps(func)
-			def coro_func(*args, **kwargs):
-				yield from []
-				return func(*args, **kwargs)
+		if not is_coro:
+			func = asyncio.coroutine(func)
 
-		decorated_coro = decorator(coro_func)
+		decorated_coro = decorator(func)
+		assert asyncio.iscoroutinefunction(decorated_coro)
 
 		if is_coro:
 			return decorated_coro
