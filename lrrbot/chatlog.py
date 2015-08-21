@@ -253,9 +253,9 @@ def get_twitch_emotes():
 		re = emote['regex']
 		if re == r"\:-?[\\/]": # Don't match :/ inside URLs
 			re = r"\:-?[\\/](?![\\/])"
-		regex = re.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
+		re = re.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
 		if re_just_words.match(re):
-			regex = r"\b%s\b" % re
+			re = r"\b%s\b" % re
 		re = regex.compile("(%s)" % re)
 		for image in emote['images']:
 			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (image['url'], image['width'], image['height'])
@@ -273,12 +273,12 @@ def get_twitch_emotes_undocumented():
 	data = json.loads(data)["emoticons"]
 	emotesets = {}
 	for emote in data:
-		regex = emote["code"]
-		regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
-		if re_just_words.match(regex):
-			regex = r"\b%s\b" % regex
+		re = emote["code"]
+		re = re.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
+		if re_just_words.match(re):
+			re = r"\b%s\b" % re
 		emotesets.setdefault(emote["emoticon_set"], {})[emote["code"]] = {
-			"regex": regex.compile("(%s)" % regex),
+			"regex": regex.compile("(%s)" % re),
 			"html": '<img src="https://static-cdn.jtvnw.net/emoticons/v1/%s/1.0" alt="{0}" title="{0}">' % emote["id"]
 		}
 	return emotesets
