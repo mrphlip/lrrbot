@@ -21,7 +21,7 @@ def get_show(lrrbot, conn, event, respond_to):
 	"""
 	print_show(lrrbot, conn, respond_to)
 
-def print_show(lrrbot, conn, respond_to)
+def print_show(lrrbot, conn, respond_to):
 	if lrrbot.show_override:
 		conn.privmsg(respond_to, "Currently live: %s (overridden)" % show_name(lrrbot.show_override))
 	elif lrrbot.show:
