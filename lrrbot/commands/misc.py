@@ -200,7 +200,7 @@ def uptime(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, uptime_msg())
 
 @utils.cache(30) # We could easily be sending a bunch of these at once, and the info doesn't change often
-def get_status_msg():
+def get_status_msg(lrrbot):
 	messages = []
 	stream_info = twitch.get_info()
 	if stream_info and stream_info.get('live'):
@@ -222,7 +222,7 @@ def get_status_msg():
 	return ' '.join(messages)
 
 def send_status(lrrbot, conn, target):
-	conn.privmsg(target, get_status_msg())
+	conn.privmsg(target, get_status_msg(lrrbot))
 
 @bot.command("status")
 def status(lrrbot, conn, event, respond_to):
