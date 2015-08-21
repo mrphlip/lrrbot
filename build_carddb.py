@@ -14,7 +14,7 @@ import time
 import zipfile
 import io
 import json
-import re
+import regex
 
 import dateutil.parser
 
@@ -122,11 +122,11 @@ def do_download_file(url, fn):
 
 	return True
 
-re_check = re.compile(r"^[a-z0-9_]+$")
-re_mana = re.compile(r"\{(.)\}")
-re_newlines = re.compile(r"[\r\n]+")
-re_multiplespaces = re.compile(r"\s{2,}")
-re_remindertext = re.compile(r"\([^()]*\)")
+re_check = regex.compile(r"^[a-z0-9_]+$")
+re_mana = regex.compile(r"\{(.)\}")
+re_newlines = regex.compile(r"[\r\n]+")
+re_multiplespaces = regex.compile(r"\s{2,}")
+re_remindertext = regex.compile(r"\([^()]*\)")
 def process_card(card, expansion):
 	# some hack overrides (especially for cards that have different values in different sets - override with real oracle values)
 	if card['name'] == 'Phage the Untouchable':

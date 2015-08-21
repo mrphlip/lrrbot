@@ -1,6 +1,6 @@
 import queue
 import json
-import re
+import regex
 import time
 import pytz
 import datetime
@@ -242,7 +242,7 @@ def get_display_name(nick):
 	except:
 		return nick
 
-re_just_words = re.compile("^\w+$")
+re_just_words = regex.compile("^\w+$")
 @utils.cache(CACHE_EXPIRY)
 @asyncio.coroutine
 def get_twitch_emotes():
@@ -250,17 +250,17 @@ def get_twitch_emotes():
 	data = json.loads(data)['emoticons']
 	emotesets = {}
 	for emote in data:
-		regex = emote['regex']
-		if regex == r"\:-?[\\/]": # Don't match :/ inside URLs
-			regex = r"\:-?[\\/](?![\\/])"
-		regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
-		if re_just_words.match(regex):
-			regex = r"\b%s\b" % regex
-		regex = re.compile("(%s)" % regex)
+		re = emote['regex']
+		if re == r"\:-?[\\/]": # Don't match :/ inside URLs
+			re = r"\:-?[\\/](?![\\/])"
+		re = re.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
+		if re_just_words.match(re):
+			re = r"\b%s\b" % re
+		re = regex.compile("(%s)" % re)
 		for image in emote['images']:
 			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (image['url'], image['width'], image['height'])
 			emotesets.setdefault(image.get("emoticon_set"), {})[emote['regex']] = {
-				"regex": regex,
+				"regex": re,
 				"html": html,
 			}
 	return emotesets
@@ -273,12 +273,12 @@ def get_twitch_emotes_undocumented():
 	data = json.loads(data)["emoticons"]
 	emotesets = {}
 	for emote in data:
-		regex = emote["code"]
-		regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
-		if re_just_words.match(regex):
-			regex = r"\b%s\b" % regex
+		re = emote["code"]
+		re = re.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
+		if re_just_words.match(re):
+			re = r"\b%s\b" % re
 		emotesets.setdefault(emote["emoticon_set"], {})[emote["code"]] = {
-			"regex": re.compile("(%s)" % regex),
+			"regex": regex.compile("(%s)" % re),
 			"html": '<img src="https://static-cdn.jtvnw.net/emoticons/v1/%s/1.0" alt="{0}" title="{0}">' % emote["id"]
 		}
 	return emotesets

@@ -1,5 +1,5 @@
 import random
-import re
+import regex
 
 from common import utils
 from common.config import config
@@ -37,7 +37,7 @@ def generate_docstring():
 	return "\n--command\n".join(generator())
 
 def generate_expression():
-	return "(%s)" % "|".join(re.escape(c).replace("\\ ", " ") for c in storage.data["responses"])
+	return "(%s)" % "|".join(regex.escape(c).replace("\\ ", " ") for c in storage.data["responses"])
 
 @utils.throttle(30, params=[4], count=2)
 def static_response(lrrbot, conn, event, respond_to, command):

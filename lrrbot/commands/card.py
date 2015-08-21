@@ -1,5 +1,5 @@
 import json
-import re
+import regex
 
 from common import utils
 from lrrbot import bot
@@ -42,7 +42,7 @@ def card_lookup(lrrbot, conn, event, respond_to, search):
 	else:
 		conn.privmsg(respond_to, "Found %d cards you could be referring to - please enter more of the name" % len(cards))
 
-re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/]")
+re_specialchars = regex.compile(r"[ \-'\",:!?.()\u00ae&/]")
 LETTERS_MAP = {
 	'\u00e0': 'a',
 	'\u00e1': 'a',

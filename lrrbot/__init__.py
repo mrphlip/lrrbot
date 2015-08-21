@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
+import regex
 import time
 import datetime
 import json
@@ -75,8 +75,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.server_events = {}
 
 		# Precompile regular expressions
-		self.re_subscription = re.compile(r"^(.*) just subscribed!$", re.IGNORECASE)
-		self.re_resubscription = re.compile(r"^(.*) subscribed for (\d+) months? in a row!$", re.IGNORECASE)
+		self.re_subscription = regex.compile(r"^(.*) just subscribed!$", regex.IGNORECASE)
+		self.re_resubscription = regex.compile(r"^(.*) subscribed for (\d+) months? in a row!$", regex.IGNORECASE)
 
 		# Set up bot state
 		self.game_override = None
@@ -88,7 +88,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.polls = []
 		self.lastsubs = []
 
-		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
+		self.spam_rules = [(regex.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
 
 		self.mods = set(storage.data.get('mods', config['mods']))
@@ -144,7 +144,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def add_command(self, pattern, function):
 		pattern = pattern.replace(" ", r"(?:\s+)")
 		self.commands[pattern] = {
-			"groups": re.compile(pattern, re.IGNORECASE).groups,
+			"groups": regex.compile(pattern, regex.IGNORECASE).groups,
 			"func": function,
 		}
 
@@ -158,10 +158,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		return wrapper
 
 	def compile(self):
-		self.re_botcommand = r"^\s*%s\s*(?:" % re.escape(config["commandprefix"])
+		self.re_botcommand = r"^\s*%s\s*(?:" % regex.escape(config["commandprefix"])
 		self.re_botcommand += "|".join(map(lambda re: '(%s)' % re, self.commands))
 		self.re_botcommand += r")\s*$"
-		self.re_botcommand = re.compile(self.re_botcommand, re.IGNORECASE)
+		self.re_botcommand = regex.compile(self.re_botcommand, regex.IGNORECASE)
 
 		i = 1
 		for val in self.commands.values():

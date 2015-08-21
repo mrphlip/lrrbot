@@ -8,13 +8,14 @@ import json
 import email.parser
 import textwrap
 import datetime
-import re
+import regex
 import os.path
 import timelib
 import random
 import enum
 import asyncio
 import aiohttp
+import itertools
 
 import flask
 import irc.client
@@ -578,8 +579,8 @@ def timestamp(ts):
 def ucfirst(s):
 	return s[0].upper() + s[1:]
 
-re_timefmt1 = re.compile("^\s*(?:\s*(\d*)\s*d)?(?:\s*(\d*)\s*h)?(?:\s*(\d*)\s*m)?(?:\s*(\d*)\s*s?)?\s*$")
-re_timefmt2 = re.compile("^(?:(?:(?:\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*$")
+re_timefmt1 = regex.compile("^\s*(?:\s*(\d*)\s*d)?(?:\s*(\d*)\s*h)?(?:\s*(\d*)\s*m)?(?:\s*(\d*)\s*s?)?\s*$")
+re_timefmt2 = regex.compile("^(?:(?:(?:\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*$")
 def parsetime(s):
 	"""
 	Parse user-supplied times in one of two formats:
@@ -664,3 +665,9 @@ def weighted_choice(options):
 		else:
 			left = mid
 	return values[left]
+
+def unscramble(groups, n):
+	for group, indices in zip(zip(*[iter(groups)]*n), itertools.permutations(range(n))):
+		if group != (None,) * n:
+			return [x for i, x in sorted(zip(indices, group))]
+	return [None,] * n

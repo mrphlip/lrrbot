@@ -5,7 +5,7 @@ from www import login
 from www import botinteract
 from www import history
 from common import utils
-import re
+import regex
 import datetime
 import pytz
 
@@ -19,8 +19,8 @@ def verify_rules(rules):
 	for ix, rule in enumerate(rules):
 		# Test the regular expression is valid
 		try:
-			re_rule = re.compile(rule['re'])
-		except re.error as ex:
+			re_rule = regex.compile(rule['re'])
+		except regex.error as ex:
 			return {"msg": str(ex), "row": ix, "col": 0}
 		# Test the response message uses the right groups
 		try:
@@ -64,7 +64,7 @@ def spam_test(session):
 		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
 
 	for rule in rules:
-		rule['re'] = re.compile(rule['re'])
+		rule['re'] = regex.compile(rule['re'])
 
 	result = []
 
@@ -100,7 +100,7 @@ def spam_test(session):
 def spam_find(conn, cur, session):
 	rules = botinteract.get_data('spam_rules')
 	for rule in rules:
-		rule['re'] = re.compile(rule['re'])
+		rule['re'] = regex.compile(rule['re'])
 
 	starttime = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(days=14)
 	cur.execute("SELECT source, message, time FROM log WHERE time >= %s AND 'cleared' = ANY(specialuser) ORDER BY time ASC", (
