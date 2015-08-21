@@ -19,6 +19,9 @@ def get_show(lrrbot, conn, event, respond_to):
 
 	Post the current show.
 	"""
+	print_show(lrrbot, conn, respond_to)
+
+def print_show(lrrbot, conn, respond_to)
 	if lrrbot.show_override:
 		conn.privmsg(respond_to, "Currently live: %s (overridden)" % show_name(lrrbot.show_override))
 	elif lrrbot.show:
@@ -50,4 +53,4 @@ def show_override(lrrbot, conn, event, respond_to, show):
 		return
 	else:
 		lrrbot.show_override = show
-	return get_show.__wrapped__(lrrbot, conn, event, respond_to)
+	print_show(lrrbot, conn, respond_to)

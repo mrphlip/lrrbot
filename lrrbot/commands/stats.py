@@ -29,7 +29,7 @@ def increment(lrrbot, conn, event, respond_to, stat):
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print.__wrapped__(lrrbot, conn, event, respond_to, stat, game, with_emote=True)
+	stat_print(lrrbot, conn, event, respond_to, stat, game, with_emote=True)
 
 @bot.command("(%s) add( \d+)?" % re_stats)
 @utils.mod_only
@@ -40,7 +40,7 @@ def add(lrrbot, conn, event, respond_to, stat, n):
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print.__wrapped__(lrrbot, conn, event, respond_to, stat, game)
+	stat_print(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s) remove( \d+)?" % re_stats)
 @utils.mod_only
@@ -51,7 +51,7 @@ def remove(lrrbot, conn, event, respond_to, stat, n):
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print.__wrapped__(lrrbot, conn, event, respond_to, stat, game)
+	stat_print(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s) set (\d+)" % re_stats)
 @utils.mod_only
@@ -62,10 +62,13 @@ def stat_set(lrrbot, conn, event, respond_to, stat, n):
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print.__wrapped__(lrrbot, conn, event, respond_to, stat, game)
+	stat_print(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s)count" % re_stats)
 @utils.throttle(params=[4])
+def get_stat(lrrbot, conn, event, respond_to, stat):
+	stat_print(lrrbot, conn, event, respond_to, stat)
+
 def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=False):
 	stat = stat.lower()
 	if game is None:
@@ -89,7 +92,7 @@ def printtotal(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
 	count = 0
 	for show in storage.data.get("shows", {}).values():
-	    count += sum(game.get("stats", {}).get(stat, 0) for game in show.get("games", {}).values())
+		count += sum(game.get("stats", {}).get(stat, 0) for game in show.get("games", {}).values())
 	display = storage.data["stats"][stat]
 	display = display.get("singular", stat) if count == 1 else display.get("plural", stat + "s")
 	conn.privmsg(respond_to, "%d total %s" % (count, display))
