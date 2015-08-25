@@ -1,5 +1,5 @@
 from common import utils
-from lrrbot import bot
+from lrrbot.main import bot
 
 
 @bot.command("(mod|sub)only")

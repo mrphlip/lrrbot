@@ -2,7 +2,7 @@ import json
 import re
 
 from common import utils
-from lrrbot import bot
+from lrrbot.main import bot
 
 
 with open("mtgcards.json") as fp:

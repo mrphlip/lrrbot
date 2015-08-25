@@ -3,7 +3,8 @@ import re
 
 from common import utils
 from common.config import config
-from lrrbot import bot, log, storage
+from lrrbot import storage
+from lrrbot.main import bot, log
 
 
 def generate_docstring():

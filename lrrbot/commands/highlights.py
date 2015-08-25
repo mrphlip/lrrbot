@@ -3,7 +3,8 @@ import time
 import irc.client
 
 from common import utils
-from lrrbot import bot, storage, twitch
+from lrrbot import storage, twitch
+from lrrbot.main import bot
 
 
 @bot.command("highlight (.*?)")

@@ -1,7 +1,8 @@
 import random
 
 from common import utils
-from lrrbot import bot, log, storage
+from lrrbot import storage
+from lrrbot.main import bot, log
 
 
 @bot.command("explain (.*?)")

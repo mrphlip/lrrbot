@@ -3,7 +3,7 @@ import json
 import random
 
 from common import utils
-from lrrbot import bot
+from lrrbot.main import bot
 
 DEFAULT_TIMEOUT = 180
 

@@ -2,7 +2,8 @@
 
 import logging
 
-from lrrbot import bot, log, chatlog
+from lrrbot import chatlog
+from lrrbot.main import bot, log
 from common.config import config
 
 

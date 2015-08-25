@@ -1,10 +1,14 @@
 import random
 import re
 import math
+import logging
 
 from common import utils
-from lrrbot import bot, log, googlecalendar, storage, commands
+from lrrbot import googlecalendar, storage, commands
+from lrrbot.main import bot
 
+
+log = logging.getLogger('serverevents')
 
 @bot.server_event()
 def current_game(lrrbot, user, data):

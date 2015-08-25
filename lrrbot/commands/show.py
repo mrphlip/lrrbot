@@ -1,5 +1,6 @@
 from common import utils
-from lrrbot import bot, storage
+from lrrbot import storage
+from lrrbot.main import bot
 
 
 def set_show(lrrbot, show):

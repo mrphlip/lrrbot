@@ -1,7 +1,8 @@
 import irc
 
 from common import utils
-from lrrbot import bot, storage
+from lrrbot import storage
+from lrrbot.main import bot
 from lrrbot.commands.show import show_name
 
 
