@@ -142,6 +142,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.loop.close()
 
 	def add_command(self, pattern, function):
+		if not asyncio.iscoroutinefunction(function):
+			function = asyncio.coroutine(function)
 		pattern = pattern.replace(" ", r"(?:\s+)")
 		self.commands[pattern] = {
 			"groups": re.compile(pattern, re.IGNORECASE).groups,
@@ -258,7 +260,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				log.info("Command from %s: %s " % (source.nick, command))
 				proc, end = self.command_groups[command_match.lastindex]
 				params = command_match.groups()[command_match.lastindex:end]
-				proc(self, conn, event, respond_to, *params)
+				task = asyncio.async(proc(self, conn, event, respond_to, *params), loop=self.loop)
+				task.add_done_callback(asyncio.Task.result)
 
 	def on_message_action(self, conn, event):
 		# Treat CTCP ACTION messages as the raw "/me does whatever" message that
