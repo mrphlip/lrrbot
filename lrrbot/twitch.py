@@ -126,3 +126,9 @@ def get_group_servers():
 	servers = [(host, preferred_port(ports)) for host,ports in server_dict.items()]
 	random.shuffle(servers)
 	return servers
+
+@utils.cache(5 * 60, params=[0])
+@asyncio.coroutine
+def get_stream_info(channel):
+	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/streams/%s" % channel)
+	return json.loads(data)
