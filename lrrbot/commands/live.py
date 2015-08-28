@@ -8,6 +8,7 @@ import asyncio
 import json
 import urllib.parse
 import urllib.error
+import irc.client
 
 @utils.cache(24 * 60 * 60)
 @asyncio.coroutine
@@ -97,3 +98,26 @@ def live(lrrbot, conn, event, respond_to):
 		) for data in streams
 	])
 	return conn.privmsg(respond_to, utils.shorten(message, 450))
+
+
+@bot.command("live register")
+def register_self(lrrbot, conn, event, respond_to):
+	"""
+	Command: !live register
+
+	Register your channel as a fanstreamer channel.
+	"""
+	channel = irc.client.NickMask(event.source).nick.lower()
+	storage.data["fan_channels"] = list(set(storage.data.get("fan_channels", []) + [channel]))
+	conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
+
+@bot.command("live register (.*)")
+@utils.mod_only
+def register(lrrbot, conn, event, respond_to, channel):
+	"""
+	Command: !live register CHANNEL
+
+	Register CHANNEL as a fanstreamer channel.
+	"""
+	storage.data["fan_channels"] = list(set(storage.data.get("fan_channels", []) + [channel]))
+	conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
