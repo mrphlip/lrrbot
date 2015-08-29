@@ -65,6 +65,8 @@ def live(lrrbot, conn, event, respond_to):
 	if streams == []:
 		return conn.privmsg(respond_to, "No fanstreamers currently live.")
 
+	streams.sort(key=lambda e: e["stream"]["channel"]["display_name"])
+
 	tag = "Currently live fanstreamers: "
 
 	# Full message
