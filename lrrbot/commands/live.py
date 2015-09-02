@@ -71,11 +71,11 @@ def live(lrrbot, conn, event, respond_to):
 
 	# Full message
 	message = tag + ", ".join([
-		"%s (%s) is playing %s (%s)" % (
+		"%s (%s)%s%s" % (
 			data["stream"]["channel"]["display_name"],
 			data["stream"]["channel"]["url"],
-			data["stream"]["game"],
-			data["stream"]["channel"]["status"]
+			" is playing %s" % data["stream"]["game"] if data["stream"].get("game") is not None else "",
+			" (%s)" % data["stream"]["channel"]["status"] if data["stream"]["channel"].get("status") not in [None, ""] else ""
 		) for data in streams
 	])
 	if len(message) <= 450:
@@ -83,10 +83,10 @@ def live(lrrbot, conn, event, respond_to):
 
 	# Shorter message
 	message = tag + ", ".join([
-		"%s (%s) is playing %s" % (
+		"%s (%s)%s" % (
 			data["stream"]["channel"]["display_name"],
 			data["stream"]["channel"]["url"],
-			data["stream"]["game"],
+			" is playing %s" % data["stream"]["game"] if data["stream"].get("game") is not None else "",
 		) for data in streams
 	])
 	if len(message) <= 450:
