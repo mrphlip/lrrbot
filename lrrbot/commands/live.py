@@ -121,5 +121,9 @@ def register(lrrbot, conn, event, respond_to, channel):
 
 	Register CHANNEL as a fanstreamer channel.
 	"""
-	storage.data["fan_channels"] = list(set(storage.data.get("fan_channels", []) + [channel]))
-	conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
+	try:
+		yield from twitch.get_stream_info(channel)
+		storage.data["fan_channels"] = list(set(storage.data.get("fan_channels", []) + [channel]))
+		conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
+	except urllib.error.HTTPError:
+		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)
