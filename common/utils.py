@@ -438,8 +438,11 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 	while True:
 		try:
 			res = yield from asyncio.wait_for(http_request_session.request(method, url, params=params, data=data, headers=headers), timeout)
-			if res.status // 100 != 2:
+			status_class = res.status // 100
+			if status_class != 2:
 				yield from res.read()
+				if status_class == 4:
+					maxtries = 1
 				raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
 			return (yield from res.text())
 		except Exception as e:
