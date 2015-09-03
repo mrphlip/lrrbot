@@ -15,7 +15,7 @@ from common.config import config, from_apipass
 REQUEST_SCOPES = []
 
 SPECIAL_USERS = {
-	'lrrbot': ['chat_login'],
+	'lrrbot': ['chat_login', 'user_read', 'user_follows_edit'],
 	'loadingreadyrun': ['channel_subscriptions'],
 }
 
