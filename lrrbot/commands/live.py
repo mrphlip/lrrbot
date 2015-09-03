@@ -1,6 +1,5 @@
 from lrrbot.main import bot
 from lrrbot import twitch
-from lrrbot import storage
 from lrrbot import googlecalendar
 from common import utils
 from common.config import config
@@ -34,13 +33,10 @@ def extract_new_channels(loop):
 						continue
 					channels.add(channel)
 
-	storage.data.setdefault("fan_channels", [])
-	new_channels = list(channels.difference(storage.data["fan_channels"]))
-	channels_data = yield from asyncio.gather(*[twitch.get_stream_info(channel) for channel in new_channels], loop=loop, return_exceptions=True)
-	for channel, data in zip(new_channels, channels_data):
-		if isinstance(data, dict) and "error" not in data:
-			storage.data["fan_channels"].append(channel)
-	storage.save()
+	follows = yield from twitch.get_follows_channels()
+	old_channels = {channel["channel"]["name"] for channel in follows}
+
+	yield from asyncio.gather(*map(twitch.follow_channel, channels.difference(old_channels)), loop=loop, return_exceptions=True)
 
 @bot.command("live")
 @utils.throttle()
@@ -57,25 +53,21 @@ def live(lrrbot, conn, event, respond_to):
 	except urllib.error.HTTPError:
 		pass
 
-	streams = yield from asyncio.gather(*[
-		twitch.get_stream_info(channel)
-		for channel in storage.data.get("fan_channels", [])
-	], loop=lrrbot.loop)
-	streams = [data for data in streams if data.get("stream") is not None]
+	streams = yield from twitch.get_streams_followed()
 	if streams == []:
 		return conn.privmsg(respond_to, "No fanstreamers currently live.")
 
-	streams.sort(key=lambda e: e["stream"]["channel"]["display_name"])
+	streams.sort(key=lambda e: e["channel"]["display_name"])
 
 	tag = "Currently live fanstreamers: "
 
 	# Full message
 	message = tag + ", ".join([
 		"%s (%s)%s%s" % (
-			data["stream"]["channel"]["display_name"],
-			data["stream"]["channel"]["url"],
-			" is playing %s" % data["stream"]["game"] if data["stream"].get("game") is not None else "",
-			" (%s)" % data["stream"]["channel"]["status"] if data["stream"]["channel"].get("status") not in [None, ""] else ""
+			data["channel"]["display_name"],
+			data["channel"]["url"],
+			" is playing %s" % data["game"] if data.get("game") is not None else "",
+			" (%s)" % data["channel"]["status"] if data["channel"].get("status") not in [None, ""] else ""
 		) for data in streams
 	])
 	if len(message) <= 450:
@@ -84,9 +76,9 @@ def live(lrrbot, conn, event, respond_to):
 	# Shorter message
 	message = tag + ", ".join([
 		"%s (%s)%s" % (
-			data["stream"]["channel"]["display_name"],
-			data["stream"]["channel"]["url"],
-			" is playing %s" % data["stream"]["game"] if data["stream"].get("game") is not None else "",
+			data["channel"]["display_name"],
+			data["channel"]["url"],
+			" is playing %s" % data["game"] if data.get("game") is not None else "",
 		) for data in streams
 	])
 	if len(message) <= 450:
@@ -95,14 +87,15 @@ def live(lrrbot, conn, event, respond_to):
 	# Shortest message
 	message = tag + ", ".join([
 		"%s (%s)" % (
-			data["stream"]["channel"]["display_name"],
-			data["stream"]["channel"]["url"]
+			data["channel"]["display_name"],
+			data["channel"]["url"]
 		) for data in streams
 	])
 	return conn.privmsg(respond_to, utils.shorten(message, 450))
 
 
 @bot.command("live register")
+@asyncio.coroutine
 def register_self(lrrbot, conn, event, respond_to):
 	"""
 	Command: !live register
@@ -110,11 +103,12 @@ def register_self(lrrbot, conn, event, respond_to):
 	Register your channel as a fanstreamer channel.
 	"""
 	channel = irc.client.NickMask(event.source).nick.lower()
-	storage.data["fan_channels"] = list(set(storage.data.get("fan_channels", []) + [channel]))
+	yield from twitch.follow_channel(channel)
 	conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
 
 @bot.command("live register (.*)")
 @utils.mod_only
+@asyncio.coroutine
 def register(lrrbot, conn, event, respond_to, channel):
 	"""
 	Command: !live register CHANNEL
@@ -122,8 +116,7 @@ def register(lrrbot, conn, event, respond_to, channel):
 	Register CHANNEL as a fanstreamer channel.
 	"""
 	try:
-		yield from twitch.get_stream_info(channel)
-		storage.data["fan_channels"] = list(set(storage.data.get("fan_channels", []) + [channel]))
+		yield from twitch.follow_channel(channel)
 		conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
 	except urllib.error.HTTPError:
 		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)
