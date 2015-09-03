@@ -8,6 +8,9 @@ function init()
 {
 	document.getElementById("remember_me_wrapper").style.display = "";
 	update_state();
+	{%if special_user%}
+	document.getElementById("frm").submit();
+	{%endif%}
 }
 function update_state()
 {
@@ -19,9 +22,13 @@ window.onload = init;
 </script>
 {%endblock%}
 {%block content%}
+{%if special_user%}
+<p class="error">Trying to log in as a special user <code>{{special_user|e}}</code>. Attempting login again with extra permissions requested...</p>
+{%else%}
 <p>Logging in to the LRRbot website via Twitch will let us know what your username is in the chat, so you can do things like vote on game ratings and such without spamming the chat. <!-- It also allows moderators access to administrative pages on the site.--></p>
-<form action="https://api.twitch.tv/kraken/oauth2/authorize" method="GET">
-<div id="remember_me_wrapper" style="display: none; margin: 0.25em 0"><label><input id="remember_me" type="checkbox" onclick="update_state()" onchange="update_state()"> Remember me</label></div>
+{%endif%}
+<form id="frm" action="https://api.twitch.tv/kraken/oauth2/authorize" method="GET" {%if special_user%}style="display:none"{%endif%}>
+<div id="remember_me_wrapper" style="display: none; margin: 0.25em 0"><label><input id="remember_me" type="checkbox" onclick="update_state()" onchange="update_state()" {%if remember_me%}checked{%endif%}> Remember me</label></div>
 <input type="hidden" name="response_type" value="code">
 <input type="hidden" name="client_id" value="{{clientid|e}}">
 <input type="hidden" name="redirect_uri" value="{{redirect_uri|e}}">

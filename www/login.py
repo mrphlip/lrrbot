@@ -182,11 +182,12 @@ def login(return_to=None):
 			# If one of our special users logged in *without* using the "as" flag,
 			# Twitch *might* remember them and give us the same permissions anyway
 			# but if not, then we don't have the permissions we need to do our thing
-			# so bounce them back to an error page.
+			# so bounce them back to the login page with the appropriate scopes.
 			if user_name in SPECIAL_USERS:
 				if any(i not in granted_scopes for i in SPECIAL_USERS[user_name]):
 					server.app.logger.error("User %s has not granted us the required permissions" % user_name)
-					return flask.render_template("login_response.html", success=False, special_user=user_name, session=load_session(include_url=False))
+					flask.session['login_nonce'] = uuid.uuid4().hex
+					return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(SPECIAL_USERS[user_name]), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=load_session(include_url=False), special_user=user_name, remember_me=remember_me)
 				from www import botinteract
 				botinteract.set_data(["twitch_oauth", user_name], access_token)
 
