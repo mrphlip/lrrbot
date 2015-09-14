@@ -381,6 +381,22 @@ def swallow_errors(func):
 			return None
 	return wrapper
 
+def check_exception(future):
+	"""
+	Log any exceptions that occurred while processing this Future.
+
+	Usage:
+	asyncio.async(coro(), loop=loop).add_done_callback(check_exception)
+
+	Apply this to any Future that is not passed to loop.run_until_complete or similar
+	"""
+	try:
+		future.result()
+	except (KeyboardInterrupt, SystemExit):
+		raise
+	except:
+		log.exception("Exception in future")
+
 class Request(urllib.request.Request):
 	"""Override the get_method method of Request, adding the "method" field that doesn't exist until Python 3.3"""
 	def __init__(self, *args, method=None, **kwargs):
