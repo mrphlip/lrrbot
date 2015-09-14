@@ -161,11 +161,11 @@ def get_streams_followed(username=None):
 	return streams
 
 @asyncio.coroutine
-def twitch.follow_channel(target, user=None):
+def follow_channel(target, user=None):
 	if user is None:
 		user = config["username"]
 	headers = {
 		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][user],
 	}
-	yield from utils.http_request_coro("https://api.twitch.tv/kraken/users/%s/follows/channel/%s" % (user, target),
+	yield from utils.http_request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (user, target),
 									data={"notifications": "false"}, method="PUT", headers=headers)
