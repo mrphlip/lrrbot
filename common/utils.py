@@ -132,6 +132,8 @@ def coro_decorator(decorator):
 					return e.value
 				else:
 					raise Exception("Decorator %s behaving badly wrapping non-coroutine %s" % (decorator.__name__, func.__name__))
+			# Without this `asyncio` thinks that `decorated_func` is a coroutine function.
+			decorated_func._is_coroutine = False
 			return decorated_func
 	return wrapper
 
@@ -422,6 +424,8 @@ def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 				break
 	raise firstex
 
+# Limit the number of parallel HTTP connections to a server.
+http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
 @asyncio.coroutine
 def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5):
 	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
@@ -433,8 +437,12 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 		params = None
 	while True:
 		try:
-			res = yield from asyncio.wait_for(aiohttp.request(method, url, params=params, data=data, headers=headers), timeout)
-			if res.status // 100 != 2:
+			res = yield from asyncio.wait_for(http_request_session.request(method, url, params=params, data=data, headers=headers), timeout)
+			status_class = res.status // 100
+			if status_class != 2:
+				yield from res.read()
+				if status_class == 4:
+					maxtries = 1
 				raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
 			return (yield from res.text())
 		except Exception as e:

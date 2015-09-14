@@ -126,3 +126,46 @@ def get_group_servers():
 	servers = [(host, preferred_port(ports)) for host,ports in server_dict.items()]
 	random.shuffle(servers)
 	return servers
+
+@asyncio.coroutine
+def get_follows_channels(username=None):
+	if username is None:
+		username = config["username"]
+	url = "https://api.twitch.tv/kraken/users/%s/follows/channels" % username
+	follows = []
+	total = 1
+	while len(follows) < total:
+		data = yield from utils.http_request_coro(url)
+		data = json.loads(data)
+		total = data["_total"]
+		follows += data["follows"]
+		url = data["_links"]["next"]
+	return follows
+
+@asyncio.coroutine
+def get_streams_followed(username=None):
+	if username is None:
+		username = config["username"]
+	url = "https://api.twitch.tv/kraken/streams/followed"
+	headers = {
+		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][username],
+	}
+	streams = []
+	total = 1
+	while len(streams) < total:
+		data = yield from utils.http_request_coro(url, headers=headers)
+		data = json.loads(data)
+		total = data["_total"]
+		streams += data["streams"]
+		url = data["_links"]["next"]
+	return streams
+
+@asyncio.coroutine
+def twitch.follow_channel(target, user=None):
+	if user is None:
+		user = config["username"]
+	headers = {
+		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][user],
+	}
+	yield from utils.http_request_coro("https://api.twitch.tv/kraken/users/%s/follows/channel/%s" % (user, target),
+									data={"notifications": "false"}, method="PUT", headers=headers)
