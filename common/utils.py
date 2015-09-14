@@ -123,7 +123,7 @@ def coro_decorator(decorator):
 			return decorated_coro
 		else:
 			# Unwrap the coroutine. We know it should never yield.
-			@functools.wraps(decorated_coro, assigned=functools.WRAPPER_ASSIGNMENTS + EXTRA_PARAMS)
+			@functools.wraps(decorated_coro, assigned=functools.WRAPPER_ASSIGNMENTS + EXTRA_PARAMS, updated=())
 			def decorated_func(*args, **kwargs):
 				x = iter(decorated_coro(*args, **kwargs))
 				try:
@@ -132,8 +132,6 @@ def coro_decorator(decorator):
 					return e.value
 				else:
 					raise Exception("Decorator %s behaving badly wrapping non-coroutine %s" % (decorator.__name__, func.__name__))
-			# Without this `asyncio` thinks that `decorated_func` is a coroutine function.
-			decorated_func._is_coroutine = False
 			return decorated_func
 	return wrapper
 
