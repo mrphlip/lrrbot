@@ -15,6 +15,7 @@ import random
 import enum
 import asyncio
 import aiohttp
+import atexit
 
 import flask
 import irc.client
@@ -424,6 +425,7 @@ def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 
 # Limit the number of parallel HTTP connections to a server.
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
+atexit.register(http_request_session.close)
 @asyncio.coroutine
 def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5):
 	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
