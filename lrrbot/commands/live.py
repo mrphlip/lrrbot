@@ -106,6 +106,18 @@ def register_self(lrrbot, conn, event, respond_to):
 	yield from twitch.follow_channel(channel)
 	conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
 
+@bot.command("live unregister")
+@asyncio.coroutine
+def unregister_self(lrrbot, conn, event, respond_to):
+	"""
+	Command: !live unregister
+
+	Unregister your channel as a fanstreamer channel.
+	"""
+	channel = irc.client.NickMask(event.source).nick.lower()
+	yield from twitch.unfollow_channel(channel)
+	conn.privmsg(respond_to, "Channel '%s' removed from the fanstreamer list." % channel)
+
 @bot.command("live register (.*)")
 @utils.mod_only
 @asyncio.coroutine
@@ -118,5 +130,20 @@ def register(lrrbot, conn, event, respond_to, channel):
 	try:
 		yield from twitch.follow_channel(channel)
 		conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
+	except urllib.error.HTTPError:
+		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)
+
+@bot.command("live unregister (.*)")
+@utils.mod_only
+@asyncio.coroutine
+def unregister(lrrbot, conn, event, respond_to, channel):
+	"""
+	Command: !live unregister CHANNEL
+
+	Unregister CHANNEL as a fanstreamer channel.
+	"""
+	try:
+		yield from twitch.unfollow_channel(channel)
+		conn.privmsg(respond_to, "Channel '%s' removed from the fanstreamer list." % channel)
 	except urllib.error.HTTPError:
 		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)
