@@ -115,8 +115,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			event_server = None
 
 		# Start background tasks
-		substask = asyncio.async(twitchsubs.watch_subs(self))
-		chatlogtask = asyncio.async(chatlog.run_task())
+		substask = asyncio.async(twitchsubs.watch_subs(self), loop=self.loop)
+		chatlogtask = asyncio.async(chatlog.run_task(), loop=self.loop)
 
 		self._connect()
 		if self.whisperconn:

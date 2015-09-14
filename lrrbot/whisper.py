@@ -26,7 +26,7 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 		self.reactor.add_global_handler('welcome', self.on_connect)
 
 		self.message_queue = asyncio.Queue(loop=loop)
-		self.message_pump_task = asyncio.async(self.message_pump())
+		self.message_pump_task = asyncio.async(self.message_pump(), loop=loop)
 
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)
