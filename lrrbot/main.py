@@ -19,14 +19,14 @@ import irc.modes
 
 from common import utils
 from common.config import config
-from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor
+from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor, linkspam
 
 
 log = logging.getLogger('lrrbot')
 
 SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', 'emoteset': {317}}
 
-class LRRBot(irc.bot.SingleServerIRCBot):
+class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 	GAME_CHECK_INTERVAL = 5*60 # Only check the current game at most once every five minutes
 
 	def __init__(self, loop):
@@ -42,6 +42,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			nickname=config['username'],
 			reconnection_interval=config['reconnecttime'],
 		)
+		linkspam.LinkSpam.__init__(self, loop)
 
 		# Send a keep-alive message every minute, to catch network dropouts
 		# self.connection has a set_keepalive method, but it crashes
@@ -250,6 +251,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		elif self.check_spam(conn, event, event.arguments[0]):
 			return
 		else:
+			asyncio.async(self.check_urls(conn, event, event.arguments[0]), loop=self.loop).add_done_callback(utils.check_exception)
 			if self.access == "mod" and not self.is_mod(event):
 				return
 			if self.access == "sub" and not self.is_mod(event) and not self.is_sub(event):
@@ -399,43 +401,49 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	def is_sub_nick(self, nick):
 		return nick.lower() in self.subs
 
+	def ban(self, conn, event, reason):
+		source = irc.client.NickMask(event.source)
+		self.spammers.setdefault(source.nick.lower(), 0)
+		self.spammers[source.nick.lower()] += 1
+		level = self.spammers[source.nick.lower()]
+		if level <= 1:
+			log.info("First offence, flickering %s" % source.nick)
+			conn.privmsg(event.target, ".timeout %s 1" % source.nick)
+			conn.privmsg(event.target, "%s: Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, reason))
+		elif level <= 2:
+			log.info("Second offence, timing out %s" % source.nick)
+			conn.privmsg(event.target, ".timeout %s" % source.nick)
+			conn.privmsg(event.target, "%s: Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, reason))
+		else:
+			log.info("Third offence, banning %s" % source.nick)
+			conn.privmsg(event.target, ".ban %s" % source.nick)
+			conn.privmsg(event.target, "%s: Banned for persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, reason))
+			level = 3
+		today = datetime.datetime.now(config['timezone']).date().toordinal()
+		if today != storage.data.get("spam",{}).get("date"):
+			storage.data["spam"] = {
+				"date": today,
+				"count": [0, 0, 0],
+		}
+		storage.data["spam"]["count"][level - 1] += 1
+		storage.save()
+
 	def check_spam(self, conn, event, message):
 		"""Check the message against spam detection rules"""
 		if not irc.client.is_channel(event.target):
 			return False
 		respond_to = event.target
 		source = irc.client.NickMask(event.source)
+
 		for re, desc in self.spam_rules:
 			matches = re.search(message)
 			if matches:
 				log.info("Detected spam from %s - %r matches %s" % (source.nick, message, re.pattern))
 				groups = {str(i+1):v for i,v in enumerate(matches.groups())}
 				desc = desc % groups
-				self.spammers.setdefault(source.nick.lower(), 0)
-				self.spammers[source.nick.lower()] += 1
-				level = self.spammers[source.nick.lower()]
-				if level <= 1:
-					log.info("First offence, flickering %s" % source.nick)
-					conn.privmsg(event.target, ".timeout %s 1" % source.nick)
-					conn.privmsg(event.target, "%s: Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
-				elif level <= 2:
-					log.info("Second offence, timing out %s" % source.nick)
-					conn.privmsg(event.target, ".timeout %s" % source.nick)
-					conn.privmsg(event.target, "%s: Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
-				else:
-					log.info("Third offence, banning %s" % source.nick)
-					conn.privmsg(event.target, ".ban %s" % source.nick)
-					conn.privmsg(event.target, "%s: Banned for persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, desc))
-					level = 3
-				today = datetime.datetime.now(config['timezone']).date().toordinal()
-				if today != storage.data.get("spam",{}).get("date"):
-					storage.data["spam"] = {
-						"date": today,
-						"count": [0, 0, 0],
-				}
-				storage.data["spam"]["count"][level - 1] += 1
-				storage.save()
+				self.ban(conn, event, desc)
 				return True
+
 		return False
 
 	def rpc_server(self):

@@ -443,7 +443,7 @@ def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
 atexit.register(http_request_session.close)
 @asyncio.coroutine
-def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5):
+def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
 	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
 	firstex = None
 	if method == 'GET':
@@ -453,7 +453,9 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 		params = None
 	while True:
 		try:
-			res = yield from asyncio.wait_for(http_request_session.request(method, url, params=params, data=data, headers=headers), timeout)
+			res = yield from asyncio.wait_for(http_request_session.request(method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects), timeout)
+			if method == "HEAD":
+				return res
 			status_class = res.status // 100
 			if status_class != 2:
 				yield from res.read()
