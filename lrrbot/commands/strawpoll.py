@@ -8,8 +8,8 @@ from lrrbot.main import bot
 DEFAULT_TIMEOUT = 180
 
 def strawpoll_format(data):
-    i, (name, count) = data
-    return "%s: %s (%d vote%s)" % (i+1, name, count, '' if count == 1 else 's')
+	i, (name, count) = data
+	return "%s: %s (%d vote%s)" % (i+1, name, count, '' if count == 1 else 's')
 
 def check_polls(lrrbot, conn):
 	now = time.time()
