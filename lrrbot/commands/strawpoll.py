@@ -41,7 +41,7 @@ def polls(lrrbot, conn, event, respond_to):
 		messages += ["%s (http://strawpoll.me/%s): %s from now" % (title, poll_id, utils.nice_duration(end - now, 1))]
 	conn.privmsg(respond_to, utils.shorten("Active polls: "+"; ".join(messages), 450))
 
-@bot.command("(multi)?poll (?:(\d+) )?(?:(?:http://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/r?)?|(?:([^:]+) ?: ?)?(.*))")
+@bot.command("(multi)?poll (?:(\d+) )?(?:(?:https?://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/r?)?|(?:([^:]+) ?: ?)?(.*))")
 @utils.mod_only
 def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, options):
 	"""
