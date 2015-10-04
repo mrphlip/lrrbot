@@ -703,7 +703,7 @@ def canonical_url(url, depth=10):
 		if res.status in range(300, 400) and "Location" in res.headers:
 			return [url] + (yield from canonical_url(urllib.parse.urljoin(url, res.headers["Location"], depth - 1)))
 	except Exception:
-		log.exception("Error fetching %r:", url)
+		log.error("Error fetching %r", url)
 		pass
 	return [url]
 

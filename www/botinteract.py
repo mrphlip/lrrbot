@@ -64,6 +64,9 @@ def modify_spam_rules(data):
 	"""
 	send_bot_command("modify_spam_rules", data)
 
+def modify_link_spam_rules(data):
+	send_bot_command("modify_link_spam_rules", data)
+
 def get_commands():
 	return send_bot_command("get_commands", None)
 

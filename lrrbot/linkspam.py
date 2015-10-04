@@ -14,9 +14,21 @@ class LinkSpam:
 		self._rules = [
 			{
 				"re": re.compile(rule["re"], re.IGNORECASE),
-				"message": rule["message"]
+				"message": rule["message"],
 			}
 			for rule in storage.data.get("link_spam_rules", [])
+		]
+		self.add_server_event("modify_link_spam_rules", self.modify_link_spam_rules)
+
+	def modify_link_spam_rules(self, lrrbot, user, data):
+		storage.data['link_spam_rules'] = data
+		storage.save()
+		self._rules = [
+			{
+				"re": re.compile(rule['re'], re.IGNORECASE),
+				"message": rule['message'],
+			}
+			for rule in storage.data['link_spam_rules']
 		]
 
 	@asyncio.coroutine

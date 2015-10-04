@@ -42,7 +42,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			nickname=config['username'],
 			reconnection_interval=config['reconnecttime'],
 		)
-		linkspam.LinkSpam.__init__(self, loop)
 
 		# Send a keep-alive message every minute, to catch network dropouts
 		# self.connection has a set_keepalive method, but it crashes
@@ -95,6 +94,8 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.mods = set(storage.data.get('mods', config['mods']))
 		self.subs = set(storage.data.get('subs', []))
 		self.autostatus = set(storage.data.get('autostatus', []))
+
+		linkspam.LinkSpam.__init__(self, loop)
 
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)
