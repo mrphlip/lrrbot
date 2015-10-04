@@ -403,21 +403,23 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 	def ban(self, conn, event, reason):
 		source = irc.client.NickMask(event.source)
+		tags = dict((i['key'], i['value']) for i in event.tags)
+		display_name = tags.get("display_name") or source.nick
 		self.spammers.setdefault(source.nick.lower(), 0)
 		self.spammers[source.nick.lower()] += 1
 		level = self.spammers[source.nick.lower()]
 		if level <= 1:
-			log.info("First offence, flickering %s" % source.nick)
+			log.info("First offence, flickering %s" % display_name)
 			conn.privmsg(event.target, ".timeout %s 1" % source.nick)
-			conn.privmsg(event.target, "%s: Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, reason))
+			conn.privmsg(event.target, "%s: Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (display_name, reason))
 		elif level <= 2:
-			log.info("Second offence, timing out %s" % source.nick)
+			log.info("Second offence, timing out %s" % display_name)
 			conn.privmsg(event.target, ".timeout %s" % source.nick)
-			conn.privmsg(event.target, "%s: Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, reason))
+			conn.privmsg(event.target, "%s: Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (display_name, reason))
 		else:
-			log.info("Third offence, banning %s" % source.nick)
+			log.info("Third offence, banning %s" % display_name)
 			conn.privmsg(event.target, ".ban %s" % source.nick)
-			conn.privmsg(event.target, "%s: Banned for persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (source.nick, reason))
+			conn.privmsg(event.target, "%s: Banned for persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (display_name, reason))
 			level = 3
 		today = datetime.datetime.now(config['timezone']).date().toordinal()
 		if today != storage.data.get("spam",{}).get("date"):
