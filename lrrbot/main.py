@@ -267,6 +267,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# was actually typed in. Mostly for passing it through to the chat log
 		# but also to make sure the subscriber flags are updated etc.
 		event.arguments[0] = "/me " + event.arguments[0]
+		if irc.client.is_channel(event.target):
+			event.type = "pubmsg"
+		else:
+			event.type = "privmsg"
 		return self.on_message(conn, event)
 
 	def on_notification(self, conn, event, respond_to):
