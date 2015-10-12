@@ -34,6 +34,11 @@ data = {
 			'message': '<ban description>',
 		},
 	],
+	'link_rules': [
+		{
+			're': '<regular expression>'
+		}
+	],
 }
 
 For example:

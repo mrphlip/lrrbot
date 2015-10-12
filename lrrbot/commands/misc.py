@@ -38,6 +38,24 @@ def stormcount(lrrbot, conn, event, respond_to):
 		storage.save()
 	conn.privmsg(respond_to, "Today's storm count: %d" % storage.data["storm"]["count"])
 	
+@bot.command("permit")
+@utils.throttle()
+def permit(lrrbot, conn, event, respond_to):
+	"""
+	Command: !permit
+	Section: misc
+
+	Adds requesting user to whitelist, only works if this is a private message.
+	"""
+	#ignore command unless it's a private message
+	if event.type not "privmsg":
+		return
+	if lrrbot.allowed_to_link(respond_to.lower()):
+		conn.privmsg(respond_to, "You are already able to post links")
+	else:
+		conn.privmsg(respond_to, "I'll let you post links but use this power wisely, the mods may yet strike you down.")
+		lrrbot.whitelist.push(respond_to.lower())
+
 @bot.command("spam(?:count)?")
 @utils.throttle()
 def spamcount(lrrbot, conn, event, respond_to):
