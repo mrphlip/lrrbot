@@ -5,6 +5,9 @@ function init()
 	$('div.button.add').click(addRow);
 	$('div.button.remove').click(deleteRow);
 
+	if (window.link_spam)
+		$('button.redirects').click(redirects);
+
 	fixRows();
 }
 $(init);
@@ -80,7 +83,8 @@ function save()
 	$.ajax({
 		'type': 'POST',
 		'url': "spam/submit",
-		'data': "data=" + encodeURIComponent(data) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
+		'data': "data=" + encodeURIComponent(data) + "&_csrf_token=" + encodeURIComponent(window.csrf_token) +
+			(window.link_spam ? "&link_spam" : ""),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,
@@ -98,12 +102,37 @@ function test()
 	$.ajax({
 		'type': 'POST',
 		'url': "spam/test",
-		'data': "data=" + encodeURIComponent(data) + "&message=" + encodeURIComponent(message) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
+		'data': "data=" + encodeURIComponent(data) + "&message=" + encodeURIComponent(message) +
+			"&_csrf_token=" + encodeURIComponent(window.csrf_token) + (window.link_spam ? "&link_spam" : ""),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,
 		'success': testSuccess,
 		'error': testError
+	});
+}
+
+function redirects()
+{
+	var url = $("input.redirects").val();
+	$.ajax({
+		'type': 'GET',
+		'url': "spam/redirects",
+		'data': "url=" + encodeURIComponent(url) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
+		'dataType': 'json',
+		'async': true,
+		'success': function(data) {
+			window.csrf_token = data["csrf_token"];
+			var urls = data["redirects"];
+			var container = $("ol.redirects");
+			container.empty();
+			for (var i = 0; i < urls.length; i++) {
+				container.append("<li><a href=\"" + urls[i] + "\">" + urls[i] + "</a></li>");
+			}
+		},
+		'error': function(error) {
+			alert("Error fetching redirects");
+		}
 	});
 }
 

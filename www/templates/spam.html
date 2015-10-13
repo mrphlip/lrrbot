@@ -2,11 +2,23 @@
 {%block title%}Spam Rules{%endblock%}
 {%block header%}Spam Rules{%endblock%}
 {%block headextra%}
-<script type="text/javascript">window.csrf_token = {{csrf_token()|tojson}}</script>
+<script type="text/javascript">
+    window.csrf_token = {{csrf_token()|tojson}};
+    window.link_spam = {{link_spam|tojson}};
+</script>
 <script type="text/javascript" src="{{url_for('static', filename='spam.js')|e}}"></script>
 {%endblock%}
 {%block content%}
-<p><a href="{{url_for('spam_find')|e}}">Find potential spambots</a></p>
+<ol class="menu">
+	<li class="first">
+		{% if link_spam %}
+			<strong>Link spam rules</strong>
+		{% else %}
+			<a href="{{url_for('spam', link_spam='')|e}}">Link spam rules</a>
+		{% endif %}
+	</li>
+	<li><a href="{{url_for('spam_find')|e}}">Find potential spambots</a></li>
+</ol>
 <div style="text-align:right; margin: 1em">
 	<button class="save">Save</button>
 	<div class="save loading" style="display: none; margin: 0 0 0 auto"></div>
@@ -44,6 +56,13 @@
 </tr>
 </tfoot>
 </table>
+
+{% if link_spam %}
+<h2>Follow redirects</h2>
+<p><input type="text" class="redirects"> <button class="redirects">Follow redirects</button></p>
+<ol class="redirects"></ol>
+{% endif %}
+
 <h2>Testing area</h2>
 <p>Copy text here from the chat to test out the spam rules, before saving them!</p>
 <div><textarea style="width: 100%; height: 5em" id="testtext"></textarea></div>
