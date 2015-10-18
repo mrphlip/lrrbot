@@ -58,9 +58,9 @@ def spamcount(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Today's spam counts: %d hits, %d repeat offenders, %d bannings" % tuple(
 		storage.data["spam"]["count"]))
 
-DESERTBUS_START = 1415988000
-DESERTBUS_START = datetime.datetime.fromtimestamp(DESERTBUS_START, tz=pytz.utc)
-DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6) # Six days of plugs should be long enough
+DESERTBUS_START = datetime.datetime(2015, 11, 14, 10, 0, tzinfo=config["timezone"])
+DESERTBUS_PRESTART = datetime.datetime(2015, 11, 12, 20, 0, tzinfo=config["timezone"])  # during the last stream before DB
+DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
 @bot.command("(?:next(?:stream)?|sched(?:ule)?)( .*)?")
 @utils.throttle()
@@ -78,7 +78,7 @@ def next(lrrbot, conn, event, respond_to, timezone):
 
 	If no time zone is specified, times will be shown in Moonbase time.
 	"""
-	if datetime.datetime.now(datetime.timezone.utc) < DESERTBUS_END:
+	if DESERTBUS_PRESTART < datetime.datetime.now(datetime.timezone.utc) < DESERTBUS_END:
 		# If someone says !next before/during Desert Bus, plug that instead
 		desertbus(lrrbot, conn, event, respond_to, timezone)
 	else:
