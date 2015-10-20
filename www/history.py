@@ -14,7 +14,7 @@ from psycopg2.extras import Json
 @utils.with_postgres
 def history(conn, cur, session):
 	page = flask.request.values.get('page', 'all')
-	assert page in ('responses', 'explanations', 'spam', 'all')
+	assert page in ('responses', 'explanations', 'spam', 'link_spam', 'all')
 	if page == 'all':
 		cur.execute("""
 			SELECT historykey, section, changetime, changeuser, LENGTH(jsondata :: text)
@@ -60,7 +60,7 @@ def history_show(conn, cur, session, historykey):
 			row['mode'] = "both nochange"
 		data = list(data.items())
 		data.sort(key=lambda a:a[0].lower())
-	elif section == "spam":
+	elif section in ('spam', 'link_spam'):
 		for row in data:
 			row['mode'] = "both nochange"
 	headdata = build_headdata(cur, historykey, historykey, section, user, time)
@@ -133,7 +133,7 @@ def history_diff(conn, cur, session, fromkey, tokey):
 			data[key] = row
 		data = list(data.items())
 		data.sort(key=lambda a:a[0].lower())
-	elif tosection == "spam":
+	elif tosection in ('spam', 'link_spam'):
 		fromdata = [(i['re'], i['message']) for i in fromdata]
 		todata = [(i['re'], i['message']) for i in todata]
 		data = []

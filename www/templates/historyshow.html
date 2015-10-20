@@ -43,7 +43,7 @@ $(function(){
 	{%endfor%}
 </tbody>
 </table>
-{%elif headdata['page'] == 'spam'%}
+{%elif headdata['page'] in ('spam', 'link_spam')%}
 <table class="historyshow nicetable">
 <thead>
 	<tr>
