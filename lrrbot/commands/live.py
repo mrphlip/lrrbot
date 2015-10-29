@@ -35,6 +35,7 @@ def extract_new_channels(loop):
 
 	follows = yield from twitch.get_follows_channels()
 	old_channels = {channel["channel"]["name"] for channel in follows}
+	old_channels.add(config["channel"])
 
 	yield from asyncio.gather(*map(twitch.follow_channel, channels.difference(old_channels)), loop=loop, return_exceptions=True)
 
