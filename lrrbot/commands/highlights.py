@@ -84,7 +84,6 @@ def highlight(lrrbot, conn, event, respond_to, description):
 		conn.privmsg(respond_to, "Not currently streaming.")
 		return
 	now = datetime.datetime.now(datetime.timezone.utc)
-	uptime = now - dateutil.parser.parse(stream_info["stream_created_at"])
 
 	token = yield from get_oauth_token(["https://spreadsheets.google.com/feeds"])
 	headers = {"Authorization": "%(token_type)s %(access_token)s" % token}
@@ -106,6 +105,7 @@ def highlight(lrrbot, conn, event, respond_to, description):
 	for video in (yield from twitch.get_videos(broadcasts=True)):
 		if video["status"] == "recording":
 			break
+		uptime = now - dateutil.parser.parse(video["recorded_at"])
 	else:
 		log.error("Stream live but not being recorded.")
 		conn.privmsg(respond_to, "Error adding highlight.")
