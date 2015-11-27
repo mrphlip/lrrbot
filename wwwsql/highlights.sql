@@ -1,0 +1,7 @@
+CREATE TABLE highlights (
+    id SERIAL NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    time TIMESTAMP WITH TIME ZONE NOT NULL,
+    nick TEXT NOT NULL
+);
