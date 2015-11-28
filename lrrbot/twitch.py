@@ -179,3 +179,14 @@ def unfollow_channel(target, user=None):
 	}
 	yield from utils.http_request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (user, target),
 									method="DELETE", headers=headers)
+
+@asyncio.coroutine
+def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
+	channel = channel or config["channel"]
+	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/channels/%s/videos" % channel, data={
+		"offset": offset,
+		"limit": limit,
+		"broadcasts": "true" if broadcasts else "false",
+		"hls": hls,
+	})
+	return json.loads(data)["videos"]

@@ -1,33 +1,58 @@
-import time
-
 import irc.client
 
-from common import utils
-from lrrbot import storage, twitch
+from common import utils, gdata
+from lrrbot import twitch
 from lrrbot.main import bot
+import asyncio
 
+import dateutil.parser
+import datetime
+
+SPREADSHEET = "1yrf6d7dPyTiWksFkhISqEc-JR71dxZMkUoYrX4BR40Y"
+
+def format_row(title, description, url, timestamp, nick):
+	return [
+		("SHOW", title),
+		("QUOTE or MOMENT", description),
+		("YOUTUBE VIDEO LINK", url),
+		("ROUGH TIME THEREIN", "before " + utils.nice_duration(timestamp, 0)),
+		("NOTES", "from chat user '%s'" % nick),
+	]
+
+@utils.with_postgres
+def store_highlight(conn, cur, title, description, time, nick):
+	cur.execute("INSERT INTO highlights (title, description, time, nick) VALUES(%s, %s, %s, %s)", (title, description, time, nick))
 
 @bot.command("highlight (.*?)")
 @utils.public_only
 @utils.sub_only
 @utils.throttle(60, notify=utils.Visibility.PUBLIC, modoverride=False, allowprivate=False)
+@asyncio.coroutine
 def highlight(lrrbot, conn, event, respond_to, description):
 	"""
 	Command: !highlight DESCRIPTION
 	Section: misc
 
 	For use when something particularly awesome happens onstream, adds an entry on the Highlight Reel spreadsheet: https://docs.google.com/spreadsheets/d/1yrf6d7dPyTiWksFkhISqEc-JR71dxZMkUoYrX4BR40Y
-
-	Note that the highlights won't appear on the spreadsheet immediately, as the link won't be available until the stream finishes and the video is in the archive. It should appear within a day.
 	"""
-	if not twitch.get_info()["live"]:
+
+	stream_info = twitch.get_info()
+	if not stream_info["live"]:
 		conn.privmsg(respond_to, "Not currently streaming.")
 		return
-	storage.data.setdefault("staged_highlights", [])
-	storage.data["staged_highlights"] += [{
-		"time": time.time(),
-		"user": irc.client.NickMask(event.source).nick,
-		"description": description,
-	}]
-	storage.save()
+	now = datetime.datetime.now(datetime.timezone.utc)
+
+	for video in (yield from twitch.get_videos(broadcasts=True)):
+		if video["status"] == "recording":
+			break
+		uptime = now - dateutil.parser.parse(video["recorded_at"])
+	else:
+		store_highlight(stream_info["status"], description, now, irc.client.NickMask(event.source).nick)
+		conn.privmsg(respond_to, "Highlight added.")
+		return
+
+	yield from gdata.add_row_to_spreadsheet(spreadsheet, [
+		format_row(stream_info["status"], description, video["url"], uptime, irc.client.NickMask(event.source).nick)
+	])
+
 	conn.privmsg(respond_to, "Highlight added.")
