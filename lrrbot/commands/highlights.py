@@ -43,15 +43,15 @@ def highlight(lrrbot, conn, event, respond_to, description):
 	now = datetime.datetime.now(datetime.timezone.utc)
 
 	for video in (yield from twitch.get_videos(broadcasts=True)):
+		uptime = now - dateutil.parser.parse(video["recorded_at"])
 		if video["status"] == "recording":
 			break
-		uptime = now - dateutil.parser.parse(video["recorded_at"])
 	else:
 		store_highlight(stream_info["status"], description, now, irc.client.NickMask(event.source).nick)
 		conn.privmsg(respond_to, "Highlight added.")
 		return
 
-	yield from gdata.add_row_to_spreadsheet(spreadsheet, [
+	yield from gdata.add_rows_to_spreadsheet(SPREADSHEET, [
 		format_row(stream_info["status"], description, video["url"], uptime, irc.client.NickMask(event.source).nick)
 	])
 
