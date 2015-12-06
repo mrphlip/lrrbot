@@ -44,7 +44,7 @@ function newMessage(message)
 	if (message.user)
 	{
 		var userDiv = $('<div class="user">');
-		var url = "http://www.twitch.tv/" + message.user;
+		var url = "https://www.twitch.tv/" + message.user;
 		if (message.avatar)
 			userDiv.append($('<a>').attr('href', url).append($('<img>').attr('src', message.avatar))).append(' ');
 		$('<a>').attr('href', url).text(message.user).appendTo(userDiv);

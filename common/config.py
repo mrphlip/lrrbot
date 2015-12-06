@@ -28,7 +28,7 @@ config.setdefault('password', None)
 config.setdefault('channel', 'loadingreadyrun')
 
 # postgres - libpg connection string
-# See http://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
+# See https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
 config.setdefault('postgres', 'postgres:///lrrbot')
 
 # reconnecttime - seconds to wait before reconnecting after a disconnect
@@ -58,7 +58,7 @@ config['notifyuser'] = config.get('notifyuser', 'twitchnotify').lower()
 # commandprefix - symbol to prefix all bot commands
 config.setdefault('commandprefix', '!')
 # siteurl - root of web site
-config.setdefault('siteurl', 'http://lrrbot.mrphlip.com/')
+config.setdefault('siteurl', 'https://lrrbot.mrphlip.com/')
 # apipass - secret string needed to communicate with web site
 config["apipass"] = apipass.get(config["username"])
 

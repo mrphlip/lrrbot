@@ -411,7 +411,7 @@ class Request(urllib.request.Request):
 def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **kwargs):
 	"""Download a webpage, with retries on failure."""
 	# Let's be nice.
-	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
+	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
 	if data:
 		if isinstance(data, dict):
 			data = urllib.parse.urlencode(data)
@@ -444,7 +444,7 @@ http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limi
 atexit.register(http_request_session.close)
 @asyncio.coroutine
 def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
-	headers["User-Agent"] = "LRRbot/2.0 (http://lrrbot.mrphlip.com/)"
+	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
 	firstex = None
 	if method == 'GET':
 		params = data

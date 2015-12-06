@@ -103,7 +103,7 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 		conn.privmsg(respond_to, "Desert Bus for Hope will begin at %s (%s)" % (DESERTBUS_START.astimezone(timezone).strftime(
 			googlecalendar.DISPLAY_FORMAT), nice_duration))
 	elif now < DESERTBUS_END:
-		conn.privmsg(respond_to, "Desert Bus for Hope is currently live! Go watch it now at http://desertbus.org/live/")
+		conn.privmsg(respond_to, "Desert Bus for Hope is currently live! Go watch it now at https://desertbus.org/ or https://twitch.tv/desertbus")
 	else:
 		conn.privmsg(respond_to, "Desert Bus for Hope will return next year, start saving your donation money now!")
 
@@ -160,11 +160,11 @@ def viewers(lrrbot, conn, event, respond_to):
 		viewers = stream_info.get("viewers")
 	else:
 		viewers = None
-	
+
 	# Since we're using TWITCHCLIENT 3, we don't get join/part messages, so we can't just use
 	# len(lrrbot.channels["#loadingreadyrun"].userdict)
 	# as that dict won't be populated. Need to call this api instead.
-	chatters = utils.http_request("http://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
+	chatters = utils.http_request("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
 	chatters = json.loads(chatters).get("chatter_count")
 
 	if viewers is not None:
