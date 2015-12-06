@@ -12,7 +12,7 @@
 	{%if row['channel']%}<div class="channel">{{row['channel']|e}}</div>{%endif%}
 	{%if row['user']%}
 		<div class="user">
-		{%if row['avatar']%}<a href="http://www.twitch.tv/{{row['user']|e}}"><img class="avatar" src="{{row['avatar']|e}}"></a>{%endif%}
+		{%if row['avatar']%}<a href="http://www.twitch.tv/{{row['user']|e}}"><img class="avatar" src="{{row['avatar']|https|e}}"></a>{%endif%}
 		<a href="http://www.twitch.tv/{{row['user']|e}}">{{row['user']|e}}</a> just subscribed!
 		{%if row['monthcount']%}{{row['monthcount']|e}} month{%if row['monthcount'] != 1%}s{%endif%} in a row!{%endif%}
 		</div>

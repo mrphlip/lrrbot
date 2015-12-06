@@ -169,7 +169,7 @@ def format_message_explicit_emotes(message, emotes, size="1.0"):
 	for start, end, emoteid in parsed_emotes:
 		if prev < start:
 			bits.append(urlize(message[prev:start]).replace('<a ', '<a target="_blank" '))
-		url = escape("http://static-cdn.jtvnw.net/emoticons/v1/%d/%s" % (emoteid, size))
+		url = escape("https://static-cdn.jtvnw.net/emoticons/v1/%d/%s" % (emoteid, size))
 		command = escape(message[start:end])
 		bits.append('<img src="%s" alt="%s" title="%s">' % (url, command, command))
 		prev = end
@@ -258,7 +258,7 @@ def get_twitch_emotes():
 			regex = r"\b%s\b" % regex
 		regex = re.compile("(%s)" % regex)
 		for image in emote['images']:
-			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (image['url'], image['width'], image['height'])
+			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (utils.https(image['url']), image['width'], image['height'])
 			emotesets.setdefault(image.get("emoticon_set"), {})[emote['regex']] = {
 				"regex": regex,
 				"html": html,

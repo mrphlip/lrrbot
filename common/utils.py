@@ -733,3 +733,9 @@ def url_regex():
 	re_url = "((?:https?://)?" + re_hostname + "(?::\d+)?(?:/[\x5E\s\u200b]*)?)"
 	re_url = re_url + "|" + "|".join(map(lambda parens: re.escape(parens[0]) + re_url + re.escape(parens[1]), parens))
 	return re.compile(re_url, re.IGNORECASE)
+
+RE_PROTO = re.compile("^https?://")
+def https(uri):
+	return RE_PROTO.sub("https://", uri)
+def noproto(uri):
+	return RE_PROTO.sub("//", uri)
