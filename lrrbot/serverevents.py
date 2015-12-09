@@ -2,6 +2,7 @@ import random
 import re
 import math
 import logging
+import asyncio
 
 from common import utils
 from lrrbot import googlecalendar, storage, commands
@@ -11,6 +12,7 @@ from lrrbot.main import bot
 log = logging.getLogger('serverevents')
 
 @bot.server_event()
+@asyncio.coroutine
 def current_game(lrrbot, user, data):
 	game = lrrbot.get_current_game()
 	if game:
@@ -19,6 +21,7 @@ def current_game(lrrbot, user, data):
 		return None
 
 @bot.server_event()
+@asyncio.coroutine
 def current_game_name(lrrbot, user, data):
 	game = lrrbot.get_current_game()
 	if game:
@@ -27,6 +30,7 @@ def current_game_name(lrrbot, user, data):
 		return None
 
 @bot.server_event()
+@asyncio.coroutine
 def get_data(lrrbot, user, data):
 	if not isinstance(data['key'], (list, tuple)):
 		data['key'] = [data['key']]
@@ -36,6 +40,7 @@ def get_data(lrrbot, user, data):
 	return node
 
 @bot.server_event()
+@asyncio.coroutine
 def set_data(lrrbot, user, data):
 	if not isinstance(data['key'], (list, tuple)):
 		data['key'] = [data['key']]
@@ -52,22 +57,26 @@ def set_data(lrrbot, user, data):
 	storage.save()
 
 @bot.server_event()
+@asyncio.coroutine
 def modify_commands(lrrbot, user, data):
 	commands.static.modify_commands(data)
 	bot.compile()
 
 @bot.server_event()
+@asyncio.coroutine
 def modify_explanations(lrrbot, user, data):
 	commands.explain.modify_explanations(data)
 	bot.compile()
 
 @bot.server_event()
+@asyncio.coroutine
 def modify_spam_rules(lrrbot, user, data):
 	storage.data['spam_rules'] = data
 	storage.save()
 	lrrbot.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 
 @bot.server_event()
+@asyncio.coroutine
 def get_commands(lrrbot, user, data):
 	ret = []
 	for command in lrrbot.commands.values():
@@ -90,6 +99,7 @@ def get_commands(lrrbot, user, data):
 	return ret
 
 @bot.server_event()
+@asyncio.coroutine
 def get_header_info(lrrbot, user, data):
 	game = lrrbot.get_current_game()
 	data = {}
@@ -131,10 +141,12 @@ def get_header_info(lrrbot, user, data):
 	return data
 
 @bot.server_event()
+@asyncio.coroutine
 def nextstream(lrrbot, user, data):
 	return googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
 
 @bot.server_event()
+@asyncio.coroutine
 def set_show(lrrbot, user, data):
 	if user is not None and lrrbot.is_mod_nick(user):
 		commands.show.set_show(lrrbot, data["show"])
@@ -142,10 +154,12 @@ def set_show(lrrbot, user, data):
 	return {"status": "error: %s is not a mod" % user}
 
 @bot.server_event()
+@asyncio.coroutine
 def get_show(lrrbot, user, data):
 	return lrrbot.show_override or lrrbot.show
 
 @bot.server_event()
+@asyncio.coroutine
 @utils.with_postgres
 def get_tweet(conn, cur, lrrbot, user, data):
 	if user is not None and lrrbot.is_mod_nick(user):

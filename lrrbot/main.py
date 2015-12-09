@@ -102,7 +102,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 	def start(self):
 		# Let us run on windows, without the socket
-		if hasattr(self.loop, 'create_unix_server'):
+		if hasattr(asyncio, 'start_unix_server'):
 			# TODO: To be more robust, the code really should have a way to shut this socket down
 			# when the bot exits... currently, it's assuming that there'll only be one LRRBot
 			# instance, that lasts the life of the program... which is true for now...
@@ -111,7 +111,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			except OSError:
 				if os.path.exists(config['socket_filename']):
 					raise
-			event_server = self.loop.create_unix_server(self.rpc_server, path=config['socket_filename'])
+			event_server = asyncio.start_unix_server(self.rpc_server, path=config['socket_filename'], loop=self.loop)
 			self.loop.run_until_complete(event_server)
 		else:
 			event_server = None
@@ -455,12 +455,23 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 		return False
 
-	def rpc_server(self):
-		return RPCServer(self)
-
-	def on_server_event(self, request):
-		eventproc = self.server_events[request['command'].lower()]
-		return eventproc(self, request['user'], request['param'])
+	@asyncio.coroutine
+	def rpc_server(self, reader, writer):
+		log.debug("Received RPC connection from server")
+		line = yield from reader.readline()
+		request = json.loads(line.decode())
+		log.info("Command from server (%s): %s(%r)", request['user'], request['command'], request['param'])
+		try:
+			eventproc = self.server_events[request['command'].lower()]
+			response = yield from eventproc(self, request['user'], request['param'])
+		except:
+			log.exception("Exception in RPC command handler")
+		else:
+			log.debug("Returning: %r", response)
+			response = json.dumps(response).encode() + b"\n"
+			writer.write(response)
+			yield from writer.drain()
+		writer.close()
 
 	@utils.swallow_errors
 	def check_polls(self):
@@ -507,27 +518,5 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		event.type = "privmsg"
 		event.target = config['username']
 		self.on_message(self.connection, event)
-
-class RPCServer(asyncio.Protocol):
-	def __init__(self, lrrbot):
-		self.lrrbot = lrrbot
-		self.buffer = b""
-	def connection_made(self, transport):
-		self.transport = transport
-		log.debug("Received event connection from server")
-	def data_received(self, data):
-		self.buffer += data
-		if b"\n" in self.buffer:
-			request = json.loads(self.buffer.decode())
-			log.info("Command from server (%s): %s(%r)", request['user'], request['command'], request['param'])
-			try:
-				response = self.lrrbot.on_server_event(request)
-			except:
-				log.exception("Exception in on_server_response")
-			else:
-				log.debug("Returning: %r", response)
-				response = json.dumps(response).encode() + b"\n"
-				self.transport.write(response)
-			self.transport.close()
 
 bot = LRRBot(asyncio.get_event_loop())
