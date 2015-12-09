@@ -192,8 +192,8 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		log.info("Connected to server")
 		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
 		conn.cap("REQ", "twitch.tv/commands") # get special commands
+		conn.cap("REQ", "twitch.tv/membership") # get join/part messages
 		conn.join("#%s" % config['channel'])
-		conn.cap("REQ", "twitch.tv/membership") # get join/part messages - after we join, so we don't get a flood of them when we arrive
 		self.check_privmsg_wrapper(conn)
 
 	def on_channel_join(self, conn, event):

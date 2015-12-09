@@ -141,7 +141,7 @@ def time24(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%H:%M"))
 
 @bot.command("viewers")
-@utils.throttle(30) # longer cooldown as this involves 2 API calls
+@utils.throttle()
 def viewers(lrrbot, conn, event, respond_to):
 	"""
 	Command: !viewers
@@ -155,11 +155,7 @@ def viewers(lrrbot, conn, event, respond_to):
 	else:
 		viewers = None
 
-	# Since we're using TWITCHCLIENT 3, we don't get join/part messages, so we can't just use
-	# len(lrrbot.channels["#loadingreadyrun"].userdict)
-	# as that dict won't be populated. Need to call this api instead.
-	chatters = utils.http_request("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
-	chatters = json.loads(chatters).get("chatter_count")
+	chatters = len(lrrbot.channels["#" + config["channel"]].userdict)
 
 	if viewers is not None:
 		viewers = "%d %s viewing the stream." % (viewers, "user" if viewers == 1 else "users")
