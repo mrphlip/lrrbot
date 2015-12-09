@@ -37,7 +37,7 @@ def do_check(lrrbot):
 			if user.lower() not in last_subs:
 				log.info("Found new subscriber via Twitch API: %s" % user)
 				eventtime = dateutil.parser.parse(eventtime).timestamp()
-				lrrbot.on_api_subscriber(user, logo, eventtime, config['channel'])
+				yield from lrrbot.on_api_subscriber(user, logo, eventtime, config['channel'])
 	else:
 		log.debug("Got initial subscriber list from Twitch")
 

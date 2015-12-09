@@ -248,7 +248,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			respond_to = source.nick
 
 		if (nick == config['notifyuser']):
-			self.on_notification(conn, event, respond_to)
+			asyncio.async(self.on_notification(conn, event, respond_to), loop=self.loop).add_done_callback(utils.check_exception)
 		elif self.check_spam(conn, event, event.arguments[0]):
 			return
 		else:
@@ -276,6 +276,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			event.type = "privmsg"
 		return self.on_message(conn, event)
 
+	@asyncio.coroutine
 	def on_notification(self, conn, event, respond_to):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
 		log.info("Notification: %s" % event.arguments[0])
@@ -283,13 +284,13 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		if subscribe_match and irc.client.is_channel(event.target):
 			# Don't highlight the same sub via both the chat and the API
 			if subscribe_match.group(1).lower() not in self.lastsubs:
-				self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time())
+				yield from self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time())
 			return
 
 		subscribe_match = self.re_resubscription.match(event.arguments[0])
 		if subscribe_match and irc.client.is_channel(event.target):
 			if subscribe_match.group(1).lower() not in self.lastsubs:
-				self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time(), monthcount=int(subscribe_match.group(2)))
+				yield from self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time(), monthcount=int(subscribe_match.group(2)))
 			return
 
 		notifyparams = {
@@ -299,8 +300,9 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		}
 		if irc.client.is_channel(event.target):
 			notifyparams['channel'] = event.target[1:]
-		utils.api_request('notifications/newmessage', notifyparams, 'POST')
+		yield from utils.api_request_coro('notifications/newmessage', notifyparams, 'POST')
 
+	@asyncio.coroutine
 	def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None):
 		notifyparams = {
 			'apipass': config['apipass'],
@@ -336,7 +338,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.lastsubs = self.lastsubs[-10:]
 		storage.save()
 		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
-		utils.api_request('notifications/newmessage', notifyparams, 'POST')
+		yield from utils.api_request_coro('notifications/newmessage', notifyparams, 'POST')
 
 		self.subs.add(user.lower())
 		storage.data['subs'] = list(self.subs)
@@ -472,9 +474,10 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			vote_respond(self, self.connection, *self.vote_update)
 
 	@utils.swallow_errors
+	@asyncio.coroutine
 	def on_api_subscriber(self, user, logo, eventtime, channel):
 		if user.lower() not in self.lastsubs:
-			self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
+			yield from self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
 
 	def check_privmsg_wrapper(self, conn):
 		"""
