@@ -99,11 +99,12 @@ def get_subscribers(channel=None, count=5, offset=None, latest=True):
 		for sub in subscriber_data['subscriptions']
 	]
 
+@asyncio.coroutine
 def get_group_servers():
 	"""
 	Get the secondary Twitch chat servers
 	"""
-	res = utils.http_request("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': storage.data['twitch_oauth'][config['username']]}, maxtries=1)
+	res = yield from utils.http_request_coro("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': storage.data['twitch_oauth'][config['username']]}, maxtries=1)
 	res = json.loads(res)
 	def parse_server(s):
 		if ':' in s:

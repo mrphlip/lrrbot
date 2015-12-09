@@ -14,7 +14,7 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 			host=host,
 			port=port,
 			password="oauth:%s" % storage.data['twitch_oauth'][config['username']] if config['password'] == "oauth" else config['password'],
-		) for host, port in twitch.get_group_servers()]
+		) for host, port in loop.run_until_complete(twitch.get_group_servers())]
 		super(TwitchWhisper, self).__init__(
 			server_list=servers,
 			realname=config['username'],
