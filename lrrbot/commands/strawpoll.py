@@ -1,6 +1,7 @@
 import time
 import json
 import random
+import asyncio
 
 from common import utils
 from lrrbot.main import bot
@@ -11,12 +12,13 @@ def strawpoll_format(data):
 	i, (name, count) = data
 	return "%s: %s (%d vote%s)" % (i+1, name, count, '' if count == 1 else 's')
 
+@asyncio.coroutine
 def check_polls(lrrbot, conn):
 	now = time.time()
 	for end, title, poll_id, respond_to in lrrbot.polls:
 		if end < now:
 			url = "https://strawpoll.me/api/v2/polls/%s" % poll_id
-			data = json.loads(utils.http_request(url))
+			data = json.loads((yield from utils.http_request_coro(url)))
 			options = sorted(zip(data["options"], data["votes"]), key=lambda e: (e[1], random.random()), reverse=True)
 			options = "; ".join(map(strawpoll_format, enumerate(options)))
 			response = "Poll complete: %s: %s" % (data["title"], options)
@@ -43,6 +45,7 @@ def polls(lrrbot, conn, event, respond_to):
 
 @bot.command("(multi)?poll (?:(\d+) )?(?:(?:https?://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/r?)?|(?:([^:]+) ?: ?)?(.*))")
 @utils.mod_only
+@asyncio.coroutine
 def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, options):
 	"""
 	Command: !poll N https://strawpoll.me/ID
@@ -55,7 +58,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	"""
 	if poll_id is not None:
 		url = "https://strawpoll.me/api/v2/polls/%s" % poll_id
-		data = json.loads(utils.http_request(url))
+		data = json.loads((yield from utils.http_request_coro(url)))
 		title = data["title"]
 	else:
 		if title is None:
@@ -67,7 +70,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 		else:
 			options = options.split()
 		data = json.dumps({"options": options, "title": title, "multi": multi is not None})
-		response = utils.http_request("https://strawpoll.me/api/v2/polls", data, "POST", headers = {"Content-Type": "application/json"})
+		response = yield from utils.http_request_coro("https://strawpoll.me/api/v2/polls", data, "POST", headers = {"Content-Type": "application/json"})
 		poll_id = json.loads(response)["id"]
 	if timeout is not None:
 		timeout = int(timeout)
@@ -84,7 +87,7 @@ def clear_polls(lrrbot, conn, event, respond_to):
 	Command: !pollsclear
 	Section: misc
 
-	Stop tracking all active polls. The poll will still exist on strawpoll, but the bot
+	Stop tracking all active polls. The poll will still exist on Strawpoll, but the bot
 	will stop watching it for results.
 	"""
 	lrrbot.polls = []

@@ -465,7 +465,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 	@utils.swallow_errors
 	def check_polls(self):
 		from lrrbot.commands.strawpoll import check_polls
-		check_polls(self, self.connection)
+		asyncio.async(check_polls(self, self.connection), loop=self.loop).add_done_callback(utils.check_exception)
 
 	@utils.swallow_errors
 	def vote_respond(self):
