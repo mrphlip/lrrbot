@@ -14,7 +14,7 @@ log = logging.getLogger('serverevents')
 @bot.server_event()
 @asyncio.coroutine
 def current_game(lrrbot, user, data):
-	game = lrrbot.get_current_game()
+	game = yield from lrrbot.get_current_game()
 	if game:
 		return game['id']
 	else:
@@ -23,7 +23,7 @@ def current_game(lrrbot, user, data):
 @bot.server_event()
 @asyncio.coroutine
 def current_game_name(lrrbot, user, data):
-	game = lrrbot.get_current_game()
+	game = yield from lrrbot.get_current_game()
 	if game:
 		return game['name']
 	else:
@@ -101,7 +101,7 @@ def get_commands(lrrbot, user, data):
 @bot.server_event()
 @asyncio.coroutine
 def get_header_info(lrrbot, user, data):
-	game = lrrbot.get_current_game()
+	game = yield from lrrbot.get_current_game()
 	data = {}
 	if game is not None:
 		data['current_game'] = {

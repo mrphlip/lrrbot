@@ -6,7 +6,7 @@ from common import utils
 from common.config import config
 from lrrbot import storage
 
-
+@asyncio.coroutine
 def get_info(username=None, use_fallback=True):
 	"""
 	Get the Twitch info for a particular user or channel.
@@ -23,7 +23,7 @@ def get_info(username=None, use_fallback=True):
 
 	# Attempt to get the channel data from /streams/channelname
 	# If this succeeds, it means the channel is currently live
-	res = utils.http_request("https://api.twitch.tv/kraken/streams/%s" % username)
+	res = yield from utils.http_request_coro("https://api.twitch.tv/kraken/streams/%s" % username)
 	data = json.loads(res)
 	channel_data = data.get('stream') and data['stream'].get('channel')
 	if channel_data:
@@ -36,12 +36,13 @@ def get_info(username=None, use_fallback=True):
 		return None
 
 	# If that failed, it means the channel is offline
-	# Ge the channel data from here instead
-	res = utils.http_request("https://api.twitch.tv/kraken/channels/%s" % username)
+	# Get the channel data from here instead
+	res = yield from utils.http_request("https://api.twitch.tv/kraken/channels/%s" % username)
 	channel_data = json.loads(res)
 	channel_data['live'] = False
 	return channel_data
 
+@asyncio.coroutine
 def get_game(name, all=False):
 	"""
 	Get the game information for a particular game.
@@ -56,7 +57,7 @@ def get_game(name, all=False):
 		'type': 'suggest',
 		'live': 'false',
 	}
-	res = utils.http_request("https://api.twitch.tv/kraken/search/games", search_opts)
+	res = yield from utils.http_request_coro("https://api.twitch.tv/kraken/search/games", search_opts)
 	res = json.loads(res)
 	if all:
 		return res['games']
@@ -66,15 +67,16 @@ def get_game(name, all=False):
 				return game
 		return None
 
+@asyncio.coroutine
 def get_game_playing(username=None):
 	"""
 	Get the game information for the game the stream is currently playing
 	"""
-	channel_data = get_info(username, use_fallback=False)
+	channel_data = yield from get_info(username, use_fallback=False)
 	if not channel_data or not channel_data['live']:
 		return None
 	if channel_data.get('game') is not None:
-		return get_game(name=channel_data['game'])
+		return (yield from get_game(name=channel_data['game']))
 	return None
 
 @asyncio.coroutine

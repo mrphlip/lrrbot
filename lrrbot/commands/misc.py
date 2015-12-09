@@ -145,6 +145,7 @@ def time24(lrrbot, conn, event, respond_to):
 
 @bot.command("viewers")
 @utils.throttle()
+@asyncio.coroutine
 def viewers(lrrbot, conn, event, respond_to):
 	"""
 	Command: !viewers
@@ -152,7 +153,7 @@ def viewers(lrrbot, conn, event, respond_to):
 
 	Post the number of viewers currently watching the stream
 	"""
-	stream_info = twitch.get_info()
+	stream_info = yield from twitch.get_info()
 	if stream_info:
 		viewers = stream_info.get("viewers")
 	else:
@@ -170,9 +171,10 @@ def viewers(lrrbot, conn, event, respond_to):
 		chatters = "No-one in the chat."
 	conn.privmsg(respond_to, "%s %s" % (viewers, chatters))
 
+@asyncio.coroutine
 def uptime_msg(stream_info=None):
 	if stream_info is None:
-		stream_info = twitch.get_info()
+		stream_info = yield from twitch.get_info()
 	if stream_info and stream_info.get("stream_created_at"):
 		start = dateutil.parser.parse(stream_info["stream_created_at"])
 		now = datetime.datetime.now(datetime.timezone.utc)
@@ -184,6 +186,7 @@ def uptime_msg(stream_info=None):
 
 @bot.command("uptime")
 @utils.throttle()
+@asyncio.coroutine
 def uptime(lrrbot, conn, event, respond_to):
 	"""
 	Command: !uptime
@@ -191,15 +194,15 @@ def uptime(lrrbot, conn, event, respond_to):
 
 	Post the duration the stream has been live.
 	"""
-	conn.privmsg(respond_to, uptime_msg())
+	conn.privmsg(respond_to, (yield from uptime_msg()))
 
 @utils.cache(30) # We could easily be sending a bunch of these at once, and the info doesn't change often
 @asyncio.coroutine
 def get_status_msg(lrrbot):
 	messages = []
-	stream_info = twitch.get_info()
+	stream_info = yield from twitch.get_info()
 	if stream_info and stream_info.get('live'):
-		game = lrrbot.get_current_game()
+		game = yield from lrrbot.get_current_game()
 		game = game and game.get("display", game["name"])
 		show = lrrbot.show_override or lrrbot.show
 		show = show and storage.data.get("shows", {}).get(show, {}).get("name", show)
@@ -209,7 +212,7 @@ def get_status_msg(lrrbot):
 			messages.append("Currently playing %s." % game)
 		elif show:
 			messages.append("Currently showing %s." % show)
-		messages.append(uptime_msg(stream_info))
+		messages.append((yield from uptime_msg(stream_info)))
 	else:
 		messages.append((yield from googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)))
 	if 'advice' in storage.data['responses']:

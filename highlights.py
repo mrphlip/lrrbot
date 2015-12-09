@@ -44,7 +44,7 @@ def lookup_video(highlight, videos):
 
 @asyncio.coroutine
 def main():
-	if twitch.get_info()["live"]:
+	if (yield from twitch.get_info())["live"]:
 		print("Stream is live.")
 		return
 

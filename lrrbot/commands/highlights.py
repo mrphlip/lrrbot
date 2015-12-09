@@ -26,7 +26,7 @@ def highlight(lrrbot, conn, event, respond_to, description):
 	For use when something particularly awesome happens onstream, adds an entry on the Highlight Reel spreadsheet: https://docs.google.com/spreadsheets/d/1yrf6d7dPyTiWksFkhISqEc-JR71dxZMkUoYrX4BR40Y
 	"""
 
-	stream_info = twitch.get_info()
+	stream_info = yield from twitch.get_info()
 	if not stream_info["live"]:
 		conn.privmsg(respond_to, "Not currently streaming.")
 		return

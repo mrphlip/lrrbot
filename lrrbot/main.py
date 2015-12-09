@@ -314,7 +314,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 		if logo is None:
 			try:
-				channel_info = twitch.get_info(user)
+				channel_info = yield from twitch.get_info(user)
 			except:
 				pass
 			else:
@@ -379,6 +379,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 				# Will just have to remove users from storage.data['mods'] manually
 				# should it ever come up.
 
+	@asyncio.coroutine
 	def get_current_game(self, readonly=True):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
 		show = self.show_override or self.show
@@ -386,11 +387,12 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			game_obj = {'_id': self.game_override, 'name': self.game_override, 'is_override': True}
 			return storage.find_game(show, game_obj, readonly)
 		else:
-			return storage.find_game(show, self.get_current_game_real(), readonly)
+			return storage.find_game(show, (yield from self.get_current_game_real()), readonly)
 
 	@utils.cache(GAME_CHECK_INTERVAL)
+	@asyncio.coroutine
 	def get_current_game_real(self):
-		return twitch.get_game_playing()
+		return (yield from twitch.get_game_playing())
 
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""

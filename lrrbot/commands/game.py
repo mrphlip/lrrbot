@@ -1,3 +1,4 @@
+import asyncio
 import irc
 
 from common import utils
@@ -11,6 +12,7 @@ def game_name(game):
 
 @bot.command("game")
 @utils.throttle()
+@asyncio.coroutine
 def current_game(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game
@@ -18,7 +20,7 @@ def current_game(lrrbot, conn, event, respond_to):
 
 	Post the game currently being played.
 	"""
-	game = lrrbot.get_current_game()
+	game = yield from lrrbot.get_current_game()
 	if game is None:
 		message = "Not currently playing any game"
 	else:
@@ -31,6 +33,7 @@ def current_game(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, message)
 
 @bot.command("game (?:(good|yes|:\)|:D|<3|lrrAWESOME|lrrGOAT|lrrSPOT)|(bad|no|:\(|:/|>\(|lrrAWW|lrrEFF|lrrFRUMP))")
+@asyncio.coroutine
 def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 	"""
 	Command: !game good
@@ -42,7 +45,7 @@ def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 	host may heed this or ignore it at their choice. Probably ignore
 	it.
 	"""
-	game = lrrbot.get_current_game(readonly=False)
+	game = yield from lrrbot.get_current_game(readonly=False)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
@@ -65,6 +68,7 @@ def vote_respond(lrrbot, conn, respond_to, game):
 
 @bot.command("game display (.*?)")
 @utils.mod_only
+@asyncio.coroutine
 def set_game_name(lrrbot, conn, event, respond_to, name):
 	"""
 	Command: !game display NAME
@@ -74,7 +78,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 
 	Change the display name of the current game to NAME.
 	"""
-	game = lrrbot.get_current_game(readonly=False)
+	game = yield from lrrbot.get_current_game(readonly=False)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game, if they are yell at them to update the stream")
 		return
@@ -84,6 +88,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 
 @bot.command("game override (.*?)")
 @utils.mod_only
+@asyncio.coroutine
 def override_game(lrrbot, conn, event, respond_to, game):
 	"""
 	Command: !game override NAME
@@ -108,7 +113,7 @@ def override_game(lrrbot, conn, event, respond_to, game):
 		operation = "enabled"
 	lrrbot.get_current_game_real.reset_throttle()
 	current_game.reset_throttle()
-	game = lrrbot.get_current_game()
+	game = yield from lrrbot.get_current_game()
 	message = "Override %s. " % operation
 	if game is None:
 		message += "Not currently playing any game"
@@ -118,6 +123,7 @@ def override_game(lrrbot, conn, event, respond_to, game):
 
 @bot.command("game refresh")
 @utils.mod_only
+@asyncio.coroutine
 def refresh(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game refresh
@@ -127,11 +133,12 @@ def refresh(lrrbot, conn, event, respond_to):
 	"""
 	lrrbot.get_current_game_real.reset_throttle()
 	current_game.reset_throttle()
-	current_game(lrrbot, conn, event, respond_to)
+	yield from current_game(lrrbot, conn, event, respond_to)
 
 @bot.command("game completed")
 @utils.mod_only
 @utils.throttle(30, notify=utils.Visibility.PUBLIC, modoverride=False, allowprivate=False)
+@asyncio.coroutine
 def completed(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game completed
@@ -139,7 +146,7 @@ def completed(lrrbot, conn, event, respond_to):
 
 	Mark a game as having been completed.
 	"""
-	game = lrrbot.get_current_game(readonly=False)
+	game = yield from lrrbot.get_current_game(readonly=False)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return

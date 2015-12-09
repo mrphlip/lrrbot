@@ -1,3 +1,5 @@
+import asyncio
+
 from common import utils
 from lrrbot import storage
 from lrrbot.main import bot
@@ -6,8 +8,9 @@ from lrrbot.commands.show import show_name
 
 re_stats = "|".join(storage.data["stats"])
 
+@asyncio.coroutine
 def stat_update(lrrbot, stat, n, set_=False):
-	game = lrrbot.get_current_game(readonly=False)
+	game = yield from lrrbot.get_current_game(readonly=False)
 	if game is None:
 		return None
 	game.setdefault("stats", {}).setdefault(stat, 0)
@@ -21,59 +24,65 @@ def stat_update(lrrbot, stat, n, set_=False):
 @bot.command("(%s)" % re_stats)
 @utils.public_only
 @utils.throttle(30, notify=utils.Visibility.PUBLIC, params=[4], modoverride=False, allowprivate=False)
+@asyncio.coroutine
 def increment(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
 	if stat == "completed":
-		completed(lrrbot, conn, event, respond_to)
+		yield from completed(lrrbot, conn, event, respond_to)
 		return
-	game = stat_update(lrrbot, stat, 1)
+	game = yield from stat_update(lrrbot, stat, 1)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print(lrrbot, conn, event, respond_to, stat, game, with_emote=True)
+	yield from stat_print(lrrbot, conn, event, respond_to, stat, game, with_emote=True)
 
 @bot.command("(%s) add( \d+)?" % re_stats)
 @utils.mod_only
+@asyncio.coroutine
 def add(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
 	n = 1 if n is None else int(n)
-	game = stat_update(lrrbot, stat, n)
+	game = yield from stat_update(lrrbot, stat, n)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print(lrrbot, conn, event, respond_to, stat, game)
+	yield from stat_print(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s) remove( \d+)?" % re_stats)
 @utils.mod_only
+@asyncio.coroutine
 def remove(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
 	n = 1 if n is None else int(n)
-	game = stat_update(lrrbot, stat, -n)
+	game = yield from stat_update(lrrbot, stat, -n)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print(lrrbot, conn, event, respond_to, stat, game)
+	yield from stat_print(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s) set (\d+)" % re_stats)
 @utils.mod_only
+@asyncio.coroutine
 def stat_set(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
 	n = 1 if n is None else int(n)
-	game = stat_update(lrrbot, stat, n, True)
+	game = yield from stat_update(lrrbot, stat, n, True)
 	if game is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print(lrrbot, conn, event, respond_to, stat, game)
+	yield from stat_print(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s)count" % re_stats)
 @utils.throttle(params=[4])
+@asyncio.coroutine
 def get_stat(lrrbot, conn, event, respond_to, stat):
-	stat_print(lrrbot, conn, event, respond_to, stat)
+	yield from stat_print(lrrbot, conn, event, respond_to, stat)
 
+@asyncio.coroutine
 def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=False):
 	stat = stat.lower()
 	if game is None:
-		game = lrrbot.get_current_game()
+		game = yield from lrrbot.get_current_game()
 		if game is None:
 			conn.privmsg(respond_to, "Not currently playing any game")
 			return
