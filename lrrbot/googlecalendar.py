@@ -49,7 +49,7 @@ def get_upcoming_events(calendar, after=None):
 		"timeZone": config['timezone'].zone,
 		"key": config['google_key'],
 	}
-	res = yield from utils.http_request_coro(url, data)
+	res = yield from utils.http_request(url, data)
 	res = json.loads(res)
 	if 'error' in res:
 		raise Exception(res['error']['message'])

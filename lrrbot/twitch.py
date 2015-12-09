@@ -23,7 +23,7 @@ def get_info(username=None, use_fallback=True):
 
 	# Attempt to get the channel data from /streams/channelname
 	# If this succeeds, it means the channel is currently live
-	res = yield from utils.http_request_coro("https://api.twitch.tv/kraken/streams/%s" % username)
+	res = yield from utils.http_request("https://api.twitch.tv/kraken/streams/%s" % username)
 	data = json.loads(res)
 	channel_data = data.get('stream') and data['stream'].get('channel')
 	if channel_data:
@@ -57,7 +57,7 @@ def get_game(name, all=False):
 		'type': 'suggest',
 		'live': 'false',
 	}
-	res = yield from utils.http_request_coro("https://api.twitch.tv/kraken/search/games", search_opts)
+	res = yield from utils.http_request("https://api.twitch.tv/kraken/search/games", search_opts)
 	res = json.loads(res)
 	if all:
 		return res['games']
@@ -94,7 +94,7 @@ def get_subscribers(channel=None, count=5, offset=None, latest=True):
 	}
 	if offset is not None:
 		data['offset'] = offset
-	res = yield from utils.http_request_coro("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
+	res = yield from utils.http_request("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
 	subscriber_data = json.loads(res)
 	return [
 		(sub['user']['display_name'], sub['user'].get('logo'), sub['created_at'])
@@ -106,7 +106,7 @@ def get_group_servers():
 	"""
 	Get the secondary Twitch chat servers
 	"""
-	res = yield from utils.http_request_coro("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': storage.data['twitch_oauth'][config['username']]}, maxtries=1)
+	res = yield from utils.http_request("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': storage.data['twitch_oauth'][config['username']]}, maxtries=1)
 	res = json.loads(res)
 	def parse_server(s):
 		if ':' in s:
@@ -138,7 +138,7 @@ def get_follows_channels(username=None):
 	follows = []
 	total = 1
 	while len(follows) < total:
-		data = yield from utils.http_request_coro(url)
+		data = yield from utils.http_request(url)
 		data = json.loads(data)
 		total = data["_total"]
 		follows += data["follows"]
@@ -156,7 +156,7 @@ def get_streams_followed(username=None):
 	streams = []
 	total = 1
 	while len(streams) < total:
-		data = yield from utils.http_request_coro(url, headers=headers)
+		data = yield from utils.http_request(url, headers=headers)
 		data = json.loads(data)
 		total = data["_total"]
 		streams += data["streams"]
@@ -170,7 +170,7 @@ def follow_channel(target, user=None):
 	headers = {
 		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][user],
 	}
-	yield from utils.http_request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (user, target),
+	yield from utils.http_request("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (user, target),
 									data={"notifications": "false"}, method="PUT", headers=headers)
 
 @asyncio.coroutine
@@ -180,13 +180,13 @@ def unfollow_channel(target, user=None):
 	headers = {
 		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][user],
 	}
-	yield from utils.http_request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (user, target),
+	yield from utils.http_request("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (user, target),
 									method="DELETE", headers=headers)
 
 @asyncio.coroutine
 def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
 	channel = channel or config["channel"]
-	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/channels/%s/videos" % channel, data={
+	data = yield from utils.http_request("https://api.twitch.tv/kraken/channels/%s/videos" % channel, data={
 		"offset": offset,
 		"limit": limit,
 		"broadcasts": "true" if broadcasts else "false",

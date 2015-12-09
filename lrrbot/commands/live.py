@@ -12,7 +12,7 @@ import irc.client
 @utils.cache(24 * 60 * 60)
 @asyncio.coroutine
 def extract_new_channels(loop):
-	data = yield from utils.http_request_coro(googlecalendar.EVENTS_URL % urllib.parse.quote(googlecalendar.CALENDAR_FAN), {
+	data = yield from utils.http_request(googlecalendar.EVENTS_URL % urllib.parse.quote(googlecalendar.CALENDAR_FAN), {
 		"key": config["google_key"],
 		"maxResults": 25000,
 	})

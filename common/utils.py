@@ -412,7 +412,7 @@ class Request(urllib.request.Request):
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
 atexit.register(http_request_session.close)
 @asyncio.coroutine
-def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
+def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
 	firstex = None
 
@@ -453,9 +453,9 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 	raise firstex
 
 @asyncio.coroutine
-def api_request_coro(uri, *args, **kwargs):
+def api_request(uri, *args, **kwargs):
 	try:
-		res = yield from http_request_coro(config.config['siteurl'] + uri, *args, **kwargs)
+		res = yield from http_request(config.config['siteurl'] + uri, *args, **kwargs)
 	except:
 		log.exception("Error at server in %s" % uri)
 	else:
@@ -662,7 +662,7 @@ def canonical_url(url, depth=10):
 	if depth <= 0:
 		return [url]
 	try:
-		res = yield from http_request_coro(url, method="HEAD", allow_redirects=False)
+		res = yield from http_request(url, method="HEAD", allow_redirects=False)
 		if res.status in range(300, 400) and "Location" in res.headers:
 			return [url] + (yield from canonical_url(urllib.parse.urljoin(url, res.headers["Location"], depth - 1)))
 	except Exception:
@@ -674,7 +674,7 @@ def canonical_url(url, depth=10):
 @asyncio.coroutine
 def get_tlds():
 	tlds = set()
-	data = yield from http_request_coro("https://data.iana.org/TLD/tlds-alpha-by-domain.txt")
+	data = yield from http_request("https://data.iana.org/TLD/tlds-alpha-by-domain.txt")
 	for line in data.splitlines():
 		if not line.startswith("#"):
 			line = line.strip().lower()

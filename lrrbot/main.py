@@ -300,7 +300,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		}
 		if irc.client.is_channel(event.target):
 			notifyparams['channel'] = event.target[1:]
-		yield from utils.api_request_coro('notifications/newmessage', notifyparams, 'POST')
+		yield from utils.api_request('notifications/newmessage', notifyparams, 'POST')
 
 	@asyncio.coroutine
 	def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None):
@@ -338,7 +338,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.lastsubs = self.lastsubs[-10:]
 		storage.save()
 		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
-		yield from utils.api_request_coro('notifications/newmessage', notifyparams, 'POST')
+		yield from utils.api_request('notifications/newmessage', notifyparams, 'POST')
 
 		self.subs.add(user.lower())
 		storage.data['subs'] = list(self.subs)

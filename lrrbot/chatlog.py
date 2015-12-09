@@ -236,7 +236,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 @asyncio.coroutine
 def get_display_name(nick):
 	try:
-		data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/users/%s" % nick)
+		data = yield from utils.http_request("https://api.twitch.tv/kraken/users/%s" % nick)
 		data = json.loads(data)
 		return data['display_name']
 	except:
@@ -246,7 +246,7 @@ re_just_words = re.compile("^\w+$")
 @utils.cache(CACHE_EXPIRY)
 @asyncio.coroutine
 def get_twitch_emotes():
-	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/chat/emoticons")
+	data = yield from utils.http_request("https://api.twitch.tv/kraken/chat/emoticons")
 	data = json.loads(data)['emoticons']
 	emotesets = {}
 	for emote in data:
@@ -269,7 +269,7 @@ def get_twitch_emotes():
 @asyncio.coroutine
 def get_twitch_emotes_undocumented():
 	# This endpoint is not documented, however `/chat/emoticons` might be deprecated soon.
-	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/chat/emoticon_images")
+	data = yield from utils.http_request("https://api.twitch.tv/kraken/chat/emoticon_images")
 	data = json.loads(data)["emoticons"]
 	emotesets = {}
 	for emote in data:
