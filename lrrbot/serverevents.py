@@ -143,7 +143,7 @@ def get_header_info(lrrbot, user, data):
 @bot.server_event()
 @asyncio.coroutine
 def nextstream(lrrbot, user, data):
-	return googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
+	return (yield from googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False))
 
 @bot.server_event()
 @asyncio.coroutine

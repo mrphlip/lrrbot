@@ -1,6 +1,7 @@
 import datetime
 import json
 import urllib.parse
+import asyncio
 
 import dateutil.parser
 import pytz
@@ -23,6 +24,7 @@ HISTORY_PERIOD = datetime.timedelta(hours=1) # How long ago can an event have st
 LOOKAHEAD_PERIOD = datetime.timedelta(hours=1) # How close together to events have to be to count as "the same time"?
 
 @utils.cache(CACHE_EXPIRY, params=[0])
+@asyncio.coroutine
 def get_upcoming_events(calendar, after=None):
 	"""
 	Get the next several events from the calendar. Will include the currently-happening
@@ -47,7 +49,7 @@ def get_upcoming_events(calendar, after=None):
 		"timeZone": config['timezone'].zone,
 		"key": config['google_key'],
 	}
-	res = utils.http_request(url, data)
+	res = yield from utils.http_request_coro(url, data)
 	res = json.loads(res)
 	if 'error' in res:
 		raise Exception(res['error']['message'])
@@ -64,6 +66,7 @@ def get_upcoming_events(calendar, after=None):
 		})
 	return formatted_items
 
+@asyncio.coroutine
 def get_next_event(calendar, after=None, include_current=False):
 	"""
 	Get the list of events that should be shown by the !next command.
@@ -87,7 +90,7 @@ def get_next_event(calendar, after=None, include_current=False):
 	"""
 	if after is None:
 		after = datetime.datetime.now(datetime.timezone.utc)
-	events = get_upcoming_events(calendar, after=after)
+	events = yield from get_upcoming_events(calendar, after=after)
 
 	first_future_event = None
 	for i, ev in enumerate(events):
@@ -104,6 +107,7 @@ def get_next_event(calendar, after=None, include_current=False):
 	lookahead_end = events[first_future_event]['start'] + LOOKAHEAD_PERIOD
 	return [ev for i,ev in enumerate(events) if (i >= first_future_event or include_current) and ev['start'] < lookahead_end]
 
+@asyncio.coroutine
 def get_next_event_text(calendar, after=None, include_current=None, tz=None, verbose=True):
 	"""
 	Build the actual human-readable response to the !next command.
@@ -123,7 +127,7 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 		except pytz.exceptions.UnknownTimeZoneError:
 			return "Unknown timezone: %s" % tz
 
-	events = get_next_event(calendar, after=after, include_current=include_current)
+	events = yield from get_next_event(calendar, after=after, include_current=include_current)
 	if not events:
 		return "There don't seem to be any upcoming scheduled streams"
 
@@ -154,4 +158,3 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 			response = "Next scheduled fan stream: %s." % response
 
 	return utils.shorten(response, 450) # For safety
-

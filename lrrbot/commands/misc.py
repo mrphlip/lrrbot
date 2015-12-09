@@ -2,6 +2,7 @@ import datetime
 import json
 import logging
 import random
+import asyncio
 
 import dateutil.parser
 import pytz
@@ -64,6 +65,7 @@ DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plug
 
 @bot.command("next( .*)?")
 @utils.throttle()
+@asyncio.coroutine
 def next(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !next
@@ -79,7 +81,7 @@ def next(lrrbot, conn, event, respond_to, timezone):
 		# If someone says !next before/during Desert Bus, plug that instead
 		desertbus(lrrbot, conn, event, respond_to, timezone)
 	else:
-		conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
+		conn.privmsg(respond_to, (yield from googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone)))
 
 @bot.command("desert ?bus( .*)?")
 @utils.throttle()
@@ -107,6 +109,7 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 
 @bot.command("nextfan( .*)?")
 @utils.throttle()
+@asyncio.coroutine
 def nextfan(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !nextfan
@@ -114,7 +117,7 @@ def nextfan(lrrbot, conn, event, respond_to, timezone):
 
 	Gets the next scheduled stream from the fan-streaming calendar
 	"""
-	conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True))
+	conn.privmsg(respond_to, (yield from googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True)))
 
 @bot.command("time")
 @utils.throttle()
@@ -191,6 +194,7 @@ def uptime(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, uptime_msg())
 
 @utils.cache(30) # We could easily be sending a bunch of these at once, and the info doesn't change often
+@asyncio.coroutine
 def get_status_msg(lrrbot):
 	messages = []
 	stream_info = twitch.get_info()
@@ -207,15 +211,17 @@ def get_status_msg(lrrbot):
 			messages.append("Currently showing %s." % show)
 		messages.append(uptime_msg(stream_info))
 	else:
-		messages.append(googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL))
+		messages.append((yield from googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)))
 	if 'advice' in storage.data['responses']:
 		messages.append(random.choice(storage.data['responses']['advice']['response']))
 	return ' '.join(messages)
 
+@asyncio.coroutine
 def send_status(lrrbot, conn, target):
-	conn.privmsg(target, get_status_msg(lrrbot))
+	conn.privmsg(target, (yield from get_status_msg(lrrbot)))
 
 @bot.command("status")
+@asyncio.coroutine
 def status(lrrbot, conn, event, respond_to):
 	"""
 	Command: !status
@@ -226,7 +232,7 @@ def status(lrrbot, conn, event, respond_to):
 	Otherwise, it will tell you about the next scheduled stream.
 	"""
 	source = irc.client.NickMask(event.source)
-	send_status(lrrbot, conn, source.nick)
+	yield from send_status(lrrbot, conn, source.nick)
 
 @bot.command("auto(?: |-)?status")
 def autostatus_check(lrrbot, conn, event, respond_to):
