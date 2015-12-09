@@ -408,37 +408,6 @@ class Request(urllib.request.Request):
 		else:
 			return super().get_method()
 
-def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **kwargs):
-	"""Download a webpage, with retries on failure."""
-	# Let's be nice.
-	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
-	if data:
-		if isinstance(data, dict):
-			data = urllib.parse.urlencode(data)
-		if method == 'GET':
-			url = '%s?%s' % (url, data)
-			req = Request(url=url, method='GET', headers=headers, **kwargs)
-		elif method == 'POST':
-			req = Request(url=url, data=data.encode("utf-8"), method='POST', headers=headers, **kwargs)
-		elif method == 'PUT':
-			req = Request(url=url, data=data.encode("utf-8"), method='PUT', headers=headers, **kwargs)
-	else:
-		req = Request(url=url, method='GET', headers=headers, **kwargs)
-
-	firstex = None
-	while True:
-		try:
-			return urllib.request.urlopen(req, timeout=timeout).read().decode("utf-8")
-		except Exception as e:
-			maxtries -= 1
-			if firstex is None:
-				firstex = e
-			if maxtries > 0:
-				log.info("Downloading %s failed: %s: %s, retrying...", url, e.__class__.__name__, e)
-			else:
-				break
-	raise firstex
-
 # Limit the number of parallel HTTP connections to a server.
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
 atexit.register(http_request_session.close)
@@ -482,22 +451,6 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 			else:
 				break
 	raise firstex
-
-def api_request(uri, *args, **kwargs):
-	# Send the information to the server
-	try:
-		res = http_request(config.config['siteurl'] + uri, *args, **kwargs)
-	except:
-		log.exception("Error at server in %s" % uri)
-	else:
-		try:
-			res = json.loads(res)
-		except:
-			log.exception("Error parsing server response from %s: %s", uri, res)
-		else:
-			if 'success' not in res:
-				log.error("Error at server in %s" % uri)
-			return res
 
 @asyncio.coroutine
 def api_request_coro(uri, *args, **kwargs):
