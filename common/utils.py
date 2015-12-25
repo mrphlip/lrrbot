@@ -455,6 +455,7 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 		try:
 			res = yield from asyncio.wait_for(http_request_session.request(method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects), timeout)
 			if method == "HEAD":
+				yield from res.release()
 				return res
 			status_class = res.status // 100
 			if status_class != 2:
@@ -462,7 +463,9 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 				if status_class == 4:
 					maxtries = 1
 				raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
-			return (yield from res.text())
+			text = yield from res.text()
+			yield from res.release()
+			return text
 		except Exception as e:
 			maxtries -= 1
 			if firstex is None:
