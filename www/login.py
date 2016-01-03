@@ -1,3 +1,4 @@
+import asyncio
 import functools
 import urllib.request
 import urllib.parse
@@ -39,6 +40,7 @@ SPECIAL_USERS = {
 REDIRECT_URI = 'https://lrrbot.mrphlip.com/login'
 #REDIRECT_URI = 'http://localhost:5000/login'
 
+@utils.coro_decorator
 def with_session(func):
 	"""
 	Pass the current login session information to the function
@@ -50,11 +52,13 @@ def with_session(func):
 		...
 	"""
 	@functools.wraps(func)
+	@asyncio.coroutine
 	def wrapper(*args, **kwargs):
 		kwargs['session'] = load_session()
-		return func(*args, **kwargs)
+		return (yield from func(*args, **kwargs))
 	return wrapper
 
+@utils.coro_decorator
 def with_minimal_session(func):
 	"""
 	Pass the current login session information to the function
@@ -70,26 +74,30 @@ def with_minimal_session(func):
 		...
 	"""
 	@functools.wraps(func)
+	@asyncio.coroutine
 	def wrapper(*args, **kwargs):
 		kwargs['session'] = load_session(include_url=False, include_header=False)
-		return func(*args, **kwargs)
+		return (yield from func(*args, **kwargs))
 	return wrapper
 
+@utils.coro_decorator
 def require_login(func):
 	"""
 	Like with_session, but if the user isn't logged in,
 	send them via the login screen.
 	"""
 	@functools.wraps(func)
+	@asyncio.coroutine
 	def wrapper(*args, **kwargs):
 		session = load_session()
 		if session['user']['id'] is not None:
 			kwargs['session'] = session
-			return func(*args, **kwargs)
+			return (yield from func(*args, **kwargs))
 		else:
 			return login(session['url'])
 	return wrapper
 
+@utils.coro_decorator
 def require_mod(func):
 	"""
 	Like with_session, but if the user isn't logged in,
@@ -97,12 +105,13 @@ def require_mod(func):
 	a moderator, kick them out.
 	"""
 	@functools.wraps(func)
+	@asyncio.coroutine
 	def wrapper(*args, **kwargs):
 		session = load_session()
 		if session['user']['id'] is not None:
 			kwargs['session'] = session
 			if session['user']['is_mod']:
-				return func(*args, **kwargs)
+				return (yield from func(*args, **kwargs))
 			else:
 				return flask.render_template('require_mod.html', session=session)
 		else:

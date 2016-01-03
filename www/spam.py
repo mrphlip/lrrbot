@@ -63,16 +63,16 @@ def do_check(line, rules):
 			return rule['message'] % groups
 	return None
 
+@asyncio.coroutine
 def do_check_links(message, rules):
-	loop = asyncio.get_event_loop()
-	re_url = loop.run_until_complete(common.url.url_regex())
+	re_url = yield from common.url.url_regex()
 	urls = []
 	for match in re_url.finditer(message):
 		for url in match.groups():
 			if url is not None:
 				urls.append(url)
 				break
-	canonical_urls = loop.run_until_complete(asyncio.gather(*map(common.url.canonical_url, urls), loop=loop))
+	canonical_urls = yield from asyncio.gather(*map(common.url.canonical_url, urls))
 	for url_chain in canonical_urls:
 		for url in url_chain:
 			for rule in rules:
@@ -82,13 +82,14 @@ def do_check_links(message, rules):
 
 @server.app.route('/spam/redirects')
 @login.require_mod
+@asyncio.coroutine
 def spam_redirects(session):
-	loop = asyncio.get_event_loop()
-	redirects = loop.run_until_complete(common.url.canonical_url(flask.request.values["url"].strip()))
+	redirects = yield from common.url.canonical_url(flask.request.values["url"].strip())
 	return flask.json.jsonify(redirects=redirects, csrf_token=server.app.csrf_token())
 
 @server.app.route('/spam/test', methods=['POST'])
 @login.require_mod
+@asyncio.coroutine
 def spam_test(session):
 	link_spam = "link_spam" in flask.request.values
 	rules = flask.json.loads(flask.request.values['data'])
@@ -104,13 +105,13 @@ def spam_test(session):
 
 	result = []
 
-	check = do_check_links if link_spam else do_check
+	check = do_check_links if link_spam else asyncio.coroutine(do_check)
 
 	re_twitchchat = re.compile("^\w*:\s*(.*)$")
 	re_irc = re.compile("<[^<>]*>\s*(.*)$")
 	lines = message.split('\n')
 	for line in lines:
-		res = check(line, rules)
+		res = yield from check(line, rules)
 		if res is None:
 			match = re_twitchchat.search(line)
 			if match:
