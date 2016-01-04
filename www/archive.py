@@ -1,10 +1,6 @@
-import urllib.request
 import urllib.parse
-import time
-import os
-import contextlib
-import tempfile
 import datetime
+import asyncio
 
 import flask
 import flask.json
@@ -22,12 +18,13 @@ BEFORE_BUFFER = datetime.timedelta(minutes=15)
 AFTER_BUFFER = datetime.timedelta(minutes=15)
 
 @utils.cache(CACHE_TIMEOUT, params=[0, 1])
+@asyncio.coroutine
 def archive_feed_data(channel, broadcasts):
-	url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.parse.quote(channel, safe=""), "true" if broadcasts else "false", 100)
-	fp = urllib.request.urlopen(url)
-	data = fp.read()
-	fp.close()
-	data = data.decode()
+	params = {
+		"broadcasts": "true" if broadcasts else "false",
+		"limit": 100,
+	}
+	data = yield from utils.http_request("https://api.twitch.tv/kraken/channels/%s/videos" % urllib.parse.quote(channel, safe=""), data=params)
 
 	# For broadcasts:
 	# {'videos': [{'_id': 'a508090853',
@@ -69,16 +66,20 @@ def archive_feed_data(channel, broadcasts):
 
 @server.app.route('/archive')
 @login.with_session
+@asyncio.coroutine
 def archive(session):
 	channel = flask.request.values.get('channel', 'loadingreadyrun')
 	broadcasts = 'highlights' not in flask.request.values
-	return flask.render_template("archive.html", videos=archive_feed_data(channel, broadcasts), broadcasts=broadcasts, session=session)
+	videos = yield from archive_feed_data(channel, broadcasts)
+	return flask.render_template("archive.html", videos=videos, broadcasts=broadcasts, session=session)
 
 @server.app.route('/archivefeed')
+@asyncio.coroutine
 def archive_feed():
 	channel = flask.request.values.get('channel', 'loadingreadyrun')
 	broadcasts = 'highlights' not in flask.request.values
-	rss = flask.render_template("archive_feed.xml", videos=archive_feed_data(channel, broadcasts), broadcasts=broadcasts)
+	videos = yield from archive_feed_data(channel, broadcasts)
+	rss = flask.render_template("archive_feed.xml", videos=videos, broadcasts=broadcasts)
 	return flask.Response(rss, mimetype="application/xml")
 
 @utils.with_postgres
@@ -91,10 +92,11 @@ def chat_data(conn, cur, starttime, endtime, target="#loadingreadyrun"):
 	return [message for (message,) in cur]
 
 @utils.cache(CACHE_TIMEOUT, params=[0])
+@asyncio.coroutine
 def get_video_data(videoid):
 	try:
-		with contextlib.closing(urllib.request.urlopen("https://api.twitch.tv/kraken/videos/%s" % videoid)) as fp:
-			video = flask.json.load(fp)
+		data = yield from utils.http_request("https://api.twitch.tv/kraken/videos/%s" % videoid)
+		video = flask.json.loads(data)
 		start = dateutil.parser.parse(video["recorded_at"])
 		return {
 			"start": start,
@@ -107,22 +109,24 @@ def get_video_data(videoid):
 		return None
 
 @utils.cache(86400)
+@asyncio.coroutine
 def get_player_url():
 	"""
 	The player URL sometimes redirects to a non-HTTPS url, but the CDN still supports HTTPS,
 	so get the real URL so we can serve it over the right protocol
 	"""
-	urls = asyncio.get_event_loop().run_until_complete(
-		utils.canonical_url("https://www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf"))
+	urls = yield from utils.canonical_url("https://www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf")
 	return urls[-1]
 
 @server.app.route('/archive/<videoid>')
+@asyncio.coroutine
 def archive_watch(videoid):
 	starttime = utils.parsetime(flask.request.values.get('t'))
 	if starttime:
 		starttime = int(starttime.total_seconds())
-	video = get_video_data(videoid)
+	video = yield from get_video_data(videoid)
 	if video is None:
 		return "Unrecognised video"
 	chat = chat_data(video["start"] - BEFORE_BUFFER, video["end"] + AFTER_BUFFER)
-	return flask.render_template("archive_watch.html", video=video, chat=chat, starttime=starttime, player_url=get_player_url())
+	player_url = yield from get_player_url()
+	return flask.render_template("archive_watch.html", video=video, chat=chat, starttime=starttime, player_url=player_url)

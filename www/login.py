@@ -1,7 +1,5 @@
 import asyncio
 import functools
-import urllib.request
-import urllib.parse
 import uuid
 
 import flask
@@ -124,6 +122,7 @@ def load_session(include_url=True, include_header=True):
 	return session
 
 @server.app.route('/login')
+@asyncio.coroutine
 def login(return_to=None):
 	if 'code' not in flask.request.values:
 		if return_to is None:
@@ -168,7 +167,7 @@ def login(return_to=None):
 				'redirect_uri': REDIRECT_URI,
 				'code': flask.request.values['code'],
 			}
-			res_json = urllib.request.urlopen("https://api.twitch.tv/kraken/oauth2/token", urllib.parse.urlencode(oauth_params).encode()).read().decode()
+			res_json = yield from utils.http_request("https://api.twitch.tv/kraken/oauth2/token", data=oauth_params)
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('access_token'):
 				raise Exception("No access token from Twitch: %s" % res_json)
@@ -176,9 +175,7 @@ def login(return_to=None):
 			granted_scopes = res_object["scope"]
 
 			# Use that access token to get basic information about the user
-			req = urllib.request.Request("https://api.twitch.tv/kraken/")
-			req.add_header("Authorization", "OAuth %s" % access_token)
-			res_json = urllib.request.urlopen(req).read().decode()
+			res_json = yield from utils.http_request("https://api.twitch.tv/kraken/", headers={"Authorization", "OAuth %s" % access_token})
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('token', {}).get('valid'):
 				raise Exception("User object not valid: %s" % res_json)
