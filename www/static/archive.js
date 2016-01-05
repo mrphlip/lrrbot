@@ -38,8 +38,10 @@ $(function(){
 	setInterval(doScroll, 1000);
 
 	// just in case the videoPlaying event somehow happens before the init function runs
-	if (window.videoLoaded)
+	if (window.videoLoaded) {
+		window.videoLoaded = false;
 		onPlayerEvent({event: "videoPlaying", data: {}});
+	}
 });
 
 function getVideoTime() {
