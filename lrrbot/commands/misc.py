@@ -37,7 +37,7 @@ def stormcount(lrrbot, conn, event, respond_to):
 		}
 		storage.save()
 	conn.privmsg(respond_to, "Today's storm count: %d" % storage.data["storm"]["count"])
-	
+
 @bot.command("spam(?:count)?")
 @utils.throttle()
 def spamcount(lrrbot, conn, event, respond_to):
@@ -62,14 +62,11 @@ DESERTBUS_START = datetime.datetime(2015, 11, 14, 10, 0, tzinfo=config["timezone
 DESERTBUS_PRESTART = datetime.datetime(2015, 11, 12, 14, 0, tzinfo=config["timezone"])  # during the last stream before DB
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
-@bot.command("(?:next(?:stream)?|sched(?:ule)?)( .*)?")
+@bot.command("next( .*)?")
 @utils.throttle()
 def next(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !next
-	Command: !nextstream
-	Command: !sched
-	Command: !schedule
 	Section: info
 
 	Gets the next scheduled stream from the LoadingReadyLive calendar
@@ -108,14 +105,11 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 		conn.privmsg(respond_to, "Desert Bus for Hope will return next year, start saving your donation money now!")
 
 
-@bot.command("(?:nextfan(?:stream)?|fansched(?:ule)?)( .*)?")
+@bot.command("nextfan( .*)?")
 @utils.throttle()
 def nextfan(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !nextfan
-	Command: !nextfanstream
-	Command: !fansched
-	Command: !fanschedule
 	Section: info
 
 	Gets the next scheduled stream from the fan-streaming calendar
