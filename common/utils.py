@@ -462,6 +462,7 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 				yield from res.read()
 				if status_class == 4:
 					maxtries = 1
+				yield from res.release()
 				raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
 			text = yield from res.text()
 			yield from res.release()
