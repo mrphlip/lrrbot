@@ -446,6 +446,12 @@ atexit.register(http_request_session.close)
 def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
 	firstex = None
+
+	# FIXME(#130): aiohttp fails to decode HEAD requests with Content-Encoding set. Do GET requests instead.
+	real_method = method
+	if method == 'HEAD':
+		real_method = 'GET'
+
 	if method == 'GET':
 		params = data
 		data = None
@@ -453,7 +459,7 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 		params = None
 	while True:
 		try:
-			res = yield from asyncio.wait_for(http_request_session.request(method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects), timeout)
+			res = yield from asyncio.wait_for(http_request_session.request(real_method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects), timeout)
 			if method == "HEAD":
 				yield from res.release()
 				return res
