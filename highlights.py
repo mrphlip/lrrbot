@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from lrrbot import twitch
-from lrrbot.commands.highlights import SPREADSHEET, format_row
+from common.highlights import SPREADSHEET, format_row
 from common import utils, gdata
 
 import dateutil.parser

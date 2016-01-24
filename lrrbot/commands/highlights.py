@@ -1,23 +1,13 @@
 import irc.client
 
 from common import utils, gdata
+from common.highlights import SPREADSHEET, format_row
 from lrrbot import twitch
 from lrrbot.main import bot
 import asyncio
 
 import dateutil.parser
 import datetime
-
-SPREADSHEET = "1yrf6d7dPyTiWksFkhISqEc-JR71dxZMkUoYrX4BR40Y"
-
-def format_row(title, description, url, timestamp, nick):
-	return [
-		("SHOW", title),
-		("QUOTE or MOMENT", description),
-		("YOUTUBE VIDEO LINK", url),
-		("ROUGH TIME THEREIN", "before " + utils.nice_duration(timestamp, 0)),
-		("NOTES", "from chat user '%s'" % nick),
-	]
 
 @utils.with_postgres
 def store_highlight(conn, cur, title, description, time, nick):
