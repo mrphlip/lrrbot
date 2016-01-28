@@ -9,6 +9,7 @@ import datetime
 import flask
 import flask.json
 import dateutil.parser
+import asyncio
 
 from common import utils
 from www import server
@@ -105,6 +106,16 @@ def get_video_data(videoid):
 	except:
 		return None
 
+@utils.cache(86400)
+def get_player_url():
+	"""
+	The player URL sometimes redirects to a non-HTTPS url, but the CDN still supports HTTPS,
+	so get the real URL so we can serve it over the right protocol
+	"""
+	urls = asyncio.get_event_loop().run_until_complete(
+		utils.canonical_url("https://www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf"))
+	return urls[-1]
+
 @server.app.route('/archive/<videoid>')
 def archive_watch(videoid):
 	starttime = utils.parsetime(flask.request.values.get('t'))
@@ -114,4 +125,4 @@ def archive_watch(videoid):
 	if video is None:
 		return "Unrecognised video"
 	chat = chat_data(video["start"] - BEFORE_BUFFER, video["end"] + AFTER_BUFFER)
-	return flask.render_template("archive_watch.html", video=video, chat=chat, starttime=starttime)
+	return flask.render_template("archive_watch.html", video=video, chat=chat, starttime=starttime, player_url=get_player_url())
