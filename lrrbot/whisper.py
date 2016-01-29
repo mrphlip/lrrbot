@@ -63,5 +63,8 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 		while True:
 			target, text = yield from self.message_queue.get()
 			if self.connection:
-				self.connection.privmsg("#jtv", "/w %s %s" % (target, text))
+				try:
+					self.connection.privmsg("#jtv", "/w %s %s" % (target, text))
+				except irc.client.ServerNotConnectedError:
+					pass
 			yield from asyncio.sleep(2/3)
