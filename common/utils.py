@@ -255,6 +255,7 @@ class cache(_throttle_base):
 	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1):
 		super().__init__(period=period, notify=Visibility.SILENT, modoverride=False, params=params, log=log, count=count, allowprivate=False)
 
+@coro_decorator
 def mod_only(func):
 	"""Prevent an event-handler function from being called by non-moderators
 
@@ -276,9 +277,10 @@ def mod_only(func):
 		conn.privmsg(respond_to, "%s: That is a mod-only command" % source.nick)
 
 	@functools.wraps(func)
+	@asyncio.coroutine
 	def wrapper(self, conn, event, *args, **kwargs):
 		if self.is_mod(event):
-			return func(self, conn, event, *args, **kwargs)
+			return (yield from func(self, conn, event, *args, **kwargs))
 		else:
 			log.info("Refusing %s due to not-a-mod" % func.__name__)
 			mod_complaint(self, conn, event)
@@ -287,6 +289,7 @@ def mod_only(func):
 		"Mod-Only", "true"))
 	return wrapper
 
+@coro_decorator
 def sub_only(func):
 	"""Prevent an event-handler function from being called by non-subscribers
 
@@ -306,9 +309,10 @@ def sub_only(func):
 		conn.privmsg(respond_to, "%s: That is a subscriber-only command" % source.nick)
 
 	@functools.wraps(func)
+	@asyncio.coroutine
 	def wrapper(self, conn, event, *args, **kwargs):
 		if self.is_sub(event) or self.is_mod(event):
-			return func(self, conn, event, *args, **kwargs)
+			return (yield from func(self, conn, event, *args, **kwargs))
 		else:
 			log.info("Refusing %s due to not-a-sub" % func.__name__)
 			sub_complaint(self, conn, event)
@@ -336,6 +340,7 @@ class twitch_throttle:
 		wrapper.is_throttled = True
 		return wrapper
 
+@coro_decorator
 def public_only(func):
 	"""Prevent an event-handler function from being called via private message
 
@@ -345,9 +350,10 @@ def public_only(func):
 		...
 	"""
 	@functools.wraps(func)
+	@asyncio.coroutine
 	def wrapper(self, conn, event, *args, **kwargs):
 		if event.type == "pubmsg" or self.is_mod(event):
-			return func(self, conn, event, *args, **kwargs)
+			return (yield from func(self, conn, event, *args, **kwargs))
 		else:
 			source = irc.client.NickMask(event.source)
 			conn.privmsg(source.nick, "That command cannot be used via private message")
@@ -355,12 +361,13 @@ def public_only(func):
 		"Public-Only", "true"))
 	return wrapper
 
+@coro_decorator
 def log_errors(func):
 	"""Log any errors thrown by a function"""
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
 		try:
-			return func(*args, **kwargs)
+			return (yield from func(*args, **kwargs))
 		except:
 			log.exception("Exception in " + func.__name__)
 			raise
