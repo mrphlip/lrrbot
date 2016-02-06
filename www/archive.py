@@ -1,9 +1,6 @@
 import urllib.request
 import urllib.parse
-import time
-import os
 import contextlib
-import tempfile
 import datetime
 
 import flask
@@ -67,18 +64,24 @@ def archive_feed_data(channel, broadcasts):
 		video["recorded_at"] = dateutil.parser.parse(video["recorded_at"])
 	return videos
 
+def archive_feed_data_html(channel, broadcasts):
+	data = archive_feed_data(channel, broadcasts)
+	for vid in data:
+		vid['html'] = flask.render_template("archive_video.html", vid=vid)
+	return data
+
 @server.app.route('/archive')
 @login.with_session
 def archive(session):
 	channel = flask.request.values.get('channel', 'loadingreadyrun')
 	broadcasts = 'highlights' not in flask.request.values
-	return flask.render_template("archive.html", videos=archive_feed_data(channel, broadcasts), broadcasts=broadcasts, session=session)
+	return flask.render_template("archive.html", videos=archive_feed_data_html(channel, broadcasts), broadcasts=broadcasts, session=session)
 
 @server.app.route('/archivefeed')
 def archive_feed():
 	channel = flask.request.values.get('channel', 'loadingreadyrun')
 	broadcasts = 'highlights' not in flask.request.values
-	rss = flask.render_template("archive_feed.xml", videos=archive_feed_data(channel, broadcasts), broadcasts=broadcasts)
+	rss = flask.render_template("archive_feed.xml", videos=archive_feed_data_html(channel, broadcasts), broadcasts=broadcasts)
 	return flask.Response(rss, mimetype="application/xml")
 
 @utils.with_postgres

@@ -8,13 +8,7 @@
 <item>
 <title>{{vid['title']|e}} [{{vid['length']|nice_duration(1)}}]</title>
 <link>{{url_for("archive_watch", videoid=vid['_id'], _external=True)|e}}</link>
-<description><![CDATA[
-<img src="{{vid['preview']|e}}" style="float:left; margin: 0 0.5em 0.25em 0">
-<p style="font: bold 125% sans-serif">{{vid['title']|e}}</p>
-{%if vid['description']%}<p style="font: 100% sans-serif">{{vid['description']|e}}</p>{%endif%}
-{%if vid['game']%}<p style="font: 100% sans-serif">Playing: {{vid['game']|e}}</p>{%endif%}
-<p style="font: 100% sans-serif">Length: {{vid['length']|nice_duration(0)}}</p>
-]]></description>
+<description>{{vid['html']|e}}</description>
 <pubDate>{{"{:%a, %d %b %Y %H:%M:%S %z}".format(vid['recorded_at'])}}</pubDate>
 <guid isPermaLink="true">{{vid['url']|e}}</guid>
 </item>
