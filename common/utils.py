@@ -155,6 +155,7 @@ class _throttle_base(object):
 		self.log = log
 		self.count = count
 		self.allowprivate = allowprivate
+		self.lock = asyncio.Lock()
 
 		# need to decorate this here, rather than putting a decorator on the actual
 		# function, as it needs to wrap the *bound* method, so there's no "self"
@@ -182,35 +183,36 @@ class _throttle_base(object):
 		@asyncio.coroutine
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
-			if self.modoverride:
-				lrrbot = args[0]
-				event = args[2]
-				if lrrbot.is_mod(event):
-					return (yield from func(*args, **kwargs))
-			if self.allowprivate:
-				event = args[2]
-				if event.type == "privmsg":
-					return (yield from func(*args, **kwargs))
-
-			params = self.watchedparams(args, kwargs)
-			if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
-				self.lastreturn[params] = yield from func(*args, **kwargs)
-				self.lastrun.setdefault(params, []).append(time.time())
-				if len(self.lastrun[params]) > self.count:
-					self.lastrun[params] = self.lastrun[params][-self.count:]
-			else:
-				if self.log:
-					log.info("Skipping %s due to throttling" % func.__name__)
-				if self.notify is not Visibility.SILENT:
-					conn = args[1]
+			with (yield from self.lock):
+				if self.modoverride:
+					lrrbot = args[0]
 					event = args[2]
-					source = irc.client.NickMask(event.source)
-					if irc.client.is_channel(event.target) and self.notify is Visibility.PUBLIC:
-						respond_to = event.target
-					else:
-						respond_to = source.nick
-					conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
-			return self.lastreturn[params]
+					if lrrbot.is_mod(event):
+						return (yield from func(*args, **kwargs))
+				if self.allowprivate:
+					event = args[2]
+					if event.type == "privmsg":
+						return (yield from func(*args, **kwargs))
+
+				params = self.watchedparams(args, kwargs)
+				if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
+					self.lastreturn[params] = yield from func(*args, **kwargs)
+					self.lastrun.setdefault(params, []).append(time.time())
+					if len(self.lastrun[params]) > self.count:
+						self.lastrun[params] = self.lastrun[params][-self.count:]
+				else:
+					if self.log:
+						log.info("Skipping %s due to throttling" % func.__name__)
+					if self.notify is not Visibility.SILENT:
+						conn = args[1]
+						event = args[2]
+						source = irc.client.NickMask(event.source)
+						if irc.client.is_channel(event.target) and self.notify is Visibility.PUBLIC:
+							respond_to = event.target
+						else:
+							respond_to = source.nick
+						conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
+				return self.lastreturn[params]
 		# Copy this method across so it can be accessed on the wrapped function
 		wrapper.reset_throttle = self.reset_throttle
 		wrapper.__doc__ = encode_docstring(add_header(add_header(parse_docstring(wrapper.__doc__),
