@@ -712,18 +712,22 @@ def weighted_choice(options):
 @cache(60 * 60, params=[0])
 @asyncio.coroutine
 def canonical_url(url, depth=10):
-	if not url.startswith("http://") and not url.startswith("https://"):
-		url = "http://" + url
-	if depth <= 0:
-		return [url]
-	try:
-		res = yield from http_request_coro(url, method="HEAD", allow_redirects=False)
-		if res.status in range(300, 400) and "Location" in res.headers:
-			return [url] + (yield from canonical_url(urllib.parse.urljoin(url, res.headers["Location"], depth - 1)))
-	except Exception:
-		log.error("Error fetching %r", url)
-		pass
-	return [url]
+	urls = []
+	while depth > 0:
+		if not url.startswith("http://") and not url.startswith("https://"):
+			url = "http://" + url
+		urls.append(url)
+		try:
+			res = yield from http_request_coro(url, method="HEAD", allow_redirects=False)
+			if res.status in range(300, 400) and "Location" in res.headers:
+				url = res.headers["Location"]
+				depth -= 1
+			else:
+				break
+		except Exception:
+			log.error("Error fetching %r", url)
+			break
+	return urls
 
 @cache(24 * 60 * 60)
 @asyncio.coroutine
