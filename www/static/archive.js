@@ -37,6 +37,17 @@ $(function(){
 	window.lasttime = -1;
 	setInterval(doScroll, 1000);
 
+	// Pause/play video with spacebar
+	$(window).keypress(function(e){
+		if (e.keyCode === 0 || e.keyCode === 32) {
+			if (window.player.isPaused())
+				window.player.playVideo();
+			else
+				window.player.pauseVideo();
+			e.preventDefault();
+		}
+	});
+
 	// just in case the videoPlaying event somehow happens before the init function runs
 	if (window.videoLoaded) {
 		window.videoLoaded = false;
@@ -61,7 +72,7 @@ function doScroll() {
 
 	var time = getVideoTime();
 	if (time < 0)
-		return
+		return;
 
 	// Don't scroll if we're stuck at the same time (if the video is paused)
 	if (time == window.lasttime)
@@ -134,6 +145,6 @@ function startScrolling() {
 
 // This (currently, in the browsers I have tested it on) fools the Twitch player into thinking it's playing on the real Twitch site
 // so it doesn't make it so that clicking the player takes you to the Twitch page
-window.parent = {location: {hostname: 'www.twitch.tv', search: 'force_embed=1'}}
+window.parent = {location: {hostname: 'www.twitch.tv', search: 'force_embed=1'}};
 
 window.videoLoaded = false;
