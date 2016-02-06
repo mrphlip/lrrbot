@@ -575,14 +575,19 @@ table.quote-search {
 	width: 100%
 }
 
-table.quote-search tr.submit {
+table.quote-search .searchmode {
+	width: 10%;
+}
+
+table.quote-search .searchbar {
+	width: 70%;
+}
+
+table.quote-search .submit {
 	width: 20%;
 }
 
-.quote-search .searchbar {
-	width: 80%;
-}
-
-table.quote-search input {
+table.quote-search input,
+table.quote-search select {
 	width: 100%
 }

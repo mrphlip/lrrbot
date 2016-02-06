@@ -757,3 +757,6 @@ def https(uri):
 	return RE_PROTO.sub("https://", uri)
 def noproto(uri):
 	return RE_PROTO.sub("//", uri)
+
+def escape_like(s):
+	return s.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')

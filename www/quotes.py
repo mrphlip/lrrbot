@@ -33,17 +33,31 @@ def quotes(conn, cur, session, page=1):
 @utils.with_postgres
 def quote_search(conn, cur, session):
 	query = flask.request.values["q"]
+	mode = flask.request.values.get('mode', 'text')
 	page = int(flask.request.values.get("page", 1))
-	cur.execute("""
-		CREATE TEMP TABLE cse AS
-		SELECT qid, quote, attrib_name, attrib_date
-		FROM quotes
-		WHERE
-			TO_TSVECTOR('english', quote) @@ PLAINTO_TSQUERY('english', %s)
-			AND NOT deleted
-		ORDER BY qid DESC
-	""", (query, ))
+	if mode == 'text':
+		cur.execute("""
+			CREATE TEMP TABLE cse AS
+			SELECT qid, quote, attrib_name, attrib_date
+			FROM quotes
+			WHERE
+				TO_TSVECTOR('english', quote) @@ PLAINTO_TSQUERY('english', %s)
+				AND NOT deleted
+			ORDER BY qid DESC
+		""", (query, ))
+	elif mode == 'name':
+		cur.execute("""
+			CREATE TEMP TABLE cse AS
+			SELECT qid, quote, attrib_name, attrib_date
+			FROM quotes
+			WHERE
+				LOWER(attrib_name) LIKE %s
+				AND NOT deleted
+			ORDER BY qid DESC
+		""", ("%" + utils.escape_like(query.lower()) + "%", ))
+	else:
+		return utils.error_page("Unrecognised mode")
 	pages = (cur.rowcount - 1) // QUOTES_PER_PAGE + 1
 	page = max(1, min(page, pages))
 	cur.execute("SELECT * FROM cse OFFSET %s LIMIT %s", ((page-1) * QUOTES_PER_PAGE, QUOTES_PER_PAGE))
-	return flask.render_template('quotes.html', session=session, quotes=list(cur), page=page, pages=pages, args={'q': query})
+	return flask.render_template('quotes.html', session=session, quotes=list(cur), page=page, pages=pages, args={'q': query, 'mode': mode})

@@ -48,7 +48,7 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	elif attrib:
 		where, params = """
 			WHERE LOWER(attrib_name) LIKE %s AND NOT deleted
-		""", ("%" + attrib.lower().replace('\\','\\\\').replace('%','\\%').replace('_','\\_') + "%",)
+		""", ("%" + utils.escape_like(attrib.lower()) + "%",)
 	else:
 		where, params = """
 			WHERE NOT deleted
