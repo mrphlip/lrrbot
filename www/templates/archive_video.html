@@ -1,6 +1,16 @@
-<img src="{{vid['preview']|https|e}}" style="float:left; margin: 0 0.5em 0.25em 0">
-<p style="font: bold 125% sans-serif"><a href="{{url_for("archive_watch", videoid=vid['_id'])|e}}">{{vid['title']|e}}</a></p>
-<p style="font: 100% sans-serif">Recorded at: {{vid['recorded_at']|timestamp}}</p>
-{%if vid['description']%}<p style="font: 100% sans-serif">{{vid['description']|e}}</p>{%endif%}
-{%if vid['game']%}<p style="font: 100% sans-serif">Playing: {{vid['game']|e}}</p>{%endif%}
-<p style="font: 100% sans-serif">Length: {{vid['length']|nice_duration(0)}}</p>
+<div style="font: 100% sans-serif; color: black">
+{%if not rss%}<a href="{{url_for("archive_watch", videoid=vid['_id'])|e}}">{%endif%}<img src="{{vid['preview']|https|e}}" alt="{{vid['title']|e}}" width="320" height="240" style="float:left; margin: 0 0.5em 0.25em 0">{%if not rss%}</a>{%endif%}
+<p style="font: bold 125% sans-serif">{%if not rss%}<a href="{{url_for("archive_watch", videoid=vid['_id'])|e}}">{%endif%}{{vid['title']|e}}{%if not rss%}</a>{%endif%}</p>
+<p>Recorded at: {{vid['recorded_at']|timestamp}}</p>
+{%if vid['description']%}<p>{{vid['description']|e}}</p>{%endif%}
+{%if vid['game']%}<p>Playing: {{vid['game']|e}}</p>{%endif%}
+<p>Length: {{vid['length']|nice_duration(0)}}</p>
+{%if vid['delete_at']%}<p style="font-size: 90%; color: #666">To delete at: {{vid['delete_at']|timestamp}}</p>{%endif%}
+{%if vid['is_muted']%}<p style="font: bold 100% sans-serif; color: red">Contains muted sections</p>{%endif%}
+{%if vid['status'] == 'recording'%}<p><span style="font: bold 100% sans-serif; color: red">Currently recording</span> [<a href="https://twitch.tv/{{vid['channel']['name']|e}}">Watch live</a>]</p>{%endif%}
+<p style="font-size: 80%; color: #999">{{vid['_id']|e}}</p>
+{%if rss and vid['thumbnails']%}
+<div style="clear: left"></div>
+<p>{%for thumb in vid['thumbnails']%}<img src="{{thumb['url']|https|e}}" alt="" width="160" height="120">{%endfor%}</p>
+{%endif%}
+</div>

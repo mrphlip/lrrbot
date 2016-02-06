@@ -613,9 +613,8 @@ def timestamp(ts):
 		ts = datetime.datetime.fromtimestamp(ts, tz=pytz.utc)
 	elif ts.tzinfo is None:
 		ts = ts.replace(tzinfo=datetime.timezone.utc)
-	else:
-		ts = ts.astimezone(datetime.timezone.utc)
-	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"%d\">%s</span>" % (ts.timestamp(), flask.escape(ts.ctime())))
+	ts = ts.astimezone(config.config['timezone'])
+	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"{}\">{:%A, %-d %B, %Y %H:%M:%S %Z}</span>".format(ts.timestamp(), ts))
 
 
 def ucfirst(s):
