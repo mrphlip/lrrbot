@@ -243,9 +243,8 @@ def get_display_name(nick):
 		return nick
 
 re_just_words = re.compile("^\w+$")
-@utils.cache(CACHE_EXPIRY)
 @asyncio.coroutine
-def get_twitch_emotes():
+def get_twitch_emotes_official():
 	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/chat/emoticons")
 	data = json.loads(data)['emoticons']
 	emotesets = {}
@@ -265,7 +264,6 @@ def get_twitch_emotes():
 			}
 	return emotesets
 
-@utils.cache(CACHE_EXPIRY)
 @asyncio.coroutine
 def get_twitch_emotes_undocumented():
 	# This endpoint is not documented, however `/chat/emoticons` might be deprecated soon.
@@ -283,13 +281,18 @@ def get_twitch_emotes_undocumented():
 		}
 	return emotesets
 
+@utils.cache(CACHE_EXPIRY)
+@asyncio.coroutine
+def get_twitch_emotes():
+	try:
+		return (yield from get_twitch_emotes_official())
+	except:
+		return (yield from get_twitch_emotes_undocumented())
+
 @asyncio.coroutine
 def get_filtered_emotes(setids):
 	try:
-		try:
-			emotesets = yield from get_twitch_emotes()
-		except:
-			emotesets = yield from get_twitch_emotes_undocumented()
+		emotesets = yield from get_twitch_emotes()
 		emotes = dict(emotesets[None])
 		for setid in setids:
 			emotes.update(emotesets.get(setid, {}))
