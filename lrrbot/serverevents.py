@@ -53,19 +53,19 @@ def set_data(lrrbot, user, data):
 
 @bot.server_event()
 def modify_commands(lrrbot, user, data):
-	log.info("Setting commands (%s) to %r" % (user, '.'.join(data['key']), data['value']))
+	log.info("Setting commands (%s) to %r" % (user, data))
 	commands.static.modify_commands(data)
 	bot.compile()
 
 @bot.server_event()
 def modify_explanations(lrrbot, user, data):
-	log.info("Setting explanations (%s) to %r" % (user, '.'.join(data['key']), data['value']))
+	log.info("Setting explanations (%s) to %r" % (user, data))
 	commands.explain.modify_explanations(data)
 	bot.compile()
 
 @bot.server_event()
 def modify_spam_rules(lrrbot, user, data):
-	log.info("Setting spam rules (%s) to %r" % (user, '.'.join(data['key']), data['value']))
+	log.info("Setting spam rules (%s) to %r" % (user, data))
 	storage.data['spam_rules'] = data
 	storage.save()
 	lrrbot.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
