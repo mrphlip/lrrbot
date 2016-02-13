@@ -516,11 +516,11 @@ class RPCServer(asyncio.Protocol):
 		self.buffer += data
 		if b"\n" in self.buffer:
 			request = json.loads(self.buffer.decode())
-			log.info("Command from server (%s): %s(%r)", request['user'], request['command'], request['param'])
+			log.debug("Command from server (%s): %s(%r)", request['user'], request['command'], request['param'])
 			try:
 				response = self.lrrbot.on_server_event(request)
 			except:
-				log.exception("Exception in on_server_response")
+				log.exception("Exception in on_server_event")
 			else:
 				log.debug("Returning: %r", response)
 				response = json.dumps(response).encode() + b"\n"

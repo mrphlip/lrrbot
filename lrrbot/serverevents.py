@@ -39,7 +39,7 @@ def get_data(lrrbot, user, data):
 def set_data(lrrbot, user, data):
 	if not isinstance(data['key'], (list, tuple)):
 		data['key'] = [data['key']]
-	log.info("Setting storage %s to %r" % ('.'.join(data['key']), data['value']))
+	log.info("Setting storage (%s) %s to %r" % (user, '.'.join(data['key']), data['value']))
 	# if key is, eg, ["a", "b", "c"]
 	# then we want to effectively do:
 	# storage.data["a"]["b"]["c"] = value
@@ -53,16 +53,19 @@ def set_data(lrrbot, user, data):
 
 @bot.server_event()
 def modify_commands(lrrbot, user, data):
+	log.info("Setting commands (%s) to %r" % (user, '.'.join(data['key']), data['value']))
 	commands.static.modify_commands(data)
 	bot.compile()
 
 @bot.server_event()
 def modify_explanations(lrrbot, user, data):
+	log.info("Setting explanations (%s) to %r" % (user, '.'.join(data['key']), data['value']))
 	commands.explain.modify_explanations(data)
 	bot.compile()
 
 @bot.server_event()
 def modify_spam_rules(lrrbot, user, data):
+	log.info("Setting spam rules (%s) to %r" % (user, '.'.join(data['key']), data['value']))
 	storage.data['spam_rules'] = data
 	storage.save()
 	lrrbot.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
