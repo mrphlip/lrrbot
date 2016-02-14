@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS cards (
+    cardid SERIAL PRIMARY KEY,
+    filteredname VARCHAR(255) NOT NULL,
+    name TEXT COLLATE "en_US.utf8" NOT NULL,
+    text TEXT COLLATE "en_US.utf8" NOT NULL,
+    lastprinted DATE
+);
+CREATE UNIQUE INDEX cards_name_idx ON cards(filteredname);
+
+CREATE TABLE IF NOT EXISTS card_multiverse (
+    multiverseid INTEGER NOT NULL PRIMARY KEY,
+    cardid INTEGER NOT NULL
+);
