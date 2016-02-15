@@ -14,7 +14,13 @@ def card_lookup(lrrbot, conn, event, respond_to, search):
 
 	Show the details of a given Magic: the Gathering card.
 	"""
+	real_card_lookup(lrrbot, conn, event, respond_to, search)
+
+def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False):
 	cards = find_card(search)
+
+	if noerror and len(cards) != 1:
+		return
 
 	if len(cards) == 0:
 		conn.privmsg(respond_to, "Can't find any card by that name")
@@ -28,7 +34,7 @@ def card_lookup(lrrbot, conn, event, respond_to, search):
 @common.postgres.with_postgres
 def find_card(conn, cur, search):
 	if isinstance(search, int):
-		cur.execute("SELECT c.name, c.text FROM card_multiverse m JOIN cards c ON c.cardid = m.cardid WHERE m.multiverseid = %d", (search,))
+		cur.execute("SELECT c.name, c.text FROM card_multiverse m JOIN cards c ON c.cardid = m.cardid WHERE m.multiverseid = %s", (search,))
 		return cur.fetchall()
 
 	cleansearch = clean_text(search)

@@ -1,5 +1,6 @@
 import configparser
 import logging
+import re
 
 import pytz
 
@@ -93,3 +94,13 @@ config.setdefault('session_secret', '')
 # whispers - boolean option, whether to connect to group chat server and respond to whispers
 config.setdefault('whispers', False)
 config['whispers'] = str(config['whispers']).lower() != 'false'
+
+# cardviewersubkey - Pubnub subscribe key for xsplit card viewer channel
+config.setdefault('cardsubkey', None)
+
+# cardviewerchannel - Pubnub channel for xsplit card viewer
+config.setdefault('cardviewerchannel', 'xsplit_image')
+
+# cardviewerregex - Regex to match Magic cards sent to xsplit overlay
+config.setdefault("cardviewerregex", "Image\.ashx\?(?:.*?&)??multiverseid=(\d+)(&|$)")
+config['cardviewerregex'] = re.compile(config['cardviewerregex'])
