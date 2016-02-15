@@ -1,3 +1,4 @@
+import asyncio
 import pubnub
 import logging
 import time
@@ -9,6 +10,7 @@ from common.config import config
 __all__ = ["CardViewer"]
 
 REPEAT_TIMER = 60
+ANNOUNCE_DELAY = 10
 
 log = logging.getLogger('cardviewer')
 
@@ -52,10 +54,10 @@ class CardViewer:
 			multiverseid = int(match.group(1))
 			# Pubnub is threaded, and asyncio doesn't play very nicely with threading
 			# Call this to get back into the main thread
-			#asyncio.run_coroutine_threadsafe(self._card(multiverseid), self.loop)
-			self.loop.call_soon_threadsafe(self._card, multiverseid)
+			self.loop.call_soon_threadsafe(asyncio.async, self._card(multiverseid))
 
 	@utils.swallow_errors
+	@asyncio.coroutine
 	def _card(self, multiverseid):
 		# Delayed import so this module can be imported before the bot object exists
 		import lrrbot.commands.card
@@ -73,6 +75,8 @@ class CardViewer:
 		self.last_time = time.time()
 
 		log.info("Got card from pubnub: %d" % multiverseid)
+
+		yield from asyncio.sleep(ANNOUNCE_DELAY)
 
 		lrrbot.commands.card.real_card_lookup(
 			self.lrrbot,
