@@ -257,6 +257,8 @@ def get_twitch_emotes_official():
 			regex = r"\b%s\b" % regex
 		regex = re.compile("(%s)" % regex)
 		for image in emote['images']:
+			if image['url'] is None:
+				continue
 			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (utils.https(image['url']), image['width'], image['height'])
 			emotesets.setdefault(image.get("emoticon_set"), {})[emote['regex']] = {
 				"regex": regex,
