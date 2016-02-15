@@ -11,6 +11,7 @@ if config['logfile'] is not None:
 	fileHandler = logging.FileHandler(config['logfile'], 'a', 'utf-8')
 	fileHandler.formatter = logging.root.handlers[0].formatter
 	logging.root.addHandler(fileHandler)
+logging.getLogger("requests").setLevel(logging.ERROR)
 
 import lrrbot.commands
 import lrrbot.serverevents
