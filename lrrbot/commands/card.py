@@ -5,6 +5,22 @@ import lrrbot.decorators
 from lrrbot.main import bot
 import common.postgres
 
+cardview = False
+
+@bot.command("cardview (on|off)")
+@utils.mod_only
+def set_cardview(lrrbot, conn, event, respond_to, setting):
+	"""
+	Command: !cardview on
+	Command: !cardview off
+	Section: misc
+
+	Toggle showing details of Magic cards in the chat when they are scanned by the card recogniser (for AFK Magic streams).
+	"""
+	global cardview
+	cardview = (setting == "on")
+	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if cardview else "disabled"))
+
 @bot.command("card (.+)")
 @lrrbot.decorators.throttle(60, count=3)
 def card_lookup(lrrbot, conn, event, respond_to, search):
