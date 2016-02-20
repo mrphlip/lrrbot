@@ -96,6 +96,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.show = ""
 		self.polls = []
 		self.lastsubs = []
+		self.cardview = False
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}

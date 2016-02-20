@@ -62,7 +62,7 @@ class CardViewer:
 		# Delayed import so this module can be imported before the bot object exists
 		import lrrbot.commands.card
 
-		if not lrrbot.commands.card.cardview:
+		if not self.lrrbot.cardview:
 			return
 
 		# Protect against bouncing - don't repeat the same card multiple times in
