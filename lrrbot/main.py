@@ -27,8 +27,6 @@ log = logging.getLogger('lrrbot')
 SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', 'emoteset': {317}}
 
 class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
-	GAME_CHECK_INTERVAL = 5*60 # Only check the current game at most once every five minutes
-
 	def __init__(self, loop):
 		self.loop = loop
 		server = irc.bot.ServerSpec(
@@ -312,7 +310,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 		if logo is None:
 			try:
-				channel_info = twitch.get_info(user)
+				channel_info = twitch.get_info_uncached(user)
 			except:
 				pass
 			else:
@@ -384,11 +382,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			game_obj = {'_id': self.game_override, 'name': self.game_override, 'is_override': True}
 			return storage.find_game(show, game_obj, readonly)
 		else:
-			return storage.find_game(show, self.get_current_game_real(), readonly)
-
-	@utils.cache(GAME_CHECK_INTERVAL)
-	def get_current_game_real(self):
-		return twitch.get_game_playing()
+			return storage.find_game(show, twitch.get_game_playing(), readonly)
 
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""

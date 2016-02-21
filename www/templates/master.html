@@ -39,8 +39,13 @@
 				{%endfor%}
 			</ul>
 		</div>
+	{%elif session['header']['is_live']%}
+		The currently playing any known game.
 	{%else%}
-		The stream is not currently playing any game.
+		The stream is not currently live. {{session['header']['nextstream']|e}}
+	{%endif%}
+	{%if session['header']['is_live']%}
+		[<a href="https://twitch.tv/{{session['header']['channel']|e}}">Watch live</a>]
 	{%endif%}
 	<div class="clear"></div>
 </div>

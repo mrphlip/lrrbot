@@ -7,7 +7,10 @@ from common.config import config
 from lrrbot import storage
 
 
-def get_info(username=None, use_fallback=True):
+GAME_CHECK_INTERVAL = 5*60
+
+
+def get_info_uncached(username=None, *, use_fallback=True):
 	"""
 	Get the Twitch info for a particular user or channel.
 
@@ -42,12 +45,17 @@ def get_info(username=None, use_fallback=True):
 	channel_data['live'] = False
 	return channel_data
 
+@utils.cache(GAME_CHECK_INTERVAL, params=[0, 'use_fallback'])
+def get_info(username=None, *, use_fallback=True):
+	return get_info_uncached(username, use_fallback=use_fallback)
+
+@utils.cache(GAME_CHECK_INTERVAL, params=[0, 1])
 def get_game(name, all=False):
 	"""
 	Get the game information for a particular game.
 
 	For response object structure, see:
-	https://github.com/justintv/Twitch-API/blob/master/v3_resources/search.md#example-response-1	
+	https://github.com/justintv/Twitch-API/blob/master/v3_resources/search.md#example-response-1
 
 	May throw exceptions on network/Twitch error.
 	"""
@@ -76,6 +84,13 @@ def get_game_playing(username=None):
 	if channel_data.get('game') is not None:
 		return get_game(name=channel_data['game'])
 	return None
+
+def is_stream_live(username=None):
+	"""
+	Get whether the stream is currently live
+	"""
+	channel_data = get_info(username, use_fallback=False)
+	return channel_data and channel_data['live']
 
 @asyncio.coroutine
 def get_subscribers(channel=None, count=5, offset=None, latest=True):

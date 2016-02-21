@@ -4,7 +4,8 @@ import math
 import logging
 
 from common import utils
-from lrrbot import googlecalendar, storage, commands
+from common.config import config
+from lrrbot import googlecalendar, storage, commands, twitch
 from lrrbot.main import bot
 
 
@@ -95,8 +96,14 @@ def get_commands(lrrbot, user, data):
 @bot.server_event()
 def get_header_info(lrrbot, user, data):
 	game = lrrbot.get_current_game()
-	data = {}
-	if game is not None:
+	live = twitch.is_stream_live()
+
+	data = {
+		"is_live": live,
+		"channel": config['channel'],
+	}
+
+	if live and game is not None:
 		data['current_game'] = {
 			"name": game['name'],
 			"display": game.get("display", game["name"]),
@@ -111,7 +118,7 @@ def get_header_info(lrrbot, user, data):
 		stats = [{
 			"count": v,
 			"type": storage.data['stats'][k].get("singular" if v == 1 else "plural", k)
-		} for (k,v) in game['stats'].items() if v]
+		} for (k, v) in game['stats'].items() if v]
 		stats.sort(key=lambda i: (-i['count'], i['type']))
 		data['current_game']['stats'] = stats
 		if game.get("votes"):
@@ -124,13 +131,18 @@ def get_header_info(lrrbot, user, data):
 			}
 		if user is not None:
 			data["current_game"]["my_rating"] = game.get("votes", {}).get(user.lower())
+	elif not live:
+		data['nextstream'] = googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
+
 	if 'advice' in storage.data['responses']:
 		data['advice'] = random.choice(storage.data['responses']['advice']['response'])
+
 	if user is not None:
 		data['is_mod'] = lrrbot.is_mod_nick(user)
 		data['is_sub'] = lrrbot.is_sub_nick(user)
 	else:
 		data['is_mod'] = data['is_sub'] = False
+
 	return data
 
 @bot.server_event()
