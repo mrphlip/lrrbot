@@ -11,6 +11,7 @@ import select
 import functools
 import queue
 import asyncio
+import traceback
 
 import dateutil.parser
 import irc.bot
@@ -515,10 +516,12 @@ class RPCServer(asyncio.Protocol):
 				response = self.lrrbot.on_server_event(request)
 			except:
 				log.exception("Exception in on_server_event")
+				response = {'success': False, 'result': ''.join(traceback.format_exc())}
 			else:
 				log.debug("Returning: %r", response)
-				response = json.dumps(response).encode() + b"\n"
-				self.transport.write(response)
+				response = {'success': True, 'result': response}
+			response = json.dumps(response).encode() + b"\n"
+			self.transport.write(response)
 			self.transport.close()
 
 bot = LRRBot(asyncio.get_event_loop())

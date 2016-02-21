@@ -3,6 +3,12 @@ import socket
 from www import login
 from common.config import config
 
+class APIError(Exception):
+	"""
+	Indicates an exception happened on the bot side of the RPC connection
+	"""
+	pass
+
 @login.with_minimal_session
 def send_bot_command(command, param, timeout=5, session=None):
 	"""
@@ -22,7 +28,11 @@ def send_bot_command(command, param, timeout=5, session=None):
 	buf = b""
 	while b"\n" not in buf:
 		buf += conn.recv(1024)
-	return flask.json.loads(buf.decode())
+	result = flask.json.loads(buf.decode())
+	if result['success']:
+		return result['result']
+	else:
+		raise APIError("Server error in %s:\n%s" % (command, result['result']))
 
 def get_current_game():
 	return send_bot_command("current_game", None)
