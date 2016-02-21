@@ -9,5 +9,6 @@ CREATE UNIQUE INDEX cards_name_idx ON cards(filteredname);
 
 CREATE TABLE IF NOT EXISTS card_multiverse (
     multiverseid INTEGER NOT NULL PRIMARY KEY,
-    cardid INTEGER NOT NULL
+    cardid INTEGER NOT NULL,
+    FOREIGN KEY (cardid) REFERENCES cards(cardid) ON DELETE CASCADE
 );
