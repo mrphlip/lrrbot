@@ -4,7 +4,6 @@ import os
 from common import utils
 from common.config import config
 
-
 """
 Data structure:
 

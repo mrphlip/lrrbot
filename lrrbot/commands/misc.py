@@ -107,7 +107,6 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 	else:
 		conn.privmsg(respond_to, "Desert Bus for Hope will return next year, start saving your donation money now!")
 
-
 @bot.command("nextfan( .*)?")
 @lrrbot.decorators.throttle()
 def nextfan(lrrbot, conn, event, respond_to, timezone):
@@ -130,7 +129,7 @@ def time(lrrbot, conn, event, respond_to):
 	"""
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
-	
+
 @bot.command("time 24")
 @lrrbot.decorators.throttle()
 def time24(lrrbot, conn, event, respond_to):

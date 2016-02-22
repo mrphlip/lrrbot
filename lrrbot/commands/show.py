@@ -1,9 +1,7 @@
 import lrrbot.decorators
-from common import utils
 from lrrbot import storage
 from lrrbot import twitch
 from lrrbot.main import bot
-
 
 def set_show(lrrbot, show):
 	if lrrbot.show != show.lower():

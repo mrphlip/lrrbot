@@ -20,7 +20,6 @@ def mod_only(func):
 	def on_event(self, conn, event, ...):
 		...
 	"""
-
 	# Only complain about non-mods with throttle
 	# but allow the command itself to be run without throttling
 	@throttle(notify=Visibility.SILENT, modoverride=False)
@@ -45,7 +44,6 @@ def mod_only(func):
 		"Mod-Only", "true"))
 	return wrapper
 
-
 @coro_decorator
 def sub_only(func):
 	"""Prevent an event-handler function from being called by non-subscribers
@@ -55,7 +53,6 @@ def sub_only(func):
 	def on_event(self, conn, event, ...):
 		...
 	"""
-
 	@throttle(notify=Visibility.SILENT, modoverride=False)
 	def sub_complaint(self, conn, event):
 		source = irc.client.NickMask(event.source)
@@ -78,7 +75,6 @@ def sub_only(func):
 		"Sub-Only", "true"))
 	return wrapper
 
-
 @coro_decorator
 def public_only(func):
 	"""Prevent an event-handler function from being called via private message
@@ -100,7 +96,6 @@ def public_only(func):
 		"Public-Only", "true"))
 	return wrapper
 
-
 class twitch_throttle:
 	def __init__(self, count=20, period=30):
 		self.count = count
@@ -120,12 +115,10 @@ class twitch_throttle:
 		wrapper.is_throttled = True
 		return wrapper
 
-
 class Visibility(enum.Enum):
 	SILENT = 0
 	PRIVATE = 1
 	PUBLIC = 2
-
 
 class throttle(throttle_base):
 	"""Prevent an event function from being called more often than once per period

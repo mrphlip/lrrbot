@@ -1,10 +1,8 @@
 import random
 
 import lrrbot.decorators
-from common import utils
 from lrrbot import storage
 from lrrbot.main import bot, log
-
 
 @bot.command("explain (.*?)")
 @lrrbot.decorators.throttle(30, params=[4], count=2)

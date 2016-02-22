@@ -7,7 +7,6 @@ from www import server
 from www import login
 from www import botinteract
 from www import history
-from common import utils
 import re
 import datetime
 import pytz

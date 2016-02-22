@@ -4,12 +4,10 @@ import math
 import logging
 
 import common.postgres
-import lrrbot.docstring
 from common import utils
 from common.config import config
 from lrrbot import googlecalendar, storage, commands, twitch
 from lrrbot.main import bot
-
 
 log = logging.getLogger('serverevents')
 

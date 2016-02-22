@@ -2,7 +2,7 @@
 import common.postgres
 from lrrbot import twitch
 from common.highlights import SPREADSHEET, format_row
-from common import utils, gdata
+from common import gdata
 
 import dateutil.parser
 import asyncio

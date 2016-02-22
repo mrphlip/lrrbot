@@ -15,7 +15,6 @@ from common import config
 
 log = logging.getLogger('utils')
 
-
 def deindent(s):
 	def skipblank():
 		generator = map(lambda s: s.lstrip(), s.splitlines())
@@ -25,7 +24,6 @@ def deindent(s):
 		yield line
 		yield from generator
 	return "\n".join(skipblank())
-
 
 def shorten_fallback(text, width, **kwargs):
 	"""textwrap.shorten is introduced in Python 3.4"""
@@ -42,7 +40,6 @@ def shorten_fallback(text, width, **kwargs):
 	else:
 		r = r[0]
 	return r
-
 shorten = getattr(textwrap, "shorten", shorten_fallback)
 
 def coro_decorator(decorator):
@@ -103,8 +100,6 @@ def coro_decorator(decorator):
 	return wrapper
 
 DEFAULT_THROTTLE = 15
-
-
 class throttle_base(object):
 	"""Prevent a function from being called more often than once per period"""
 	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=True, count=1):
@@ -148,7 +143,6 @@ class throttle_base(object):
 		if self.log:
 			log.info("Skipping %s due to throttling" % func.__name__)
 
-
 	def decorate(self, func):
 		if self.watchparams:
 			self.signature = inspect.signature(func)
@@ -180,7 +174,6 @@ class throttle_base(object):
 		self.lastrun = {}
 		self.lastreturn = {}
 
-
 class cache(throttle_base):
 	"""Cache the results of a function for a given period
 
@@ -200,7 +193,6 @@ class cache(throttle_base):
 	"""
 	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1):
 		super().__init__(period=period, params=params, log=log, count=count)
-
 
 @coro_decorator
 def log_errors(func):
@@ -245,7 +237,6 @@ def check_exception(future):
 	except:
 		log.exception("Exception in future")
 
-
 def immutable(obj):
 	if isinstance(obj, dict):
 		return werkzeug.datastructures.ImmutableDict((k, immutable(v)) for k,v in obj.items())
@@ -253,7 +244,6 @@ def immutable(obj):
 		return werkzeug.datastructures.ImmutableList(immutable(v) for v in obj)
 	else:
 		return obj
-
 
 def sse_send_event(endpoint, event=None, data=None, event_id=None):
 	if not os.path.exists(config.config['eventsocket']):
@@ -272,10 +262,8 @@ def sse_send_event(endpoint, event=None, data=None, event_id=None):
 	sse.send(flask.json.dumps(sse_event).encode("utf-8")+b"\n")
 	sse.close()
 
-
 def ucfirst(s):
 	return s[0].upper() + s[1:]
-
 
 def weighted_choice(options):
 	"""
@@ -308,5 +296,3 @@ def weighted_choice(options):
 		else:
 			left = mid
 	return values[left]
-
-

@@ -1,7 +1,5 @@
 import lrrbot.decorators
-from common import utils
 from lrrbot.main import bot
-
 
 @bot.command("(mod|sub)only")
 @lrrbot.decorators.mod_only

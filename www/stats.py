@@ -13,7 +13,7 @@ def stats(session):
 		show_id = show_id.lower()
 		games = shows.get(show_id, {}).get("games", {})
 		for game in games.values():
-		    game["show_id"] = show_id
+			game["show_id"] = show_id
 	else:
 		games = {}
 		for show_id, show in shows.items():

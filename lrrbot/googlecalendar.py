@@ -11,7 +11,6 @@ import common.time
 from common import utils
 from common.config import config
 
-
 CACHE_EXPIRY = 15*60
 CALENDAR_LRL = "loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com"
 CALENDAR_FAN = "caffeinatedlemur@gmail.com"
@@ -156,4 +155,3 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 			response = "Next scheduled fan stream: %s." % response
 
 	return utils.shorten(response, 450) # For safety
-

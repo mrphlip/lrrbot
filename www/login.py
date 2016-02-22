@@ -7,7 +7,6 @@ import flask
 import flask.json
 
 import www.utils
-from common import utils
 from www import server
 from common.config import config, from_apipass
 

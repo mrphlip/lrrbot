@@ -6,14 +6,10 @@ import time
 import datetime
 import json
 import logging
-import socket
-import select
 import functools
-import queue
 import asyncio
 import traceback
 
-import dateutil.parser
 import irc.bot
 import irc.client
 import irc.modes
@@ -23,7 +19,6 @@ import lrrbot.decorators
 from common import utils
 from common.config import config
 from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor, linkspam
-
 
 log = logging.getLogger('lrrbot')
 

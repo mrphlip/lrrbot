@@ -1,7 +1,6 @@
 import queue
 import json
 import re
-import time
 import pytz
 import datetime
 import logging
@@ -15,7 +14,6 @@ import common.postgres
 import common.url
 from common import utils
 from common.config import config
-
 
 __all__ = ["log_chat", "clear_chat_log", "exitthread"]
 
@@ -42,7 +40,6 @@ def run_task():
 		elif ev == "exit":
 			break
 
-
 def log_chat(event, metadata):
 	queue.put_nowait(("log_chat", (datetime.datetime.now(pytz.utc), event, metadata)))
 
@@ -54,7 +51,6 @@ def rebuild_all():
 
 def stop_task():
 	queue.put_nowait(("exit", ()))
-
 
 @utils.swallow_errors
 @asyncio.coroutine

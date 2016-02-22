@@ -7,7 +7,6 @@ from lrrbot import twitch
 from lrrbot.main import bot
 from lrrbot.commands.show import show_name
 
-
 def game_name(game):
 	return game.get("display", game["name"])
 

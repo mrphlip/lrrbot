@@ -4,7 +4,6 @@ import flask
 import flask.json
 
 import common.postgres
-from common import utils
 from www import server
 from www import login
 

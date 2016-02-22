@@ -1,9 +1,11 @@
 import asyncio
+import logging
 import re
 
 from common.http import request_coro
-from common.utils import cache, log
+from common.utils import cache
 
+log = logging.getLogger("common.url")
 
 @cache(60 * 60, params=[0])
 @asyncio.coroutine
@@ -25,7 +27,6 @@ def canonical_url(url, depth=10):
 			break
 	return urls
 
-
 @cache(24 * 60 * 60)
 @asyncio.coroutine
 def get_tlds():
@@ -38,7 +39,6 @@ def get_tlds():
 			line = line.encode("ascii").decode("idna")
 			tlds.add(line)
 	return tlds
-
 
 @cache(24 * 60 * 60)
 @asyncio.coroutine
@@ -54,11 +54,9 @@ def url_regex():
 	re_url = re_url + "|" + "|".join(map(lambda parens: re.escape(parens[0]) + re_url + re.escape(parens[1]), parens))
 	return re.compile(re_url, re.IGNORECASE)
 
-
 RE_PROTO = re.compile("^https?://")
 def https(uri):
 	return RE_PROTO.sub("https://", uri)
-
 
 def noproto(uri):
 	return RE_PROTO.sub("//", uri)

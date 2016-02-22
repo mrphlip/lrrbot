@@ -1,11 +1,9 @@
 import flask
-import math
 
 import common.postgres
 import www.utils
 from www import server
 from www import login
-from common import utils
 
 QUOTES_PER_PAGE = 25
 

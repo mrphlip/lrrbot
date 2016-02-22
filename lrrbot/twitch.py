@@ -7,9 +7,7 @@ from common import utils
 from common.config import config
 from lrrbot import storage
 
-
 GAME_CHECK_INTERVAL = 5*60
-
 
 def get_info_uncached(username=None, use_fallback=True):
 	"""

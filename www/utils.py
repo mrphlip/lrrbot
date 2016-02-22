@@ -6,10 +6,8 @@ import pytz
 from common import config
 from www import login
 
-
 def error_page(message):
 	return flask.render_template("error.html", message=message, session=login.load_session(include_url=False))
-
 
 def timestamp(ts):
 	"""

@@ -8,6 +8,7 @@ import urllib.request
 import aiohttp
 
 from common import config
+
 log = logging.getLogger("common.http")
 
 class Request(urllib.request.Request):
@@ -20,7 +21,6 @@ class Request(urllib.request.Request):
 			return self.method
 		else:
 			return super().get_method()
-
 
 def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **kwargs):
 	"""Download a webpage, with retries on failure."""
@@ -52,7 +52,6 @@ def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **k
 			else:
 				break
 	raise firstex
-
 
 # Limit the number of parallel HTTP connections to a server.
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
@@ -98,7 +97,6 @@ def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 				break
 	raise firstex
 
-
 def api_request(uri, *args, **kwargs):
 	# Send the information to the server
 	try:
@@ -114,7 +112,6 @@ def api_request(uri, *args, **kwargs):
 			if 'success' not in res:
 				log.error("Error at server in %s" % uri)
 			return res
-
 
 @asyncio.coroutine
 def api_request_coro(uri, *args, **kwargs):

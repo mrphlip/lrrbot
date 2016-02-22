@@ -3,7 +3,6 @@ import re
 import logging
 
 import common.url
-from common import utils
 from lrrbot import storage
 import irc.client
 

@@ -6,7 +6,6 @@ import pytz
 
 from common import config
 
-
 def nice_duration(s, detail=1):
 	"""
 	Convert a duration in seconds to a human-readable duration.
@@ -31,7 +30,6 @@ def nice_duration(s, detail=1):
 	d, h = divmod(h, 24)
 	return ["%(d)dd, %(h)d:%(m)02d:%(s)02d", "%(d)dd, %(h)d:%(m)02d", "%(d)dd, %(h)dh"][detail] % {'s': s, 'm': m, 'h': h, 'd': d}
 
-
 def get_timezone(tz):
 	"""
 	Look up a timezone by name, case-insensitively
@@ -46,11 +44,8 @@ def get_timezone(tz):
 		else:
 			raise
 
-
 re_timefmt1 = re.compile("^\s*(?:\s*(\d*)\s*d)?(?:\s*(\d*)\s*h)?(?:\s*(\d*)\s*m)?(?:\s*(\d*)\s*s?)?\s*$")
 re_timefmt2 = re.compile("^(?:(?:(?:\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*$")
-
-
 def parsetime(s):
 	"""
 	Parse user-supplied times in one of two formats:
@@ -79,12 +74,10 @@ def parsetime(s):
 	s = int(match.group(4) or 0)
 	return datetime.timedelta(days=d, hours=h, minutes=m, seconds=s)
 
-
 def strtotime(s):
 	if isinstance(s, str):
 		s = s.encode("utf-8")
 	return datetime.datetime.fromtimestamp(timelib.strtotime(s), tz=pytz.utc)
-
 
 def strtodate(s):
 	dt = strtotime(s)

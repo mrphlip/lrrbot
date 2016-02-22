@@ -96,7 +96,6 @@ def live(lrrbot, conn, event, respond_to):
 	])
 	return conn.privmsg(respond_to, utils.shorten(message, 450))
 
-
 @bot.command("live register")
 @asyncio.coroutine
 def register_self(lrrbot, conn, event, respond_to):

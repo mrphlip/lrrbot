@@ -20,7 +20,6 @@ import dateutil.parser
 
 from lrrbot.commands.card import clean_text
 
-
 URL = 'http://mtgjson.com/json/AllSets.json.zip'
 ZIP_FILENAME = 'AllSets.json.zip'
 SOURCE_FILENAME = 'AllSets.json'

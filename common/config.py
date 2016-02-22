@@ -5,7 +5,6 @@ import pytz
 
 from common.commandline import argv
 
-
 CONFIG_SECTION = 'lrrbot'
 
 config = configparser.ConfigParser()

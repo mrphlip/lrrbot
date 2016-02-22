@@ -2,11 +2,9 @@ import random
 import re
 
 import lrrbot.decorators
-from common import utils
 from common.config import config
 from lrrbot import storage
 from lrrbot.main import bot, log
-
 
 def generate_docstring():
 	inverse_responses = {}

@@ -1,4 +1,3 @@
-import time
 import datetime
 import pytz
 
@@ -12,7 +11,6 @@ from common import utils
 from common.config import config
 from www import server
 from www import login
-
 
 def get_notifications(cur, after=None, test=False):
 	if test:

@@ -1,5 +1,4 @@
 import lrrbot.decorators
-from common import utils
 from lrrbot import storage
 from lrrbot.main import bot
 from lrrbot.commands.game import completed, game_name

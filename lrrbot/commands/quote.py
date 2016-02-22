@@ -22,9 +22,7 @@
 import common.postgres
 import common.time
 import lrrbot.decorators
-from common import utils
 from lrrbot.main import bot
-import datetime
 
 def format_quote(tag, qid, quote, name, date):
 	quote_msg = "{tag} #{qid}: \"{quote}\"".format(tag=tag, qid=qid, quote=quote)

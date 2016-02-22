@@ -1,7 +1,6 @@
 import time
 
 import common.http
-from common import utils
 
 import asyncio
 
@@ -13,7 +12,6 @@ import json
 import base64
 import xml.dom
 import xml.dom.minidom
-
 
 def base64_encode(data):
 	return base64.urlsafe_b64encode(data).strip(b"=")
