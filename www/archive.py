@@ -9,6 +9,7 @@ import flask.json
 import dateutil.parser
 import asyncio
 
+import common.url
 from common import utils
 from www import server
 from www import login
@@ -132,7 +133,7 @@ def get_player_url():
 	so get the real URL so we can serve it over the right protocol
 	"""
 	urls = asyncio.get_event_loop().run_until_complete(
-		utils.canonical_url("https://www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf"))
+		common.url.canonical_url("https://www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf"))
 	return urls[-1]
 
 @server.app.route('/archive/<videoid>')

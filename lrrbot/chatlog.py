@@ -11,6 +11,7 @@ import irc.client
 from jinja2.utils import Markup, escape, urlize
 
 import common.http
+import common.url
 from common import utils
 from common.config import config
 
@@ -260,7 +261,8 @@ def get_twitch_emotes_official():
 		for image in emote['images']:
 			if image['url'] is None:
 				continue
-			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (utils.https(image['url']), image['width'], image['height'])
+			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (
+			common.url.https(image['url']), image['width'], image['height'])
 			emotesets.setdefault(image.get("emoticon_set"), {})[emote['regex']] = {
 				"regex": regex,
 				"html": html,

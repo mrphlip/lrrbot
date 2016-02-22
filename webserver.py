@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import common.url
 from common import utils
 from common.config import config
 from www.server import app
@@ -20,8 +21,8 @@ app.secret_key = config["session_secret"]
 app.add_template_filter(utils.nice_duration)
 app.add_template_filter(utils.ucfirst)
 app.add_template_filter(utils.timestamp)
-app.add_template_filter(utils.https)
-app.add_template_filter(utils.noproto)
+app.add_template_filter(common.url.https)
+app.add_template_filter(common.url.noproto)
 app.csrf_token = app.jinja_env.globals["csrf_token"]
 app.jinja_env.globals["min"] = min
 app.jinja_env.globals["max"] = max

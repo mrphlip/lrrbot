@@ -1,5 +1,7 @@
 import flask
 import flask.json
+
+import common.url
 from www import server
 from www import login
 from www import botinteract
@@ -60,14 +62,14 @@ def do_check(line, rules):
 
 def do_check_links(message, rules):
 	loop = asyncio.get_event_loop()
-	re_url = loop.run_until_complete(utils.url_regex())
+	re_url = loop.run_until_complete(common.url.url_regex())
 	urls = []
 	for match in re_url.finditer(message):
 		for url in match.groups():
 			if url is not None:
 				urls.append(url)
 				break
-	canonical_urls = loop.run_until_complete(asyncio.gather(*map(utils.canonical_url, urls), loop=loop))
+	canonical_urls = loop.run_until_complete(asyncio.gather(*map(common.url.canonical_url, urls), loop=loop))
 	for url_chain in canonical_urls:
 		for url in url_chain:
 			for rule in rules:
@@ -79,7 +81,7 @@ def do_check_links(message, rules):
 @login.require_mod
 def spam_redirects(session):
 	loop = asyncio.get_event_loop()
-	redirects = loop.run_until_complete(utils.canonical_url(flask.request.values["url"].strip()))
+	redirects = loop.run_until_complete(common.url.canonical_url(flask.request.values["url"].strip()))
 	return flask.json.jsonify(redirects=redirects, csrf_token=server.app.csrf_token())
 
 @server.app.route('/spam/test', methods=['POST'])
