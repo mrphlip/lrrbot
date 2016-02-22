@@ -1,3 +1,4 @@
+import lrrbot.decorators
 from lrrbot.main import bot
 from lrrbot import twitch
 from lrrbot import googlecalendar
@@ -40,7 +41,7 @@ def extract_new_channels(loop):
 	yield from asyncio.gather(*map(twitch.follow_channel, channels.difference(old_channels)), loop=loop, return_exceptions=True)
 
 @bot.command("live")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 @asyncio.coroutine
 def live(lrrbot, conn, event, respond_to):
 	"""
@@ -120,7 +121,7 @@ def unregister_self(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Channel '%s' removed from the fanstreamer list." % channel)
 
 @bot.command("live register (.*)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 @asyncio.coroutine
 def register(lrrbot, conn, event, respond_to, channel):
 	"""
@@ -135,7 +136,7 @@ def register(lrrbot, conn, event, respond_to, channel):
 		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)
 
 @bot.command("live unregister (.*)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 @asyncio.coroutine
 def unregister(lrrbot, conn, event, respond_to, channel):
 	"""

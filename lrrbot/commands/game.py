@@ -1,5 +1,6 @@
 import irc
 
+import lrrbot.decorators
 from common import utils
 from lrrbot import storage
 from lrrbot.main import bot
@@ -10,7 +11,7 @@ def game_name(game):
 	return game.get("display", game["name"])
 
 @bot.command("game")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def current_game(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game
@@ -64,7 +65,7 @@ def vote_respond(lrrbot, conn, respond_to, game):
 	lrrbot.vote_update = None
 
 @bot.command("game display (.*?)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def set_game_name(lrrbot, conn, event, respond_to, name):
 	"""
 	Command: !game display NAME
@@ -83,7 +84,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 	conn.privmsg(respond_to, "OK, I'll start calling %(name)s \"%(display)s\"" % game)
 
 @bot.command("game override (.*?)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def override_game(lrrbot, conn, event, respond_to, game):
 	"""
 	Command: !game override NAME
@@ -117,7 +118,7 @@ def override_game(lrrbot, conn, event, respond_to, game):
 	conn.privmsg(respond_to, message)
 
 @bot.command("game refresh")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def refresh(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game refresh
@@ -130,8 +131,8 @@ def refresh(lrrbot, conn, event, respond_to):
 	current_game(lrrbot, conn, event, respond_to)
 
 @bot.command("game completed")
-@utils.mod_only
-@utils.throttle(30, notify=utils.Visibility.PUBLIC, modoverride=False, allowprivate=False)
+@lrrbot.decorators.mod_only
+@lrrbot.decorators.throttle(30, notify=utils.Visibility.PUBLIC, modoverride=False, allowprivate=False)
 def completed(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game completed

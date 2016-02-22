@@ -1,3 +1,4 @@
+import lrrbot.decorators
 from common import utils
 from lrrbot import storage
 from lrrbot.main import bot
@@ -12,7 +13,7 @@ def show_name(show):
 	return storage.data.get("shows", {}).get(show, {}).get("name", show)
 
 @bot.command("show")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def get_show(lrrbot, conn, event, respond_to):
 	"""
 	Command: !show
@@ -31,7 +32,7 @@ def print_show(lrrbot, conn, respond_to):
 		conn.privmsg(respond_to, "Current show not set.")
 
 @bot.command("show override (.*?)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def show_override(lrrbot, conn, event, respond_to, show):
 	"""
 	Command: !show override ID

@@ -7,6 +7,7 @@ import dateutil.parser
 import pytz
 import irc.client
 
+import lrrbot.decorators
 from common import utils
 from common.config import config
 from lrrbot import googlecalendar, storage, twitch
@@ -15,12 +16,12 @@ from lrrbot.main import bot
 log = logging.getLogger('misc')
 
 @bot.command("test")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def test(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Test")
 
 @bot.command("storm(?:count)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def stormcount(lrrbot, conn, event, respond_to):
 	"""
 	Command: !storm
@@ -39,7 +40,7 @@ def stormcount(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Today's storm count: %d" % storage.data["storm"]["count"])
 
 @bot.command("spam(?:count)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def spamcount(lrrbot, conn, event, respond_to):
 	"""
 	Command: !spam
@@ -63,7 +64,7 @@ DESERTBUS_PRESTART = datetime.datetime(2015, 11, 12, 14, 0, tzinfo=config["timez
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
 @bot.command("next( .*)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def next(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !next
@@ -82,7 +83,7 @@ def next(lrrbot, conn, event, respond_to, timezone):
 		conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
 
 @bot.command("desert ?bus( .*)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def desertbus(lrrbot, conn, event, respond_to, timezone):
 	if not timezone:
 		timezone = config['timezone']
@@ -106,7 +107,7 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 
 
 @bot.command("nextfan( .*)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def nextfan(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !nextfan
@@ -117,7 +118,7 @@ def nextfan(lrrbot, conn, event, respond_to, timezone):
 	conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True))
 
 @bot.command("time")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def time(lrrbot, conn, event, respond_to):
 	"""
 	Command: !time
@@ -129,7 +130,7 @@ def time(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
 	
 @bot.command("time 24")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def time24(lrrbot, conn, event, respond_to):
 	"""
 	Command: !time 24
@@ -141,7 +142,7 @@ def time24(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%H:%M"))
 
 @bot.command("viewers")
-@utils.throttle(30) # longer cooldown as this involves 2 API calls
+@lrrbot.decorators.throttle(30) # longer cooldown as this involves 2 API calls
 def viewers(lrrbot, conn, event, respond_to):
 	"""
 	Command: !viewers
@@ -184,7 +185,7 @@ def uptime_msg(stream_info=None, factor=1):
 		return "The stream is not live."
 
 @bot.command("(uptime|updog)")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def uptime(lrrbot, conn, event, respond_to, command):
 	"""
 	Command: !uptime

@@ -18,6 +18,7 @@ import irc.bot
 import irc.client
 import irc.modes
 
+import lrrbot.decorators
 from common import utils
 from common.config import config
 from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor, linkspam
@@ -480,7 +481,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		"""
 		if hasattr(conn.privmsg, "is_wrapped"):
 			return
-		original_privmsg = utils.twitch_throttle()(conn.privmsg)
+		original_privmsg = lrrbot.decorators.twitch_throttle()(conn.privmsg)
 		@functools.wraps(original_privmsg)
 		def new_privmsg(target, text):
 			if irc.client.is_channel(target):

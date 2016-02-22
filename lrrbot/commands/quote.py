@@ -19,14 +19,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import lrrbot.decorators
 from common import utils
 from lrrbot.main import bot
 import datetime
 
 @bot.command("quote(?: (?:(\d+)|(.+)))?")
-@utils.sub_only
-@utils.throttle(60, count=2)
+@lrrbot.decorators.sub_only
+@lrrbot.decorators.throttle(60, count=2)
 @utils.with_postgres
 def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	"""
@@ -73,7 +73,7 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	conn.privmsg(respond_to, quote_msg)
 
 @bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 @utils.with_postgres
 def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	"""
@@ -107,7 +107,7 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	conn.privmsg(respond_to, quote_msg)
 
 @bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 @utils.with_postgres
 def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quote):
 	"""
@@ -141,7 +141,7 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 		conn.privmsg(respond_to, "Could not modify quote.")
 
 @bot.command("delquote (\d+)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 @utils.with_postgres
 def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 	"""
@@ -163,8 +163,8 @@ def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 		conn.privmsg(respond_to, "Could not find quote #{qid}.".format(qid=qid))
 
 @bot.command("findquote (.*)")
-@utils.sub_only
-@utils.throttle(60, count=2)
+@lrrbot.decorators.sub_only
+@lrrbot.decorators.throttle(60, count=2)
 @utils.with_postgres
 def findquote(pg_conn, cur, lrrbot, conn, event, respond_to, query):
 	"""

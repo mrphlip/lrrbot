@@ -2,6 +2,7 @@ import time
 import json
 import random
 
+import lrrbot.decorators
 from common import utils
 from lrrbot.main import bot
 
@@ -25,7 +26,7 @@ def check_polls(lrrbot, conn):
 	lrrbot.polls = list(filter(lambda e: e[0] >= now, lrrbot.polls))
 
 @bot.command("polls")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def polls(lrrbot, conn, event, respond_to):
 	"""
 	Command: !polls
@@ -42,7 +43,7 @@ def polls(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, utils.shorten("Active polls: "+"; ".join(messages), 450))
 
 @bot.command("(multi)?poll (?:(\d+) )?(?:(?:https?://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/r?)?|(?:([^:]+) ?: ?)?(.*))")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, options):
 	"""
 	Command: !poll N https://strawpoll.me/ID
@@ -78,7 +79,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	conn.privmsg(respond_to, "New poll: %s (https://strawpoll.me/%s): %s from now" % (title, poll_id, utils.nice_duration(timeout, 1)))
 
 @bot.command("pollsclear")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def clear_polls(lrrbot, conn, event, respond_to):
 	"""
 	Command: !pollsclear

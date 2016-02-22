@@ -1,6 +1,7 @@
 import random
 import re
 
+import lrrbot.decorators
 from common import utils
 from common.config import config
 from lrrbot import storage
@@ -40,7 +41,7 @@ def generate_docstring():
 def generate_expression():
 	return "(%s)" % "|".join(re.escape(c).replace("\\ ", " ") for c in storage.data["responses"])
 
-@utils.throttle(30, params=[4], count=2)
+@lrrbot.decorators.throttle(30, params=[4], count=2)
 def static_response(lrrbot, conn, event, respond_to, command):
 	command = " ".join(command.split())
 	response_data = storage.data["responses"][command.lower()]

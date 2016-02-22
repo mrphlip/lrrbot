@@ -1,5 +1,6 @@
 import irc.client
 
+import lrrbot.decorators
 from common import utils, gdata
 from common.highlights import SPREADSHEET, format_row
 from lrrbot import twitch
@@ -14,9 +15,9 @@ def store_highlight(conn, cur, title, description, time, nick):
 	cur.execute("INSERT INTO highlights (title, description, time, nick) VALUES(%s, %s, %s, %s)", (title, description, time, nick))
 
 @bot.command("highlight (.*?)")
-@utils.public_only
-@utils.sub_only
-@utils.throttle(60, notify=utils.Visibility.PUBLIC, modoverride=False, allowprivate=False)
+@lrrbot.decorators.public_only
+@lrrbot.decorators.sub_only
+@lrrbot.decorators.throttle(60, notify=utils.Visibility.PUBLIC, modoverride=False, allowprivate=False)
 @asyncio.coroutine
 def highlight(lrrbot, conn, event, respond_to, description):
 	"""

@@ -1,9 +1,10 @@
+import lrrbot.decorators
 from common import utils
 from lrrbot.main import bot
 
 
 @bot.command("(mod|sub)only")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def mod_only(lrrbot, conn, event, respond_to, level):
 	"""
 	Command: !modonly
@@ -16,7 +17,7 @@ def mod_only(lrrbot, conn, event, respond_to, level):
 	conn.privmsg(respond_to, "Commands from non-%ss are now ignored." % level)
 
 @bot.command("(?:mod|sub)only off")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def mod_only_off(lrrbot, conn, event, respond_to):
 	"""
 	Command: !modonly off
