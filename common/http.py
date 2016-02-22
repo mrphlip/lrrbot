@@ -22,7 +22,7 @@ class Request(urllib.request.Request):
 			return super().get_method()
 
 
-def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **kwargs):
+def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **kwargs):
 	"""Download a webpage, with retries on failure."""
 	# Let's be nice.
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
@@ -58,7 +58,7 @@ def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
 atexit.register(http_request_session.close)
 @asyncio.coroutine
-def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
+def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
 	firstex = None
 
@@ -102,7 +102,7 @@ def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, time
 def api_request(uri, *args, **kwargs):
 	# Send the information to the server
 	try:
-		res = http_request(config.config['siteurl'] + uri, *args, **kwargs)
+		res = request(config.config['siteurl'] + uri, *args, **kwargs)
 	except:
 		log.exception("Error at server in %s" % uri)
 	else:
@@ -119,7 +119,7 @@ def api_request(uri, *args, **kwargs):
 @asyncio.coroutine
 def api_request_coro(uri, *args, **kwargs):
 	try:
-		res = yield from http_request_coro(config.config['siteurl'] + uri, *args, **kwargs)
+		res = yield from request_coro(config.config['siteurl'] + uri, *args, **kwargs)
 	except:
 		log.exception("Error at server in %s" % uri)
 	else:

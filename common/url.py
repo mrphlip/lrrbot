@@ -1,7 +1,7 @@
 import asyncio
 import re
 
-from common.http import http_request_coro
+from common.http import request_coro
 from common.utils import cache, log
 
 
@@ -14,7 +14,7 @@ def canonical_url(url, depth=10):
 			url = "http://" + url
 		urls.append(url)
 		try:
-			res = yield from http_request_coro(url, method="HEAD", allow_redirects=False)
+			res = yield from request_coro(url, method="HEAD", allow_redirects=False)
 			if res.status in range(300, 400) and "Location" in res.headers:
 				url = res.headers["Location"]
 				depth -= 1
@@ -30,7 +30,7 @@ def canonical_url(url, depth=10):
 @asyncio.coroutine
 def get_tlds():
 	tlds = set()
-	data = yield from http_request_coro("https://data.iana.org/TLD/tlds-alpha-by-domain.txt")
+	data = yield from request_coro("https://data.iana.org/TLD/tlds-alpha-by-domain.txt")
 	for line in data.splitlines():
 		if not line.startswith("#"):
 			line = line.strip().lower()
