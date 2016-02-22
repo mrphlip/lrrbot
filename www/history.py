@@ -3,6 +3,7 @@ import difflib
 import flask
 import flask.json
 
+import common.postgres
 from common import utils
 from www import server
 from www import login
@@ -11,7 +12,7 @@ from psycopg2.extras import Json
 
 @server.app.route('/history')
 @login.require_mod
-@utils.with_postgres
+@common.postgres.with_postgres
 def history(conn, cur, session):
 	page = flask.request.values.get('page', 'all')
 	assert page in ('responses', 'explanations', 'spam', 'link_spam', 'all')
@@ -42,7 +43,7 @@ def history(conn, cur, session):
 
 @server.app.route('/history/<int:historykey>')
 @login.require_mod
-@utils.with_postgres
+@common.postgres.with_postgres
 def history_show(conn, cur, session, historykey):
 	cur.execute("""
 		SELECT section, changetime, changeuser, jsondata
@@ -68,7 +69,7 @@ def history_show(conn, cur, session, historykey):
 
 @server.app.route('/history/<int:fromkey>/<int:tokey>')
 @login.require_mod
-@utils.with_postgres
+@common.postgres.with_postgres
 def history_diff(conn, cur, session, fromkey, tokey):
 	cur.execute("""
 		SELECT section, changetime, changeuser, jsondata
@@ -182,7 +183,7 @@ def build_headdata(cur, fromkey, tokey, section, user, time):
 		"isdiff": fromkey != tokey,
 	}
 
-@utils.with_postgres
+@common.postgres.with_postgres
 def store(conn, cur, section, user, jsondata):
 	cur.execute("""
 		INSERT INTO history(section, changetime, changeuser, jsondata)

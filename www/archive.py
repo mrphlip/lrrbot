@@ -9,6 +9,7 @@ import flask.json
 import dateutil.parser
 import asyncio
 
+import common.postgres
 import common.time
 import common.url
 from common import utils
@@ -102,7 +103,7 @@ def archive_feed():
 	rss = flask.render_template("archive_feed.xml", videos=archive_feed_data_html(channel, broadcasts, True), broadcasts=broadcasts)
 	return flask.Response(rss, mimetype="application/xml")
 
-@utils.with_postgres
+@common.postgres.with_postgres
 def chat_data(conn, cur, starttime, endtime, target="#loadingreadyrun"):
 	cur.execute("SELECT messagehtml FROM log WHERE target = %s AND time BETWEEN %s AND %s ORDER BY time ASC", (
 		target,

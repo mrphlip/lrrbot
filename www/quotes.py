@@ -1,6 +1,7 @@
 import flask
 import math
 
+import common.postgres
 import www.utils
 from www import server
 from www import login
@@ -11,7 +12,7 @@ QUOTES_PER_PAGE = 25
 @server.app.route('/quotes/')
 @server.app.route('/quotes/<int:page>')
 @login.with_session
-@utils.with_postgres
+@common.postgres.with_postgres
 def quotes(conn, cur, session, page=1):
 	cur.execute("SELECT COUNT(*) FROM quotes WHERE NOT deleted")
 	count, = next(cur)
@@ -32,7 +33,7 @@ def quotes(conn, cur, session, page=1):
 
 @server.app.route('/quotes/search')
 @login.with_session
-@utils.with_postgres
+@common.postgres.with_postgres
 def quote_search(conn, cur, session):
 	query = flask.request.values["q"]
 	mode = flask.request.values.get('mode', 'text')
@@ -56,7 +57,7 @@ def quote_search(conn, cur, session):
 				LOWER(attrib_name) LIKE %s
 				AND NOT deleted
 			ORDER BY qid DESC
-		""", ("%" + utils.escape_like(query.lower()) + "%", ))
+		""", ("%" + common.postgres.escape_like(query.lower()) + "%",))
 	else:
 		return www.utils.error_page("Unrecognised mode")
 	pages = (cur.rowcount - 1) // QUOTES_PER_PAGE + 1

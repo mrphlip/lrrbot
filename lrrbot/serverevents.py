@@ -3,6 +3,7 @@ import re
 import math
 import logging
 
+import common.postgres
 import lrrbot.docstring
 from common import utils
 from common.config import config
@@ -162,14 +163,14 @@ def get_show(lrrbot, user, data):
 	return lrrbot.show_override or lrrbot.show
 
 @bot.server_event()
-@utils.with_postgres
+@common.postgres.with_postgres
 def get_tweet(conn, cur, lrrbot, user, data):
 	if user is not None and lrrbot.is_mod_nick(user):
 		mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
 		if mode == 0: # get random !advice
 			return random.choice(storage.data['responses']['advice']['response'])
 		elif mode == 1: # get a random !quote
-			row = utils.pick_random_row(cur, """
+			row = common.postgres.pick_random_row(cur, """
 				SELECT qid, quote, attrib_name, attrib_date
 				FROM quotes
 				WHERE NOT deleted

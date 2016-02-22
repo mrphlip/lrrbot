@@ -11,6 +11,7 @@ import irc.client
 from jinja2.utils import Markup, escape, urlize
 
 import common.http
+import common.postgres
 import common.url
 from common import utils
 from common.config import config
@@ -68,7 +69,7 @@ def do_log_chat(time, event, metadata):
 
 	source = irc.client.NickMask(event.source).nick
 	html = yield from build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', []), metadata.get('emotes'), metadata.get('display-name'))
-	with utils.get_postgres() as conn, conn.cursor() as cur:
+	with common.postgres.get_postgres() as conn, conn.cursor() as cur:
 		cur.execute("INSERT INTO log (time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname, messagehtml) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (
 			time,
 			source,
@@ -88,7 +89,7 @@ def do_clear_chat_log(time, nick):
 	"""
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
 	"""
-	with utils.get_postgres() as conn, conn.cursor() as cur:
+	with common.postgres.get_postgres() as conn, conn.cursor() as cur:
 		cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log WHERE source=%s AND time>=%s", (
 			nick,
 			time - PURGE_PERIOD,
@@ -101,7 +102,7 @@ def do_clear_chat_log(time, nick):
 		specialuser.add("cleared")
 
 		html = yield from build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
-		with utils.get_postgres() as conn, conn.cursor() as cur:
+		with common.postgres.get_postgres() as conn, conn.cursor() as cur:
 			cur.execute("UPDATE log SET specialuser=%s, messagehtml=%s WHERE id=%s", (
 				list(specialuser),
 				html,
@@ -114,7 +115,7 @@ def do_rebuild_all():
 	"""
 	Rebuild all the message HTML blobs in the database.
 	"""
-	with utils.get_postgres() as conn, conn.cursor() as cur:
+	with common.postgres.get_postgres() as conn, conn.cursor() as cur:
 		cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log")
 		rows = list(cur)
 	for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(rows):
@@ -123,7 +124,7 @@ def do_rebuild_all():
 		specialuser = set(specialuser) if specialuser else set()
 		emoteset = set(emoteset) if emoteset else set()
 		html = yield from build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
-		with utils.get_postgres() as conn, conn.cursor() as cur:
+		with common.postgres.get_postgres() as conn, conn.cursor() as cur:
 			cur.execute("UPDATE log SET messagehtml=%s WHERE id=%s", (
 				html,
 				key,

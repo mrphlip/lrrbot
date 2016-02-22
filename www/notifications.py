@@ -6,6 +6,7 @@ import flask
 import flask.json
 from flaskext.csrf import csrf_exempt
 
+import common.postgres
 import common.time
 from common import utils
 from common.config import config
@@ -37,7 +38,7 @@ def get_notifications(cur, after=None, test=False):
 
 @server.app.route('/notifications')
 @login.with_session
-@utils.with_postgres
+@common.postgres.with_postgres
 def notifications(conn, cur, session):
 	row_data = get_notifications(cur)
 	for row in row_data:
@@ -58,7 +59,7 @@ def notifications(conn, cur, session):
 	return flask.render_template('notifications.html', row_data=row_data, maxkey=maxkey, session=session)
 
 @server.app.route('/notifications/updates')
-@utils.with_postgres
+@common.postgres.with_postgres
 def updates(conn, cur):
 	notifications = get_notifications(cur, int(flask.request.values['after']), True)
 	for n in notifications:
@@ -69,7 +70,7 @@ def updates(conn, cur):
 @csrf_exempt
 @server.app.route('/notifications/newmessage', methods=['POST'])
 @login.with_minimal_session
-@utils.with_postgres
+@common.postgres.with_postgres
 def new_message(conn, cur, session):
 	if session["user"] not in (config["username"], config["channel"]):
 		return flask.json.jsonify(error='apipass')

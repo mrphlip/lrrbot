@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import common.postgres
 import common.time
 import lrrbot.decorators
 from common import utils
@@ -28,7 +29,7 @@ import datetime
 @bot.command("quote(?: (?:(\d+)|(.+)))?")
 @lrrbot.decorators.sub_only
 @lrrbot.decorators.throttle(60, count=2)
-@utils.with_postgres
+@common.postgres.with_postgres
 def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	"""
 	Command: !quote
@@ -49,13 +50,13 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	elif attrib:
 		where, params = """
 			WHERE LOWER(attrib_name) LIKE %s AND NOT deleted
-		""", ("%" + utils.escape_like(attrib.lower()) + "%",)
+		""", ("%" + common.postgres.escape_like(attrib.lower()) + "%",)
 	else:
 		where, params = """
 			WHERE NOT deleted
 		""", ()
 
-	row = utils.pick_random_row(cur, """
+	row = common.postgres.pick_random_row(cur, """
 		SELECT qid, quote, attrib_name, attrib_date
 		FROM quotes
 		%s
@@ -75,7 +76,7 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 
 @bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
 @lrrbot.decorators.mod_only
-@utils.with_postgres
+@common.postgres.with_postgres
 def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	"""
 	Command: !addquote (NAME) [DATE] QUOTE
@@ -109,7 +110,7 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 
 @bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
 @lrrbot.decorators.mod_only
-@utils.with_postgres
+@common.postgres.with_postgres
 def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quote):
 	"""
 	Command: !modquote QID (NAME) [DATE] QUOTE
@@ -143,7 +144,7 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 
 @bot.command("delquote (\d+)")
 @lrrbot.decorators.mod_only
-@utils.with_postgres
+@common.postgres.with_postgres
 def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 	"""
 	Command: !delquote QID
@@ -166,7 +167,7 @@ def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 @bot.command("findquote (.*)")
 @lrrbot.decorators.sub_only
 @lrrbot.decorators.throttle(60, count=2)
-@utils.with_postgres
+@common.postgres.with_postgres
 def findquote(pg_conn, cur, lrrbot, conn, event, respond_to, query):
 	"""
 	Command: !findquote QUERY
@@ -175,7 +176,7 @@ def findquote(pg_conn, cur, lrrbot, conn, event, respond_to, query):
 	Search for a quote in the quote database.
 	"""
 
-	row = utils.pick_random_row(cur, """
+	row = common.postgres.pick_random_row(cur, """
 		SELECT qid, quote, attrib_name, attrib_date
 		FROM quotes
 		WHERE

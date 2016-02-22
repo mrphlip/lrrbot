@@ -1,6 +1,7 @@
 import flask
 import flask.json
 
+import common.postgres
 import common.url
 from www import server
 from www import login
@@ -131,7 +132,7 @@ def spam_test(session):
 
 @server.app.route('/spam/find')
 @login.require_mod
-@utils.with_postgres
+@common.postgres.with_postgres
 def spam_find(conn, cur, session):
 	rules = botinteract.get_data('spam_rules')
 	for rule in rules:

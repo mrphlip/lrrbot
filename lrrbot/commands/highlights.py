@@ -1,5 +1,6 @@
 import irc.client
 
+import common.postgres
 import lrrbot.decorators
 from common import utils, gdata
 from common.highlights import SPREADSHEET, format_row
@@ -10,7 +11,7 @@ import asyncio
 import dateutil.parser
 import datetime
 
-@utils.with_postgres
+@common.postgres.with_postgres
 def store_highlight(conn, cur, title, description, time, nick):
 	cur.execute("INSERT INTO highlights (title, description, time, nick) VALUES(%s, %s, %s, %s)", (title, description, time, nick))
 
