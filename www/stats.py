@@ -53,7 +53,7 @@ def stats(session):
 	stats = list(stats.values())
 	stats.sort(key=lambda s: -s['total'])
 	# Calculate graph datasets
-	if 'show' in game:
+	if show_id is None:
 		game_name_format = "%(display)s (%(show)s)"
 	else:
 		game_name_format = "%(display)s"
