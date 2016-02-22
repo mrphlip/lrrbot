@@ -1,6 +1,7 @@
 import asyncio
 import functools
 import inspect
+import json
 import logging
 import os.path
 import random
@@ -8,7 +9,6 @@ import socket
 import textwrap
 import time
 
-import flask
 import werkzeug.datastructures
 
 from common import config
@@ -259,7 +259,7 @@ def sse_send_event(endpoint, event=None, data=None, event_id=None):
 
 	sse = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 	sse.connect(config.config['eventsocket'])
-	sse.send(flask.json.dumps(sse_event).encode("utf-8")+b"\n")
+	sse.send(json.dumps(sse_event).encode("utf-8")+b"\n")
 	sse.close()
 
 def ucfirst(s):
