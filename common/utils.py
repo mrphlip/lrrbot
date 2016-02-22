@@ -1,38 +1,33 @@
-import functools
-import socket
-import time
-import logging
-import urllib.request
-import urllib.parse
-import json
-import email.parser
-import textwrap
-import datetime
-import re
-import os.path
-import timelib
-import random
-import enum
 import asyncio
-import aiohttp
 import atexit
+import datetime
+import enum
+import functools
 import inspect
+import json
+import logging
+import os.path
+import random
+import re
+import socket
+import textwrap
+import time
+import timelib
+import urllib.parse
+import urllib.request
 
+import aiohttp
 import flask
 import irc.client
+import psycopg2
 import pytz
 import werkzeug.datastructures
 
 from common import config
-import psycopg2
-
+from lrrbot.docstring import parse_docstring, encode_docstring, add_header
 
 log = logging.getLogger('utils')
 
-DOCSTRING_IMPLICIT_PREFIX = """Content-Type: multipart/message; boundary=command
-
---command"""
-DOCSTRING_IMPLICIT_SUFFIX = "\n--command--"
 
 def deindent(s):
 	def skipblank():
@@ -44,23 +39,6 @@ def deindent(s):
 		yield from generator
 	return "\n".join(skipblank())
 
-def parse_docstring(docstring):
-	if docstring is None:
-		docstring = ""
-	docstring = DOCSTRING_IMPLICIT_PREFIX + docstring + DOCSTRING_IMPLICIT_SUFFIX
-	return email.parser.Parser().parsestr(deindent(docstring))
-
-def encode_docstring(docstring):
-	docstring = str(docstring).rstrip()
-	assert docstring.startswith(DOCSTRING_IMPLICIT_PREFIX)
-	assert docstring.endswith(DOCSTRING_IMPLICIT_SUFFIX)
-	return docstring[len(DOCSTRING_IMPLICIT_PREFIX):-len(DOCSTRING_IMPLICIT_SUFFIX)]
-
-def add_header(doc, name, value):
-	for part in doc.walk():
-		if part.get_content_maintype() != "multipart":
-			part[name] = value
-	return doc
 
 def shorten_fallback(text, width, **kwargs):
 	"""textwrap.shorten is introduced in Python 3.4"""

@@ -3,6 +3,7 @@ import re
 import math
 import logging
 
+import lrrbot.docstring
 from common import utils
 from common.config import config
 from lrrbot import googlecalendar, storage, commands, twitch
@@ -75,7 +76,7 @@ def modify_spam_rules(lrrbot, user, data):
 def get_commands(lrrbot, user, data):
 	ret = []
 	for command in lrrbot.commands.values():
-		doc = utils.parse_docstring(command['func'].__doc__)
+		doc = lrrbot.docstring.parse_docstring(command['func'].__doc__)
 		for cmd in doc.walk():
 			if cmd.get_content_maintype() == "multipart":
 				continue
