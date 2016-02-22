@@ -10,6 +10,7 @@ import asyncio
 import irc.client
 from jinja2.utils import Markup, escape, urlize
 
+import common.http
 from common import utils
 from common.config import config
 
@@ -236,7 +237,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 @asyncio.coroutine
 def get_display_name(nick):
 	try:
-		data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/users/%s" % nick)
+		data = yield from common.http.http_request_coro("https://api.twitch.tv/kraken/users/%s" % nick)
 		data = json.loads(data)
 		return data['display_name']
 	except:
@@ -245,7 +246,7 @@ def get_display_name(nick):
 re_just_words = re.compile("^\w+$")
 @asyncio.coroutine
 def get_twitch_emotes_official():
-	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/chat/emoticons")
+	data = yield from common.http.http_request_coro("https://api.twitch.tv/kraken/chat/emoticons")
 	data = json.loads(data)['emoticons']
 	emotesets = {}
 	for emote in data:
@@ -269,7 +270,7 @@ def get_twitch_emotes_official():
 @asyncio.coroutine
 def get_twitch_emotes_undocumented():
 	# This endpoint is not documented, however `/chat/emoticons` might be deprecated soon.
-	data = yield from utils.http_request_coro("https://api.twitch.tv/kraken/chat/emoticon_images")
+	data = yield from common.http.http_request_coro("https://api.twitch.tv/kraken/chat/emoticon_images")
 	data = json.loads(data)["emoticons"]
 	emotesets = {}
 	for emote in data:

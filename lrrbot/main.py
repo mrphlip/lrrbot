@@ -18,6 +18,7 @@ import irc.bot
 import irc.client
 import irc.modes
 
+import common.http
 import lrrbot.decorators
 from common import utils
 from common.config import config
@@ -299,7 +300,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		}
 		if irc.client.is_channel(event.target):
 			notifyparams['channel'] = event.target[1:]
-		utils.api_request('notifications/newmessage', notifyparams, 'POST')
+		common.http.api_request('notifications/newmessage', notifyparams, 'POST')
 
 	def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None):
 		notifyparams = {
@@ -336,7 +337,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.lastsubs = self.lastsubs[-10:]
 		storage.save()
 		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
-		utils.api_request('notifications/newmessage', notifyparams, 'POST')
+		common.http.api_request('notifications/newmessage', notifyparams, 'POST')
 
 		self.subs.add(user.lower())
 		storage.data['subs'] = list(self.subs)

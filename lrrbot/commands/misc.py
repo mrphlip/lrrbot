@@ -7,6 +7,7 @@ import dateutil.parser
 import pytz
 import irc.client
 
+import common.http
 import lrrbot.decorators
 from common import utils
 from common.config import config
@@ -159,7 +160,7 @@ def viewers(lrrbot, conn, event, respond_to):
 	# Since we're using TWITCHCLIENT 3, we don't get join/part messages, so we can't just use
 	# len(lrrbot.channels["#loadingreadyrun"].userdict)
 	# as that dict won't be populated. Need to call this api instead.
-	chatters = utils.http_request("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
+	chatters = common.http.http_request("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
 	chatters = json.loads(chatters).get("chatter_count")
 
 	if viewers is not None:

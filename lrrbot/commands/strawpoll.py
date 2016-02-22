@@ -2,6 +2,7 @@ import time
 import json
 import random
 
+import common.http
 import lrrbot.decorators
 from common import utils
 from lrrbot.main import bot
@@ -17,7 +18,7 @@ def check_polls(lrrbot, conn):
 	for end, title, poll_id, respond_to in lrrbot.polls:
 		if end < now:
 			url = "https://strawpoll.me/api/v2/polls/%s" % poll_id
-			data = json.loads(utils.http_request(url))
+			data = json.loads(common.http.http_request(url))
 			options = sorted(zip(data["options"], data["votes"]), key=lambda e: (e[1], random.random()), reverse=True)
 			options = "; ".join(map(strawpoll_format, enumerate(options)))
 			response = "Poll complete: %s: %s" % (data["title"], options)
@@ -56,7 +57,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	"""
 	if poll_id is not None:
 		url = "https://strawpoll.me/api/v2/polls/%s" % poll_id
-		data = json.loads(utils.http_request(url))
+		data = json.loads(common.http.http_request(url))
 		title = data["title"]
 	else:
 		if title is None:
@@ -68,7 +69,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 		else:
 			options = options.split()
 		data = json.dumps({"options": options, "title": title, "multi": multi is not None})
-		response = utils.http_request("https://strawpoll.me/api/v2/polls", data, "POST", headers = {"Content-Type": "application/json"})
+		response = common.http.http_request("https://strawpoll.me/api/v2/polls", data, "POST", headers = {"Content-Type": "application/json"})
 		poll_id = json.loads(response)["id"]
 	if timeout is not None:
 		timeout = int(timeout)
