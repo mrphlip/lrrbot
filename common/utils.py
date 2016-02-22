@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 import enum
 import functools
 import inspect
@@ -13,7 +12,6 @@ import time
 import flask
 import irc.client
 import psycopg2
-import pytz
 import werkzeug.datastructures
 
 from common import config
@@ -304,24 +302,6 @@ def sse_send_event(endpoint, event=None, data=None, event_id=None):
 	sse.connect(config.config['eventsocket'])
 	sse.send(flask.json.dumps(sse_event).encode("utf-8")+b"\n")
 	sse.close()
-
-
-def error_page(message):
-	from www import login
-	return flask.render_template("error.html", message=message, session=login.load_session(include_url=False))
-
-def timestamp(ts):
-	"""
-	Outputs a given time (either unix timestamp or datetime instance) as a human-readable time
-	and includes tags so that common.js will convert the time on page-load to the user's
-	timezone and preferred date/time format.
-	"""
-	if isinstance(ts, (int, float)):
-		ts = datetime.datetime.fromtimestamp(ts, tz=pytz.utc)
-	elif ts.tzinfo is None:
-		ts = ts.replace(tzinfo=datetime.timezone.utc)
-	ts = ts.astimezone(config.config['timezone'])
-	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"{}\">{:%A, %-d %B, %Y %H:%M:%S %Z}</span>".format(ts.timestamp(), ts))
 
 
 def ucfirst(s):

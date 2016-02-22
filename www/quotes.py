@@ -1,5 +1,7 @@
 import flask
 import math
+
+import www.utils
 from www import server
 from www import login
 from common import utils
@@ -56,7 +58,7 @@ def quote_search(conn, cur, session):
 			ORDER BY qid DESC
 		""", ("%" + utils.escape_like(query.lower()) + "%", ))
 	else:
-		return utils.error_page("Unrecognised mode")
+		return www.utils.error_page("Unrecognised mode")
 	pages = (cur.rowcount - 1) // QUOTES_PER_PAGE + 1
 	page = max(1, min(page, pages))
 	cur.execute("SELECT * FROM cse OFFSET %s LIMIT %s", ((page-1) * QUOTES_PER_PAGE, QUOTES_PER_PAGE))
