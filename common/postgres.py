@@ -1,5 +1,4 @@
 import functools
-import random
 
 import psycopg2
 
@@ -15,17 +14,6 @@ def with_postgres(func):
 		with get_postgres() as conn, conn.cursor() as cur:
 			return func(conn, cur, *args, **kwargs)
 	return wrapper
-
-def pick_random_row(cur, query, params = ()):
-	" Return a random row of a SELECT query. "
-	# CSE - common subexpression elimination, an optimisation Postgres doesn't do
-	cur.execute("CREATE TEMP TABLE cse AS " + query, params)
-	if cur.rowcount <= 0:
-		return None
-	cur.execute("SELECT * FROM cse OFFSET %s LIMIT 1", (random.randrange(cur.rowcount), ))
-	row = cur.fetchone()
-	cur.execute("DROP TABLE cse")
-	return row
 
 def escape_like(s):
 	return s.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')

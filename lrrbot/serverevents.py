@@ -4,6 +4,7 @@ import math
 import logging
 
 import common.postgres
+import common.utils
 from common import utils
 from common.config import config
 from lrrbot import googlecalendar, storage, commands, twitch
@@ -168,11 +169,12 @@ def get_tweet(conn, cur, lrrbot, user, data):
 		if mode == 0: # get random !advice
 			return random.choice(storage.data['responses']['advice']['response'])
 		elif mode == 1: # get a random !quote
-			row = common.postgres.pick_random_row(cur, """
+			cur.execute("""
 				SELECT qid, quote, attrib_name, attrib_date
 				FROM quotes
 				WHERE NOT deleted
 			""")
+			row = common.utils.pick_random_elements(cur, 1)[0]
 			if row is None:
 				return None
 

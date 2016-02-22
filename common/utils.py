@@ -1,6 +1,7 @@
 import asyncio
 import functools
 import inspect
+import itertools
 import json
 import logging
 import os.path
@@ -296,3 +297,22 @@ def weighted_choice(options):
 		else:
 			left = mid
 	return values[left]
+
+def pick_random_elements(iterable, k):
+	"""
+	Pick `k` random elements from `iterable`. Returns a list of length `k`.
+	If there weren't enough elements, `None` is stored at that index instead.
+	"""
+	# Algorithm R: https://en.wikipedia.org/wiki/Reservoir_sampling#Algorithm_R
+	# Changed to use zero-based indexing.
+	ret = [None] * k
+	iterable = enumerate(iterable)
+	for i, elem in itertools.islice(iterable, len(ret)):
+		ret[i] = elem
+
+	for i, elem in iterable:
+		j = random.randrange(i)
+		if j < k:
+			ret[j] = elem
+
+	return ret

@@ -21,6 +21,7 @@
 # SOFTWARE.
 import common.postgres
 import common.time
+import common.utils
 import lrrbot.decorators
 from lrrbot.main import bot
 
@@ -62,11 +63,12 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 			WHERE NOT deleted
 		""", ()
 
-	row = common.postgres.pick_random_row(cur, """
+	cur.execute("""
 		SELECT qid, quote, attrib_name, attrib_date
 		FROM quotes
 		%s
 	""" % where, params)
+	row = common.utils.pick_random_elements(cur, 1)[0]
 	if row is None:
 		conn.privmsg(respond_to, "Could not find any matching quotes.")
 		return
@@ -165,13 +167,14 @@ def findquote(pg_conn, cur, lrrbot, conn, event, respond_to, query):
 	Search for a quote in the quote database.
 	"""
 
-	row = common.postgres.pick_random_row(cur, """
+	cur.execute("""
 		SELECT qid, quote, attrib_name, attrib_date
 		FROM quotes
 		WHERE
 			TO_TSVECTOR('english', quote) @@ PLAINTO_TSQUERY('english', %s)
 			AND NOT deleted
 	""", (query, ))
+	row = common.utils.pick_random_elements(cur, 1)[0]
 	if row is None:
 		return conn.privmsg(respond_to, "Could not find any matching quotes.")
 	qid, quote, name, date = row
