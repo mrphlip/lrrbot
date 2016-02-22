@@ -1,13 +1,14 @@
 import lrrbot.decorators
 from common import utils
 from lrrbot import storage
+from lrrbot import twitch
 from lrrbot.main import bot
 
 
 def set_show(lrrbot, show):
 	if lrrbot.show != show.lower():
 		lrrbot.show = show.lower()
-		lrrbot.get_current_game_real.reset_throttle()
+		twitch.get_game.reset_throttle()
 
 def show_name(show):
 	return storage.data.get("shows", {}).get(show, {}).get("name", show)
