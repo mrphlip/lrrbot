@@ -1,5 +1,4 @@
 import asyncio
-import enum
 import functools
 import inspect
 import logging
@@ -10,11 +9,9 @@ import textwrap
 import time
 
 import flask
-import irc.client
 import werkzeug.datastructures
 
 from common import config
-from lrrbot.docstring import parse_docstring, encode_docstring, add_header
 
 log = logging.getLogger('utils')
 
@@ -107,23 +104,16 @@ def coro_decorator(decorator):
 
 DEFAULT_THROTTLE = 15
 
-class Visibility(enum.Enum):
-	SILENT = 0
-	PRIVATE = 1
-	PUBLIC = 2
 
 class throttle_base(object):
 	"""Prevent a function from being called more often than once per period"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False):
+	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=True, count=1):
 		self.period = period
-		self.notify = notify
-		self.modoverride = modoverride
 		self.watchparams = params
 		self.lastrun = {}
 		self.lastreturn = {}
 		self.log = log
 		self.count = count
-		self.allowprivate = allowprivate
 		self.lock = asyncio.Lock()
 
 		# need to decorate this here, rather than putting a decorator on the actual
@@ -148,6 +138,17 @@ class throttle_base(object):
 
 	def __call__(self, func):
 		return self.decorate(func)
+
+	def bypass(self, func, args, kwargs):
+		"""Inspect arguments and determine if the cache should be bypassed."""
+		return False
+
+	def cache_hit(self, func, args, kwargs):
+		"""Called when result was found in cache."""
+		if self.log:
+			log.info("Skipping %s due to throttling" % func.__name__)
+
+
 	def decorate(self, func):
 		if self.watchparams:
 			self.signature = inspect.signature(func)
@@ -159,15 +160,8 @@ class throttle_base(object):
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
 			with (yield from self.lock):
-				if self.modoverride:
-					lrrbot = args[0]
-					event = args[2]
-					if lrrbot.is_mod(event):
-						return (yield from func(*args, **kwargs))
-				if self.allowprivate:
-					event = args[2]
-					if event.type == "privmsg":
-						return (yield from func(*args, **kwargs))
+				if self.bypass(func, args, kwargs):
+					return (yield from func(*args, **kwargs))
 
 				params = self.watchedparams(args, kwargs)
 				if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
@@ -176,22 +170,10 @@ class throttle_base(object):
 					if len(self.lastrun[params]) > self.count:
 						self.lastrun[params] = self.lastrun[params][-self.count:]
 				else:
-					if self.log:
-						log.info("Skipping %s due to throttling" % func.__name__)
-					if self.notify is not Visibility.SILENT:
-						conn = args[1]
-						event = args[2]
-						source = irc.client.NickMask(event.source)
-						if irc.client.is_channel(event.target) and self.notify is Visibility.PUBLIC:
-							respond_to = event.target
-						else:
-							respond_to = source.nick
-						conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
+					self.cache_hit(func, args, kwargs)
 				return self.lastreturn[params]
 		# Copy this method across so it can be accessed on the wrapped function
 		wrapper.reset_throttle = self.reset_throttle
-		wrapper.__doc__ = encode_docstring(add_header(add_header(parse_docstring(wrapper.__doc__),
-			"Throttled", str(self.period)), "Throttle-Count", str(self.count)))
 		return wrapper
 
 	def reset_throttle(self):
@@ -217,7 +199,7 @@ class cache(throttle_base):
 	parameters) and strings (for keyword parameters).
 	"""
 	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1):
-		super().__init__(period=period, notify=Visibility.SILENT, modoverride=False, params=params, log=log, count=count, allowprivate=False)
+		super().__init__(period=period, params=params, log=log, count=count)
 
 
 @coro_decorator

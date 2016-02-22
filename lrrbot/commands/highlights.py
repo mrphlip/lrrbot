@@ -18,7 +18,7 @@ def store_highlight(conn, cur, title, description, time, nick):
 @bot.command("highlight (.*?)")
 @lrrbot.decorators.public_only
 @lrrbot.decorators.sub_only
-@lrrbot.decorators.throttle(60, notify=utils.Visibility.PUBLIC, modoverride=False, allowprivate=False)
+@lrrbot.decorators.throttle(60, notify=lrrbot.decorators.Visibility.PUBLIC, modoverride=False, allowprivate=False)
 @asyncio.coroutine
 def highlight(lrrbot, conn, event, respond_to, description):
 	"""

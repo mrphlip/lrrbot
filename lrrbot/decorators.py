@@ -1,11 +1,12 @@
 import asyncio
+import enum
 import functools
 import logging
 import time
 
 import irc.client
 
-from common.utils import coro_decorator, Visibility, throttle_base, DEFAULT_THROTTLE
+from common.utils import coro_decorator, throttle_base, DEFAULT_THROTTLE
 from lrrbot.docstring import encode_docstring, add_header, parse_docstring
 
 log = logging.getLogger("lrrbot.decorators")
@@ -120,6 +121,12 @@ class twitch_throttle:
 		return wrapper
 
 
+class Visibility(enum.Enum):
+	SILENT = 0
+	PRIVATE = 1
+	PUBLIC = 2
+
+
 class throttle(throttle_base):
 	"""Prevent an event function from being called more often than once per period
 
@@ -132,4 +139,37 @@ class throttle(throttle_base):
 	but no more.
 	"""
 	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.PRIVATE, modoverride=True, params=[], log=True, count=1, allowprivate=True):
-		super().__init__(period=period, notify=notify, modoverride=modoverride, params=params, log=log, count=count, allowprivate=allowprivate)
+		super().__init__(period=period, params=params, log=log, count=count)
+		self.notify = notify
+		self.modoverride = modoverride
+		self.allowprivate = allowprivate
+
+	def bypass(self, func, args, kwargs):
+		if self.modoverride:
+			lrrbot = args[0]
+			event = args[2]
+			if lrrbot.is_mod(event):
+				return True
+		if self.allowprivate:
+			event = args[2]
+			if event.type == "privmsg":
+				return True
+		return super().bypass(func, args, kwargs)
+
+	def cache_hit(self, func, args, kwargs):
+		if self.notify is not Visibility.SILENT:
+			conn = args[1]
+			event = args[2]
+			source = irc.client.NickMask(event.source)
+			if irc.client.is_channel(event.target) and self.notify is Visibility.PUBLIC:
+				respond_to = event.target
+			else:
+				respond_to = source.nick
+			conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
+		return super().cache_hit(func, args, kwargs)
+
+	def decorate(self, func):
+		wrapper = super().decorate(func)
+		wrapper.__doc__ = encode_docstring(add_header(add_header(parse_docstring(wrapper.__doc__),
+			"Throttled", str(self.period)), "Throttle-Count", str(self.count)))
+		return wrapper

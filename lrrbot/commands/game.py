@@ -132,7 +132,7 @@ def refresh(lrrbot, conn, event, respond_to):
 
 @bot.command("game completed")
 @lrrbot.decorators.mod_only
-@lrrbot.decorators.throttle(30, notify=utils.Visibility.PUBLIC, modoverride=False, allowprivate=False)
+@lrrbot.decorators.throttle(30, notify=lrrbot.decorators.Visibility.PUBLIC, modoverride=False, allowprivate=False)
 def completed(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game completed

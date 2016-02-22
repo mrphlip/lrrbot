@@ -21,7 +21,7 @@ def stat_update(lrrbot, stat, n, set_=False):
 
 @bot.command("(%s)" % re_stats)
 @lrrbot.decorators.public_only
-@lrrbot.decorators.throttle(30, notify=utils.Visibility.PUBLIC, params=[4], modoverride=False, allowprivate=False)
+@lrrbot.decorators.throttle(30, notify=lrrbot.decorators.Visibility.PUBLIC, params=[4], modoverride=False, allowprivate=False)
 def increment(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
 	if stat == "completed":
