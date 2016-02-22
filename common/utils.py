@@ -168,7 +168,7 @@ class _throttle_base(object):
 
 	def watchedparams(self, args, kwargs):
 		if not self.watchparams:
-			return []
+			return ()
 		params = []
 		bound_args = self.signature.bind(*args, **kwargs)
 		for name, default in self.watchparams:
