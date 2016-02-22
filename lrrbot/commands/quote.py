@@ -26,6 +26,14 @@ from common import utils
 from lrrbot.main import bot
 import datetime
 
+def format_quote(tag, qid, quote, name, date):
+	quote_msg = "{tag} #{qid}: \"{quote}\"".format(tag=tag, qid=qid, quote=quote)
+	if name:
+		quote_msg += " —{name}".format(name=name)
+	if date:
+		quote_msg += " [{date!s}]".format(date=date)
+	return quote_msg
+
 @bot.command("quote(?: (?:(\d+)|(.+)))?")
 @lrrbot.decorators.sub_only
 @lrrbot.decorators.throttle(60, count=2)
@@ -66,13 +74,7 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 		return
 
 	qid, quote, name, date = row
-
-	quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-	if name:
-		quote_msg += " —{name}".format(name=name)
-	if date:
-		quote_msg += " [{date!s}]".format(date=date)
-	conn.privmsg(respond_to, quote_msg)
+	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date))
 
 @bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
 @lrrbot.decorators.mod_only
@@ -100,13 +102,7 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	""", (quote, name, date))
 	qid, = next(cur)
 
-	quote_msg = "New quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-	if name:
-		quote_msg += " —{name}".format(name=name)
-	if date:
-		quote_msg += " [{date!s}]".format(date=date)
-
-	conn.privmsg(respond_to, quote_msg)
+	conn.privmsg(respond_to, format_quote("New quote", qid, quote, name, date))
 
 @bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
 @lrrbot.decorators.mod_only
@@ -133,12 +129,7 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 		WHERE qid = %s AND NOT deleted
 	""", (quote, name, date, qid))
 	if cur.rowcount == 1:
-		quote_msg = "Modified quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-		if name:
-			quote_msg += " —{name}".format(name=name)
-		if date:
-			quote_msg += " [{date!s}]".format(date=date)
-		conn.privmsg(respond_to, quote_msg)
+		conn.privmsg(respond_to, format_quote("Modified quote", qid, quote, name, date))
 	else:
 		conn.privmsg(respond_to, "Could not modify quote.")
 
@@ -186,9 +177,4 @@ def findquote(pg_conn, cur, lrrbot, conn, event, respond_to, query):
 	if row is None:
 		return conn.privmsg(respond_to, "Could not find any matching quotes.")
 	qid, quote, name, date = row
-	quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-	if name:
-		quote_msg += " —{name}".format(name=name)
-	if date:
-		quote_msg += " [{date!s}]".format(date=date)
-	conn.privmsg(respond_to, quote_msg)
+	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date))
