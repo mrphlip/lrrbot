@@ -9,6 +9,7 @@ import flask.json
 import dateutil.parser
 import asyncio
 
+import common.time
 import common.url
 from common import utils
 from www import server
@@ -138,7 +139,7 @@ def get_player_url():
 
 @server.app.route('/archive/<videoid>')
 def archive_watch(videoid):
-	starttime = utils.parsetime(flask.request.values.get('t'))
+	starttime = common.time.parsetime(flask.request.values.get('t'))
 	if starttime:
 		starttime = int(starttime.total_seconds())
 	video = get_video_data(videoid)

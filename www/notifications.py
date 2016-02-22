@@ -6,6 +6,7 @@ import flask
 import flask.json
 from flaskext.csrf import csrf_exempt
 
+import common.time
 from common import utils
 from common.config import config
 from www import server
@@ -43,7 +44,7 @@ def notifications(conn, cur, session):
 		if row['time'] is None:
 			row['duration'] = None
 		else:
-			row['duration'] = utils.nice_duration(datetime.datetime.now(row['time'].tzinfo) - row['time'], 2)
+			row['duration'] = common.time.nice_duration(datetime.datetime.now(row['time'].tzinfo) - row['time'], 2)
 	row_data.reverse()
 
 	if row_data:

@@ -8,6 +8,7 @@ import pytz
 import irc.client
 
 import common.http
+import common.time
 import lrrbot.decorators
 from common import utils
 from common.config import config
@@ -91,14 +92,14 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 	else:
 		timezone = timezone.strip()
 		try:
-			timezone = utils.get_timezone(timezone)
+			timezone = common.time.get_timezone(timezone)
 		except pytz.exceptions.UnknownTimeZoneError:
 			conn.privmsg(respond_to, "Unknown timezone: %s" % timezone)
 
 	now = datetime.datetime.now(datetime.timezone.utc)
 
 	if now < DESERTBUS_START:
-		nice_duration = utils.nice_duration(DESERTBUS_START - now, 1) + " from now"
+		nice_duration = common.time.nice_duration(DESERTBUS_START - now, 1) + " from now"
 		conn.privmsg(respond_to, "Desert Bus for Hope will begin at %s (%s)" % (DESERTBUS_START.astimezone(timezone).strftime(
 			googlecalendar.DISPLAY_FORMAT), nice_duration))
 	elif now < DESERTBUS_END:
@@ -179,7 +180,7 @@ def uptime_msg(stream_info=None, factor=1):
 	if stream_info and stream_info.get("stream_created_at"):
 		start = dateutil.parser.parse(stream_info["stream_created_at"])
 		now = datetime.datetime.now(datetime.timezone.utc)
-		return "The stream has been live for %s." % utils.nice_duration((now - start) * factor, 0)
+		return "The stream has been live for %s." % common.time.nice_duration((now - start) * factor, 0)
 	elif stream_info and stream_info.get('live'):
 		return "Twitch won't tell me when the stream went live."
 	else:

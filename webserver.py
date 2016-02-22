@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import common.time
 import common.url
 from common import utils
 from common.config import config
@@ -18,7 +19,7 @@ import www.api
 import www.quotes
 
 app.secret_key = config["session_secret"]
-app.add_template_filter(utils.nice_duration)
+app.add_template_filter(common.time.nice_duration)
 app.add_template_filter(utils.ucfirst)
 app.add_template_filter(utils.timestamp)
 app.add_template_filter(common.url.https)

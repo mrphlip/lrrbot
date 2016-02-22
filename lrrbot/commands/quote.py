@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import common.time
 import lrrbot.decorators
 from common import utils
 from lrrbot.main import bot
@@ -87,7 +88,7 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	"""
 	if date:
 		try:
-			date = utils.strtodate(date)
+			date = common.time.strtodate(date)
 		except ValueError:
 			return conn.privmsg(respond_to, "Could not add quote due to invalid date.")
 
@@ -121,7 +122,7 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 	"""
 	if date:
 		try:
-			date = utils.strtodate(date)
+			date = common.time.strtodate(date)
 		except ValueError:
 			return conn.privmsg(respond_to, "Could not modify quote due to invalid date.")
 

@@ -7,6 +7,7 @@ import pytz
 import pytz.exceptions
 
 import common.http
+import common.time
 from common import utils
 from common.config import config
 
@@ -120,7 +121,7 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 	elif isinstance(tz, str):
 		tz = tz.strip()
 		try:
-			tz = utils.get_timezone(tz)
+			tz = common.time.get_timezone(tz)
 		except pytz.exceptions.UnknownTimeZoneError:
 			return "Unknown timezone: %s" % tz
 
@@ -138,9 +139,9 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 		if i == len(events) - 1 or ev['start'] != events[i+1]['start']:
 			if verbose:
 				if ev['start'] < after:
-					nice_duration = utils.nice_duration(after - ev['start'], 1) + " ago"
+					nice_duration = common.time.nice_duration(after - ev['start'], 1) + " ago"
 				else:
-					nice_duration = utils.nice_duration(ev['start'] - after, 1) + " from now"
+					nice_duration = common.time.nice_duration(ev['start'] - after, 1) + " from now"
 				strs.append("%s at %s (%s)" % (title, ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT), nice_duration))
 			else:
 				strs.append("%s at %s" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT)))
