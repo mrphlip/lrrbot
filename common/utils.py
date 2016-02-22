@@ -16,6 +16,7 @@ import enum
 import asyncio
 import aiohttp
 import atexit
+import inspect
 
 import flask
 import irc.client
@@ -166,12 +167,12 @@ class _throttle_base(object):
 		self.decorate = coro_decorator(self.decorate)
 
 	def watchedparams(self, args, kwargs):
+		if not self.watchparams:
+			return []
 		params = []
-		for i in self.watchparams:
-			if isinstance(i, int):
-				param = args[i]
-			else:
-				param = kwargs[i]
+		bound_args = self.signature.bind(*args, **kwargs)
+		for name, default in self.watchparams:
+			param = bound_args.arguments.get(name, default)
 			if isinstance(param, str):
 				param = param.lower()
 			params.append(param)
@@ -180,6 +181,12 @@ class _throttle_base(object):
 	def __call__(self, func):
 		return self.decorate(func)
 	def decorate(self, func):
+		if self.watchparams:
+			self.signature = inspect.signature(func)
+			param_list = list(self.signature.parameters.keys())
+			self.watchparams = [param_list[i] if isinstance(i, int) else i for i in self.watchparams]
+			self.watchparams = [(i, self.signature.parameters[i].default) for i in self.watchparams]
+
 		@asyncio.coroutine
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):

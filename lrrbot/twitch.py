@@ -10,7 +10,7 @@ from lrrbot import storage
 GAME_CHECK_INTERVAL = 5*60
 
 
-def get_info_uncached(username=None, *, use_fallback=True):
+def get_info_uncached(username=None, use_fallback=True):
 	"""
 	Get the Twitch info for a particular user or channel.
 
@@ -45,8 +45,8 @@ def get_info_uncached(username=None, *, use_fallback=True):
 	channel_data['live'] = False
 	return channel_data
 
-@utils.cache(GAME_CHECK_INTERVAL, params=[0, 'use_fallback'])
-def get_info(username=None, *, use_fallback=True):
+@utils.cache(GAME_CHECK_INTERVAL, params=[0, 1])
+def get_info(username=None, use_fallback=True):
 	return get_info_uncached(username, use_fallback=use_fallback)
 
 @utils.cache(GAME_CHECK_INTERVAL, params=[0, 1])
