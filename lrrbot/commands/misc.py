@@ -171,28 +171,28 @@ def viewers(lrrbot, conn, event, respond_to):
 		chatters = "No-one in the chat."
 	conn.privmsg(respond_to, "%s %s" % (viewers, chatters))
 
-def uptime_msg(stream_info=None):
+def uptime_msg(stream_info=None, factor=1):
 	if stream_info is None:
 		stream_info = twitch.get_info()
 	if stream_info and stream_info.get("stream_created_at"):
 		start = dateutil.parser.parse(stream_info["stream_created_at"])
 		now = datetime.datetime.now(datetime.timezone.utc)
-		return "The stream has been live for %s." % utils.nice_duration(now-start, 0)
+		return "The stream has been live for %s." % utils.nice_duration((now - start) * factor, 0)
 	elif stream_info and stream_info.get('live'):
 		return "Twitch won't tell me when the stream went live."
 	else:
 		return "The stream is not live."
 
-@bot.command("uptime")
+@bot.command("(uptime|updog)")
 @utils.throttle()
-def uptime(lrrbot, conn, event, respond_to):
+def uptime(lrrbot, conn, event, respond_to, command):
 	"""
 	Command: !uptime
 	Section: info
 
 	Post the duration the stream has been live.
 	"""
-	conn.privmsg(respond_to, uptime_msg())
+	conn.privmsg(respond_to, uptime_msg(factor=7 if command == "updog" else 1))
 
 @utils.cache(30) # We could easily be sending a bunch of these at once, and the info doesn't change often
 def get_status_msg(lrrbot):
