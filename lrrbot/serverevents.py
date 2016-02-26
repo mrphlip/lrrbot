@@ -9,6 +9,7 @@ from common import utils
 from common.config import config
 from lrrbot import googlecalendar, storage, commands, twitch
 from lrrbot.main import bot
+import lrrbot.docstring
 
 log = logging.getLogger('serverevents')
 
@@ -73,9 +74,9 @@ def modify_spam_rules(lrrbot, user, data):
 	lrrbot.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 
 @bot.server_event()
-def get_commands(lrrbot, user, data):
+def get_commands(bot, user, data):
 	ret = []
-	for command in lrrbot.commands.values():
+	for command in bot.commands.values():
 		doc = lrrbot.docstring.parse_docstring(command['func'].__doc__)
 		for cmd in doc.walk():
 			if cmd.get_content_maintype() == "multipart":
