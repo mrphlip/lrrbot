@@ -16,6 +16,7 @@ import irc.modes
 
 import common.http
 import lrrbot.decorators
+import lrrbot.systemd
 from common import utils
 from common.config import config
 from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor, linkspam
@@ -47,11 +48,14 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.reactor.execute_every(period=5, function=self.check_polls)
 		self.reactor.execute_every(period=5, function=self.vote_respond)
 
+		self.service = lrrbot.systemd.Service(loop)
+
 		# create secondary connection
 		if config['whispers']:
-			self.whisperconn = whisper.TwitchWhisper(self.loop)
+			self.whisperconn = whisper.TwitchWhisper(self.loop, self.service)
 		else:
 			self.whisperconn = None
+			self.service.subsystem_started("whispers")
 
 		# IRC event handlers
 		self.reactor.add_global_handler('welcome', self.on_connect)
@@ -195,6 +199,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		source = irc.client.NickMask(event.source)
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
+			self.service.subsystem_started("irc")
 		elif source.nick.lower() in self.autostatus:
 			from lrrbot.commands.misc import send_status
 			send_status(self, conn, source.nick)
