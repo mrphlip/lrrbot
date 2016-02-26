@@ -9,10 +9,12 @@ import flask.json
 import dateutil.parser
 import asyncio
 
+import common.postgres
+import common.time
+import common.url
 from common import utils
 from www import server
 from www import login
-
 
 CACHE_TIMEOUT = 5*60
 
@@ -100,7 +102,7 @@ def archive_feed():
 	rss = flask.render_template("archive_feed.xml", videos=archive_feed_data_html(channel, broadcasts, True), broadcasts=broadcasts)
 	return flask.Response(rss, mimetype="application/xml")
 
-@utils.with_postgres
+@common.postgres.with_postgres
 def chat_data(conn, cur, starttime, endtime, target="#loadingreadyrun"):
 	cur.execute("SELECT messagehtml FROM log WHERE target = %s AND time BETWEEN %s AND %s ORDER BY time ASC", (
 		target,
@@ -132,12 +134,12 @@ def get_player_url():
 	so get the real URL so we can serve it over the right protocol
 	"""
 	urls = asyncio.get_event_loop().run_until_complete(
-		utils.canonical_url("https://www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf"))
+		common.url.canonical_url("https://www-cdn.jtvnw.net/swflibs/TwitchPlayer.swf"))
 	return urls[-1]
 
 @server.app.route('/archive/<videoid>')
 def archive_watch(videoid):
-	starttime = utils.parsetime(flask.request.values.get('t'))
+	starttime = common.time.parsetime(flask.request.values.get('t'))
 	if starttime:
 		starttime = int(starttime.total_seconds())
 	video = get_video_data(videoid)

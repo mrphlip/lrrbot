@@ -1,12 +1,11 @@
 import random
 
-from common import utils
+import lrrbot.decorators
 from lrrbot import storage
 from lrrbot.main import bot, log
 
-
 @bot.command("explain (.*?)")
-@utils.throttle(30, params=[4], count=2)
+@lrrbot.decorators.throttle(30, params=[4], count=2)
 def explain_response(lrrbot, conn, event, respond_to, command):
 	"""
 	Command: !explain TOPIC

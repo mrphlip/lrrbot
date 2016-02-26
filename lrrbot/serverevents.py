@@ -3,11 +3,12 @@ import re
 import math
 import logging
 
+import common.postgres
+import common.utils
 from common import utils
 from common.config import config
 from lrrbot import googlecalendar, storage, commands, twitch
 from lrrbot.main import bot
-
 
 log = logging.getLogger('serverevents')
 
@@ -75,7 +76,7 @@ def modify_spam_rules(lrrbot, user, data):
 def get_commands(lrrbot, user, data):
 	ret = []
 	for command in lrrbot.commands.values():
-		doc = utils.parse_docstring(command['func'].__doc__)
+		doc = lrrbot.docstring.parse_docstring(command['func'].__doc__)
 		for cmd in doc.walk():
 			if cmd.get_content_maintype() == "multipart":
 				continue
@@ -161,18 +162,19 @@ def get_show(lrrbot, user, data):
 	return lrrbot.show_override or lrrbot.show
 
 @bot.server_event()
-@utils.with_postgres
+@common.postgres.with_postgres
 def get_tweet(conn, cur, lrrbot, user, data):
 	if user is not None and lrrbot.is_mod_nick(user):
 		mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
 		if mode == 0: # get random !advice
 			return random.choice(storage.data['responses']['advice']['response'])
 		elif mode == 1: # get a random !quote
-			row = utils.pick_random_row(cur, """
+			cur.execute("""
 				SELECT qid, quote, attrib_name, attrib_date
 				FROM quotes
 				WHERE NOT deleted
 			""")
+			row = common.utils.pick_random_elements(cur, 1)[0]
 			if row is None:
 				return None
 

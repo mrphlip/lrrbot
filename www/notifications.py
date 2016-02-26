@@ -1,4 +1,3 @@
-import time
 import datetime
 import pytz
 
@@ -6,11 +5,12 @@ import flask
 import flask.json
 from flaskext.csrf import csrf_exempt
 
+import common.postgres
+import common.time
 from common import utils
 from common.config import config
 from www import server
 from www import login
-
 
 def get_notifications(cur, after=None, test=False):
 	if test:
@@ -36,14 +36,14 @@ def get_notifications(cur, after=None, test=False):
 
 @server.app.route('/notifications')
 @login.with_session
-@utils.with_postgres
+@common.postgres.with_postgres
 def notifications(conn, cur, session):
 	row_data = get_notifications(cur)
 	for row in row_data:
 		if row['time'] is None:
 			row['duration'] = None
 		else:
-			row['duration'] = utils.nice_duration(datetime.datetime.now(row['time'].tzinfo) - row['time'], 2)
+			row['duration'] = common.time.nice_duration(datetime.datetime.now(row['time'].tzinfo) - row['time'], 2)
 	row_data.reverse()
 
 	if row_data:
@@ -57,7 +57,7 @@ def notifications(conn, cur, session):
 	return flask.render_template('notifications.html', row_data=row_data, maxkey=maxkey, session=session)
 
 @server.app.route('/notifications/updates')
-@utils.with_postgres
+@common.postgres.with_postgres
 def updates(conn, cur):
 	notifications = get_notifications(cur, int(flask.request.values['after']), True)
 	for n in notifications:
@@ -68,7 +68,7 @@ def updates(conn, cur):
 @csrf_exempt
 @server.app.route('/notifications/newmessage', methods=['POST'])
 @login.with_minimal_session
-@utils.with_postgres
+@common.postgres.with_postgres
 def new_message(conn, cur, session):
 	if session["user"] not in (config["username"], config["channel"]):
 		return flask.json.jsonify(error='apipass')

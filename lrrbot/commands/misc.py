@@ -7,6 +7,9 @@ import dateutil.parser
 import pytz
 import irc.client
 
+import common.http
+import common.time
+import lrrbot.decorators
 from common import utils
 from common.config import config
 from lrrbot import googlecalendar, storage, twitch
@@ -15,12 +18,12 @@ from lrrbot.main import bot
 log = logging.getLogger('misc')
 
 @bot.command("test")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def test(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Test")
 
 @bot.command("storm(?:count)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def stormcount(lrrbot, conn, event, respond_to):
 	"""
 	Command: !storm
@@ -39,7 +42,7 @@ def stormcount(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Today's storm count: %d" % storage.data["storm"]["count"])
 
 @bot.command("spam(?:count)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def spamcount(lrrbot, conn, event, respond_to):
 	"""
 	Command: !spam
@@ -63,7 +66,7 @@ DESERTBUS_PRESTART = datetime.datetime(2015, 11, 12, 14, 0, tzinfo=config["timez
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
 @bot.command("next( .*)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def next(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !next
@@ -82,21 +85,21 @@ def next(lrrbot, conn, event, respond_to, timezone):
 		conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
 
 @bot.command("desert ?bus( .*)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def desertbus(lrrbot, conn, event, respond_to, timezone):
 	if not timezone:
 		timezone = config['timezone']
 	else:
 		timezone = timezone.strip()
 		try:
-			timezone = utils.get_timezone(timezone)
+			timezone = common.time.get_timezone(timezone)
 		except pytz.exceptions.UnknownTimeZoneError:
 			conn.privmsg(respond_to, "Unknown timezone: %s" % timezone)
 
 	now = datetime.datetime.now(datetime.timezone.utc)
 
 	if now < DESERTBUS_START:
-		nice_duration = utils.nice_duration(DESERTBUS_START - now, 1) + " from now"
+		nice_duration = common.time.nice_duration(DESERTBUS_START - now, 1) + " from now"
 		conn.privmsg(respond_to, "Desert Bus for Hope will begin at %s (%s)" % (DESERTBUS_START.astimezone(timezone).strftime(
 			googlecalendar.DISPLAY_FORMAT), nice_duration))
 	elif now < DESERTBUS_END:
@@ -104,9 +107,8 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 	else:
 		conn.privmsg(respond_to, "Desert Bus for Hope will return next year, start saving your donation money now!")
 
-
 @bot.command("nextfan( .*)?")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def nextfan(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !nextfan
@@ -117,7 +119,7 @@ def nextfan(lrrbot, conn, event, respond_to, timezone):
 	conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True))
 
 @bot.command("time")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def time(lrrbot, conn, event, respond_to):
 	"""
 	Command: !time
@@ -127,9 +129,9 @@ def time(lrrbot, conn, event, respond_to):
 	"""
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
-	
+
 @bot.command("time 24")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def time24(lrrbot, conn, event, respond_to):
 	"""
 	Command: !time 24
@@ -141,7 +143,7 @@ def time24(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%H:%M"))
 
 @bot.command("viewers")
-@utils.throttle(30) # longer cooldown as this involves 2 API calls
+@lrrbot.decorators.throttle(30) # longer cooldown as this involves 2 API calls
 def viewers(lrrbot, conn, event, respond_to):
 	"""
 	Command: !viewers
@@ -158,7 +160,7 @@ def viewers(lrrbot, conn, event, respond_to):
 	# Since we're using TWITCHCLIENT 3, we don't get join/part messages, so we can't just use
 	# len(lrrbot.channels["#loadingreadyrun"].userdict)
 	# as that dict won't be populated. Need to call this api instead.
-	chatters = utils.http_request("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
+	chatters = common.http.request("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
 	chatters = json.loads(chatters).get("chatter_count")
 
 	if viewers is not None:
@@ -177,14 +179,14 @@ def uptime_msg(stream_info=None, factor=1):
 	if stream_info and stream_info.get("stream_created_at"):
 		start = dateutil.parser.parse(stream_info["stream_created_at"])
 		now = datetime.datetime.now(datetime.timezone.utc)
-		return "The stream has been live for %s." % utils.nice_duration((now - start) * factor, 0)
+		return "The stream has been live for %s." % common.time.nice_duration((now - start) * factor, 0)
 	elif stream_info and stream_info.get('live'):
 		return "Twitch won't tell me when the stream went live."
 	else:
 		return "The stream is not live."
 
 @bot.command("(uptime|updog)")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def uptime(lrrbot, conn, event, respond_to, command):
 	"""
 	Command: !uptime

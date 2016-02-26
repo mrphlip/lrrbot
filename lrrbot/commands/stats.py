@@ -1,4 +1,4 @@
-from common import utils
+import lrrbot.decorators
 from lrrbot import storage
 from lrrbot.main import bot
 from lrrbot.commands.game import completed, game_name
@@ -19,8 +19,8 @@ def stat_update(lrrbot, stat, n, set_=False):
 	return game
 
 @bot.command("(%s)" % re_stats)
-@utils.public_only
-@utils.throttle(30, notify=utils.Visibility.PUBLIC, params=[4], modoverride=False, allowprivate=False)
+@lrrbot.decorators.public_only
+@lrrbot.decorators.throttle(30, notify=lrrbot.decorators.Visibility.PUBLIC, params=[4], modoverride=False, allowprivate=False)
 def increment(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
 	if stat == "completed":
@@ -33,7 +33,7 @@ def increment(lrrbot, conn, event, respond_to, stat):
 	stat_print(lrrbot, conn, event, respond_to, stat, game, with_emote=True)
 
 @bot.command("(%s) add( \d+)?" % re_stats)
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def add(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
 	n = 1 if n is None else int(n)
@@ -44,7 +44,7 @@ def add(lrrbot, conn, event, respond_to, stat, n):
 	stat_print(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s) remove( \d+)?" % re_stats)
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def remove(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
 	n = 1 if n is None else int(n)
@@ -55,7 +55,7 @@ def remove(lrrbot, conn, event, respond_to, stat, n):
 	stat_print(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s) set (\d+)" % re_stats)
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def stat_set(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
 	n = 1 if n is None else int(n)
@@ -66,7 +66,7 @@ def stat_set(lrrbot, conn, event, respond_to, stat, n):
 	stat_print(lrrbot, conn, event, respond_to, stat, game)
 
 @bot.command("(%s)count" % re_stats)
-@utils.throttle(params=[4])
+@lrrbot.decorators.throttle(params=[4])
 def get_stat(lrrbot, conn, event, respond_to, stat):
 	stat_print(lrrbot, conn, event, respond_to, stat)
 
@@ -88,7 +88,7 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 	conn.privmsg(respond_to, "%s%d %s for %s on %s" % (emote, count, display, game_name(game), show_name(show)))
 
 @bot.command("total(%s)s?" % re_stats)
-@utils.throttle(params=[4])
+@lrrbot.decorators.throttle(params=[4])
 def printtotal(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
 	count = 0

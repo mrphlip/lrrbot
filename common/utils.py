@@ -1,38 +1,20 @@
-import functools
-import socket
-import time
-import logging
-import urllib.request
-import urllib.parse
-import json
-import email.parser
-import textwrap
-import datetime
-import re
-import os.path
-import timelib
-import random
-import enum
 import asyncio
-import aiohttp
-import atexit
+import functools
 import inspect
+import itertools
+import json
+import logging
+import os.path
+import random
+import socket
+import textwrap
+import time
 
-import flask
-import irc.client
-import pytz
 import werkzeug.datastructures
 
 from common import config
-import psycopg2
-
 
 log = logging.getLogger('utils')
-
-DOCSTRING_IMPLICIT_PREFIX = """Content-Type: multipart/message; boundary=command
-
---command"""
-DOCSTRING_IMPLICIT_SUFFIX = "\n--command--"
 
 def deindent(s):
 	def skipblank():
@@ -43,24 +25,6 @@ def deindent(s):
 		yield line
 		yield from generator
 	return "\n".join(skipblank())
-
-def parse_docstring(docstring):
-	if docstring is None:
-		docstring = ""
-	docstring = DOCSTRING_IMPLICIT_PREFIX + docstring + DOCSTRING_IMPLICIT_SUFFIX
-	return email.parser.Parser().parsestr(deindent(docstring))
-
-def encode_docstring(docstring):
-	docstring = str(docstring).rstrip()
-	assert docstring.startswith(DOCSTRING_IMPLICIT_PREFIX)
-	assert docstring.endswith(DOCSTRING_IMPLICIT_SUFFIX)
-	return docstring[len(DOCSTRING_IMPLICIT_PREFIX):-len(DOCSTRING_IMPLICIT_SUFFIX)]
-
-def add_header(doc, name, value):
-	for part in doc.walk():
-		if part.get_content_maintype() != "multipart":
-			part[name] = value
-	return doc
 
 def shorten_fallback(text, width, **kwargs):
 	"""textwrap.shorten is introduced in Python 3.4"""
@@ -77,7 +41,6 @@ def shorten_fallback(text, width, **kwargs):
 	else:
 		r = r[0]
 	return r
-
 shorten = getattr(textwrap, "shorten", shorten_fallback)
 
 def coro_decorator(decorator):
@@ -138,24 +101,15 @@ def coro_decorator(decorator):
 	return wrapper
 
 DEFAULT_THROTTLE = 15
-
-class Visibility(enum.Enum):
-	SILENT = 0
-	PRIVATE = 1
-	PUBLIC = 2
-
-class _throttle_base(object):
+class throttle_base(object):
 	"""Prevent a function from being called more often than once per period"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.SILENT, modoverride=False, params=[], log=True, count=1, allowprivate=False):
+	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=True, count=1):
 		self.period = period
-		self.notify = notify
-		self.modoverride = modoverride
 		self.watchparams = params
 		self.lastrun = {}
 		self.lastreturn = {}
 		self.log = log
 		self.count = count
-		self.allowprivate = allowprivate
 		self.lock = asyncio.Lock()
 
 		# need to decorate this here, rather than putting a decorator on the actual
@@ -180,6 +134,16 @@ class _throttle_base(object):
 
 	def __call__(self, func):
 		return self.decorate(func)
+
+	def bypass(self, func, args, kwargs):
+		"""Inspect arguments and determine if the cache should be bypassed."""
+		return False
+
+	def cache_hit(self, func, args, kwargs):
+		"""Called when result was found in cache."""
+		if self.log:
+			log.info("Skipping %s due to throttling" % func.__name__)
+
 	def decorate(self, func):
 		if self.watchparams:
 			self.signature = inspect.signature(func)
@@ -191,15 +155,8 @@ class _throttle_base(object):
 		@functools.wraps(func)
 		def wrapper(*args, **kwargs):
 			with (yield from self.lock):
-				if self.modoverride:
-					lrrbot = args[0]
-					event = args[2]
-					if lrrbot.is_mod(event):
-						return (yield from func(*args, **kwargs))
-				if self.allowprivate:
-					event = args[2]
-					if event.type == "privmsg":
-						return (yield from func(*args, **kwargs))
+				if self.bypass(func, args, kwargs):
+					return (yield from func(*args, **kwargs))
 
 				params = self.watchedparams(args, kwargs)
 				if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
@@ -208,43 +165,17 @@ class _throttle_base(object):
 					if len(self.lastrun[params]) > self.count:
 						self.lastrun[params] = self.lastrun[params][-self.count:]
 				else:
-					if self.log:
-						log.info("Skipping %s due to throttling" % func.__name__)
-					if self.notify is not Visibility.SILENT:
-						conn = args[1]
-						event = args[2]
-						source = irc.client.NickMask(event.source)
-						if irc.client.is_channel(event.target) and self.notify is Visibility.PUBLIC:
-							respond_to = event.target
-						else:
-							respond_to = source.nick
-						conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
+					self.cache_hit(func, args, kwargs)
 				return self.lastreturn[params]
 		# Copy this method across so it can be accessed on the wrapped function
 		wrapper.reset_throttle = self.reset_throttle
-		wrapper.__doc__ = encode_docstring(add_header(add_header(parse_docstring(wrapper.__doc__),
-			"Throttled", str(self.period)), "Throttle-Count", str(self.count)))
 		return wrapper
 
 	def reset_throttle(self):
 		self.lastrun = {}
 		self.lastreturn = {}
 
-class throttle(_throttle_base):
-	"""Prevent an event function from being called more often than once per period
-
-	Usage:
-	@throttle([period])
-	def func(lrrbot, conn, event, ...):
-		...
-
-	count allows the function to be called a given number of times during the period,
-	but no more.
-	"""
-	def __init__(self, period=DEFAULT_THROTTLE, notify=Visibility.PRIVATE, modoverride=True, params=[], log=True, count=1, allowprivate=True):
-		super().__init__(period=period, notify=notify, modoverride=modoverride, params=params, log=log, count=count, allowprivate=allowprivate)
-
-class cache(_throttle_base):
+class cache(throttle_base):
 	"""Cache the results of a function for a given period
 
 	Usage:
@@ -262,113 +193,7 @@ class cache(_throttle_base):
 	parameters) and strings (for keyword parameters).
 	"""
 	def __init__(self, period=DEFAULT_THROTTLE, params=[], log=False, count=1):
-		super().__init__(period=period, notify=Visibility.SILENT, modoverride=False, params=params, log=log, count=count, allowprivate=False)
-
-@coro_decorator
-def mod_only(func):
-	"""Prevent an event-handler function from being called by non-moderators
-
-	Usage:
-	@mod_only
-	def on_event(self, conn, event, ...):
-		...
-	"""
-
-	# Only complain about non-mods with throttle
-	# but allow the command itself to be run without throttling
-	@throttle(notify=Visibility.SILENT, modoverride=False)
-	def mod_complaint(self, conn, event):
-		source = irc.client.NickMask(event.source)
-		if irc.client.is_channel(event.target):
-			respond_to = event.target
-		else:
-			respond_to = source.nick
-		conn.privmsg(respond_to, "%s: That is a mod-only command" % source.nick)
-
-	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(self, conn, event, *args, **kwargs):
-		if self.is_mod(event):
-			return (yield from func(self, conn, event, *args, **kwargs))
-		else:
-			log.info("Refusing %s due to not-a-mod" % func.__name__)
-			mod_complaint(self, conn, event)
-			return None
-	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
-		"Mod-Only", "true"))
-	return wrapper
-
-@coro_decorator
-def sub_only(func):
-	"""Prevent an event-handler function from being called by non-subscribers
-
-	Usage:
-	@sub_only
-	def on_event(self, conn, event, ...):
-		...
-	"""
-
-	@throttle(notify=Visibility.SILENT, modoverride=False)
-	def sub_complaint(self, conn, event):
-		source = irc.client.NickMask(event.source)
-		if irc.client.is_channel(event.target):
-			respond_to = event.target
-		else:
-			respond_to = source.nick
-		conn.privmsg(respond_to, "%s: That is a subscriber-only command" % source.nick)
-
-	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(self, conn, event, *args, **kwargs):
-		if self.is_sub(event) or self.is_mod(event):
-			return (yield from func(self, conn, event, *args, **kwargs))
-		else:
-			log.info("Refusing %s due to not-a-sub" % func.__name__)
-			sub_complaint(self, conn, event)
-			return None
-	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
-		"Sub-Only", "true"))
-	return wrapper
-
-class twitch_throttle:
-	def __init__(self, count=20, period=30):
-		self.count = count
-		self.period = period
-		self.timestamps = []
-	
-	def __call__(self, f):
-		@functools.wraps(f, assigned=functools.WRAPPER_ASSIGNMENTS + ("is_logged",))
-		def wrapper(*args, **kwargs):
-			now = time.time()
-			self.timestamps = [t for t in self.timestamps if now-t <= self.period]
-			if len(self.timestamps) >= self.count:
-				log.info("Ignoring {}(*{}, **{})".format(f.__name__, args, kwargs))
-			else:
-				self.timestamps.append(now)
-				return f(*args, **kwargs)
-		wrapper.is_throttled = True
-		return wrapper
-
-@coro_decorator
-def public_only(func):
-	"""Prevent an event-handler function from being called via private message
-
-	Usage:
-	@public_only
-	def on_event(self, conn, event, ...):
-		...
-	"""
-	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(self, conn, event, *args, **kwargs):
-		if event.type == "pubmsg" or self.is_mod(event):
-			return (yield from func(self, conn, event, *args, **kwargs))
-		else:
-			source = irc.client.NickMask(event.source)
-			conn.privmsg(source.nick, "That command cannot be used via private message")
-	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
-		"Public-Only", "true"))
-	return wrapper
+		super().__init__(period=period, params=params, log=log, count=count)
 
 @coro_decorator
 def log_errors(func):
@@ -413,162 +238,6 @@ def check_exception(future):
 	except:
 		log.exception("Exception in future")
 
-class Request(urllib.request.Request):
-	"""Override the get_method method of Request, adding the "method" field that doesn't exist until Python 3.3"""
-	def __init__(self, *args, method=None, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.method = method
-	def get_method(self):
-		if self.method is not None:
-			return self.method
-		else:
-			return super().get_method()
-
-def http_request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **kwargs):
-	"""Download a webpage, with retries on failure."""
-	# Let's be nice.
-	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
-	if data:
-		if isinstance(data, dict):
-			data = urllib.parse.urlencode(data)
-		if method == 'GET':
-			url = '%s?%s' % (url, data)
-			req = Request(url=url, method='GET', headers=headers, **kwargs)
-		elif method == 'POST':
-			req = Request(url=url, data=data.encode("utf-8"), method='POST', headers=headers, **kwargs)
-		elif method == 'PUT':
-			req = Request(url=url, data=data.encode("utf-8"), method='PUT', headers=headers, **kwargs)
-	else:
-		req = Request(url=url, method='GET', headers=headers, **kwargs)
-
-	firstex = None
-	while True:
-		try:
-			return urllib.request.urlopen(req, timeout=timeout).read().decode("utf-8")
-		except Exception as e:
-			maxtries -= 1
-			if firstex is None:
-				firstex = e
-			if maxtries > 0:
-				log.info("Downloading %s failed: %s: %s, retrying...", url, e.__class__.__name__, e)
-			else:
-				break
-	raise firstex
-
-# Limit the number of parallel HTTP connections to a server.
-http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
-atexit.register(http_request_session.close)
-@asyncio.coroutine
-def http_request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
-	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
-	firstex = None
-
-	# FIXME(#130): aiohttp fails to decode HEAD requests with Content-Encoding set. Do GET requests instead.
-	real_method = method
-	if method == 'HEAD':
-		real_method = 'GET'
-
-	if method == 'GET':
-		params = data
-		data = None
-	else:
-		params = None
-	while True:
-		try:
-			res = yield from asyncio.wait_for(http_request_session.request(real_method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects), timeout)
-			if method == "HEAD":
-				yield from res.release()
-				return res
-			status_class = res.status // 100
-			if status_class != 2:
-				yield from res.read()
-				if status_class == 4:
-					maxtries = 1
-				yield from res.release()
-				raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
-			text = yield from res.text()
-			yield from res.release()
-			return text
-		except Exception as e:
-			maxtries -= 1
-			if firstex is None:
-				firstex = e
-			if maxtries > 0:
-				log.info("Downloading %s failed: %s: %s, retrying...", url, e.__class__.__name__, e)
-			else:
-				break
-	raise firstex
-
-def api_request(uri, *args, **kwargs):
-	# Send the information to the server
-	try:
-		res = http_request(config.config['siteurl'] + uri, *args, **kwargs)
-	except:
-		log.exception("Error at server in %s" % uri)
-	else:
-		try:
-			res = json.loads(res)
-		except:
-			log.exception("Error parsing server response from %s: %s", uri, res)
-		else:
-			if 'success' not in res:
-				log.error("Error at server in %s" % uri)
-			return res
-
-@asyncio.coroutine
-def api_request_coro(uri, *args, **kwargs):
-	try:
-		res = yield from http_request_coro(config.config['siteurl'] + uri, *args, **kwargs)
-	except:
-		log.exception("Error at server in %s" % uri)
-	else:
-		try:
-			res = json.loads(res)
-		except:
-			log.exception("Error parsing server response from %s: %s", uri, res)
-		else:
-			if 'success' not in res:
-				log.error("Error at server in %s" % uri)
-			return res
-
-def nice_duration(s, detail=1):
-	"""
-	Convert a duration in seconds to a human-readable duration.
-
-	detail can be:
-		0 - Always show to the nearest second
-		1 - Show to the nearest minute, unless less than a minute
-		2 - Show to the nearest hour, unless less than an hour
-	"""
-	if isinstance(s, datetime.timedelta):
-		s = s.days * 86400 + s.seconds
-	if s < 0:
-		return "-" + nice_duration(-s, detail)
-	if s < 60:
-		return ["0:%(s)02d", "%(s)ds", "%(s)ds"][detail] % {'s': s}
-	m, s = divmod(s, 60)
-	if m < 60:
-		return ["%(m)d:%(s)02d", "%(m)dm", "%(m)dm"][detail] % {'s': s, 'm': m}
-	h, m = divmod(m, 60)
-	if h < 24:
-		return ["%(h)d:%(m)02d:%(s)02d", "%(h)d:%(m)02d", "%(h)dh"][detail] % {'s': s, 'm': m, 'h': h}
-	d, h = divmod(h, 24)
-	return ["%(d)dd, %(h)d:%(m)02d:%(s)02d", "%(d)dd, %(h)d:%(m)02d", "%(d)dd, %(h)dh"][detail] % {'s': s, 'm': m, 'h': h, 'd': d}
-
-def get_timezone(tz):
-	"""
-	Look up a timezone by name, case-insensitively
-	"""
-	try:
-		return pytz.timezone(tz)
-	except pytz.exceptions.UnknownTimeZoneError:
-		tznames = {i.lower(): i for i in pytz.all_timezones}
-		tz = tz.lower()
-		if tz in tznames:
-			return pytz.timezone(tznames[tz])
-		else:
-			raise
-
 def immutable(obj):
 	if isinstance(obj, dict):
 		return werkzeug.datastructures.ImmutableDict((k, immutable(v)) for k,v in obj.items())
@@ -576,19 +245,6 @@ def immutable(obj):
 		return werkzeug.datastructures.ImmutableList(immutable(v) for v in obj)
 	else:
 		return obj
-
-
-def get_postgres():
-	return psycopg2.connect(config.config["postgres"])
-
-def with_postgres(func):
-	"""Decorator to pass a PostgreSQL connection and cursor to a function"""
-	@functools.wraps(func)
-	def wrapper(*args, **kwargs):
-		with get_postgres() as conn, conn.cursor() as cur:
-			return func(conn, cur, *args, **kwargs)
-	return wrapper
-
 
 def sse_send_event(endpoint, event=None, data=None, event_id=None):
 	if not os.path.exists(config.config['eventsocket']):
@@ -604,85 +260,11 @@ def sse_send_event(endpoint, event=None, data=None, event_id=None):
 
 	sse = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 	sse.connect(config.config['eventsocket'])
-	sse.send(flask.json.dumps(sse_event).encode("utf-8")+b"\n")
+	sse.send(json.dumps(sse_event).encode("utf-8")+b"\n")
 	sse.close()
-
-
-def error_page(message):
-	from www import login
-	return flask.render_template("error.html", message=message, session=login.load_session(include_url=False))
-
-def timestamp(ts):
-	"""
-	Outputs a given time (either unix timestamp or datetime instance) as a human-readable time
-	and includes tags so that common.js will convert the time on page-load to the user's
-	timezone and preferred date/time format.
-	"""
-	if isinstance(ts, (int, float)):
-		ts = datetime.datetime.fromtimestamp(ts, tz=pytz.utc)
-	elif ts.tzinfo is None:
-		ts = ts.replace(tzinfo=datetime.timezone.utc)
-	ts = ts.astimezone(config.config['timezone'])
-	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"{}\">{:%A, %-d %B, %Y %H:%M:%S %Z}</span>".format(ts.timestamp(), ts))
-
 
 def ucfirst(s):
 	return s[0].upper() + s[1:]
-
-re_timefmt1 = re.compile("^\s*(?:\s*(\d*)\s*d)?(?:\s*(\d*)\s*h)?(?:\s*(\d*)\s*m)?(?:\s*(\d*)\s*s?)?\s*$")
-re_timefmt2 = re.compile("^(?:(?:(?:\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*$")
-def parsetime(s):
-	"""
-	Parse user-supplied times in one of two formats:
-	"10s"
-	"5m3s"
-	"7h2m"
-	"1d7m52s"
-	or:
-	"10"
-	"5:03"
-	"7:02:00"
-	"1:00:07:52"
-
-	Returns a timedelta object of the appropriate duration, or None if the parse fails
-	"""
-	if s is None:
-		return None
-	match = re_timefmt1.match(s)
-	if not match:
-		match = re_timefmt2.match(s)
-	if not match:
-		return None
-	d = int(match.group(1) or 0)
-	h = int(match.group(2) or 0)
-	m = int(match.group(3) or 0)
-	s = int(match.group(4) or 0)
-	return datetime.timedelta(days=d, hours=h, minutes=m, seconds=s)
-
-def strtotime(s):
-	if isinstance(s, str):
-		s = s.encode("utf-8")
-	return datetime.datetime.fromtimestamp(timelib.strtotime(s), tz=pytz.utc)
-
-def strtodate(s):
-	dt = strtotime(s)
-	# if the time is exactly midnight, then the user probably entered a date
-	# without time info (eg "yesterday"), so just return that date. Otherwise, they
-	# did enter time info (eg "now") so convert timezone first
-	if dt.time() != datetime.time(0):
-		dt = dt.astimezone(config.config['timezone'])
-	return dt.date()
-
-def pick_random_row(cur, query, params = ()):
-	" Return a random row of a SELECT query. "
-	# CSE - common subexpression elimination, an optimisation Postgres doesn't do
-	cur.execute("CREATE TEMP TABLE cse AS " + query, params)
-	if cur.rowcount <= 0:
-		return None
-	cur.execute("SELECT * FROM cse OFFSET %s LIMIT 1", (random.randrange(cur.rowcount), ))
-	row = cur.fetchone()
-	cur.execute("DROP TABLE cse")
-	return row
 
 def weighted_choice(options):
 	"""
@@ -716,58 +298,21 @@ def weighted_choice(options):
 			left = mid
 	return values[left]
 
-@cache(60 * 60, params=[0])
-@asyncio.coroutine
-def canonical_url(url, depth=10):
-	urls = []
-	while depth > 0:
-		if not url.startswith("http://") and not url.startswith("https://"):
-			url = "http://" + url
-		urls.append(url)
-		try:
-			res = yield from http_request_coro(url, method="HEAD", allow_redirects=False)
-			if res.status in range(300, 400) and "Location" in res.headers:
-				url = res.headers["Location"]
-				depth -= 1
-			else:
-				break
-		except Exception:
-			log.error("Error fetching %r", url)
-			break
-	return urls
+def pick_random_elements(iterable, k):
+	"""
+	Pick `k` random elements from `iterable`. Returns a list of length `k`.
+	If there weren't enough elements, `None` is stored at that index instead.
+	"""
+	# Algorithm R: https://en.wikipedia.org/wiki/Reservoir_sampling#Algorithm_R
+	# Changed to use zero-based indexing.
+	ret = [None] * k
+	iterable = enumerate(iterable)
+	for i, elem in itertools.islice(iterable, len(ret)):
+		ret[i] = elem
 
-@cache(24 * 60 * 60)
-@asyncio.coroutine
-def get_tlds():
-	tlds = set()
-	data = yield from http_request_coro("https://data.iana.org/TLD/tlds-alpha-by-domain.txt")
-	for line in data.splitlines():
-		if not line.startswith("#"):
-			line = line.strip().lower()
-			tlds.add(line)
-			line = line.encode("ascii").decode("idna")
-			tlds.add(line)
-	return tlds
+	for i, elem in iterable:
+		j = random.randrange(i)
+		if j < k:
+			ret[j] = elem
 
-@cache(24 * 60 * 60)
-@asyncio.coroutine
-def url_regex():
-	parens = ["()", "[]", "{}", "<>", '""', "''"]
-
-	# Sort TLDs in decreasing order by length to avoid incorrect matches.
-	# For example: if 'co' is before 'com', 'example.com/path' is matched as 'example.co'.
-	tlds = sorted((yield from get_tlds()), key=lambda e: len(e), reverse=True)
-	re_tld = "(?:" + "|".join(map(re.escape, tlds)) + ")"
-	re_hostname = "(?:(?:(?:[\w-]+\.)+" + re_tld + "\.?)|(?:\d{,3}(?:\.\d{,3}){3})|(?:\[[0-9a-fA-F:.]+\]))"
-	re_url = "((?:https?://)?" + re_hostname + "(?::\d+)?(?:/[\x5E\s\u200b]*)?)"
-	re_url = re_url + "|" + "|".join(map(lambda parens: re.escape(parens[0]) + re_url + re.escape(parens[1]), parens))
-	return re.compile(re_url, re.IGNORECASE)
-
-RE_PROTO = re.compile("^https?://")
-def https(uri):
-	return RE_PROTO.sub("https://", uri)
-def noproto(uri):
-	return RE_PROTO.sub("//", uri)
-
-def escape_like(s):
-	return s.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+	return ret

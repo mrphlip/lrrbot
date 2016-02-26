@@ -1,7 +1,8 @@
 import asyncio
 import re
 import logging
-from common import utils
+
+import common.url
 from lrrbot import storage
 import irc.client
 
@@ -10,7 +11,7 @@ log = logging.getLogger('linkspam')
 class LinkSpam:
 	def __init__(self, loop):
 		self._loop = loop
-		self._re_url = loop.run_until_complete(utils.url_regex())
+		self._re_url = loop.run_until_complete(common.url.url_regex())
 		self._rules = [
 			{
 				"re": re.compile(rule["re"], re.IGNORECASE),
@@ -39,7 +40,7 @@ class LinkSpam:
 				if url is not None:
 					urls.append(url)
 					break
-		canonical_urls = yield from asyncio.gather(*map(utils.canonical_url, urls), loop=self._loop)
+		canonical_urls = yield from asyncio.gather(*map(common.url.canonical_url, urls), loop=self._loop)
 		for original_url, url_chain in zip(urls, canonical_urls):
 			for url in url_chain:
 				for rule in self._rules:

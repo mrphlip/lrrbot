@@ -6,22 +6,19 @@ import time
 import datetime
 import json
 import logging
-import socket
-import select
 import functools
-import queue
 import asyncio
 import traceback
 
-import dateutil.parser
 import irc.bot
 import irc.client
 import irc.modes
 
+import common.http
+import lrrbot.decorators
 from common import utils
 from common.config import config
 from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor, linkspam
-
 
 log = logging.getLogger('lrrbot')
 
@@ -62,7 +59,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.reactor.add_global_handler('pubmsg', self.on_message)
 		self.reactor.add_global_handler('privmsg', self.on_message)
 		self.reactor.add_global_handler('action', self.on_message_action)
-		self.reactor.add_global_handler('mode', self.on_mode)
 		self.reactor.add_global_handler('clearchat', self.on_clearchat)
 		if self.whisperconn:
 			self.whisperconn.add_whisper_handler(self.on_whisper)
@@ -220,6 +216,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 		if event.type == "pubmsg":
 			tags = dict((i['key'], i['value']) for i in event.tags)
+			self.check_moderator(conn, nick, tags)
 			metadata = {
 				'usercolor': tags.get('color'),
 				'emotes': tags.get('emotes'),
@@ -298,7 +295,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		}
 		if irc.client.is_channel(event.target):
 			notifyparams['channel'] = event.target[1:]
-		utils.api_request('notifications/newmessage', notifyparams, 'POST')
+		common.http.api_request('notifications/newmessage', notifyparams, 'POST')
 
 	def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None):
 		notifyparams = {
@@ -335,7 +332,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.lastsubs = self.lastsubs[-10:]
 		storage.save()
 		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
-		utils.api_request('notifications/newmessage', notifyparams, 'POST')
+		common.http.api_request('notifications/newmessage', notifyparams, 'POST')
 
 		self.subs.add(user.lower())
 		storage.data['subs'] = list(self.subs)
@@ -363,18 +360,23 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		if len(event.arguments) >= 1:
 			chatlog.clear_chat_log(event.arguments[0])
 
-	def on_mode(self, conn, event):
-		if irc.client.is_channel(event.target):
-			for mode in irc.modes.parse_channel_modes(" ".join(event.arguments)):
-				if mode[0] == "+" and mode[1] == 'o':
-					self.mods.add(mode[2].lower())
-					storage.data['mods'] = list(self.mods)
-					storage.save()
-				# Son't actually remove users from self.mods on -o, as Twitch chat sends
-				# those when the user leaves the channel, and that sometimes happens
-				# unreliably, or we might not get a +o when they return...
-				# Will just have to remove users from storage.data['mods'] manually
-				# should it ever come up.
+	def check_moderator(self, conn, nick, tags):
+		# Either:
+		#  * has sword
+		is_mod = tags.get('mod', '0') == '1'
+		#  * is some sort of Twitchsm'n
+		is_mod = is_mod or tags.get('user-type', '') in {'mod', 'global_mod', 'admin', 'staff'}
+		#  * is broadcaster
+		is_mod = is_mod or nick.lower() == config['channel']
+
+		if not is_mod and nick in self.mods:
+			self.mods.remove(nick)
+			storage.data['mods'] = list(self.mods)
+			storage.save()
+		if is_mod and nick not in self.mods:
+			self.mods.add(nick)
+			storage.data['mods'] = list(self.mods)
+			storage.save()
 
 	def get_current_game(self, readonly=True):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
@@ -480,7 +482,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		"""
 		if hasattr(conn.privmsg, "is_wrapped"):
 			return
-		original_privmsg = utils.twitch_throttle()(conn.privmsg)
+		original_privmsg = lrrbot.decorators.twitch_throttle()(conn.privmsg)
 		@functools.wraps(original_privmsg)
 		def new_privmsg(target, text):
 			if irc.client.is_channel(target):

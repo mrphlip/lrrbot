@@ -6,7 +6,7 @@ import uuid
 import flask
 import flask.json
 
-from common import utils
+import www.utils
 from www import server
 from common.config import config, from_apipass
 
@@ -123,7 +123,7 @@ def login(return_to=None):
 
 		if 'as' in flask.request.values:
 			if flask.request.values['as'] not in SPECIAL_USERS:
-				return utils.error_page("Not a recognised user name: %s" % flask.request.values['as'])
+				return www.utils.error_page("Not a recognised user name: %s" % flask.request.values['as'])
 			scope = SPECIAL_USERS[flask.request.values['as']]
 		else:
 			scope = REQUEST_SCOPES

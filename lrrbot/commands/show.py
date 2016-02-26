@@ -1,18 +1,18 @@
-from common import utils
+import lrrbot.decorators
 from lrrbot import storage
+from lrrbot import twitch
 from lrrbot.main import bot
-
 
 def set_show(lrrbot, show):
 	if lrrbot.show != show.lower():
 		lrrbot.show = show.lower()
-		lrrbot.get_current_game_real.reset_throttle()
+		twitch.get_game.reset_throttle()
 
 def show_name(show):
 	return storage.data.get("shows", {}).get(show, {}).get("name", show)
 
 @bot.command("show")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 def get_show(lrrbot, conn, event, respond_to):
 	"""
 	Command: !show
@@ -31,7 +31,7 @@ def print_show(lrrbot, conn, respond_to):
 		conn.privmsg(respond_to, "Current show not set.")
 
 @bot.command("show override (.*?)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def show_override(lrrbot, conn, event, respond_to, show):
 	"""
 	Command: !show override ID

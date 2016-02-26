@@ -1,9 +1,8 @@
 import json
 import re
 
-from common import utils
+import lrrbot.decorators
 from lrrbot.main import bot
-
 
 with open("mtgcards.json") as fp:
 	# format:
@@ -13,7 +12,7 @@ with open("mtgcards.json") as fp:
 	CARD_DATA = json.load(fp)
 
 @bot.command("card (.+)")
-@utils.throttle(60, count=3)
+@lrrbot.decorators.throttle(60, count=3)
 def card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	Command: !card card-name

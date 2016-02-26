@@ -19,15 +19,24 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-from common import utils
+import common.postgres
+import common.time
+import common.utils
+import lrrbot.decorators
 from lrrbot.main import bot
-import datetime
+
+def format_quote(tag, qid, quote, name, date):
+	quote_msg = "{tag} #{qid}: \"{quote}\"".format(tag=tag, qid=qid, quote=quote)
+	if name:
+		quote_msg += " —{name}".format(name=name)
+	if date:
+		quote_msg += " [{date!s}]".format(date=date)
+	return quote_msg
 
 @bot.command("quote(?: (?:(\d+)|(.+)))?")
-@utils.sub_only
-@utils.throttle(60, count=2)
-@utils.with_postgres
+@lrrbot.decorators.sub_only
+@lrrbot.decorators.throttle(60, count=2)
+@common.postgres.with_postgres
 def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	"""
 	Command: !quote
@@ -48,33 +57,28 @@ def quote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, attrib):
 	elif attrib:
 		where, params = """
 			WHERE LOWER(attrib_name) LIKE %s AND NOT deleted
-		""", ("%" + utils.escape_like(attrib.lower()) + "%",)
+		""", ("%" + common.postgres.escape_like(attrib.lower()) + "%",)
 	else:
 		where, params = """
 			WHERE NOT deleted
 		""", ()
 
-	row = utils.pick_random_row(cur, """
+	cur.execute("""
 		SELECT qid, quote, attrib_name, attrib_date
 		FROM quotes
 		%s
 	""" % where, params)
+	row = common.utils.pick_random_elements(cur, 1)[0]
 	if row is None:
 		conn.privmsg(respond_to, "Could not find any matching quotes.")
 		return
 
 	qid, quote, name, date = row
-
-	quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-	if name:
-		quote_msg += " —{name}".format(name=name)
-	if date:
-		quote_msg += " [{date!s}]".format(date=date)
-	conn.privmsg(respond_to, quote_msg)
+	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date))
 
 @bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
-@utils.mod_only
-@utils.with_postgres
+@lrrbot.decorators.mod_only
+@common.postgres.with_postgres
 def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	"""
 	Command: !addquote (NAME) [DATE] QUOTE
@@ -87,7 +91,7 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	"""
 	if date:
 		try:
-			date = utils.strtodate(date)
+			date = common.time.strtodate(date)
 		except ValueError:
 			return conn.privmsg(respond_to, "Could not add quote due to invalid date.")
 
@@ -98,17 +102,11 @@ def addquote(pg_conn, cur, lrrbot, conn, event, respond_to, name, date, quote):
 	""", (quote, name, date))
 	qid, = next(cur)
 
-	quote_msg = "New quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-	if name:
-		quote_msg += " —{name}".format(name=name)
-	if date:
-		quote_msg += " [{date!s}]".format(date=date)
-
-	conn.privmsg(respond_to, quote_msg)
+	conn.privmsg(respond_to, format_quote("New quote", qid, quote, name, date))
 
 @bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
-@utils.mod_only
-@utils.with_postgres
+@lrrbot.decorators.mod_only
+@common.postgres.with_postgres
 def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quote):
 	"""
 	Command: !modquote QID (NAME) [DATE] QUOTE
@@ -121,7 +119,7 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 	"""
 	if date:
 		try:
-			date = utils.strtodate(date)
+			date = common.time.strtodate(date)
 		except ValueError:
 			return conn.privmsg(respond_to, "Could not modify quote due to invalid date.")
 
@@ -131,18 +129,13 @@ def modquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid, name, date, quo
 		WHERE qid = %s AND NOT deleted
 	""", (quote, name, date, qid))
 	if cur.rowcount == 1:
-		quote_msg = "Modified quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-		if name:
-			quote_msg += " —{name}".format(name=name)
-		if date:
-			quote_msg += " [{date!s}]".format(date=date)
-		conn.privmsg(respond_to, quote_msg)
+		conn.privmsg(respond_to, format_quote("Modified quote", qid, quote, name, date))
 	else:
 		conn.privmsg(respond_to, "Could not modify quote.")
 
 @bot.command("delquote (\d+)")
-@utils.mod_only
-@utils.with_postgres
+@lrrbot.decorators.mod_only
+@common.postgres.with_postgres
 def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 	"""
 	Command: !delquote QID
@@ -163,9 +156,9 @@ def delquote(pg_conn, cur, lrrbot, conn, event, respond_to, qid):
 		conn.privmsg(respond_to, "Could not find quote #{qid}.".format(qid=qid))
 
 @bot.command("findquote (.*)")
-@utils.sub_only
-@utils.throttle(60, count=2)
-@utils.with_postgres
+@lrrbot.decorators.sub_only
+@lrrbot.decorators.throttle(60, count=2)
+@common.postgres.with_postgres
 def findquote(pg_conn, cur, lrrbot, conn, event, respond_to, query):
 	"""
 	Command: !findquote QUERY
@@ -174,19 +167,15 @@ def findquote(pg_conn, cur, lrrbot, conn, event, respond_to, query):
 	Search for a quote in the quote database.
 	"""
 
-	row = utils.pick_random_row(cur, """
+	cur.execute("""
 		SELECT qid, quote, attrib_name, attrib_date
 		FROM quotes
 		WHERE
 			TO_TSVECTOR('english', quote) @@ PLAINTO_TSQUERY('english', %s)
 			AND NOT deleted
 	""", (query, ))
+	row = common.utils.pick_random_elements(cur, 1)[0]
 	if row is None:
 		return conn.privmsg(respond_to, "Could not find any matching quotes.")
 	qid, quote, name, date = row
-	quote_msg = "Quote #{qid}: \"{quote}\"".format(qid=qid, quote=quote)
-	if name:
-		quote_msg += " —{name}".format(name=name)
-	if date:
-		quote_msg += " [{date!s}]".format(date=date)
-	conn.privmsg(respond_to, quote_msg)
+	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date))

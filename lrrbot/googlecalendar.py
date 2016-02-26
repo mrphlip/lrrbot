@@ -6,9 +6,10 @@ import dateutil.parser
 import pytz
 import pytz.exceptions
 
+import common.http
+import common.time
 from common import utils
 from common.config import config
-
 
 CACHE_EXPIRY = 15*60
 CALENDAR_LRL = "loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com"
@@ -47,7 +48,7 @@ def get_upcoming_events(calendar, after=None):
 		"timeZone": config['timezone'].zone,
 		"key": config['google_key'],
 	}
-	res = utils.http_request(url, data)
+	res = common.http.request(url, data)
 	res = json.loads(res)
 	if 'error' in res:
 		raise Exception(res['error']['message'])
@@ -119,7 +120,7 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 	elif isinstance(tz, str):
 		tz = tz.strip()
 		try:
-			tz = utils.get_timezone(tz)
+			tz = common.time.get_timezone(tz)
 		except pytz.exceptions.UnknownTimeZoneError:
 			return "Unknown timezone: %s" % tz
 
@@ -137,9 +138,9 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 		if i == len(events) - 1 or ev['start'] != events[i+1]['start']:
 			if verbose:
 				if ev['start'] < after:
-					nice_duration = utils.nice_duration(after - ev['start'], 1) + " ago"
+					nice_duration = common.time.nice_duration(after - ev['start'], 1) + " ago"
 				else:
-					nice_duration = utils.nice_duration(ev['start'] - after, 1) + " from now"
+					nice_duration = common.time.nice_duration(ev['start'] - after, 1) + " from now"
 				strs.append("%s at %s (%s)" % (title, ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT), nice_duration))
 			else:
 				strs.append("%s at %s" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT)))
@@ -154,4 +155,3 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 			response = "Next scheduled fan stream: %s." % response
 
 	return utils.shorten(response, 450) # For safety
-

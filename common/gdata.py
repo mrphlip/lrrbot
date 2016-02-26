@@ -1,6 +1,6 @@
 import time
 
-from common import utils
+import common.http
 
 import asyncio
 
@@ -12,7 +12,6 @@ import json
 import base64
 import xml.dom
 import xml.dom.minidom
-
 
 def base64_encode(data):
 	return base64.urlsafe_b64encode(data).strip(b"=")
@@ -43,7 +42,7 @@ def get_oauth_token(scopes):
 
 	data = {"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer", "assertion": jwt}
 
-	ret = json.loads((yield from utils.http_request_coro("https://accounts.google.com/o/oauth2/token", data, "POST")))
+	ret = json.loads((yield from common.http.request_coro("https://accounts.google.com/o/oauth2/token", data, "POST")))
 	if "error" in ret:
 		raise Exception(ret["error"])
 	return ret
@@ -64,12 +63,12 @@ def add_rows_to_spreadsheet(spreadsheet, rows):
 	token = yield from get_oauth_token(["https://spreadsheets.google.com/feeds"])
 	headers = {"Authorization": "%(token_type)s %(access_token)s" % token}
 	url = "https://spreadsheets.google.com/feeds/worksheets/%s/private/full" % spreadsheet
-	tree = xml.dom.minidom.parseString((yield from utils.http_request_coro(url, headers=headers)))
+	tree = xml.dom.minidom.parseString((yield from common.http.request_coro(url, headers=headers)))
 	worksheet = next(iter(tree.getElementsByTagName("entry")))
 	list_feed = find_schema(worksheet, "http://schemas.google.com/spreadsheets/2006#listfeed")
 	if list_feed is None:
 		raise Exception("List feed missing.")
-	list_feed = xml.dom.minidom.parseString((yield from utils.http_request_coro(list_feed, headers=headers)))
+	list_feed = xml.dom.minidom.parseString((yield from common.http.request_coro(list_feed, headers=headers)))
 	post_url = find_schema(list_feed, "http://schemas.google.com/g/2005#post")
 	if post_url is None:
 		raise Exception("POST URL missing.")
@@ -83,4 +82,4 @@ def add_rows_to_spreadsheet(spreadsheet, rows):
 			root.appendChild(new_field(doc, column, value))
 
 		headers["Content-Type"] = "application/atom+xml"
-		yield from utils.http_request_coro(post_url, headers=headers, data=doc.toxml(), method="POST")
+		yield from common.http.request_coro(post_url, headers=headers, data=doc.toxml(), method="POST")

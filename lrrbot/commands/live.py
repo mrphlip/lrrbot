@@ -1,3 +1,5 @@
+import common.http
+import lrrbot.decorators
 from lrrbot.main import bot
 from lrrbot import twitch
 from lrrbot import googlecalendar
@@ -12,7 +14,7 @@ import irc.client
 @utils.cache(24 * 60 * 60)
 @asyncio.coroutine
 def extract_new_channels(loop):
-	data = yield from utils.http_request_coro(googlecalendar.EVENTS_URL % urllib.parse.quote(googlecalendar.CALENDAR_FAN), {
+	data = yield from common.http.request_coro(googlecalendar.EVENTS_URL % urllib.parse.quote(googlecalendar.CALENDAR_FAN), {
 		"key": config["google_key"],
 		"maxResults": 25000,
 	})
@@ -40,7 +42,7 @@ def extract_new_channels(loop):
 	yield from asyncio.gather(*map(twitch.follow_channel, channels.difference(old_channels)), loop=loop, return_exceptions=True)
 
 @bot.command("live")
-@utils.throttle()
+@lrrbot.decorators.throttle()
 @asyncio.coroutine
 def live(lrrbot, conn, event, respond_to):
 	"""
@@ -94,7 +96,6 @@ def live(lrrbot, conn, event, respond_to):
 	])
 	return conn.privmsg(respond_to, utils.shorten(message, 450))
 
-
 @bot.command("live register")
 @asyncio.coroutine
 def register_self(lrrbot, conn, event, respond_to):
@@ -120,7 +121,7 @@ def unregister_self(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Channel '%s' removed from the fanstreamer list." % channel)
 
 @bot.command("live register (.*)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 @asyncio.coroutine
 def register(lrrbot, conn, event, respond_to, channel):
 	"""
@@ -135,7 +136,7 @@ def register(lrrbot, conn, event, respond_to, channel):
 		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)
 
 @bot.command("live unregister (.*)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 @asyncio.coroutine
 def unregister(lrrbot, conn, event, respond_to, channel):
 	"""

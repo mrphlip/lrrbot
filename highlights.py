@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-
+import common.postgres
 from lrrbot import twitch
 from common.highlights import SPREADSHEET, format_row
-from common import utils, gdata
+from common import gdata
 
 import dateutil.parser
 import asyncio
 
-@utils.with_postgres
+@common.postgres.with_postgres
 def get_staged_highlights(conn, cur):
 	cur.execute("SELECT id, title, description, time, nick FROM highlights")
 	return [{
@@ -18,7 +18,7 @@ def get_staged_highlights(conn, cur):
 		"nick": highlight[4],
 	} for highlight in cur]
 
-@utils.with_postgres
+@common.postgres.with_postgres
 def delete_staged_highlights(conn, cur, highlights):
 	cur.executemany("DELETE FROM highlights WHERE id = %s", [(highlight["id"], ) for highlight in highlights])
 
