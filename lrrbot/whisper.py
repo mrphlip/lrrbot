@@ -8,8 +8,9 @@ import asyncio
 log = logging.getLogger('whisper')
 
 class TwitchWhisper(irc.bot.SingleServerIRCBot):
-	def __init__(self, loop):
+	def __init__(self, loop, service):
 		self.loop = loop
+		self.service = service
 		servers = [irc.bot.ServerSpec(
 			host=host,
 			port=port,
@@ -48,6 +49,7 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 		log.info("Connected to group chat server")
 		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
 		conn.cap("REQ", "twitch.tv/commands") # get special commands
+		self.service.subsystem_started("whispers")
 
 	def add_whisper_handler(self, handler):
 		self.reactor.add_global_handler('whisper', handler)
