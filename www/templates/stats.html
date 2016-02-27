@@ -27,23 +27,25 @@
 <table class="nicetable statstable" id="stats">
 <thead>
 <tr>
-	<th class="game">Game</th>
+	<th class="game">{%if show_id is none%}Show{%else%}Game{%endif%}</th>
 	{%for stat in stats%}
 		<th class="stat {{stat['statkey']|e}}">{{stat['plural']|ucfirst|e}}</th>
 	{%endfor%}
 </tr>
 </thead>
 <tbody>
-{%for game in games%}
+{%for entry in entries%}
 	<tr class="{{loop.cycle('odd', 'even')|e}}">
 		<td class="game">
-			{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
-			{{game['display']|e}}
-			{%if game['display'] != game['name']%}</span>{%endif%}
-			{%if 'show' in game%}({{game['show']|e}}){%endif%}
+			{%if entry['display'] != entry['name']%}
+				<span class="alias" title="{{entry['name']|e}}">{{entry['display']|e}}</span>
+			{%else%}
+				{{entry['display']|e}}
+			{%endif%}
+			{%if 'show' in entry%}({{entry['show']|e}}){%endif%}
 		</td>
 		{%for stat in stats%}
-			<td class="stat {{stat['statkey']|e}}">{{game['stats'][stat['statkey']]|e}}</td>
+			<td class="stat {{stat['statkey']|e}}">{{entry['stats'][stat['statkey']]|e}}</td>
 		{%endfor%}
 	</tr>
 {%endfor%}
@@ -74,32 +76,35 @@ $(document).ready(function() {
 });
 </script>
 
-<table class="nicetable statstable">
-<thead>
-<tr>
-	<th class="game">Game</th>
-	<th class="rating" colspan="2">Rating</th>
-</tr>
-</thead>
-<tbody>
-{%for game in votegames%}
-	<tr class="{{loop.cycle('odd', 'even')|e}}">
-		<td class="game">
-			{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
-			{{game['display']|e}}
-			{%if game['display'] != game['name']%}</span>{%endif%}
-			{%if 'show' in game%}({{game['show']|e}}){%endif%}
-		</td>
-		<td class="rating graph">
-			<div class="rating">
-				<div class="good" style="width: {{game['voteperc']|e}}%"></div>
-			</div>
-		</td>
-		<td class="rating numbers">{{game['votegood']|e}} / {{game['votecount']|e}}</td>
+{% if votegames is not none %}
+	<table class="nicetable statstable">
+	<thead>
+	<tr>
+		<th class="game">Game</th>
+		<th class="rating" colspan="2">Rating</th>
 	</tr>
-{%endfor%}
-</tbody>
-</table>
+	</thead>
+	<tbody>
+	{%for game in votegames%}
+		<tr class="{{loop.cycle('odd', 'even')|e}}">
+			<td class="game">
+				{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
+				{{game['display']|e}}
+				{%if game['display'] != game['name']%}</span>{%endif%}
+				{%if 'show' in game%}({{game['show']|e}}){%endif%}
+			</td>
+			<td class="rating graph">
+				<div class="rating">
+					<div class="good" style="width: {{game['voteperc']|e}}%"></div>
+				</div>
+			</td>
+			<td class="rating numbers">{{game['votegood']|e}} / {{game['votecount']|e}}</td>
+		</tr>
+	{%endfor%}
+	</tbody>
+	</table>
+{%endif%}
+
 {%for stat in stats%}
 <div class="highchart" id="chart-{{stat['statkey']|e}}"></div>
 <script type="text/javascript">

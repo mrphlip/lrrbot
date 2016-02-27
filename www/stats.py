@@ -11,26 +11,35 @@ def stats(session):
 	shows = botinteract.get_data(["shows"])
 	if show_id is not None:
 		show_id = show_id.lower()
-		games = shows.get(show_id, {}).get("games", {})
-		for game in games.values():
+		entries = shows.get(show_id, {}).get("games", {})
+		for game in entries.values():
 			game["show_id"] = show_id
 	else:
-		games = {}
+		entries = {}
 		for show_id, show in shows.items():
 			show_name = show.get("name", show_id)
-			for game_id, game in show['games'].items():
-				game["show_id"] = show_id
-				game["show"] = show_name
-				games["%s-%s" % (show_id, game_id)] = game
+			entry = {
+				"id": show_id,
+				"name": show_name,
+				"stats": {
+				},
+			}
+			for game in show['games'].values():
+				for stat, value in game['stats'].items():
+					try:
+						entry["stats"][stat] += value
+					except KeyError:
+						entry["stats"][stat] = value
+			entries[show_id] = entry
 		show_id = None
 	shows = [{"name": show.get("name", name), "id": name} for name, show in shows.items()]
 	shows = sorted(shows, key=lambda show: show["name"].lower())
 	stats = botinteract.get_data(["stats"])
 	# Calculate totals
 	for statkey, stat in stats.items():
-		stat['total'] = sum(g.get('stats',{}).get(statkey,0) for g in games.values())
+		stat['total'] = sum(g.get('stats',{}).get(statkey,0) for g in entries.values())
 	# Make our lives easier in the template - make sure all our defaults exist, and turn our major dicts into lists
-	for gamekey, game in games.items():
+	for gamekey, game in entries.items():
 		game.setdefault('display', game['name'])
 		game.setdefault('stats', {})
 		for statkey in stats.keys():
@@ -46,19 +55,22 @@ def stats(session):
 	for statkey, stat in stats.items():
 		stat.setdefault('singular', statkey)
 		stat.setdefault('statkey', statkey)
-	games = list(games.values())
-	games.sort(key=lambda g: g['display'].upper())
-	votegames = [g for g in games if g['votecount']]
-	votegames.sort(key=lambda g: -g['voteperc'])
+	entries = list(entries.values())
+	entries.sort(key=lambda g: g['display'].upper())
+	if show_id is not None:
+		votegames = [g for g in entries if g['votecount']]
+		votegames.sort(key=lambda g: -g['voteperc'])
+	else:
+		votegames = None
 	stats = list(stats.values())
 	stats.sort(key=lambda s: -s['total'])
 	# Calculate graph datasets
-	if show_id is None:
-		game_name_format = "%(display)s (%(show)s)"
-	else:
-		game_name_format = "%(display)s"
 	for stat in stats:
-		stat['graphdata'] = [(game_name_format % game, game['stats'][stat['statkey']]) for game in games if game['stats'][stat['statkey']]]
+		stat['graphdata'] = [
+			(game["display"], game['stats'][stat['statkey']])
+			for game in entries
+			if game['stats'][stat['statkey']]
+		]
 		stat['graphdata'].sort(key=lambda pt:-pt[1])
 
-	return flask.render_template('stats.html', games=games, votegames=votegames, stats=stats, session=session, shows=shows, show_id=show_id)
+	return flask.render_template('stats.html', entries=entries, votegames=votegames, stats=stats, session=session, shows=shows, show_id=show_id)
