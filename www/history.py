@@ -1,34 +1,31 @@
+import datetime
 import difflib
 
 import flask
 import flask.json
+import sqlalchemy
+import pytz
 
-import common.postgres
 from www import server
 from www import login
 
-from psycopg2.extras import Json
-
 @server.app.route('/history')
 @login.require_mod
-@common.postgres.with_postgres
-def history(conn, cur, session):
+def history(session):
 	page = flask.request.values.get('page', 'all')
 	assert page in ('responses', 'explanations', 'spam', 'link_spam', 'all')
-	if page == 'all':
-		cur.execute("""
-			SELECT historykey, section, changetime, changeuser, LENGTH(jsondata :: text)
-			FROM history
-			ORDER BY changetime
-		""", ())
-	else:
-		cur.execute("""
-			SELECT historykey, section, changetime, changeuser, LENGTH(jsondata :: text)
-			FROM history
-			WHERE section = %s
-			ORDER BY changetime
-		""", (page,))
-	data = [dict(zip(('key', 'section', 'time', 'user', 'datalen'), row)) for row in cur.fetchall()]
+	history = server.db.metadata.tables["history"]
+	query = sqlalchemy.select([
+		history.c.historykey, history.c.section, history.c.changetime, history.c.changeuser,
+		sqlalchemy.func.length(history.c.jsondata.cast(sqlalchemy.Text))
+	]).order_by(history.c.changetime)
+	if page != 'all':
+		query = query.where(history.c.section == page)
+	with server.db.engine.begin() as conn:
+		data = [
+			{'key': key, 'section': section, 'time': time, 'user': user, 'datalen': datalen}
+			for key, section, time, user, datalen in conn.execute(query).fetchall()
+		]
 	lastlen = {}
 	lastkey = {}
 	for i in data:
@@ -42,15 +39,12 @@ def history(conn, cur, session):
 
 @server.app.route('/history/<int:historykey>')
 @login.require_mod
-@common.postgres.with_postgres
-def history_show(conn, cur, session, historykey):
-	cur.execute("""
-		SELECT section, changetime, changeuser, jsondata
-		FROM history
-		WHERE historykey = %s
-	""", (historykey,))
-	section, time, user, data = cur.fetchone()
-	assert cur.fetchone() is None
+def history_show(session, historykey):
+	history = server.db.metadata.tables["history"]
+	with server.db.engine.begin() as conn:
+		section, time, user, data = conn.execute(sqlalchemy.select([
+			history.c.section, history.c.changetime, history.c.changeuser, history.c.jsondata
+		]).where(history.c.historykey == historykey)).first()
 	if section in ('responses', 'explanations'):
 		for row in data.values():
 			if not isinstance(row['response'], (tuple, list)):
@@ -63,27 +57,21 @@ def history_show(conn, cur, session, historykey):
 	elif section in ('spam', 'link_spam'):
 		for row in data:
 			row['mode'] = "both nochange"
-	headdata = build_headdata(cur, historykey, historykey, section, user, time)
+	headdata = build_headdata(historykey, historykey, section, user, time)
 	return flask.render_template("historyshow.html", data=data, headdata=headdata, session=session)
 
 @server.app.route('/history/<int:fromkey>/<int:tokey>')
 @login.require_mod
-@common.postgres.with_postgres
-def history_diff(conn, cur, session, fromkey, tokey):
-	cur.execute("""
-		SELECT section, changetime, changeuser, jsondata
-		FROM history
-		WHERE historykey = %s
-	""", (fromkey,))
-	fromsection, fromtime, fromuser, fromdata = cur.fetchone()
-	assert cur.fetchone() is None
-	cur.execute("""
-		SELECT section, changetime, changeuser, jsondata
-		FROM history
-		WHERE historykey = %s
-	""", (tokey,))
-	tosection, totime, touser, todata = cur.fetchone()
-	assert cur.fetchone() is None
+def history_diff(session, fromkey, tokey):
+	history = server.db.metadata.tables["history"]
+	with server.db.engine.begin() as conn:
+		fromsection, fromtime, fromuser, fromdata = conn.execute(sqlalchemy.select([
+			history.c.section, history.c.changetime, history.c.changeuser, history.c.jsondata
+		]).where(history.c.historykey == fromkey)).first()
+
+		tosection, totime, touser, todata = conn.execute(sqlalchemy.select([
+			history.c.section, history.c.changetime, history.c.changeuser, history.c.jsondata
+		]).where(history.c.historykey == tokey)).first()
 	assert fromsection == tosection
 
 	if tosection in ('responses', 'explanations'):
@@ -147,29 +135,22 @@ def history_diff(conn, cur, session, fromkey, tokey):
 					data.append({'re': fromdata[i][0], 'message': fromdata[i][1], 'mode': 'from'})
 				for i in range(i2, j2):
 					data.append({'re': todata[i][0], 'message': todata[i][1], 'mode': 'to'})
-	headdata = build_headdata(cur, fromkey, tokey, tosection, touser, totime)
+	headdata = build_headdata(fromkey, tokey, tosection, touser, totime)
 	return flask.render_template("historyshow.html", data=data, headdata=headdata, session=session)
 
-def build_headdata(cur, fromkey, tokey, section, user, time):
-	cur.execute("""
-		SELECT MAX(historykey)
-		FROM history
-		WHERE historykey < %s AND section = %s
-	""", (fromkey, section))
-	prevkey = cur.fetchone()
+def build_headdata(fromkey, tokey, section, user, time):
+	history = server.db.metadata.tables["history"]
+	with server.db.engine.begin() as conn:
+		prevkey = conn.execute(sqlalchemy.select([sqlalchemy.func.max(history.c.historykey)])
+			.where((history.c.historykey < fromkey) & (history.c.section == section))).first()
+		nextkey = conn.execute(sqlalchemy.select([sqlalchemy.func.min(history.c.historykey)])
+			.where((history.c.historykey > fromkey) & (history.c.section == section))).first()
+
 	if prevkey is not None:
 		prevkey = prevkey[0]
-		assert cur.fetchone() is None
 
-	cur.execute("""
-		SELECT MIN(historykey)
-		FROM history
-		WHERE historykey > %s AND section = %s
-	""", (tokey, section))
-	nextkey = cur.fetchone()
 	if nextkey is not None:
 		nextkey = nextkey[0]
-		assert cur.fetchone() is None
 
 	return {
 		"page": section,
@@ -182,9 +163,11 @@ def build_headdata(cur, fromkey, tokey, section, user, time):
 		"isdiff": fromkey != tokey,
 	}
 
-@common.postgres.with_postgres
-def store(conn, cur, section, user, jsondata):
-	cur.execute("""
-		INSERT INTO history(section, changetime, changeuser, jsondata)
-		VALUES (%s, CURRENT_TIMESTAMP, %s, %s)
-	""", (section, user, Json(jsondata)))
+def store(section, user, jsondata):
+	with server.db.engine.begin() as conn:
+		conn.execute(server.db.metadata.tables["history"].insert(),
+			section=section,
+			changetime=datetime.datetime.now(tz=pytz.utc),
+			changeuser=user,
+			jsondata=jsondata,
+		)

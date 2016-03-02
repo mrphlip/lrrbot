@@ -1,6 +1,8 @@
 import json
 import re
 
+import sqlalchemy
+
 import lrrbot.decorators
 from lrrbot.main import bot
 import common.postgres
@@ -31,7 +33,7 @@ def card_lookup(lrrbot, conn, event, respond_to, search):
 	real_card_lookup(lrrbot, conn, event, respond_to, search)
 
 def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False):
-	cards = find_card(search)
+	cards = find_card(lrrbot, search)
 
 	if noerror and len(cards) != 1:
 		return
@@ -45,23 +47,26 @@ def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False):
 	else:
 		conn.privmsg(respond_to, "Found %d cards you could be referring to - please enter more of the name" % len(cards))
 
-@common.postgres.with_postgres
-def find_card(conn, cur, search):
+def find_card(lrrbot, search):
+	cards = lrrbot.metadata.tables["cards"]
+	card_multiverse = lrrbot.metadata.tables["card_multiverse"]
 	if isinstance(search, int):
-		cur.execute("SELECT c.name, c.text FROM card_multiverse m JOIN cards c ON c.cardid = m.cardid WHERE m.multiverseid = %s", (search,))
-		return cur.fetchall()
+		with lrrbot.engine.begin() as conn:
+			return conn.execute(sqlalchemy.select([cards.c.name, cards.c.text])
+				.select_from(card_multiverse.join(cards, cards.c.cardid == card_multiverse.c.cardid))
+				.where(card_multiverse.c.multiverseid == search)).fetchall()
 
 	cleansearch = clean_text(search)
-	cur.execute("SELECT name, text FROM cards WHERE filteredname = %s", (cleansearch,))
-	rows = cur.fetchall()
-	if rows:
-		return rows
+	with lrrbot.engine.begin() as conn:
+		rows = conn.execute(sqlalchemy.select([cards.c.name, cards.c.text]).where(cards.c.filteredname == cleansearch)).fetchall()
+		if rows:
+			return rows
 
-	searchwords = search.split()
-	searchwords = [clean_text(i) for i in searchwords]
-	searchlike = "%" + "%".join(common.postgres.escape_like(i) for i in searchwords) + "%"
-	cur.execute("SELECT name, text FROM cards WHERE filteredname LIKE %s", (searchlike,))
-	return cur.fetchall()
+		searchwords = search.split()
+		searchwords = [clean_text(i) for i in searchwords]
+		searchlike = "%" + "%".join(common.postgres.escape_like(i) for i in searchwords) + "%"
+		return conn.execute(sqlalchemy.select([cards.c.name, cards.c.text])
+			.where(cards.c.filteredname.like(searchlike))).fetchall()
 
 re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/]")
 LETTERS_MAP = {

@@ -1,6 +1,6 @@
 import flask
 
-import common.postgres
+import sqlalchemy
 import www.utils
 from www import server
 from www import login
@@ -10,55 +10,42 @@ QUOTES_PER_PAGE = 25
 @server.app.route('/quotes/')
 @server.app.route('/quotes/<int:page>')
 @login.with_session
-@common.postgres.with_postgres
-def quotes(conn, cur, session, page=1):
-	cur.execute("SELECT COUNT(*) FROM quotes WHERE NOT deleted")
-	count, = next(cur)
-	pages = (count - 1) // QUOTES_PER_PAGE + 1
+def quotes(session, page=1):
+	quotes = server.db.metadata.tables["quotes"]
+	with server.db.engine.begin() as conn:
+		count, = conn.execute(quotes.count().where(~quotes.c.deleted)).first()
+		pages = (count - 1) // QUOTES_PER_PAGE + 1
 
-	page = max(1, min(page, pages))
+		page = max(1, min(page, pages))
 
-	cur.execute("""
-		SELECT qid, quote, attrib_name, attrib_date
-		FROM quotes
-		WHERE NOT deleted
-		ORDER BY qid DESC
-		OFFSET %s
-		LIMIT %s
-	""", ((page-1) * QUOTES_PER_PAGE, QUOTES_PER_PAGE))
+		quotes = conn.execute(sqlalchemy.select([
+			quotes.c.qid, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date,
+		]).where(~quotes.c.deleted).order_by(quotes.c.qid).offset((page-1) * QUOTES_PER_PAGE).limit(QUOTES_PER_PAGE)).fetchall()
 
-	return flask.render_template('quotes.html', session=session, quotes=list(cur), page=page, pages=pages)
+	return flask.render_template('quotes.html', session=session, quotes=quotes, page=page, pages=pages)
 
 @server.app.route('/quotes/search')
 @login.with_session
-@common.postgres.with_postgres
-def quote_search(conn, cur, session):
+def quote_search(session):
 	query = flask.request.values["q"]
 	mode = flask.request.values.get('mode', 'text')
 	page = int(flask.request.values.get("page", 1))
+	quotes = server.db.metadata.tables["quotes"]
+	sql = sqlalchemy.select([
+		quotes.c.qid, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date
+	]).where(~quotes.c.deleted).order_by(quotes.c.qid.desc())
 	if mode == 'text':
-		cur.execute("""
-			CREATE TEMP TABLE cse AS
-			SELECT qid, quote, attrib_name, attrib_date
-			FROM quotes
-			WHERE
-				TO_TSVECTOR('english', quote) @@ PLAINTO_TSQUERY('english', %s)
-				AND NOT deleted
-			ORDER BY qid DESC
-		""", (query, ))
+		fts_column = sqlalchemy.func.to_tsvector('english', quotes.c.quote)
+		sql = sql.where(fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', query)))
 	elif mode == 'name':
-		cur.execute("""
-			CREATE TEMP TABLE cse AS
-			SELECT qid, quote, attrib_name, attrib_date
-			FROM quotes
-			WHERE
-				LOWER(attrib_name) LIKE %s
-				AND NOT deleted
-			ORDER BY qid DESC
-		""", ("%" + common.postgres.escape_like(query.lower()) + "%",))
+		sql = sql.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(query.lower()) + "%"))
 	else:
 		return www.utils.error_page("Unrecognised mode")
-	pages = (cur.rowcount - 1) // QUOTES_PER_PAGE + 1
+	with server.db.engine.begin() as conn:
+		quotes = conn.execute(sql).fetchall()
+	pages = (len(quotes) - 1) // QUOTES_PER_PAGE + 1
 	page = max(1, min(page, pages))
-	cur.execute("SELECT * FROM cse OFFSET %s LIMIT %s", ((page-1) * QUOTES_PER_PAGE, QUOTES_PER_PAGE))
-	return flask.render_template('quotes.html', session=session, quotes=list(cur), page=page, pages=pages, args={'q': query, 'mode': mode})
+
+	quotes = quotes[(page - 1) * QUOTES_PER_PAGE : page * QUOTES_PER_PAGE]
+
+	return flask.render_template('quotes.html', session=session, quotes=quotes, page=page, pages=pages, args={'q': query, 'mode': mode})

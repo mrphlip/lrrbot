@@ -16,6 +16,7 @@ import irc.modes
 import irc.connection
 
 import common.http
+import common.postgres
 import lrrbot.decorators
 import lrrbot.systemd
 from common import utils
@@ -104,6 +105,8 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.mods = set(storage.data.get('mods', config['mods']))
 		self.subs = set(storage.data.get('subs', []))
 		self.autostatus = set(storage.data.get('autostatus', []))
+
+		self.engine, self.metadata = common.postgres.new_engine_and_metadata()
 
 		linkspam.LinkSpam.__init__(self, loop)
 

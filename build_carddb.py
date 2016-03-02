@@ -17,6 +17,7 @@ import json
 import re
 import datetime
 import dateutil.parser
+import sqlalchemy
 
 from common import utils
 import common.postgres
@@ -27,8 +28,9 @@ ZIP_FILENAME = 'AllSets.json.zip'
 SOURCE_FILENAME = 'AllSets.json'
 MAXLEN = 450
 
-@common.postgres.with_postgres_transaction
-def main(conn, cur):
+engine, metadata = common.postgres.new_engine_and_metadata()
+
+def main():
 	if not do_download_file(URL, ZIP_FILENAME):
 		print("No new version of mtgjson data file")
 		return
@@ -39,62 +41,73 @@ def main(conn, cur):
 		mtgjson = json.load(fp)
 
 	print("Processing...")
-	cur.execute("DELETE FROM card_multiverse")
-	cur.execute("DELETE FROM cards")
-	cardid = 0
-	for expansion in mtgjson.values():
-		release_date = dateutil.parser.parse(expansion['releaseDate']).date()
-		for card in expansion['cards']:
-			cardid += 1
-			if card['layout'] in ('token', 'plane', 'scheme', 'phenomenon', 'vanguard'):  # don't care about these special cards for now
-				continue
-			if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
-				continue
+	cards = metadata.tables["cards"]
+	card_multiverse = metadata.tables["card_multiverse"]
+	with engine.begin() as conn:
+		conn.execute(card_multiverse.delete())
+		conn.execute(cards.delete())
+		cardid = 0
+		for expansion in mtgjson.values():
+			release_date = dateutil.parser.parse(expansion['releaseDate']).date()
+			for card in expansion['cards']:
+				cardid += 1
+				if card['layout'] in ('token', 'plane', 'scheme', 'phenomenon', 'vanguard'):  # don't care about these special cards for now
+					continue
+				if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
+					continue
 
-			cardname, description, multiverseids = process_card(card, expansion)
-			if description is None:
-				continue
+				cardname, description, multiverseids = process_card(card, expansion)
+				if description is None:
+					continue
 
-			# Check if there's already a row for this card in the DB
-			# (keep the one with the latest release date - it's more likely to have the accurate text in mtgjson)
-			cur.execute("SELECT cardid, lastprinted FROM cards WHERE filteredname = %s", (cardname,))
-			rows = cur.fetchall()
-			if not rows:
-				real_cardid = cardid
-				cur.execute(
-					"INSERT INTO cards(cardid, filteredname, name, text, lastprinted) VALUES (%s,%s,%s,%s,%s)",
-					(real_cardid, cardname, card['name'], description, release_date))
-			elif rows[0][1] < release_date:
-				real_cardid = rows[0][0]
-				cur.execute(
-					"UPDATE cards SET name = %s, text = %s, lastprinted = %s where cardid = %s",
-					(card['name'], description, release_date, real_cardid))
-			else:
-				real_cardid = rows[0][0]
-
-			for mid in multiverseids:
-				cur.execute("SELECT cardid FROM card_multiverse WHERE multiverseid = %s", (mid,))
-				rows = cur.fetchall()
+				# Check if there's already a row for this card in the DB
+				# (keep the one with the latest release date - it's more likely to have the accurate text in mtgjson)
+				rows = conn.execute(sqlalchemy.select([cards.c.cardid, cards.c.lastprinted])
+					.where(cards.c.filteredname == cardname)).fetchall()
 				if not rows:
-					cur.execute(
-						"INSERT INTO card_multiverse(multiverseid, cardid) VALUES (%s,%s)",
-						(mid, real_cardid))
-				elif rows[0][0] != real_cardid:
-					cur.execute("SELECT name FROM cards WHERE cardid = %s", (rows[0][0],))
-					rows2 = cur.fetchall()
-					print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, card['name'], rows2[0][0]))
-					print(card['layout'])
+					real_cardid = cardid
+					conn.execute(cards.insert(),
+						cardid=real_cardid,
+						filteredname=cardname,
+						name=card['name'],
+						text=description,
+						lastprinted=release_date,
+					)
+				elif rows[0][1] < release_date:
+					real_cardid = rows[0][0]
+					conn.execute(cards.update().where(cards.c.cardid == real_cardid),
+						name=card["name"],
+						text=description,
+						lastprinted=release_date,
+					)
+				else:
+					real_cardid = rows[0][0]
 
-	cardid += 1
-	cur.execute(
-		"INSERT INTO cards(cardid, filteredname, name, text, lastprinted) VALUES (%s,%s,%s,%s,%s)",
-		(cardid, "bfmbigfurrymonster", "B.F.M. (Big Furry Monster)", "B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.", datetime.date(1998, 8, 11)))
-	cur.execute(
-		"INSERT INTO card_multiverse(multiverseid, cardid) VALUES (%s,%s)",
-		(9780, cardid))
-	cur.execute(
-		"INSERT INTO card_multiverse(multiverseid, cardid) VALUES (%s,%s)",
-		(9844, cardid))
+				for mid in multiverseids:
+					rows = conn.execute(sqlalchemy.select([card_multiverse.c.cardid])
+						.where(card_multiverse.c.multiverseid == mid)).fetchall()
+					if not rows:
+						conn.execute(card_multiverse.insert(),
+							multiverseid=mid,
+							cardid=real_cardid,
+						)
+					elif rows[0][0] != real_cardid:
+						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.cardid == rows[0][0])).fetchall()
+						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, card['name'], rows2[0][0]))
+						print(card['layout'])
+
+		cardid += 1
+		conn.execute(cards.insert(),
+			cardid=cardid,
+			filteredname="bfmbigfurrymonster",
+			name="B.F.M. (Big Furry Monster)""B.F.M. (Big Furry Monster)",
+			text="B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.""B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
+			lastprinted=datetime.date(1998, 8, 11),
+		)
+		conn.execute(card_multiverse.insert(), [
+			{"multiverseid": 9780, "cardid": cardid},
+			{"multiverseid": 9844, "cardid": cardid},
+		])
 
 def do_download_file(url, fn):
 	"""
