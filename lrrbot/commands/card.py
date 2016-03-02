@@ -6,7 +6,7 @@ from lrrbot.main import bot
 import common.postgres
 
 @bot.command("cardview (on|off)")
-@utils.mod_only
+@lrrbot.decorators.mod_only
 def set_cardview(lrrbot, conn, event, respond_to, setting):
 	"""
 	Command: !cardview on
