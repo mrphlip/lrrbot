@@ -20,7 +20,7 @@ import lrrbot.decorators
 import lrrbot.systemd
 from common import utils
 from common.config import config
-from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor, linkspam
+from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
 
 log = logging.getLogger('lrrbot')
 
@@ -64,6 +64,9 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			self.whisperconn = None
 			self.service.subsystem_started("whispers")
 
+		# create pubnub listener
+		self.cardviewer = cardviewer.CardViewer(self, self.loop)
+
 		# IRC event handlers
 		self.reactor.add_global_handler('welcome', self.on_connect)
 		self.reactor.add_global_handler('join', self.on_channel_join)
@@ -93,6 +96,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.show = ""
 		self.polls = []
 		self.lastsubs = []
+		self.cardview = False
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
@@ -129,6 +133,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self._connect()
 		if self.whisperconn:
 			self.whisperconn._connect()
+		self.cardviewer.start()
 
 		# Don't fall over if the server sends something that's not real UTF-8
 		self.connection.buffer.errors = "replace"
@@ -146,6 +151,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			tasks_waiting = [substask, chatlogtask]
 			if self.whisperconn:
 				tasks_waiting.append(self.whisperconn.stop_task())
+			self.cardviewer.stop()
 			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
 			self.loop.close()
 

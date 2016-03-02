@@ -15,18 +15,20 @@ import zipfile
 import io
 import json
 import re
-
+import datetime
 import dateutil.parser
 
+from common import utils
+import common.postgres
 from lrrbot.commands.card import clean_text
 
 URL = 'http://mtgjson.com/json/AllSets.json.zip'
 ZIP_FILENAME = 'AllSets.json.zip'
 SOURCE_FILENAME = 'AllSets.json'
-DEST_FILENAME = 'mtgcards.json'
 MAXLEN = 450
 
-def main():
+@common.postgres.with_postgres_transaction
+def main(conn, cur):
 	if not do_download_file(URL, ZIP_FILENAME):
 		print("No new version of mtgjson data file")
 		return
@@ -37,34 +39,62 @@ def main():
 		mtgjson = json.load(fp)
 
 	print("Processing...")
-	cards = {}
+	cur.execute("DELETE FROM card_multiverse")
+	cur.execute("DELETE FROM cards")
+	cardid = 0
 	for expansion in mtgjson.values():
+		release_date = dateutil.parser.parse(expansion['releaseDate']).date()
 		for card in expansion['cards']:
-			if card['layout'] in ('token', 'plane', 'scheme', 'phenomenon', 'vanguard'): # don't care about these special cards for now
+			cardid += 1
+			if card['layout'] in ('token', 'plane', 'scheme', 'phenomenon', 'vanguard'):  # don't care about these special cards for now
 				continue
-			if card['name'] == 'B.F.M. (Big Furry Monster)': # do this card special
+			if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
 				continue
 
-			cardname, description = process_card(card, expansion)
+			cardname, description, multiverseids = process_card(card, expansion)
 			if description is None:
 				continue
 
-			if cardname not in cards:
-				cards[cardname] = (card['name'], description)
-			elif description != cards[cardname][1]: # Sanity check that cards that have been reprinted have the same Oracle details
-				print("Different descriptions for %s:" % card['name'])
-				print(cards[cardname][1])
-				print(description)
-				sys.exit(1)
+			# Check if there's already a row for this card in the DB
+			# (keep the one with the latest release date - it's more likely to have the accurate text in mtgjson)
+			cur.execute("SELECT cardid, lastprinted FROM cards WHERE filteredname = %s", (cardname,))
+			rows = cur.fetchall()
+			if not rows:
+				real_cardid = cardid
+				cur.execute(
+					"INSERT INTO cards(cardid, filteredname, name, text, lastprinted) VALUES (%s,%s,%s,%s,%s)",
+					(real_cardid, cardname, card['name'], description, release_date))
+			elif rows[0][1] < release_date:
+				real_cardid = rows[0][0]
+				cur.execute(
+					"UPDATE cards SET name = %s, text = %s, lastprinted = %s where cardid = %s",
+					(card['name'], description, release_date, real_cardid))
+			else:
+				real_cardid = rows[0][0]
 
-	cards['bfmbigfurrymonster'] = ( # just too complicated to try to merge this from the two cards...
-		"B.F.M. (Big Furry Monster)",
-		"B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
-	)
+			for mid in multiverseids:
+				cur.execute("SELECT cardid FROM card_multiverse WHERE multiverseid = %s", (mid,))
+				rows = cur.fetchall()
+				if not rows:
+					cur.execute(
+						"INSERT INTO card_multiverse(multiverseid, cardid) VALUES (%s,%s)",
+						(mid, real_cardid))
+				elif rows[0][0] != real_cardid:
+					cur.execute("SELECT name FROM cards WHERE cardid = %s", (rows[0][0],))
+					rows2 = cur.fetchall()
+					print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, card['name'], rows2[0][0]))
+					print(card['layout'])
 
-	print("Saving...")
-	with open(DEST_FILENAME, "w") as fp:
-		json.dump(list((k,n,d) for k,(n,d) in cards.items()), fp, indent=2)
+	cardid += 1
+	cur.execute(
+		"INSERT INTO cards(cardid, filteredname, name, text, lastprinted) VALUES (%s,%s,%s,%s,%s)",
+		(cardid, "bfmbigfurrymonster", "B.F.M. (Big Furry Monster)", "B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.", datetime.date(1998, 8, 11)))
+	cur.execute(
+		"INSERT INTO card_multiverse(multiverseid, cardid) VALUES (%s,%s)",
+		(9780, cardid))
+	cur.execute(
+		"INSERT INTO card_multiverse(multiverseid, cardid) VALUES (%s,%s)",
+		(9844, cardid))
 
 def do_download_file(url, fn):
 	"""
@@ -127,20 +157,10 @@ re_newlines = re.compile(r"[\r\n]+")
 re_multiplespaces = re.compile(r"\s{2,}")
 re_remindertext = re.compile(r"\([^()]*\)")
 def process_card(card, expansion):
-	# some hack overrides (especially for cards that have different values in different sets - override with real oracle values)
-	if card['name'] == 'Phage the Untouchable':
-		card['type'] = "Legendary Creature \u2014 Avatar Minion" # Some records still have this as Zombie Minion
-	if card['name'] == 'Fastbond':
-		card['text'] = "You may play any number of lands on each of your turns.\n\nWhenever you play a land, if it wasn't the first land you played this turn, Fastbond deals 1 damage to you."
-	if card['name'] == "Wakestone Gargoyle":
-		card['text'] = "Defender, flying\n\n{1}{W}: Creatures you control with defender can attack this turn as though they didn't have defender."
-	if card['name'] == "Sorceress Queen":
-		card['text'] = "{T}: Target creature other than Sorceress Queen has base power and toughness 0/2 until end of turn."
-
 	if card.get('layout') == 'split':
 		# Return split cards as a single card... for all the other pieces, return nothing
 		if card['name'] != card['names'][0]:
-			return None, None
+			return None, None, None
 		splits = []
 		for splitname in card['names']:
 			candidates = [i for i in expansion['cards'] if i['name'] == splitname]
@@ -153,6 +173,17 @@ def process_card(card, expansion):
 		card['manaCost'] = ' // '.join(s['manaCost'] for s in splits)
 		card['type'] = splits[0]['type'] # should be the same for all splits
 		card['text'] = ' // '.join(s['text'] for s in splits)
+		multiverseids = [s['multiverseid'] for s in splits if s.get('multiverseid')]
+	elif card.get('layout') == 'flip':
+		if card['name'] == card['names'][0] and card.get('multiverseid'):
+			multiverseids = [card['multiverseid']]
+		else:
+			multiverseids = []
+	else:
+		if card.get('multiverseid'):
+			multiverseids = [card['multiverseid']]
+		else:
+			multiverseids = []
 
 	# sanitise card name
 	name = clean_text(card["name"])
@@ -211,7 +242,7 @@ def process_card(card, expansion):
 	if len(desc) > MAXLEN:
 		desc = desc[:MAXLEN-1] + "\u2026"
 
-	return name, desc
+	return name, desc, multiverseids
 
 if __name__ == '__main__':
 	main()

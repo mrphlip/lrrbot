@@ -3,13 +3,20 @@ import re
 
 import lrrbot.decorators
 from lrrbot.main import bot
+import common.postgres
 
-with open("mtgcards.json") as fp:
-	# format:
-	# CARD_DATA = [
-	#   ('searchable name', 'display name', 'display text')
-	# ]
-	CARD_DATA = json.load(fp)
+@bot.command("cardview (on|off)")
+@utils.mod_only
+def set_cardview(lrrbot, conn, event, respond_to, setting):
+	"""
+	Command: !cardview on
+	Command: !cardview off
+	Section: misc
+
+	Toggle showing details of Magic cards in the chat when they are scanned by the card recogniser (for AFK Magic streams).
+	"""
+	lrrbot.cardview = (setting == "on")
+	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if lrrbot.cardview else "disabled"))
 
 @bot.command("card (.+)")
 @lrrbot.decorators.throttle(60, count=3)
@@ -20,26 +27,40 @@ def card_lookup(lrrbot, conn, event, respond_to, search):
 
 	Show the details of a given Magic: the Gathering card.
 	"""
-	cleansearch = clean_text(search)
-	searchwords = search.split()
-	searchwords = [clean_text(i) for i in searchwords]
+	real_card_lookup(lrrbot, conn, event, respond_to, search)
 
-	cards = []
-	for card in CARD_DATA:
-		if card[0] == cleansearch:
-			cards = [card]
-			break
-		elif all(i in card[0] for i in searchwords):
-			cards.append(card)
+def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False):
+	cards = find_card(search)
+
+	if noerror and len(cards) != 1:
+		return
 
 	if len(cards) == 0:
 		conn.privmsg(respond_to, "Can't find any card by that name")
 	elif len(cards) == 1:
-		conn.privmsg(respond_to, cards[0][2])
+		conn.privmsg(respond_to, cards[0][1])
 	elif len(cards) <= 5:
-		conn.privmsg(respond_to, "Did you mean: %s" % '; '.join(card[1] for card in cards))
+		conn.privmsg(respond_to, "Did you mean: %s" % '; '.join(card[0] for card in cards))
 	else:
 		conn.privmsg(respond_to, "Found %d cards you could be referring to - please enter more of the name" % len(cards))
+
+@common.postgres.with_postgres
+def find_card(conn, cur, search):
+	if isinstance(search, int):
+		cur.execute("SELECT c.name, c.text FROM card_multiverse m JOIN cards c ON c.cardid = m.cardid WHERE m.multiverseid = %s", (search,))
+		return cur.fetchall()
+
+	cleansearch = clean_text(search)
+	cur.execute("SELECT name, text FROM cards WHERE filteredname = %s", (cleansearch,))
+	rows = cur.fetchall()
+	if rows:
+		return rows
+
+	searchwords = search.split()
+	searchwords = [clean_text(i) for i in searchwords]
+	searchlike = "%" + "%".join(utils.escape_like(i) for i in searchwords) + "%"
+	cur.execute("SELECT name, text FROM cards WHERE filteredname LIKE %s", (searchlike,))
+	return cur.fetchall()
 
 re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/]")
 LETTERS_MAP = {
