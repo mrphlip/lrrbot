@@ -17,8 +17,11 @@ config = dict(config.items(CONFIG_SECTION))
 
 # hostname - server to connect to (default Twitch)
 config.setdefault('hostname', 'irc.twitch.tv')
-# port - portname to connect on (default 6667)
-config['port'] = int(config.get('port', 6667))
+# secure - whether to use TLS to connect to the server
+config.setdefault('secure', False)
+config['secure'] = str(config['secure']).lower() != 'false'
+# port - portname to connect on (default 6667, or 6697 for secure)
+config['port'] = int(config.get('port', 6697 if config['secure'] else 6667))
 # username
 config.setdefault('username', 'lrrbot')
 # password - server password

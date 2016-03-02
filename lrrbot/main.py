@@ -13,6 +13,7 @@ import traceback
 import irc.bot
 import irc.client
 import irc.modes
+import irc.connection
 
 import common.http
 import lrrbot.decorators
@@ -33,11 +34,17 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			port=config['port'],
 			password="oauth:%s" % storage.data['twitch_oauth'][config['username']] if config['password'] == "oauth" else config['password'],
 		)
+		if config['secure']:
+			import ssl
+			connect_factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
+		else:
+			connect_factory = irc.connection.Factory()
 		super(LRRBot, self).__init__(
 			server_list=[server],
 			realname=config['username'],
 			nickname=config['username'],
 			reconnection_interval=config['reconnecttime'],
+			connect_factory=connect_factory,
 		)
 
 		# Send a keep-alive message every minute, to catch network dropouts
