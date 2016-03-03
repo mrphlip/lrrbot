@@ -15,7 +15,7 @@ from www import login
 def get_notifications(conn, after=None, test=False):
 	notification = server.db.metadata.tables["notification"]
 	query = sqlalchemy.select([
-		notification.c.notificationkey, notification.c.message, notification.c.channel,
+		notification.c.id, notification.c.message, notification.c.channel,
 		notification.c.subuser, notification.c.useravatar, notification.c.eventtime,
 		notification.c.monthcount, notification.c.test,
 	]).where(notification.c.eventtime >= (sqlalchemy.func.current_timestamp() - datetime.timedelta(days=2)))
@@ -45,9 +45,11 @@ def notifications(session):
 		row_data = get_notifications(conn)
 		row_data.reverse()
 		if len(row_data) == 0:
-			maxkey = conn.execute(sqlalchemy.select([sqlalchemy.func.max(notification.c.notificationkey)])).first()
+			maxkey = conn.execute(sqlalchemy.select([sqlalchemy.func.max(notification.c.id)])).first()
 			if maxkey is None:
 				maxkey = -1
+			else:
+				maxkey = maxkey[0]
 		else:
 			maxkey = row_data[0]['key']
 

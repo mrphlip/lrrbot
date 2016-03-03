@@ -62,12 +62,12 @@ def main():
 
 				# Check if there's already a row for this card in the DB
 				# (keep the one with the latest release date - it's more likely to have the accurate text in mtgjson)
-				rows = conn.execute(sqlalchemy.select([cards.c.cardid, cards.c.lastprinted])
+				rows = conn.execute(sqlalchemy.select([cards.c.id, cards.c.lastprinted])
 					.where(cards.c.filteredname == cardname)).fetchall()
 				if not rows:
 					real_cardid = cardid
 					conn.execute(cards.insert(),
-						cardid=real_cardid,
+						id=real_cardid,
 						filteredname=cardname,
 						name=card['name'],
 						text=description,
@@ -75,7 +75,7 @@ def main():
 					)
 				elif rows[0][1] < release_date:
 					real_cardid = rows[0][0]
-					conn.execute(cards.update().where(cards.c.cardid == real_cardid),
+					conn.execute(cards.update().where(cards.c.id == real_cardid),
 						name=card["name"],
 						text=description,
 						lastprinted=release_date,
@@ -85,28 +85,28 @@ def main():
 
 				for mid in multiverseids:
 					rows = conn.execute(sqlalchemy.select([card_multiverse.c.cardid])
-						.where(card_multiverse.c.multiverseid == mid)).fetchall()
+						.where(card_multiverse.c.id == mid)).fetchall()
 					if not rows:
 						conn.execute(card_multiverse.insert(),
-							multiverseid=mid,
+							id=mid,
 							cardid=real_cardid,
 						)
 					elif rows[0][0] != real_cardid:
-						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.cardid == rows[0][0])).fetchall()
+						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, card['name'], rows2[0][0]))
 						print(card['layout'])
 
 		cardid += 1
 		conn.execute(cards.insert(),
-			cardid=cardid,
+			id=cardid,
 			filteredname="bfmbigfurrymonster",
 			name="B.F.M. (Big Furry Monster)""B.F.M. (Big Furry Monster)",
 			text="B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.""B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
 			lastprinted=datetime.date(1998, 8, 11),
 		)
 		conn.execute(card_multiverse.insert(), [
-			{"multiverseid": 9780, "cardid": cardid},
-			{"multiverseid": 9844, "cardid": cardid},
+			{"id": 9780, "cardid": cardid},
+			{"id": 9844, "cardid": cardid},
 		])
 
 def do_download_file(url, fn):

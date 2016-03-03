@@ -51,9 +51,9 @@ def quote(lrrbot, conn, event, respond_to, qid, attrib):
 	Post the quotation with the specified ID.
 	"""
 	quotes = lrrbot.metadata.tables["quotes"]
-	query = sqlalchemy.select([quotes.c.qid, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date])
+	query = sqlalchemy.select([quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date])
 	if qid:
-		query = query.where(quotes.c.qid == int(qid))
+		query = query.where(quotes.c.id == int(qid))
 	elif attrib:
 		query = query.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(attrib.lower()) + "%"))
 	query = query.where(~quotes.c.deleted)
@@ -85,7 +85,7 @@ def addquote(lrrbot, conn, event, respond_to, name, date, quote):
 			return conn.privmsg(respond_to, "Could not add quote due to invalid date.")
 	quotes = lrrbot.metadata.tables["quotes"]
 	with lrrbot.engine.begin() as pg_conn:
-		qid, = pg_conn.execute(quotes.insert().returning(quotes.c.qid), quote=quote, attrib_name=name, attrib_date=date).first()
+		qid, = pg_conn.execute(quotes.insert().returning(quotes.c.id), quote=quote, attrib_name=name, attrib_date=date).first()
 
 	conn.privmsg(respond_to, format_quote("New quote", qid, quote, name, date))
 
@@ -109,7 +109,7 @@ def modquote(lrrbot, conn, event, respond_to, qid, name, date, quote):
 
 	quotes = lrrbot.metadata.tables["quotes"]
 	with lrrbot.engine.begin() as pg_conn:
-		res = pg_conn.execute(quotes.update().where(quotes.c.qid == int(qid) & ~quotes.c.deleted),
+		res = pg_conn.execute(quotes.update().where(quotes.c.id == int(qid) & ~quotes.c.deleted),
 			quote=quote, attrib_name=name, attrib_date=date)
 	if res.rowcount == 1:
 		conn.privmsg(respond_to, format_quote("Modified quote", qid, quote, name, date))
@@ -128,7 +128,7 @@ def delquote(lrrbot, conn, event, respond_to, qid):
 
 	quotes = lrrbot.metadata.tables["quotes"]
 	with lrrbot.engine.begin() as pg_conn:
-		res = pg_conn.execute(quotes.update().where(quotes.c.qid == int(qid)), deleted=True)
+		res = pg_conn.execute(quotes.update().where(quotes.c.id == int(qid)), deleted=True)
 	if res.rowcount == 1:
 		conn.privmsg(respond_to, "Marked quote #{qid} as deleted.".format(qid=qid))
 	else:
@@ -149,7 +149,7 @@ def findquote(lrrbot, conn, event, respond_to, query):
 	with lrrbot.engine.begin() as pg_conn:
 		fts_column = sqlalchemy.func.to_tsvector('english', quotes.c.quote)
 		query = sqlalchemy.select([
-			quotes.c.qid, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date
+			quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date
 		]).where(
 			fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', query)) & ~quotes.c.deleted
 		)

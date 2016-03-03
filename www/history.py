@@ -16,7 +16,7 @@ def history(session):
 	assert page in ('responses', 'explanations', 'spam', 'link_spam', 'all')
 	history = server.db.metadata.tables["history"]
 	query = sqlalchemy.select([
-		history.c.historykey, history.c.section, history.c.changetime, history.c.changeuser,
+		history.c.id, history.c.section, history.c.changetime, history.c.changeuser,
 		sqlalchemy.func.length(history.c.jsondata.cast(sqlalchemy.Text))
 	]).order_by(history.c.changetime)
 	if page != 'all':
@@ -44,7 +44,7 @@ def history_show(session, historykey):
 	with server.db.engine.begin() as conn:
 		section, time, user, data = conn.execute(sqlalchemy.select([
 			history.c.section, history.c.changetime, history.c.changeuser, history.c.jsondata
-		]).where(history.c.historykey == historykey)).first()
+		]).where(history.c.id == historykey)).first()
 	if section in ('responses', 'explanations'):
 		for row in data.values():
 			if not isinstance(row['response'], (tuple, list)):
@@ -67,11 +67,11 @@ def history_diff(session, fromkey, tokey):
 	with server.db.engine.begin() as conn:
 		fromsection, fromtime, fromuser, fromdata = conn.execute(sqlalchemy.select([
 			history.c.section, history.c.changetime, history.c.changeuser, history.c.jsondata
-		]).where(history.c.historykey == fromkey)).first()
+		]).where(history.c.id == fromkey)).first()
 
 		tosection, totime, touser, todata = conn.execute(sqlalchemy.select([
 			history.c.section, history.c.changetime, history.c.changeuser, history.c.jsondata
-		]).where(history.c.historykey == tokey)).first()
+		]).where(history.c.id == tokey)).first()
 	assert fromsection == tosection
 
 	if tosection in ('responses', 'explanations'):
@@ -141,10 +141,10 @@ def history_diff(session, fromkey, tokey):
 def build_headdata(fromkey, tokey, section, user, time):
 	history = server.db.metadata.tables["history"]
 	with server.db.engine.begin() as conn:
-		prevkey = conn.execute(sqlalchemy.select([sqlalchemy.func.max(history.c.historykey)])
-			.where((history.c.historykey < fromkey) & (history.c.section == section))).first()
-		nextkey = conn.execute(sqlalchemy.select([sqlalchemy.func.min(history.c.historykey)])
-			.where((history.c.historykey > fromkey) & (history.c.section == section))).first()
+		prevkey = conn.execute(sqlalchemy.select([sqlalchemy.func.max(history.c.id)])
+			.where((history.c.id < fromkey) & (history.c.section == section))).first()
+		nextkey = conn.execute(sqlalchemy.select([sqlalchemy.func.min(history.c.id)])
+			.where((history.c.id > fromkey) & (history.c.section == section))).first()
 
 	if prevkey is not None:
 		prevkey = prevkey[0]

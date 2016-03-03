@@ -19,8 +19,8 @@ def quotes(session, page=1):
 		page = max(1, min(page, pages))
 
 		quotes = conn.execute(sqlalchemy.select([
-			quotes.c.qid, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date,
-		]).where(~quotes.c.deleted).order_by(quotes.c.qid).offset((page-1) * QUOTES_PER_PAGE).limit(QUOTES_PER_PAGE)).fetchall()
+			quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date,
+		]).where(~quotes.c.deleted).order_by(quotes.c.id).offset((page-1) * QUOTES_PER_PAGE).limit(QUOTES_PER_PAGE)).fetchall()
 
 	return flask.render_template('quotes.html', session=session, quotes=quotes, page=page, pages=pages)
 
@@ -32,8 +32,8 @@ def quote_search(session):
 	page = int(flask.request.values.get("page", 1))
 	quotes = server.db.metadata.tables["quotes"]
 	sql = sqlalchemy.select([
-		quotes.c.qid, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date
-	]).where(~quotes.c.deleted).order_by(quotes.c.qid.desc())
+		quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date
+	]).where(~quotes.c.deleted).order_by(quotes.c.id.desc())
 	if mode == 'text':
 		fts_column = sqlalchemy.func.to_tsvector('english', quotes.c.quote)
 		sql = sql.where(fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', query)))

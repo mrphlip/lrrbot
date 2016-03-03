@@ -53,8 +53,8 @@ def find_card(lrrbot, search):
 	if isinstance(search, int):
 		with lrrbot.engine.begin() as conn:
 			return conn.execute(sqlalchemy.select([cards.c.name, cards.c.text])
-				.select_from(card_multiverse.join(cards, cards.c.cardid == card_multiverse.c.cardid))
-				.where(card_multiverse.c.multiverseid == search)).fetchall()
+				.select_from(card_multiverse.join(cards, cards.c.id == card_multiverse.c.cardid))
+				.where(card_multiverse.c.id == search)).fetchall()
 
 	cleansearch = clean_text(search)
 	with lrrbot.engine.begin() as conn:
