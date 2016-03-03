@@ -58,7 +58,7 @@ def find_card(conn, cur, search):
 
 	searchwords = search.split()
 	searchwords = [clean_text(i) for i in searchwords]
-	searchlike = "%" + "%".join(utils.escape_like(i) for i in searchwords) + "%"
+	searchlike = "%" + "%".join(common.postgres.escape_like(i) for i in searchwords) + "%"
 	cur.execute("SELECT name, text FROM cards WHERE filteredname LIKE %s", (searchlike,))
 	return cur.fetchall()
 
