@@ -156,7 +156,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 				tasks_waiting.append(self.whisperconn.stop_task())
 			self.cardviewer.stop()
 			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
-			self.loop.close()
 
 	def add_command(self, pattern, function):
 		if not asyncio.iscoroutinefunction(function):
