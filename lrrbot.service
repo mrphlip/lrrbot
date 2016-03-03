@@ -4,12 +4,12 @@ Description=LoadingReadyLive chatbot
 [Service]
 Type=notify
 KillSignal=SIGINT
-TimeoutStartSec=5s
+TimeoutStartSec=15s
 WatchdogSec=120s
 Restart=always
 NotifyAccess=main
 WorkingDirectory=%h/lrrbot
-ExecStart=/usr/bin/env PYTHONASYNCIODEBUG= python3 %h/lrrbot/start_bot.py
+ExecStart=/usr/bin/env python3 %h/lrrbot/start_bot.py
 
 [Install]
 WantedBy=default.target
