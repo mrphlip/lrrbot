@@ -19,16 +19,6 @@ def set_cardview(lrrbot, conn, event, respond_to, setting):
 	lrrbot.cardview = (setting == "on")
 	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if lrrbot.cardview else "disabled"))
 
-@bot.command("carddelay (\d+)")
-@lrrbot.decorators.mod_only
-def set_carddelay(lrrbot, conn, event, respond_to, setting):
-	# Yes this is changing a constant, whatever, this is just for
-	# debugging purposes until we nail down a good delay
-	setting = int(setting)
-	from lrrbot import cardviewer
-	cardviewer.ANNOUNCE_DELAY = setting
-	conn.privmsg(respond_to, "Card viewer delay set to %s" % common.time.nice_duration(setting))
-
 @bot.command("card (.+)")
 @lrrbot.decorators.throttle(60, count=3)
 def card_lookup(lrrbot, conn, event, respond_to, search):

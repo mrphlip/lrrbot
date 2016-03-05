@@ -10,7 +10,7 @@ from common.config import config
 __all__ = ["CardViewer"]
 
 REPEAT_TIMER = 60
-ANNOUNCE_DELAY = 13
+ANNOUNCE_DELAY = 15
 
 log = logging.getLogger('cardviewer')
 
