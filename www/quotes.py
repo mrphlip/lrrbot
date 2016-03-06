@@ -20,7 +20,7 @@ def quotes(session, page=1):
 
 		quotes = conn.execute(sqlalchemy.select([
 			quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date,
-		]).where(~quotes.c.deleted).order_by(quotes.c.id).offset((page-1) * QUOTES_PER_PAGE).limit(QUOTES_PER_PAGE)).fetchall()
+		]).where(~quotes.c.deleted).order_by(quotes.c.id.desc()).offset((page-1) * QUOTES_PER_PAGE).limit(QUOTES_PER_PAGE)).fetchall()
 
 	return flask.render_template('quotes.html', session=session, quotes=quotes, page=page, pages=pages)
 
