@@ -1,7 +1,6 @@
 import flask
 import flask.json
 
-import common.postgres
 import common.url
 from www import server
 from www import login
@@ -11,6 +10,7 @@ import re
 import datetime
 import pytz
 import asyncio
+import sqlalchemy
 
 @server.app.route('/spam')
 @login.require_mod
@@ -131,16 +131,17 @@ def spam_test(session):
 
 @server.app.route('/spam/find')
 @login.require_mod
-@common.postgres.with_postgres
-def spam_find(conn, cur, session):
+def spam_find(session):
 	rules = botinteract.get_data('spam_rules')
 	for rule in rules:
 		rule['re'] = re.compile(rule['re'])
 
 	starttime = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(days=14)
-	cur.execute("SELECT source, message, time FROM log WHERE time >= %s AND 'cleared' = ANY(specialuser) ORDER BY time ASC", (
-		starttime,
-	))
-	data = [row + (do_check(row[1], rules),) for row in cur]
+	log = server.db.metadata.tables["log"]
+	with server.db.engine.begin() as conn:
+		res = conn.execute(sqlalchemy.select([log.c.source, log.c.message, log.c.time])
+			.where((log.c.time >= starttime) & log.c.specialuser.any('cleared'))
+			.order_by(log.c.time.asc()))
+		data = [tuple(row) + (do_check(row[1], rules),) for row in res]
 
 	return flask.render_template("spam_find.html", data=data, session=session)

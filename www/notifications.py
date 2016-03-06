@@ -4,62 +4,67 @@ import pytz
 import flask
 import flask.json
 from flaskext.csrf import csrf_exempt
+import sqlalchemy
 
-import common.postgres
 import common.time
 from common import utils
 from common.config import config
 from www import server
 from www import login
 
-def get_notifications(cur, after=None, test=False):
-	if test:
-		query_clause = ""
-	else:
-		query_clause = "AND NOT test"
-	if after is None:
-		cur.execute("""
-			SELECT notificationkey, message, channel, subuser, useravatar, eventtime, monthcount, test
-			FROM notification
-			WHERE eventtime >= (CURRENT_TIMESTAMP - INTERVAL '2 days') %s
-			ORDER BY notificationkey
-		""" % query_clause)
-	else:
-		cur.execute("""
-			SELECT notificationkey, message, channel, subuser, useravatar, eventtime, monthcount, test
-			FROM notification
-			WHERE eventtime >= (CURRENT_TIMESTAMP - INTERVAL '2 days')
-			AND notificationkey > %%s %s
-			ORDER BY notificationkey
-		""" % query_clause, (after,))
-	return [dict(zip(('key', 'message', 'channel', 'user', 'avatar', 'time', 'monthcount', 'test'), row)) for row in cur.fetchall()]
+def get_notifications(conn, after=None, test=False):
+	notification = server.db.metadata.tables["notification"]
+	query = sqlalchemy.select([
+		notification.c.id, notification.c.message, notification.c.channel,
+		notification.c.subuser, notification.c.useravatar, notification.c.eventtime,
+		notification.c.monthcount, notification.c.test,
+	]).where(notification.c.eventtime >= (sqlalchemy.func.current_timestamp() - datetime.timedelta(days=2)))
+	if after is not None:
+		query = query.where(notification.c.notificationkey > after)
+	if not test:
+		query = query.where(~notification.c.test)
+	query = query.order_by(notification.c.notificationkey)
+	return [
+		{
+			'key': key,
+			'message': message,
+			'channel': channel,
+			'user': user,
+			'avatar': avatar,
+			'time': time,
+			'monthcount': monthcount,
+			'test': test,
+		} for key, message, channel, user, avatar, time, monthcount, test in conn.execute(query)
+	]
 
 @server.app.route('/notifications')
 @login.with_session
-@common.postgres.with_postgres
-def notifications(conn, cur, session):
-	row_data = get_notifications(cur)
+def notifications(session):
+	notification = server.db.metadata.tables["notification"]
+	with server.db.engine.begin() as conn:
+		row_data = get_notifications(conn)
+		row_data.reverse()
+		if len(row_data) == 0:
+			maxkey = conn.execute(sqlalchemy.select([sqlalchemy.func.max(notification.c.id)])).first()
+			if maxkey is None:
+				maxkey = -1
+			else:
+				maxkey = maxkey[0]
+		else:
+			maxkey = row_data[0]['key']
+
 	for row in row_data:
 		if row['time'] is None:
 			row['duration'] = None
 		else:
 			row['duration'] = common.time.nice_duration(datetime.datetime.now(row['time'].tzinfo) - row['time'], 2)
-	row_data.reverse()
-
-	if row_data:
-		maxkey = row_data[0]['key']
-	else:
-		cur.execute("SELECT MAX(notificationkey) FROM notification")
-		maxkey = cur.fetchone()[0]
-		if maxkey is None:
-			maxkey = -1
 
 	return flask.render_template('notifications.html', row_data=row_data, maxkey=maxkey, session=session)
 
 @server.app.route('/notifications/updates')
-@common.postgres.with_postgres
-def updates(conn, cur):
-	notifications = get_notifications(cur, int(flask.request.values['after']), True)
+def updates():
+	with server.db.engine.begin() as conn:
+		notifications = get_notifications(conn, int(flask.request.values['after']), True)
 	for n in notifications:
 		if n['time'] is not None:
 			n['time'] = n['time'].timestamp()
@@ -68,8 +73,7 @@ def updates(conn, cur):
 @csrf_exempt
 @server.app.route('/notifications/newmessage', methods=['POST'])
 @login.with_minimal_session
-@common.postgres.with_postgres
-def new_message(conn, cur, session):
+def new_message(session):
 	if session["user"] not in (config["username"], config["channel"]):
 		return flask.json.jsonify(error='apipass')
 	data = {
@@ -81,17 +85,16 @@ def new_message(conn, cur, session):
 		'monthcount': int(flask.request.values['monthcount']) if 'monthcount' in flask.request.values else None,
 		'test': flask.request.values.get("test", "false").lower() == "true",
 	}
-	cur.execute("""
-		INSERT INTO notification(message, channel, subuser, useravatar, eventtime, monthcount, test)
-		VALUES (%s, %s, %s, %s, %s, %s, %s)
-		""", (
-		data['message'],
-		data['channel'],
-		data['user'],
-		data['avatar'],
-		datetime.datetime.fromtimestamp(data['time'], pytz.utc) if data['time'] is not None else None,
-		data['monthcount'],
-		data['test'],
-	))
+	notification = server.db.metadata.tables["notification"]
+	with server.db.engine.begin() as conn:
+		conn.execute(notification.insert(),
+			message=data['message'],
+			channel=data['channel'],
+			subuser=data['user'],
+			useravatar=data['avatar'],
+			eventtime=datetime.datetime.fromtimestamp(data['time'], pytz.utc) if data['time'] is not None else None,
+			monthcount=data['monthcount'],
+			test=data['test'],
+		)
 	utils.sse_send_event("/notifications/events", event="newmessage", data=flask.json.dumps(data))
 	return flask.json.jsonify(success='OK')

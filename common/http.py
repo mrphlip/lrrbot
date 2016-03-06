@@ -55,7 +55,7 @@ def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **k
 
 # Limit the number of parallel HTTP connections to a server.
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
-atexit.register(http_request_session.close)
+atexit.register(lambda: asyncio.get_event_loop().run_until_complete(http_request_session.close()))
 @asyncio.coroutine
 def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"

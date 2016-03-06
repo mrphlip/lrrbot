@@ -1,41 +1,39 @@
 import functools
+import warnings
 
-import psycopg2
+import sqlalchemy
 
-from common import config
+from common.config import config
 
-def get_postgres():
-	return psycopg2.connect(config.config["postgres"])
+def new_engine_and_metadata():
+	"""
+	Create new SQLAlchemy engine and metadata.
 
-def with_postgres(func):
-	"""Decorator to pass a PostgreSQL connection and cursor to a function"""
-	@functools.wraps(func)
-	def wrapper(*args, **kwargs):
-		with get_postgres() as conn, conn.cursor() as cur:
-			return func(conn, cur, *args, **kwargs)
-	return wrapper
+	NOTE: Every process should have AT MOST one engine.
+	"""
+	engine = sqlalchemy.create_engine(config["postgres"], echo=config["debug"], execution_options={"autocommit": False})
+	metadata = sqlalchemy.MetaData(bind=engine)
+	with warnings.catch_warnings():
+		# Yes, I know you can't understand FTS indexes.
+		warnings.simplefilter("ignore", category=sqlalchemy.exc.SAWarning)
+		metadata.reflect()
+	sqlalchemy.event.listen(engine, "engine_connect", ping_connection)
+	return engine, metadata
 
-def with_postgres_transaction(func):
-	"""Decorator to pass a PostgreSQL connection and cursor to a function, with
-	an isolated transaction active.
+def ping_connection(connection, branch):
+	if branch:
+		# "branch" refers to a sub-connection of a connection, don't ping those
+		return
 
-	If the function returns normally, the transaction will be committed, if the
-	function raises an exception, it will be rolled back. The function can call
-	conn.commit() or conn.rollback() to override this."""
-	@functools.wraps(func)
-	def wrapper(*args, **kwargs):
-		with get_postgres() as conn:
-			# turn off auto-commit
-			conn.set_isolation_level(1)
-			try:
-				with conn.cursor() as cur:
-					return func(conn, cur, *args, **kwargs)
-			except:
-				conn.rollback()
-				raise
-			else:
-				conn.commit()
-	return wrapper
+	# Check if connection is valid
+	try:
+		connection.scalar(sqlalchemy.select([1]))
+	except sqlalchemy.exc.DBAPIError as err:
+		if err.connection_invalidated:
+			# connection not valid, force reconnect.
+			connection.scalar(sqlalchemy.select([1]))
+		else:
+			raise
 
 def escape_like(s):
 	return s.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')

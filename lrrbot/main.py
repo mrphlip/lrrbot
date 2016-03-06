@@ -16,6 +16,7 @@ import irc.modes
 import irc.connection
 
 import common.http
+import common.postgres
 import lrrbot.decorators
 import lrrbot.systemd
 from common import utils
@@ -105,6 +106,8 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.subs = set(storage.data.get('subs', []))
 		self.autostatus = set(storage.data.get('autostatus', []))
 
+		self.engine, self.metadata = common.postgres.new_engine_and_metadata()
+
 		linkspam.LinkSpam.__init__(self, loop)
 
 	def reactor_class(self):
@@ -153,7 +156,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 				tasks_waiting.append(self.whisperconn.stop_task())
 			self.cardviewer.stop()
 			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
-			self.loop.close()
 
 	def add_command(self, pattern, function):
 		if not asyncio.iscoroutinefunction(function):

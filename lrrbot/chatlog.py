@@ -8,12 +8,13 @@ import asyncio
 
 import irc.client
 from jinja2.utils import Markup, escape, urlize
+import sqlalchemy
 
 import common.http
-import common.postgres
 import common.url
 from common import utils
 from common.config import config
+import lrrbot.main
 
 __all__ = ["log_chat", "clear_chat_log", "exitthread"]
 
@@ -65,19 +66,19 @@ def do_log_chat(time, event, metadata):
 
 	source = irc.client.NickMask(event.source).nick
 	html = yield from build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', []), metadata.get('emotes'), metadata.get('display-name'))
-	with common.postgres.get_postgres() as conn, conn.cursor() as cur:
-		cur.execute("INSERT INTO log (time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname, messagehtml) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (
-			time,
-			source,
-			event.target,
-			event.arguments[0],
-			list(metadata.get('specialuser', [])),
-			metadata.get('usercolor'),
-			list(metadata.get('emoteset', [])),
-			metadata.get('emotes'),
-			metadata.get('display-name'),
-			html,
-		))
+	with lrrbot.main.bot.engine.begin() as conn:
+		conn.execute(lrrbot.main.bot.metadata.tables["log"].insert(),
+			time=time,
+			source=source,
+			target=event.target,
+			message=event.arguments[0],
+			specialuser=list(metadata.get('specialuser', [])),
+			usercolor=metadata.get('usercolor'),
+			emoteset=list(metadata.get('emoteset', [])),
+			emotes=metadata.get('emotes'),
+			displayname=metadata.get('display-name'),
+			messagehtml=html,
+		)
 
 @utils.swallow_errors
 @asyncio.coroutine
@@ -85,25 +86,28 @@ def do_clear_chat_log(time, nick):
 	"""
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
 	"""
-	with common.postgres.get_postgres() as conn, conn.cursor() as cur:
-		cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log WHERE source=%s AND time>=%s", (
-			nick,
-			time - PURGE_PERIOD,
-		))
-		rows = list(cur)
-	for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(rows):
+	log = lrrbot.main.bot.engine.metadata.tables["log"]
+	with lrrbot.main.bot.engine.begin() as conn:
+		query = sqlalchemy.select([
+			log.c.id, log.c.time, log.c.source, log.c.target, log.c.message, log.c.specialuser,
+			log.c.usercolor, log.c.emoteset, log.c.emotes, log.c.displayname
+		]).where((log.c.source == nick) & (log.c.time >= time - PURGE_PERIOD))
+		rows = conn.execute(query).fetchall()
+	new_rows = []
+	for key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname in rows:
 		specialuser = set(specialuser) if specialuser else set()
 		emoteset = set(emoteset) if emoteset else set()
 
 		specialuser.add("cleared")
 
 		html = yield from build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
-		with common.postgres.get_postgres() as conn, conn.cursor() as cur:
-			cur.execute("UPDATE log SET specialuser=%s, messagehtml=%s WHERE id=%s", (
-				list(specialuser),
-				html,
-				key,
-			))
+		new_rows.append({
+			"specialuser": list(specialuser),
+			"messagehtml": html,
+			"_key": key,
+		})
+	with lrrbot.main.bot.engine.begin() as conn:
+		conn.execute(log.update().where(log.c.id == sqlalchemy.bindparam("_key")), new_rows)
 
 @utils.swallow_errors
 @asyncio.coroutine
@@ -111,21 +115,33 @@ def do_rebuild_all():
 	"""
 	Rebuild all the message HTML blobs in the database.
 	"""
-	with common.postgres.get_postgres() as conn, conn.cursor() as cur:
-		cur.execute("SELECT id, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname FROM log")
-		rows = list(cur)
-	for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(rows):
-		if i % 100 == 0:
-			print("\r%d/%d" % (i, len(rows)), end='')
-		specialuser = set(specialuser) if specialuser else set()
-		emoteset = set(emoteset) if emoteset else set()
-		html = yield from build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
-		with common.postgres.get_postgres() as conn, conn.cursor() as cur:
-			cur.execute("UPDATE log SET messagehtml=%s WHERE id=%s", (
-				html,
-				key,
-			))
-	print("\r%d/%d" % (len(rows), len(rows)))
+	log = lrrbot.main.bot.metadata.tables["log"]
+	conn_select = lrrbot.main.bot.engine.connect()
+	count, = conn_select.execute(log.count()).first()
+	rows = conn_select.execute(sqlalchemy.select([
+		log.c.id, log.c.time, log.c.source, log.c.target, log.c.message, log.c.specialuser,
+		log.c.usercolor, log.c.emoteset, log.c.emotes, log.c.displayname
+	]).execution_options(stream_results=True))
+
+	conn_update = lrrbot.main.bot.engine.connect()
+	trans = conn_update.begin()
+
+	try:
+		for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(rows):
+			if i % 100 == 0:
+				print("\r%d/%d" % (i, count), end='')
+			specialuser = set(specialuser) if specialuser else set()
+			emoteset = set(emoteset) if emoteset else set()
+			html = yield from build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
+			conn_update.execute(log.update().where(log.c.id == key), messagehtml=html)
+		print("\r%d/%d" % (count, count))
+		trans.commit()
+	except:
+		trans.rollback()
+		raise
+	finally:
+		conn_select.close()
+		conn_update.close()
 
 def format_message(message, emotes):
 	ret = ""

@@ -3,7 +3,8 @@ import re
 import math
 import logging
 
-import common.postgres
+import sqlalchemy
+
 import common.utils
 from common import utils
 from common.config import config
@@ -163,23 +164,20 @@ def get_show(lrrbot, user, data):
 	return lrrbot.show_override or lrrbot.show
 
 @bot.server_event()
-@common.postgres.with_postgres
-def get_tweet(conn, cur, lrrbot, user, data):
+def get_tweet(lrrbot, user, data):
 	if user is not None and lrrbot.is_mod_nick(user):
 		mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
 		if mode == 0: # get random !advice
 			return random.choice(storage.data['responses']['advice']['response'])
 		elif mode == 1: # get a random !quote
-			cur.execute("""
-				SELECT qid, quote, attrib_name, attrib_date
-				FROM quotes
-				WHERE NOT deleted
-			""")
-			row = common.utils.pick_random_elements(cur, 1)[0]
+			quotes = lrrbot.metadata.tables["quotes"]
+			with lrrbot.engine.begin() as conn:
+				query = sqlalchemy.select([quotes.c.quote, quotes.c.attrib_name]).filter(~quotes.c.deleted)
+				row = common.utils.pick_random_elements(conn.execute(query), 1)[0]
 			if row is None:
 				return None
 
-			qid, quote, name, date = row
+			quote, name = row
 
 			quote_msg = "\"{quote}\"".format(quote=quote)
 			if name:

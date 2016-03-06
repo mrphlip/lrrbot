@@ -6,21 +6,32 @@ from common import gdata
 
 import dateutil.parser
 import asyncio
+import sqlalchemy
 
-@common.postgres.with_postgres
-def get_staged_highlights(conn, cur):
-	cur.execute("SELECT id, title, description, time, nick FROM highlights")
-	return [{
-		"id": highlight[0],
-		"title": highlight[1],
-		"description": highlight[2],
-		"time": highlight[3],
-		"nick": highlight[4],
-	} for highlight in cur]
+engine, metadata = common.postgres.new_engine_and_metadata()
 
-@common.postgres.with_postgres
-def delete_staged_highlights(conn, cur, highlights):
-	cur.executemany("DELETE FROM highlights WHERE id = %s", [(highlight["id"], ) for highlight in highlights])
+def get_staged_highlights():
+	highlights = metadata.tables["highlights"]
+	with engine.begin() as conn:
+		return [{
+			"id": highlight[0],
+			"title": highlight[1],
+			"description": highlight[2],
+			"time": highlight[3],
+			"nick": highlight[4],
+		} for highlight in conn.execute(sqlalchemy.select([
+			highlights.c.id, highlights.c.title, highlights.c.description, highlights.c.time, highlights.c.nick
+		])).fetchall()]
+
+def delete_staged_highlights(highlights):
+	if len(highlights) == 0:
+		return
+	highlights_tbl = metadata.tables["highlights"]
+	with engine.begin() as conn:
+		conn.execute(highlights_tbl.delete().where(highlights_tbl.c.id == sqlalchemy.bindparam("id")), [
+			{"id": highlight["id"]}
+			for highlight in highlights
+		])
 
 @asyncio.coroutine
 def get_videos(*args, **kwargs):

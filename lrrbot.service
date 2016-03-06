@@ -9,6 +9,7 @@ WatchdogSec=120s
 Restart=always
 NotifyAccess=main
 WorkingDirectory=%h/lrrbot
+ExecStartPre=/usr/bin/env alembic -c %h/lrrbot/lrrbot.conf upgrade head
 ExecStart=/usr/bin/env python3 %h/lrrbot/start_bot.py
 
 [Install]
