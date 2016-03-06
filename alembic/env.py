@@ -19,7 +19,7 @@ def run_migrations_offline():
 	script output.
 
 	"""
-	context.configure(url=context.config.get_section_option("lrrbot", "postgres"),
+	context.configure(url=context.config.get_section_option("lrrbot", "postgres", 'postgres:///lrrbot'),
 		target_metadata=target_metadata, literal_binds=True)
 
 	with context.begin_transaction():
@@ -32,7 +32,7 @@ def run_migrations_online():
 	and associate a connection with the context.
 
 	"""
-	connectable = sqlalchemy.create_engine(context.config.get_section_option("lrrbot", "postgres"))
+	connectable = sqlalchemy.create_engine(context.config.get_section_option("lrrbot", "postgres", 'postgres:///lrrbot'))
 
 	with connectable.connect() as connection:
 		context.configure(connection=connection, target_metadata=target_metadata)
