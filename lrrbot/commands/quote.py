@@ -109,7 +109,7 @@ def modquote(lrrbot, conn, event, respond_to, qid, name, date, quote):
 
 	quotes = lrrbot.metadata.tables["quotes"]
 	with lrrbot.engine.begin() as pg_conn:
-		res = pg_conn.execute(quotes.update().where(quotes.c.id == int(qid) & ~quotes.c.deleted),
+		res = pg_conn.execute(quotes.update().where((quotes.c.id == int(qid)) & (~quotes.c.deleted)),
 			quote=quote, attrib_name=name, attrib_date=date)
 	if res.rowcount == 1:
 		conn.privmsg(respond_to, format_quote("Modified quote", qid, quote, name, date))
@@ -151,7 +151,7 @@ def findquote(lrrbot, conn, event, respond_to, query):
 		query = sqlalchemy.select([
 			quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date
 		]).where(
-			fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', query)) & ~quotes.c.deleted
+			(fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', query))) & (~quotes.c.deleted)
 		)
 		row = common.utils.pick_random_elements(pg_conn.execute(query), 1)[0]
 	if row is None:
