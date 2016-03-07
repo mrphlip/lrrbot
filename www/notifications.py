@@ -20,10 +20,10 @@ def get_notifications(conn, after=None, test=False):
 		notification.c.monthcount, notification.c.test,
 	]).where(notification.c.eventtime >= (sqlalchemy.func.current_timestamp() - datetime.timedelta(days=2)))
 	if after is not None:
-		query = query.where(notification.c.notificationkey > after)
+		query = query.where(notification.c.id > after)
 	if not test:
 		query = query.where(~notification.c.test)
-	query = query.order_by(notification.c.notificationkey)
+	query = query.order_by(notification.c.id)
 	return [
 		{
 			'key': key,
