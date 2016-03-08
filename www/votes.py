@@ -19,7 +19,7 @@ def votes(session):
 				"id": game_id,
 				"name": game["name"],
 				"display": game.get("display", game["name"]),
-				"vote": game.get("votes", {}).get(session["user"]),
+				"vote": game.get("votes", {}).get(session["user"]["name"]),
 			    } for game_id,game in show['games'].items()],
 			key=lambda game: (1 if game['id'] == current_game_id and show_id == current_show_id else 2, game['display'].upper()))
 	} for show_id, show in data.items()]
@@ -30,5 +30,5 @@ def votes(session):
 @server.app.route('/votes/submit', methods=['POST'])
 @login.require_login
 def vote_submit(session):
-	botinteract.set_data(['shows', flask.request.values['show'], 'games', flask.request.values['id'], 'votes', session['user']], bool(int(flask.request.values['vote'])))
+	botinteract.set_data(['shows', flask.request.values['show'], 'games', flask.request.values['id'], 'votes', session['user']['name']], bool(int(flask.request.values['vote'])))
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())

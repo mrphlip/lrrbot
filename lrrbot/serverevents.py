@@ -8,7 +8,8 @@ import sqlalchemy
 import common.utils
 from common import utils
 from common.config import config
-from lrrbot import googlecalendar, storage, commands, twitch
+from common import twitch
+from lrrbot import googlecalendar, storage, commands
 from lrrbot.main import bot
 import lrrbot.docstring
 
@@ -133,18 +134,15 @@ def get_header_info(lrrbot, user, data):
 				"perc": 100.0 * good / total,
 			}
 		if user is not None:
-			data["current_game"]["my_rating"] = game.get("votes", {}).get(user.lower())
+			users = lrrbot.metadata.tables["users"]
+			with lrrbot.engine.begin() as conn:
+				name, = conn.execute(sqlalchemy.select([users.c.name]).where(users.c.id == user)).first()
+			data["current_game"]["my_rating"] = game.get("votes", {}).get(name)
 	elif not live:
 		data['nextstream'] = googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
 
 	if 'advice' in storage.data['responses']:
 		data['advice'] = random.choice(storage.data['responses']['advice']['response'])
-
-	if user is not None:
-		data['is_mod'] = lrrbot.is_mod_nick(user)
-		data['is_sub'] = lrrbot.is_sub_nick(user)
-	else:
-		data['is_mod'] = data['is_sub'] = False
 
 	return data
 
@@ -154,10 +152,8 @@ def nextstream(lrrbot, user, data):
 
 @bot.server_event()
 def set_show(lrrbot, user, data):
-	if user is not None and lrrbot.is_mod_nick(user):
-		commands.show.set_show(lrrbot, data["show"])
-		return {"status": "OK"}
-	return {"status": "error: %s is not a mod" % user}
+	commands.show.set_show(lrrbot, data["show"])
+	return {"status": "OK"}
 
 @bot.server_event()
 def get_show(lrrbot, user, data):
@@ -165,35 +161,33 @@ def get_show(lrrbot, user, data):
 
 @bot.server_event()
 def get_tweet(lrrbot, user, data):
-	if user is not None and lrrbot.is_mod_nick(user):
-		mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
-		if mode == 0: # get random !advice
-			return random.choice(storage.data['responses']['advice']['response'])
-		elif mode == 1: # get a random !quote
-			quotes = lrrbot.metadata.tables["quotes"]
-			with lrrbot.engine.begin() as conn:
-				query = sqlalchemy.select([quotes.c.quote, quotes.c.attrib_name]).where(~quotes.c.deleted)
-				row = common.utils.pick_random_elements(conn.execute(query), 1)[0]
-			if row is None:
-				return None
+	mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
+	if mode == 0: # get random !advice
+		return random.choice(storage.data['responses']['advice']['response'])
+	elif mode == 1: # get a random !quote
+		quotes = lrrbot.metadata.tables["quotes"]
+		with lrrbot.engine.begin() as conn:
+			query = sqlalchemy.select([quotes.c.quote, quotes.c.attrib_name]).where(~quotes.c.deleted)
+			row = common.utils.pick_random_elements(conn.execute(query), 1)[0]
+		if row is None:
+			return None
 
-			quote, name = row
+		quote, name = row
 
-			quote_msg = "\"{quote}\"".format(quote=quote)
-			if name:
-				quote_msg += " —{name}".format(name=name)
-			return quote_msg
-		else: # get a random statistic
-			show, game_id, stat = utils.weighted_choice(
-				((show, game_id, stat), math.log(count))
-				for show in storage.data['shows']
-				for game_id in storage.data['shows'][show]['games']
-				for stat in storage.data['stats']
-				for count in [storage.data['shows'][show]['games'][game_id]['stats'].get(stat)]
-				if count
-			)
-			game = storage.data['shows'][show]['games'][game_id]
-			count = game['stats'][stat]
-			display = storage.data['stats'][stat].get("singular", stat) if count == 1 else storage.data['stats'][stat].get("plural", stat + "s")
-			return "%d %s for %s on %s" % (count, display, commands.game.game_name(game), commands.show.show_name(show))
-	return None
+		quote_msg = "\"{quote}\"".format(quote=quote)
+		if name:
+			quote_msg += " —{name}".format(name=name)
+		return quote_msg
+	else: # get a random statistic
+		show, game_id, stat = utils.weighted_choice(
+			((show, game_id, stat), math.log(count))
+			for show in storage.data['shows']
+			for game_id in storage.data['shows'][show]['games']
+			for stat in storage.data['stats']
+			for count in [storage.data['shows'][show]['games'][game_id]['stats'].get(stat)]
+			if count
+		)
+		game = storage.data['shows'][show]['games'][game_id]
+		count = game['stats'][stat]
+		display = storage.data['stats'][stat].get("singular", stat) if count == 1 else storage.data['stats'][stat].get("plural", stat + "s")
+		return "%d %s for %s on %s" % (count, display, commands.game.game_name(game), commands.show.show_name(show))

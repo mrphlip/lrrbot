@@ -6,13 +6,15 @@ import random
 import dateutil.parser
 import pytz
 import irc.client
+import sqlalchemy
 
 import common.http
 import common.time
 import lrrbot.decorators
 from common import utils
 from common.config import config
-from lrrbot import googlecalendar, storage, twitch
+from common import twitch
+from lrrbot import googlecalendar, storage
 from lrrbot.main import bot
 
 log = logging.getLogger('misc')
@@ -243,7 +245,11 @@ def autostatus_check(lrrbot, conn, event, respond_to):
 	Check whether you are set to be automatically sent status messages when join join the channel.
 	"""
 	source = irc.client.NickMask(event.source)
-	if source.nick.lower() in lrrbot.autostatus:
+	users = lrrbot.metadata.tables["users"]
+	with lrrbot.engine.begin() as pg_conn:
+		enabled, = pg_conn.execute(sqlalchemy.select([users.c.autostatus])
+			.where(users.c.id == int(event.tags["user-id"]))).first()
+	if enabled:
 		conn.privmsg(source.nick, "Auto-status is enabled. Disable it with: !autostatus off")
 	else:
 		conn.privmsg(source.nick, "Auto-status is disabled. Enable it with: !autostatus on")
@@ -258,17 +264,11 @@ def autostatus_set(lrrbot, conn, event, respond_to, enable):
 	Enable or disable automatically sending status messages when you join the channel.
 	"""
 	source = irc.client.NickMask(event.source)
-	nick = source.nick.lower()
 	enable = enable.lower() == "on"
+	users = lrrbot.metadata.tables["users"]
+	with lrrbot.engine.begin() as pg_conn:
+		pg_conn.execute(users.update().where(users.c.id == int(event.tags["user-id"])), autostatus=enable)
 	if enable:
-		if nick not in lrrbot.autostatus:
-			lrrbot.autostatus.add(nick)
-			storage.data['autostatus'] = list(lrrbot.autostatus)
-			storage.save()
 		conn.privmsg(source.nick, "Auto-status enabled.")
 	else:
-		if nick in lrrbot.autostatus:
-			lrrbot.autostatus.remove(nick)
-			storage.data['autostatus'] = list(lrrbot.autostatus)
-			storage.save()
 		conn.privmsg(source.nick, "Auto-status disabled.")

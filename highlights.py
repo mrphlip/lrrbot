@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import common.postgres
-from lrrbot import twitch
+from common import twitch
 from common.highlights import SPREADSHEET, format_row
 from common import gdata
 
@@ -12,6 +12,7 @@ engine, metadata = common.postgres.new_engine_and_metadata()
 
 def get_staged_highlights():
 	highlights = metadata.tables["highlights"]
+	users = metadata.tables["users"]
 	with engine.begin() as conn:
 		return [{
 			"id": highlight[0],
@@ -20,8 +21,8 @@ def get_staged_highlights():
 			"time": highlight[3],
 			"nick": highlight[4],
 		} for highlight in conn.execute(sqlalchemy.select([
-			highlights.c.id, highlights.c.title, highlights.c.description, highlights.c.time, highlights.c.nick
-		])).fetchall()]
+			highlights.c.id, highlights.c.title, highlights.c.description, highlights.c.time, users.c.display_name
+		]).select_from(highlights.join(users, highlights.c.user == users.c.id)))]
 
 def delete_staged_highlights(highlights):
 	if len(highlights) == 0:
