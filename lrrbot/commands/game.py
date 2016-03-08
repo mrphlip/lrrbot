@@ -27,8 +27,9 @@ def current_game(lrrbot, conn, event, respond_to):
 		if game.get("votes"):
 			good = sum(game["votes"].values())
 			message += " (rating %.0f%%)" % (100*good/len(game["votes"]))
-	if lrrbot.game_override is not None:
-		message += " (overridden)"
+	with lrrbot.state.begin() as state:
+		if state.get("game-override") is not None:
+			message += " (overridden)"
 	conn.privmsg(respond_to, message)
 
 @bot.command("game (?:(good|yes|:\)|:D|<3|lrrAWESOME|lrrGOAT|lrrSPOT)|(bad|no|:\(|:/|>\(|lrrAWW|lrrEFF|lrrFRUMP))")
@@ -59,8 +60,9 @@ def vote_respond(lrrbot, conn, respond_to, game):
 	if game and game.get("votes"):
 		good = sum(game["votes"].values())
 		count = len(game["votes"])
-		show = lrrbot.show_override or lrrbot.show
-		
+		with lrrbot.state.begin() as state:
+			show = state.get("show-override", state.get("show", ""))
+
 		conn.privmsg(respond_to, "Rating for %s on %s is now %.0f%% (%d/%d)" % (game_name(game), show_name(show), 100*good/count, good, count))
 	lrrbot.vote_update = None
 
@@ -89,24 +91,25 @@ def override_game(lrrbot, conn, event, respond_to, game):
 	"""
 	Command: !game override NAME
 	Section: info
-	
+
 	eg: !game override Prayer Warriors: A.O.F.G.
-	
+
 	Override what game is being played (eg when the current game isn't in the Twitch database)
 
 	--command
 	Command: !game override off
 	Section: info
-	
+
 	Disable override, go back to getting current game from Twitch stream settings.
 	Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.
 	"""
-	if game == "" or game.lower() == "off":
-		lrrbot.game_override = None
-		operation = "disabled"
-	else:
-		lrrbot.game_override = game
-		operation = "enabled"
+	with lrrbot.state.begin(write=True) as state:
+		if game == "" or game.lower() == "off":
+			del state["game-override"]
+			operation = "disabled"
+		else:
+			state["game-override"] = game
+			operation = "enabled"
 	twitch.get_game.reset_throttle()
 	current_game.reset_throttle()
 	game = lrrbot.get_current_game()

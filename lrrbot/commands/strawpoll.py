@@ -16,16 +16,18 @@ def strawpoll_format(data):
 
 def check_polls(lrrbot, conn):
 	now = time.time()
-	for end, title, poll_id, respond_to in lrrbot.polls:
-		if end < now:
-			url = "https://strawpoll.me/api/v2/polls/%s" % poll_id
-			data = json.loads(common.http.request(url))
-			options = sorted(zip(data["options"], data["votes"]), key=lambda e: (e[1], random.random()), reverse=True)
-			options = "; ".join(map(strawpoll_format, enumerate(options)))
-			response = "Poll complete: %s: %s" % (data["title"], options)
-			response = utils.shorten(response, 450)
-			conn.privmsg(respond_to, response)
-	lrrbot.polls = list(filter(lambda e: e[0] >= now, lrrbot.polls))
+	with lrrbot.state.begin(write=True) as state:
+		polls = state.get("polls", [])
+		for end, title, poll_id, respond_to in polls:
+			if end < now:
+				url = "https://strawpoll.me/api/v2/polls/%s" % poll_id
+				data = json.loads(common.http.request(url))
+				options = sorted(zip(data["options"], data["votes"]), key=lambda e: (e[1], random.random()), reverse=True)
+				options = "; ".join(map(strawpoll_format, enumerate(options)))
+				response = "Poll complete: %s: %s" % (data["title"], options)
+				response = utils.shorten(response, 450)
+				conn.privmsg(respond_to, response)
+		state["polls"] = list(filter(lambda e: e[0] >= now, polls)))
 
 @bot.command("polls")
 @lrrbot.decorators.throttle()
@@ -36,11 +38,13 @@ def polls(lrrbot, conn, event, respond_to):
 
 	List all currently active polls.
 	"""
-	if lrrbot.polls == []:
+	with lrrbot.state.begin() as state:
+		polls = state.get("polls", [])
+	if polls == []:
 		return conn.privmsg(respond_to, "No active polls.")
 	now = time.time()
 	messages = []
-	for end, title, poll_id, respond_to in lrrbot.polls:
+	for end, title, poll_id, respond_to in polls:
 		messages += ["%s (https://strawpoll.me/%s): %s from now" % (title, poll_id, common.time.nice_duration(end - now, 1))]
 	conn.privmsg(respond_to, utils.shorten("Active polls: "+"; ".join(messages), 450))
 
@@ -77,7 +81,8 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	else:
 		timeout = DEFAULT_TIMEOUT
 	end = time.time() + int(timeout)
-	lrrbot.polls += [(end, title, poll_id, respond_to)]
+	with lrrbot.state.begin(write=True) as state:
+		state.["polls"] = state.get("polls", []) + [(end, title, poll_id, respond_to)])
 	conn.privmsg(respond_to, "New poll: %s (https://strawpoll.me/%s): %s from now" % (title, poll_id, common.time.nice_duration(timeout, 1)))
 
 @bot.command("pollsclear")
@@ -90,5 +95,6 @@ def clear_polls(lrrbot, conn, event, respond_to):
 	Stop tracking all active polls. The poll will still exist on strawpoll, but the bot
 	will stop watching it for results.
 	"""
-	lrrbot.polls = []
+	with lrrbot.state.begin() as state:
+		state["polls"] = []
 	conn.privmsg(respond_to, "No active polls.")

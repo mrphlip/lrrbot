@@ -18,8 +18,10 @@ def set_cardview(lrrbot, conn, event, respond_to, setting):
 
 	Toggle showing details of Magic cards in the chat when they are scanned by the card recogniser (for AFK Magic streams).
 	"""
-	lrrbot.cardview = (setting == "on")
-	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if lrrbot.cardview else "disabled"))
+	enabled = (setting == "on")
+	with lrrbot.state.begin(write=True) as state:
+		state["cardview"] = enabled
+	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if enabled else "disabled"))
 
 @bot.command("card (.+)")
 @lrrbot.decorators.throttle(60, count=3)

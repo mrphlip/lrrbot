@@ -203,7 +203,8 @@ def get_status_msg(lrrbot):
 	if stream_info and stream_info.get('live'):
 		game = lrrbot.get_current_game()
 		game = game and game.get("display", game["name"])
-		show = lrrbot.show_override or lrrbot.show
+		with lrrbot.state.begin() as state:
+			show = state.get("show-override", state.get("show", ""))
 		show = show and storage.data.get("shows", {}).get(show, {}).get("name", show)
 		if game and show:
 			messages.append("Currently playing %s on %s." % (game, show))
