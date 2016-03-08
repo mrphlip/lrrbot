@@ -34,8 +34,8 @@ def highlight(lrrbot, conn, event, respond_to, description):
 		if video["status"] == "recording":
 			break
 	else:
-		with lrrbot.engine.begin() as conn:
-			conn.execute(lrrbot.metadata.tables["highlights"].insert(),
+		with lrrbot.engine.begin() as pg_conn:
+			pg_conn.execute(lrrbot.metadata.tables["highlights"].insert(),
 				title=stream_info["status"], description=description, time=now, nick=irc.client.NickMask(event.source).nick)
 		conn.privmsg(respond_to, "Highlight added.")
 		return
