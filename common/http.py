@@ -80,9 +80,15 @@ def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 			status_class = res.status // 100
 			if status_class != 2:
 				yield from res.read()
-				if status_class == 4:
-					maxtries = 1
-				yield from res.release()
+				host = res.host.lower()
+				# Twitch's infrastructure is an flawless engineering masterpiece.
+				if host == "twitch.tv" or host.endswith(".twitch.tv"):
+					# Close connection to hopefully get one that isn't broken.
+					res.close()
+				else:
+					if status_class == 4:
+						maxtries = 1
+					yield from res.release()
 				raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
 			text = yield from res.text()
 			yield from res.release()
