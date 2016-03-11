@@ -86,7 +86,7 @@ def do_clear_chat_log(time, nick):
 	"""
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
 	"""
-	log = lrrbot.main.bot.engine.metadata.tables["log"]
+	log = lrrbot.main.bot.metadata.tables["log"]
 	with lrrbot.main.bot.engine.begin() as conn:
 		query = sqlalchemy.select([
 			log.c.id, log.c.time, log.c.source, log.c.target, log.c.message, log.c.specialuser,
