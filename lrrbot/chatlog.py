@@ -107,7 +107,7 @@ def do_clear_chat_log(time, nick):
 			"_key": key,
 		})
 	with lrrbot.main.bot.engine.begin() as conn:
-		conn.execute(log.update().where(log.c.id == sqlalchemy.bindparam("_key")), new_rows)
+		conn.execute(log.update().where(log.c.id == sqlalchemy.bindparam("_key")), *new_rows)
 
 @utils.swallow_errors
 @asyncio.coroutine
