@@ -24,7 +24,7 @@ class CardViewer:
 			self.pubnub = pubnub.Pubnub(
 				subscribe_key=config['cardsubkey'],
 				publish_key='',
-				ssl_on=True,  # For some reason not the defualt??? Also, the docs say this is "sslOn" but they lie.
+				ssl_on=True,  # For some reason not the default??? Also, the docs say this is "sslOn" but they lie.
 				daemon=True,  # Automatically close the pubnub threads when the bot exists - undocumented, but necessary.
 			)
 		else:
@@ -62,8 +62,9 @@ class CardViewer:
 		# Delayed import so this module can be imported before the bot object exists
 		import lrrbot.commands.card
 
-		if not self.lrrbot.cardview:
-			return
+		with self.lrrbot.state.begin() as state:
+			if not state.get("cardview", False):
+				return
 
 		# Protect against bouncing - don't repeat the same card multiple times in
 		# quick succession.

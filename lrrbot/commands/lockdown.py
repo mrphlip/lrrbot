@@ -11,7 +11,8 @@ def mod_only(lrrbot, conn, event, respond_to, level):
 
 	Ignore all subsequent commands from non-mods or non-subscribers.
 	"""
-	lrrbot.access = level
+	with lrrbot.state.begin(write=True) as state:
+		state["access"] = level
 	conn.privmsg(respond_to, "Commands from non-%ss are now ignored." % level)
 
 @bot.command("(?:mod|sub)only off")
@@ -24,5 +25,6 @@ def mod_only_off(lrrbot, conn, event, respond_to):
 
 	Disable lockdown.
 	"""
-	lrrbot.access = "all"
+	with lrrbot.state.begin(write=True) as state:
+		state["access"] = "all"
 	conn.privmsg(respond_to, "Lockdown disabled.")

@@ -4,9 +4,10 @@ from lrrbot import twitch
 from lrrbot.main import bot
 
 def set_show(lrrbot, show):
-	if lrrbot.show != show.lower():
-		lrrbot.show = show.lower()
-		twitch.get_game.reset_throttle()
+	with lrrbot.state.begin(write=True) as state:
+		if state.get("show", "") != show.lower():
+			state["show"] = show.lower()
+			twitch.get_game.reset_throttle()
 
 def show_name(show):
 	return storage.data.get("shows", {}).get(show, {}).get("name", show)
@@ -23,10 +24,13 @@ def get_show(lrrbot, conn, event, respond_to):
 	print_show(lrrbot, conn, respond_to)
 
 def print_show(lrrbot, conn, respond_to):
-	if lrrbot.show_override:
-		conn.privmsg(respond_to, "Currently live: %s (overridden)" % show_name(lrrbot.show_override))
-	elif lrrbot.show:
-		conn.privmsg(respond_to, "Currently live: %s" % show_name(lrrbot.show))
+	with lrrbot.state.begin() as state:
+		show_override = state.get("show-override", None)
+		show = state.get("show", "")
+	if show_override:
+		conn.privmsg(respond_to, "Currently live: %s (overridden)" % show_name(show_override))
+	elif show:
+		conn.privmsg(respond_to, "Currently live: %s" % show_name(show))
 	else:
 		conn.privmsg(respond_to, "Current show not set.")
 
@@ -45,13 +49,14 @@ def show_override(lrrbot, conn, event, respond_to, show):
 	Disable the override.
 	"""
 	show = show.lower()
-	if show == "off":
-		lrrbot.show_override = None
-	elif show not in storage.data.get("shows", {}):
-		shows = sorted(storage.data.get("shows", {}).keys())
-		shows = [s for s in shows if s]
-		conn.privmsg(respond_to, "Recognised shows: %s" % ", ".join(shows))
-		return
-	else:
-		lrrbot.show_override = show
+	with lrrbot.state.begin(write=True) as state:
+		if show == "off":
+			del state["show-override"]
+		elif show not in storage.data.get("shows", {}):
+			shows = sorted(storage.data.get("shows", {}).keys())
+			shows = [s for s in shows if s]
+			conn.privmsg(respond_to, "Recognised shows: %s" % ", ".join(shows))
+			return
+		else:
+			state["show-override"] = show
 	print_show(lrrbot, conn, respond_to)

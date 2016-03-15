@@ -78,7 +78,8 @@ def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=Fals
 			conn.privmsg(respond_to, "Not currently playing any game")
 			return
 	count = game.get("stats", {}).get(stat, 0)
-	show = lrrbot.show_override or lrrbot.show
+	with lrrbot.state.begin() as state:
+		show = state.get("show-override", state.get("show", ""))
 	stat_details = storage.data["stats"][stat]
 	display = stat_details.get("singular", stat) if count == 1 else stat_details.get("plural", stat + "s")
 	if with_emote and stat_details.get("emote"):

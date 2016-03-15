@@ -16,6 +16,7 @@ import irc.modes
 import irc.connection
 
 import common.http
+import common.kv_store
 import common.postgres
 import lrrbot.decorators
 import lrrbot.systemd
@@ -89,15 +90,9 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.re_resubscription = re.compile(r"^(.*) subscribed for (\d+) months? in a row!$", re.IGNORECASE)
 
 		# Set up bot state
-		self.game_override = None
-		self.show_override = None
-		self.calendar_override = None
+		self.state = common.kv_store.Store(config["statedir"])
 		self.vote_update = None
-		self.access = "all"
-		self.show = ""
-		self.polls = []
 		self.lastsubs = []
-		self.cardview = False
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
@@ -269,9 +264,11 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			return
 		else:
 			asyncio.async(self.check_urls(conn, event, event.arguments[0]), loop=self.loop).add_done_callback(utils.check_exception)
-			if self.access == "mod" and not self.is_mod(event):
+			with self.state.begin() as state:
+				access = state.get("access", "all")
+			if access == "mod" and not self.is_mod(event):
 				return
-			if self.access == "sub" and not self.is_mod(event) and not self.is_sub(event):
+			if access == "sub" and not self.is_mod(event) and not self.is_sub(event):
 				return
 			command_match = self.re_botcommand.match(event.arguments[0])
 			if command_match:
@@ -400,9 +397,11 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 	def get_current_game(self, readonly=True):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
-		show = self.show_override or self.show
-		if self.game_override is not None:
-			game_obj = {'_id': self.game_override, 'name': self.game_override, 'is_override': True}
+		with self.state.begin() as state:
+			game_override = state.get("game-override")
+			show = state.get("show-override", state.get("show", ""))
+		if game_override is not None:
+			game_obj = {'_id': game_override, 'name': game_override, 'is_override': True}
 			return storage.find_game(show, game_obj, readonly)
 		else:
 			return storage.find_game(show, twitch.get_game_playing(), readonly)

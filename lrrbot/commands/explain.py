@@ -11,7 +11,7 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 	Command: !explain TOPIC
 	Mod-Only: true
 	Section: text
-	
+
 	Provide an explanation for a given topic.
 	--command
 	Command: !explain show
@@ -22,7 +22,8 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 	"""
 	command = " ".join(command.split())
 	if command.lower() == "show":
-		command = lrrbot.show_override or lrrbot.show
+		with lrrbot.state.begin() as state:
+			command = state.get("show-override", state.get("show", ""))
 		if command is None and lrrbot.is_mod(event):
 			conn.privmsg(respond_to, "Current show not set.")
 	response_data = storage.data["explanations"].get(command.lower())

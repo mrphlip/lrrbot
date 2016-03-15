@@ -111,9 +111,10 @@ def get_header_info(lrrbot, user, data):
 			"name": game['name'],
 			"display": game.get("display", game["name"]),
 			"id": game["id"],
-			"is_override": lrrbot.game_override is not None,
 		}
-		show = lrrbot.show_override or lrrbot.show
+		with lrrbot.state.begin() as state:
+			data["is_override"] = state.get("game-override") is not None
+			show = state.get("show-override", state.get("show", ""))
 		data['current_show'] = {
 			"id": show,
 			"name": storage.data.get("shows", {}).get(show, {}).get("name", show),
@@ -161,7 +162,8 @@ def set_show(lrrbot, user, data):
 
 @bot.server_event()
 def get_show(lrrbot, user, data):
-	return lrrbot.show_override or lrrbot.show
+	with lrrbot.state.begin() as state:
+		return state.get("show-override", state.get("show", ""))
 
 @bot.server_event()
 def get_tweet(lrrbot, user, data):
