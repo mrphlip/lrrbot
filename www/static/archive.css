@@ -15,7 +15,7 @@ html, body, #content
 	height: 100%;
 	width: 100%;
 }
-#video object
+#video object, #video iframe
 {
 	height: 100%;
 	width: 100%;

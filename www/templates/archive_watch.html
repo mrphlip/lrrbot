@@ -6,23 +6,17 @@
 <link rel="stylesheet" type="text/css" href="{{url_for('static', filename="archive.css")|e}}">
 <script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='jquery.splitter-0.14.0.js')|e}}"></script>
+<script type="text/javascript" src="https://player.twitch.tv/js/embed/v1.js"></script>
 <script type="text/javascript" src="{{url_for('static', filename='archive.js')|e}}"></script>
 <script>
 	window.start = {{video["start"].timestamp()|tojson}};
-	window.initial_time = {%if starttime%}{{starttime|e}}{%else%}0{%endif%};
+	window.initial_time = {%if starttime%}{{starttime|tojson}}{%else%}0{%endif%};
+	window.video = {{video['id']|tojson}};
 </script>
 </head>
 <body>
 <div id="content">
-	<div><div id="video">
-		<object bgcolor="#000000" data="{{player_url|noproto|e}}" type="application/x-shockwave-flash" width="100%" height="100%" id="clip_embed_player_flash">
-			<param  name="movie" value="{{player_url|noproto|e}}" />
-			<param  name="allowScriptAccess" value="always" />
-			<param  name="allowNetworking" value="all" />
-			<param  name="allowFullScreen" value="true" />
-			<param  name="flashvars" value="channel={{video['channel']|e}}&amp;auto_play=true&amp;videoId={{video['id']|e}}{%if starttime%}&amp;initial_time={{starttime|e}}{%endif%}&amp;eventsCallback=onPlayerEvents" />
-		</object>
-	</div></div>
+	<div><div id="video"></div></div>
 	<div><div id="chat">
 	{%for line in chat%}
 		{{line|safe}}
