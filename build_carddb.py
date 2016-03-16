@@ -40,14 +40,22 @@ def main():
 		fp = io.TextIOWrapper(zfp.open(SOURCE_FILENAME))
 		mtgjson = json.load(fp)
 
+	with open("extracards.json") as fp:
+		# If the set is in both mtgjson and the extra data, use the one from mtgjson
+		allcards = json.load(fp)
+		allcards.update(mtgjson)
+		mtgjson = allcards
+
 	print("Processing...")
 	cards = metadata.tables["cards"]
 	card_multiverse = metadata.tables["card_multiverse"]
+	card_collector = metadata.tables["card_collector"]
 	with engine.begin() as conn:
 		conn.execute(card_multiverse.delete())
+		conn.execute(card_collector.delete())
 		conn.execute(cards.delete())
 		cardid = 0
-		for expansion in mtgjson.values():
+		for setid, expansion in mtgjson.items():
 			release_date = dateutil.parser.parse(expansion['releaseDate']).date()
 			for card in expansion['cards']:
 				cardid += 1
@@ -56,7 +64,7 @@ def main():
 				if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
 					continue
 
-				cardname, description, multiverseids = process_card(card, expansion)
+				cardname, description, multiverseids, collector = process_card(card, expansion)
 				if description is None:
 					continue
 
@@ -94,7 +102,19 @@ def main():
 					elif rows[0][0] != real_cardid:
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, card['name'], rows2[0][0]))
-						print(card['layout'])
+
+				if collector:
+					rows = conn.execute(sqlalchemy.select([card_collector.c.cardid])
+						.where((card_collector.c.setid == setid) & (card_collector.c.collector == collector))).fetchall()
+					if not rows:
+						conn.execute(card_collector.insert(),
+							setid=setid,
+							collector=collector,
+							cardid=real_cardid,
+						)
+					elif rows[0][0] != real_cardid:
+						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
+						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (setid, collector, card['name'], rows2[0][0]))
 
 		cardid += 1
 		conn.execute(cards.insert(),
@@ -173,7 +193,7 @@ def process_card(card, expansion):
 	if card.get('layout') == 'split':
 		# Return split cards as a single card... for all the other pieces, return nothing
 		if card['name'] != card['names'][0]:
-			return None, None, None
+			return None, None, None, None
 		splits = []
 		for splitname in card['names']:
 			candidates = [i for i in expansion['cards'] if i['name'] == splitname]
@@ -255,7 +275,7 @@ def process_card(card, expansion):
 	if len(desc) > MAXLEN:
 		desc = desc[:MAXLEN-1] + "\u2026"
 
-	return name, desc, multiverseids
+	return name, desc, multiverseids, card.get('number')
 
 if __name__ == '__main__':
 	main()
