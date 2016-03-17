@@ -123,6 +123,8 @@ def get_video_data(videoid):
 			"id": videoid,
 			"channel": video["channel"]["name"]
 		}
+	except utils.PASSTHROUGH_EXCEPTIONS:
+		raise
 	except:
 		return None
 

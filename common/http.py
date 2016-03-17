@@ -43,6 +43,8 @@ def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **k
 	while True:
 		try:
 			return urllib.request.urlopen(req, timeout=timeout).read().decode("utf-8")
+		except utils.PASSTHROUGH_EXCEPTIONS:
+			raise
 		except Exception as e:
 			maxtries -= 1
 			if firstex is None:
@@ -87,6 +89,8 @@ def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 			text = yield from res.text()
 			yield from res.release()
 			return text
+		except utils.PASSTHROUGH_EXCEPTIONS:
+			raise
 		except Exception as e:
 			maxtries -= 1
 			if firstex is None:
@@ -101,12 +105,14 @@ def api_request(uri, *args, **kwargs):
 	# Send the information to the server
 	try:
 		res = request(config.config['siteurl'] + uri, *args, **kwargs)
+	except utils.PASSTHROUGH_EXCEPTIONS:
+		raise
 	except:
 		log.exception("Error at server in %s" % uri)
 	else:
 		try:
 			res = json.loads(res)
-		except:
+		except ValueError:
 			log.exception("Error parsing server response from %s: %s", uri, res)
 		else:
 			if 'success' not in res:
@@ -117,12 +123,14 @@ def api_request(uri, *args, **kwargs):
 def api_request_coro(uri, *args, **kwargs):
 	try:
 		res = yield from request_coro(config.config['siteurl'] + uri, *args, **kwargs)
+	except utils.PASSTHROUGH_EXCEPTIONS:
+		raise
 	except:
 		log.exception("Error at server in %s" % uri)
 	else:
 		try:
 			res = json.loads(res)
-		except:
+		except ValueError:
 			log.exception("Error parsing server response from %s: %s", uri, res)
 		else:
 			if 'success' not in res:

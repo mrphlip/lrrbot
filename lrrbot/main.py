@@ -329,6 +329,8 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		if logo is None:
 			try:
 				channel_info = twitch.get_info_uncached(user)
+			except utils.PASSTHROUGH_EXCEPTIONS:
+				raise
 			except:
 				pass
 			else:
@@ -536,6 +538,8 @@ class RPCServer(asyncio.Protocol):
 			log.debug("Command from server (%s): %s(%r)", request['user'], request['command'], request['param'])
 			try:
 				response = self.lrrbot.on_server_event(request)
+			except utils.PASSTHROUGH_EXCEPTIONS:
+				raise
 			except:
 				log.exception("Exception in on_server_event")
 				response = {'success': False, 'result': ''.join(traceback.format_exc())}

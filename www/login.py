@@ -9,6 +9,7 @@ import flask.json
 import www.utils
 from www import server
 from common.config import config, from_apipass
+from common import utils
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -201,6 +202,8 @@ def login(return_to=None):
 
 			return_to = flask.session.pop('login_return_to', None)
 			return flask.render_template("login_response.html", success=True, return_to=return_to, session=load_session(include_url=False))
+		except utils.PASSTHROUGH_EXCEPTIONS:
+			raise
 		except:
 			server.app.logger.exception("Exception in login")
 			return flask.render_template("login_response.html", success=False, session=load_session(include_url=False))

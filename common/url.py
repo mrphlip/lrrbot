@@ -22,6 +22,8 @@ def canonical_url(url, depth=10):
 				depth -= 1
 			else:
 				break
+		except utils.PASSTHROUGH_EXCEPTIONS:
+			raise
 		except Exception:
 			log.error("Error fetching %r", url)
 			break

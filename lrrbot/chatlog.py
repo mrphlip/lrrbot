@@ -254,6 +254,8 @@ def get_display_name(nick):
 		data = yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s" % nick)
 		data = json.loads(data)
 		return data['display_name']
+	except utils.PASSTHROUGH_EXCEPTIONS:
+		raise
 	except:
 		return nick
 
@@ -306,6 +308,8 @@ def get_twitch_emotes_undocumented():
 def get_twitch_emotes():
 	try:
 		return (yield from get_twitch_emotes_official())
+	except utils.PASSTHROUGH_EXCEPTIONS:
+		raise
 	except:
 		return (yield from get_twitch_emotes_undocumented())
 
@@ -317,6 +321,8 @@ def get_filtered_emotes(setids):
 		for setid in setids:
 			emotes.update(emotesets.get(setid, {}))
 		return emotes.values()
+	except utils.PASSTHROUGH_EXCEPTIONS:
+		raise
 	except:
 		log.exception("Error fetching emotes")
 		return []
