@@ -256,7 +256,7 @@ def get_display_name(nick):
 		return data['display_name']
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
-	except:
+	except Exception:
 		return nick
 
 re_just_words = re.compile("^\w+$")
@@ -310,7 +310,7 @@ def get_twitch_emotes():
 		return (yield from get_twitch_emotes_official())
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
-	except:
+	except Exception:
 		return (yield from get_twitch_emotes_undocumented())
 
 @asyncio.coroutine
@@ -323,6 +323,6 @@ def get_filtered_emotes(setids):
 		return emotes.values()
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
-	except:
+	except Exception:
 		log.exception("Error fetching emotes")
 		return []

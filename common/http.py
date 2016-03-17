@@ -107,7 +107,7 @@ def api_request(uri, *args, **kwargs):
 		res = request(config.config['siteurl'] + uri, *args, **kwargs)
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
-	except:
+	except Exception:
 		log.exception("Error at server in %s" % uri)
 	else:
 		try:
@@ -125,7 +125,7 @@ def api_request_coro(uri, *args, **kwargs):
 		res = yield from request_coro(config.config['siteurl'] + uri, *args, **kwargs)
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
-	except:
+	except Exception:
 		log.exception("Error at server in %s" % uri)
 	else:
 		try:

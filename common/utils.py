@@ -18,7 +18,7 @@ log = logging.getLogger('utils')
 
 # We usually don't want to catch these... so whenever we have an "except everything"
 # clause, we want to explicitly catch and re-raise these.
-PASSTHROUGH_EXCEPTIONS = (KeyboardInterrupt, SystemExit, asyncio.CancelledError)
+PASSTHROUGH_EXCEPTIONS = (asyncio.CancelledError, )
 
 def deindent(s):
 	def skipblank():
@@ -221,7 +221,7 @@ def swallow_errors(func):
 			return (yield from func(*args, **kwargs))
 		except PASSTHROUGH_EXCEPTIONS:
 			raise
-		except:
+		except Exception:
 			log.exception("Exception in " + func.__name__)
 			return None
 	return wrapper
@@ -239,7 +239,7 @@ def check_exception(future):
 		future.result()
 	except PASSTHROUGH_EXCEPTIONS:
 		raise
-	except:
+	except Exception:
 		log.exception("Exception in future")
 
 def immutable(obj):
