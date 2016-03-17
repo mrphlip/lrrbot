@@ -43,14 +43,24 @@ def get_videos(*args, **kwargs):
 @asyncio.coroutine
 def lookup_video(highlight, videos):
 	while True:
+		last_video = None
 		for video in videos:
 			if video["recorded_at"] <= highlight["time"]:
 				if (highlight["time"] - video["recorded_at"]).total_seconds() <= video["length"]:
 					return video
-				raise Exception("No video found for highlight %r" % highlight)
+				# it's between two videos - figure out which one it's closer to
+				time_before = (highlight["time"] - video["recorded_at"]).total_seconds() - video["length"]
+				time_after = (last_video["recorded_at"] - highlight["time"]).total_seconds()
+				if time_before > time_after:
+					return last_video
+				else:
+					return video
+			else:
+				last_video = video
 		more_videos = yield from get_videos(broadcasts=True, offset=len(videos))
 		if len(more_videos) == 0:
-			raise Exception("Out of videos for highlight %r" % highlight)
+			# It's before the first video, so just return that
+			return videos[-1]
 		videos += more_videos
 
 @asyncio.coroutine
