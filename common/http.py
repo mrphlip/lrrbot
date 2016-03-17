@@ -8,6 +8,7 @@ import urllib.request
 import aiohttp
 
 from common import config
+from common import utils
 
 log = logging.getLogger("common.http")
 
