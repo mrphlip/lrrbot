@@ -204,7 +204,7 @@ def login(return_to=None):
 			return flask.render_template("login_response.html", success=True, return_to=return_to, session=load_session(include_url=False))
 		except utils.PASSTHROUGH_EXCEPTIONS:
 			raise
-		except:
+		except Exception:
 			server.app.logger.exception("Exception in login")
 			return flask.render_template("login_response.html", success=False, session=load_session(include_url=False))
 

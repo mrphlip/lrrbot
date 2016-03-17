@@ -125,7 +125,7 @@ def get_video_data(videoid):
 		}
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
-	except:
+	except Exception:
 		return None
 
 @server.app.route('/archive/<videoid>')
