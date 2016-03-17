@@ -3,11 +3,11 @@ import logging
 import re
 
 from common.http import request_coro
-from common.utils import cache
+from common import utils
 
 log = logging.getLogger("common.url")
 
-@cache(60 * 60, params=[0])
+@utils.cache(60 * 60, params=[0])
 @asyncio.coroutine
 def canonical_url(url, depth=10):
 	urls = []
@@ -29,7 +29,7 @@ def canonical_url(url, depth=10):
 			break
 	return urls
 
-@cache(24 * 60 * 60)
+@utils.cache(24 * 60 * 60)
 @asyncio.coroutine
 def get_tlds():
 	tlds = set()
@@ -42,7 +42,7 @@ def get_tlds():
 			tlds.add(line)
 	return tlds
 
-@cache(24 * 60 * 60)
+@utils.cache(24 * 60 * 60)
 @asyncio.coroutine
 def url_regex():
 	parens = ["()", "[]", "{}", "<>", '""', "''"]
