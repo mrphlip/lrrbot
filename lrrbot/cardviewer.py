@@ -2,6 +2,8 @@ import asyncio
 import pubnub
 import logging
 import time
+import re
+import urllib.parse
 
 from common import utils
 from common.config import config
@@ -18,7 +20,7 @@ class CardViewer:
 	def __init__(self, lrrbot, loop):
 		self.lrrbot = lrrbot
 		self.loop = loop
-		self.last_multiverseid = None
+		self.last_card_id = None
 		self.last_time = 0
 		if config['cardsubkey']:
 			self.pubnub = pubnub.Pubnub(
@@ -29,6 +31,7 @@ class CardViewer:
 			)
 		else:
 			self.pubnub = None
+		self.re_local = re.compile("^/cards/(?P<set>[^-]+)-(?P<number>[^.]+)\.", re.I)
 
 	def start(self):
 		if self.pubnub:
@@ -45,20 +48,41 @@ class CardViewer:
 		if self.pubnub:
 			self.pubnub.unsubscribe(channel=config['cardviewerchannel'])
 
+	def _extract(self, message):
+		url = urllib.parse.urlparse(message)
+
+		# Image URL from Gatherer, extract multiverse ID
+		if url.netloc == "gatherer.wizards.com":
+			try:
+				return int(urllib.parse.parse_qs(url.query)["multiverseid"][0])
+			except (ValueError, KeyError, IndexError):
+				log.exception("Failed to extract multiverse ID from %r", message)
+				return None
+		# Card images for the pre-prerelease, extract set and collector number
+		elif url.netloc == "localhost":
+			match = self.re_local.match(url.path)
+			if match is not None:
+				return (match.group("set"), match.group("number"))
+			else:
+				log.error("Failed to extract set and collector number from %r", message)
+				return None
+		else:
+			log.error("Unrecognised card image URL: %r", message)
+			return None
+
 	@utils.swallow_errors
 	def _callback(self, message, channel):
 		if channel != config['cardviewerchannel']:
 			return
-		match = config['cardviewerregex'].search(message)
-		if match:
-			multiverseid = int(match.group(1))
+		card_id = self._extract(message)
+		if card_id is not None:
 			# Pubnub is threaded, and asyncio doesn't play very nicely with threading
 			# Call this to get back into the main thread
-			self.loop.call_soon_threadsafe(asyncio.async, self._card(multiverseid))
+			self.loop.call_soon_threadsafe(asyncio.async, self._card(card_id))
 
 	@utils.swallow_errors
 	@asyncio.coroutine
-	def _card(self, multiverseid):
+	def _card(self, card_id):
 		# Delayed import so this module can be imported before the bot object exists
 		import lrrbot.commands.card
 
@@ -69,12 +93,12 @@ class CardViewer:
 		# quick succession.
 		# We should be running back in the main thread, being run by asyncio, so
 		# don't need to worry about locking or suchlike here.
-		if multiverseid == self.last_multiverseid and time.time() - self.last_time < REPEAT_TIMER:
+		if card_id == self.last_card_id and time.time() - self.last_time < REPEAT_TIMER:
 			return
-		self.last_multiverseid = multiverseid
+		self.last_card_id = card_id
 		self.last_time = time.time()
 
-		log.info("Got card from pubnub: %d" % multiverseid)
+		log.info("Got card from pubnub: %r" % card_id)
 
 		yield from asyncio.sleep(ANNOUNCE_DELAY)
 
@@ -83,7 +107,7 @@ class CardViewer:
 			self.lrrbot.connection,
 			None,
 			"#" + config['channel'],
-			multiverseid,
+			card_id,
 			noerror=True)
 
 	def _error(self, message):
