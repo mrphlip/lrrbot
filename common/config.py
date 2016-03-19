@@ -100,7 +100,3 @@ config.setdefault('cardsubkey', None)
 
 # cardviewerchannel - Pubnub channel for xsplit card viewer
 config.setdefault('cardviewerchannel', 'xsplit_image')
-
-# cardviewerregex - Regex to match Magic cards sent to xsplit overlay
-config.setdefault("cardviewerregex", "Image\.ashx\?(?:.*?&)??multiverseid=(\d+)(&|$)")
-config['cardviewerregex'] = re.compile(config['cardviewerregex'])
