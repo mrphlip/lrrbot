@@ -5,6 +5,7 @@ import random
 import common.http
 import common.time
 import lrrbot.decorators
+from common import space
 from common import utils
 from lrrbot.main import bot
 
@@ -41,7 +42,7 @@ def polls(lrrbot, conn, event, respond_to):
 	now = time.time()
 	messages = []
 	for end, title, poll_id, respond_to in lrrbot.polls:
-		messages += ["%s (https://strawpoll.me/%s): %s from now" % (title, poll_id, common.time.nice_duration(end - now, 1))]
+		messages += ["%s (https://strawpoll.me/%s%s): %s from now" % (title, poll_id, space.SPACE, common.time.nice_duration(end - now, 1))]
 	conn.privmsg(respond_to, utils.shorten("Active polls: "+"; ".join(messages), 450))
 
 @bot.command("(multi)?poll (?:(\d+) )?(?:(?:https?://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/r?)?|(?:([^:]+) ?: ?)?(.*))")
@@ -78,7 +79,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 		timeout = DEFAULT_TIMEOUT
 	end = time.time() + int(timeout)
 	lrrbot.polls += [(end, title, poll_id, respond_to)]
-	conn.privmsg(respond_to, "New poll: %s (https://strawpoll.me/%s): %s from now" % (title, poll_id, common.time.nice_duration(timeout, 1)))
+	conn.privmsg(respond_to, "New poll: %s (https://strawpoll.me/%s%s): %s from now" % (title, poll_id, space.SPACE, common.time.nice_duration(timeout, 1)))
 
 @bot.command("pollsclear")
 @lrrbot.decorators.mod_only

@@ -13,6 +13,7 @@ import sqlalchemy
 import common.http
 import common.url
 from common import utils
+from common import space
 from common.config import config
 import lrrbot.main
 
@@ -24,6 +25,8 @@ CACHE_EXPIRY = 7*24*60*60
 PURGE_PERIOD = datetime.timedelta(minutes=5)
 
 queue = asyncio.Queue()
+
+space.monkey_patch_urlize()
 
 # Chat-log handling functions live in an asyncio task, so that functions that take
 # a long time to run, like downloading the emote list, don't block the bot... but

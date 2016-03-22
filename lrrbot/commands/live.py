@@ -2,6 +2,7 @@ import common.http
 import lrrbot.decorators
 from lrrbot.main import bot
 from lrrbot import googlecalendar
+from common import space
 from common import twitch
 from common import utils
 from common.config import config
@@ -73,9 +74,10 @@ def live(lrrbot, conn, event, respond_to):
 
 	# Full message
 	message = tag + ", ".join([
-		"%s (%s)%s%s" % (
+		"%s (%s%s)%s%s" % (
 			data["channel"]["display_name"],
 			data["channel"]["url"],
+			space.SPACE,
 			" is playing %s" % data["game"] if data.get("game") is not None else "",
 			" (%s)" % data["channel"]["status"] if data["channel"].get("status") not in [None, ""] else ""
 		) for data in streams
@@ -85,9 +87,10 @@ def live(lrrbot, conn, event, respond_to):
 
 	# Shorter message
 	message = tag + ", ".join([
-		"%s (%s)%s" % (
+		"%s (%s%s)%s" % (
 			data["channel"]["display_name"],
 			data["channel"]["url"],
+			space.SPACE,
 			" is playing %s" % data["game"] if data.get("game") is not None else "",
 		) for data in streams
 	])
@@ -96,9 +99,10 @@ def live(lrrbot, conn, event, respond_to):
 
 	# Shortest message
 	message = tag + ", ".join([
-		"%s (%s)" % (
+		"%s (%s%s)" % (
 			data["channel"]["display_name"],
-			data["channel"]["url"]
+			data["channel"]["url"],
+			space.SPACE
 		) for data in streams
 	])
 	return conn.privmsg(respond_to, utils.shorten(message, 450))
