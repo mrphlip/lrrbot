@@ -130,7 +130,7 @@ def load_session(include_url=True, include_header=True):
 				RETURNING id
 			""", twitch.get_user(user_name)).first()
 		flask.session["id"] = user_id
-	if 'name' in flask.session:
+	if 'user' in flask.session:
 		del flask.session["user"]
 	if 'apipass' in flask.request.values and flask.request.values['apipass'] in from_apipass:
 		user_id = from_apipass[flask.request.values["apipass"]]
