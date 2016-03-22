@@ -244,8 +244,8 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		source = irc.client.NickMask(event.source)
 		nick = source.nick.lower()
 
+		tags = event.tags = dict((i['key'], i['value']) for i in event.tags)
 		if event.type == "pubmsg":
-			tags = event.tags = dict((i['key'], i['value']) for i in event.tags)
 			self.check_message_tags(conn, nick, tags)
 
 			metadata = {
@@ -264,6 +264,16 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 				metadata['specialuser'].add('mod')
 			log.debug("Message metadata: %r", metadata)
 			chatlog.log_chat(event, metadata)
+		else:
+			users = self.metadata.tables['users']
+			with self.engine.begin() as pg_conn:
+				row = pg_conn.execute(sqlalchemy.select([users.c.is_sub, users.c.is_mod])
+					.where(users.c.id == event.tags['user-id'])).first()
+				if row is not None:
+					event.tags['subscriber'], event.tags['mod'] = row
+				else:
+					event.tags['subscriber'] = False
+					event.tags['mod'] = False
 
 		source = irc.client.NickMask(event.source)
 		# If the message was sent to a channel, respond in the channel
