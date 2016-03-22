@@ -398,6 +398,9 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		if tags.get("display-name") == '':
 			del tags["display-name"]
 
+		if "user-id" not in tags:
+			return
+
 		tags["user-id"] = int(tags["user-id"])
 
 		with self.engine.begin() as conn:
