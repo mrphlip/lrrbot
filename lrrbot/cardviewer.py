@@ -31,7 +31,10 @@ class CardViewer:
 			)
 		else:
 			self.pubnub = None
-		self.re_local = re.compile("^/cards/(?P<set>[^-]+)-(?P<number>[^.]+)\.", re.I)
+		self.re_local = [
+			re.compile("^/cards/(?P<set>[^-]+)-(?P<number>[^.]+)\.", re.I),
+			re.compile("^/cards/(?P<set>.+)_(?P<number>[^.]+)\.", re.I)
+		]
 
 	def start(self):
 		if self.pubnub:
@@ -60,12 +63,12 @@ class CardViewer:
 				return None
 		# Card images for the pre-prerelease, extract set and collector number
 		elif url.netloc == "localhost":
-			match = self.re_local.match(url.path)
-			if match is not None:
-				return (match.group("set"), match.group("number"))
-			else:
-				log.error("Failed to extract set and collector number from %r", message)
-				return None
+			for regex in self.re_local:
+				match = regex.match(url.path)
+				if match is not None:
+					return (match.group("set"), match.group("number"))
+			log.error("Failed to extract set and collector number from %r", message)
+			return None
 		else:
 			log.error("Unrecognised card image URL: %r", message)
 			return None
