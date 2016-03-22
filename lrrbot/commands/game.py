@@ -2,8 +2,8 @@ import irc
 
 import lrrbot.decorators
 from common import utils
+from common import twitch
 from lrrbot import storage
-from lrrbot import twitch
 from lrrbot.main import bot
 from lrrbot.commands.show import show_name
 
@@ -60,7 +60,7 @@ def vote_respond(lrrbot, conn, respond_to, game):
 		good = sum(game["votes"].values())
 		count = len(game["votes"])
 		show = lrrbot.show_override or lrrbot.show
-		
+
 		conn.privmsg(respond_to, "Rating for %s on %s is now %.0f%% (%d/%d)" % (game_name(game), show_name(show), 100*good/count, good, count))
 	lrrbot.vote_update = None
 
@@ -89,15 +89,15 @@ def override_game(lrrbot, conn, event, respond_to, game):
 	"""
 	Command: !game override NAME
 	Section: info
-	
+
 	eg: !game override Prayer Warriors: A.O.F.G.
-	
+
 	Override what game is being played (eg when the current game isn't in the Twitch database)
 
 	--command
 	Command: !game override off
 	Section: info
-	
+
 	Disable override, go back to getting current game from Twitch stream settings.
 	Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.
 	"""

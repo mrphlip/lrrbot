@@ -10,3 +10,4 @@ pubnub>=3.7.6
 alembic>=0.8.4
 sqlalchemy>=1.0.12
 flask-sqlalchemy>=2.1
+requests>=2.9.1

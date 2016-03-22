@@ -49,7 +49,7 @@ def spam_submit(session):
 		botinteract.modify_link_spam_rules(data)
 	else:
 		botinteract.modify_spam_rules(data)
-	history.store("link_spam" if link_spam else "spam", session['user'], data)
+	history.store("link_spam" if link_spam else "spam", session['user']['id'], data)
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
 
 def do_check(line, rules):

@@ -1,5 +1,6 @@
 from www import server
 from www import botinteract
+from www import login
 from common.config import config
 import datetime
 
@@ -38,7 +39,10 @@ def api_votes():
 	return "%.0f%% (%d/%d)" % (100*good/count, good, count)
 
 @server.app.route("/api/show/<show>")
-def set_show(show):
+@login.with_minimal_session
+def set_show(session, show):
+	if not session['user']['is_mod']:
+		return "%s is not a mod" % (session['user']['display_name'])
 	if show == "off":
 		show = ""
 	response = botinteract.set_show(show)
@@ -55,5 +59,9 @@ def get_show():
 	return botinteract.get_show()
 
 @server.app.route("/api/tweet")
-def get_tweet():
-	return botinteract.get_tweet() or "-"
+@login.with_minimal_session
+def get_tweet(session):
+	tweet = None
+	if session['user']['is_mod']:
+		tweet = botinteract.get_tweet()
+	return tweet or "-"

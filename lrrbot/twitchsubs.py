@@ -2,9 +2,10 @@ import time
 import logging
 import dateutil
 import asyncio
+import sqlalchemy
 from common import utils
 from common.config import config
-from lrrbot import twitch
+from common import twitch
 
 log = logging.getLogger('twitchsubs')
 
@@ -23,7 +24,14 @@ last_subs = None
 def do_check(lrrbot):
 	global last_subs
 
-	sublist = yield from twitch.get_subscribers(config['channel'])
+	users = lrrbot.metadata.tables["users"]
+	with lrrbot.engine.begin() as conn:
+		token = conn.execute(sqlalchemy.select([users.c.twitch_oauth])
+			.where(users.c.name == config['channel'])).first()
+
+	sublist = None
+	if token is not None:
+		sublist = yield from twitch.get_subscribers(config['channel'], token)
 	if not sublist:
 		log.info("Failed to get subscriber list from Twitch")
 		last_subs = None

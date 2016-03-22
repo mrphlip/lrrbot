@@ -22,7 +22,7 @@ def send_bot_command(command, param, timeout=5, session=None):
 	data = {
 		"command": command,
 		"param": param,
-		"user": session['user'],
+		"user": session['user']['id'],
 	}
 	conn.send((flask.json.dumps(data) + "\n").encode())
 	buf = b""

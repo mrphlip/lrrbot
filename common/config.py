@@ -65,9 +65,6 @@ config.setdefault('siteurl', 'https://lrrbot.mrphlip.com/')
 # apipass - secret string needed to communicate with web site
 config["apipass"] = apipass.get(config["username"])
 
-# mods - comma-separated list of moderators for the bot, in addition to people with chanop privileges
-config['mods'] = set(i.strip().lower() for i in config.get('mods', 'd3fr0st5,mrphlip,lord_hosk,admiralmemo,dixonij').split(','))
-
 # datafile - file to store save data to
 config.setdefault('datafile', 'data.json')
 

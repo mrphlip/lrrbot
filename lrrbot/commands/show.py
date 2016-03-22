@@ -1,6 +1,6 @@
+from common import twitch
 import lrrbot.decorators
 from lrrbot import storage
-from lrrbot import twitch
 from lrrbot.main import bot
 
 def set_show(lrrbot, show):

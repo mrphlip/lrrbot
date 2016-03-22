@@ -74,7 +74,7 @@ def updates():
 @server.app.route('/notifications/newmessage', methods=['POST'])
 @login.with_minimal_session
 def new_message(session):
-	if session["user"] not in (config["username"], config["channel"]):
+	if not session["user"]["is_mod"]:
 		return flask.json.jsonify(error='apipass')
 	data = {
 		'message': flask.request.values['message'],

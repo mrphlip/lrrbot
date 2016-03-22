@@ -5,7 +5,6 @@ import asyncio
 import common.http
 from common import utils
 from common.config import config
-from lrrbot import storage
 
 GAME_CHECK_INTERVAL = 5*60
 
@@ -92,13 +91,9 @@ def is_stream_live(username=None):
 	return channel_data and channel_data['live']
 
 @asyncio.coroutine
-def get_subscribers(channel=None, count=5, offset=None, latest=True):
-	if channel is None:
-		channel = config['channel']
-	if channel not in storage.data['twitch_oauth']:
-		return None
+def get_subscribers(channel, token, count=5, offset=None, latest=True):
 	headers = {
-		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][channel],
+		"Authorization": "OAuth %s" % token,
 	}
 	data = {
 		"limit": count,
@@ -113,11 +108,11 @@ def get_subscribers(channel=None, count=5, offset=None, latest=True):
 		for sub in subscriber_data['subscriptions']
 	]
 
-def get_group_servers():
+def get_group_servers(token):
 	"""
 	Get the secondary Twitch chat servers
 	"""
-	res = common.http.request("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': storage.data['twitch_oauth'][config['username']]}, maxtries=1)
+	res = common.http.request("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': token}, maxtries=1)
 	res = json.loads(res)
 	def parse_server(s):
 		if ':' in s:
@@ -157,12 +152,10 @@ def get_follows_channels(username=None):
 	return follows
 
 @asyncio.coroutine
-def get_streams_followed(username=None):
-	if username is None:
-		username = config["username"]
+def get_streams_followed(token):
 	url = "https://api.twitch.tv/kraken/streams/followed"
 	headers = {
-		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][username],
+		"Authorization": "OAuth %s" % token,
 	}
 	streams = []
 	total = 1
@@ -175,23 +168,19 @@ def get_streams_followed(username=None):
 	return streams
 
 @asyncio.coroutine
-def follow_channel(target, user=None):
-	if user is None:
-		user = config["username"]
+def follow_channel(target, token):
 	headers = {
-		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][user],
+		"Authorization": "OAuth %s" % token,
 	}
-	yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (user, target),
+	yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
 										data={"notifications": "false"}, method="PUT", headers=headers)
 
 @asyncio.coroutine
-def unfollow_channel(target, user=None):
-	if user is None:
-		user = config["username"]
+def unfollow_channel(target, token):
 	headers = {
-		"Authorization": "OAuth %s" % storage.data['twitch_oauth'][user],
+		"Authorization": "OAuth %s" % token,
 	}
-	yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (user, target),
+	yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
 										method="DELETE", headers=headers)
 
 @asyncio.coroutine
@@ -204,3 +193,6 @@ def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
 		"hls": hls,
 	})
 	return json.loads(data)["videos"]
+
+def get_user(user):
+	return json.loads(common.http.request("https://api.twitch.tv/kraken/users/%s" % user))

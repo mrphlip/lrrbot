@@ -15,10 +15,12 @@ def history(session):
 	page = flask.request.values.get('page', 'all')
 	assert page in ('responses', 'explanations', 'spam', 'link_spam', 'all')
 	history = server.db.metadata.tables["history"]
+	users = server.db.metadata.tables["users"]
 	query = sqlalchemy.select([
-		history.c.id, history.c.section, history.c.changetime, history.c.changeuser,
-		sqlalchemy.func.length(history.c.jsondata.cast(sqlalchemy.Text))
-	]).order_by(history.c.changetime)
+			history.c.id, history.c.section, history.c.changetime, users.c.display_name,
+			sqlalchemy.func.length(history.c.jsondata.cast(sqlalchemy.Text))
+		]).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True)) \
+		.order_by(history.c.changetime)
 	if page != 'all':
 		query = query.where(history.c.section == page)
 	with server.db.engine.begin() as conn:
@@ -41,10 +43,12 @@ def history(session):
 @login.require_mod
 def history_show(session, historykey):
 	history = server.db.metadata.tables["history"]
+	users = server.db.metadata.tables["users"]
 	with server.db.engine.begin() as conn:
 		section, time, user, data = conn.execute(sqlalchemy.select([
-			history.c.section, history.c.changetime, history.c.changeuser, history.c.jsondata
-		]).where(history.c.id == historykey)).first()
+				history.c.section, history.c.changetime, users.c.display_name, history.c.jsondata
+			]).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True))
+			.where(history.c.id == historykey)).first()
 	if section in ('responses', 'explanations'):
 		for row in data.values():
 			if not isinstance(row['response'], (tuple, list)):
@@ -64,14 +68,16 @@ def history_show(session, historykey):
 @login.require_mod
 def history_diff(session, fromkey, tokey):
 	history = server.db.metadata.tables["history"]
+	users = server.db.metadata.tables["users"]
 	with server.db.engine.begin() as conn:
-		fromsection, fromtime, fromuser, fromdata = conn.execute(sqlalchemy.select([
-			history.c.section, history.c.changetime, history.c.changeuser, history.c.jsondata
-		]).where(history.c.id == fromkey)).first()
+		fromsection, fromdata = conn.execute(sqlalchemy.select([
+				history.c.section, history.c.jsondata
+			]).where(history.c.id == fromkey)).first()
 
 		tosection, totime, touser, todata = conn.execute(sqlalchemy.select([
-			history.c.section, history.c.changetime, history.c.changeuser, history.c.jsondata
-		]).where(history.c.id == tokey)).first()
+				history.c.section, history.c.changetime, users.c.display_name, history.c.jsondata
+			]).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True))
+			.where(history.c.id == tokey)).first()
 	assert fromsection == tosection
 
 	if tosection in ('responses', 'explanations'):

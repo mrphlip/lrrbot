@@ -1,21 +1,23 @@
 import irc.bot, irc.client
 from common import utils
+from common import twitch
 from common.config import config
-from lrrbot import twitch, storage, asyncreactor
+from lrrbot import storage, asyncreactor
 import logging
 import asyncio
 
 log = logging.getLogger('whisper')
 
 class TwitchWhisper(irc.bot.SingleServerIRCBot):
-	def __init__(self, loop, service):
+	def __init__(self, password, loop, service):
+		assert password.startswith("oauth:")
 		self.loop = loop
 		self.service = service
 		servers = [irc.bot.ServerSpec(
 			host=host,
 			port=port,
-			password="oauth:%s" % storage.data['twitch_oauth'][config['username']] if config['password'] == "oauth" else config['password'],
-		) for host, port in twitch.get_group_servers()]
+			password=password,
+		) for host, port in twitch.get_group_servers(password[len("oauth:"):])]
 		super(TwitchWhisper, self).__init__(
 			server_list=servers,
 			realname=config['username'],

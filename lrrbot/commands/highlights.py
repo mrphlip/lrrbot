@@ -3,7 +3,7 @@ import irc.client
 import lrrbot.decorators
 from common import utils, gdata
 from common.highlights import SPREADSHEET, format_row
-from lrrbot import twitch
+from common import twitch
 from lrrbot.main import bot
 import asyncio
 
@@ -36,7 +36,7 @@ def highlight(lrrbot, conn, event, respond_to, description):
 	else:
 		with lrrbot.engine.begin() as pg_conn:
 			pg_conn.execute(lrrbot.metadata.tables["highlights"].insert(),
-				title=stream_info["status"], description=description, time=now, nick=irc.client.NickMask(event.source).nick)
+				title=stream_info["status"], description=description, time=now, user=event.tags["user-id"])
 		conn.privmsg(respond_to, "Highlight added.")
 		return
 

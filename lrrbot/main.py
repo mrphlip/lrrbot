@@ -14,6 +14,7 @@ import irc.bot
 import irc.client
 import irc.modes
 import irc.connection
+import sqlalchemy
 
 import common.http
 import common.postgres
@@ -21,7 +22,8 @@ import lrrbot.decorators
 import lrrbot.systemd
 from common import utils
 from common.config import config
-from lrrbot import chatlog, storage, twitch, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
+from common import twitch
+from lrrbot import chatlog, storage, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
 
 log = logging.getLogger('lrrbot')
 
@@ -29,11 +31,19 @@ SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', '
 
 class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 	def __init__(self, loop):
+		self.engine, self.metadata = common.postgres.new_engine_and_metadata()
+		users = self.metadata.tables["users"]
+		if config['password'] == "oauth":
+			with self.engine.begin() as conn:
+				password, = conn.execute(sqlalchemy.select([users.c.twitch_oauth]).where(users.c.name == config['username'])).first()
+			password = "oauth:" + password
+		else:
+			password = config['password']
 		self.loop = loop
 		server = irc.bot.ServerSpec(
 			host=config['hostname'],
 			port=config['port'],
-			password="oauth:%s" % storage.data['twitch_oauth'][config['username']] if config['password'] == "oauth" else config['password'],
+			password=password,
 		)
 		if config['secure']:
 			import ssl
@@ -60,7 +70,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 		# create secondary connection
 		if config['whispers']:
-			self.whisperconn = whisper.TwitchWhisper(self.loop, self.service)
+			self.whisperconn = whisper.TwitchWhisper(password, self.loop, self.service)
 		else:
 			self.whisperconn = None
 			self.service.subsystem_started("whispers")
@@ -101,12 +111,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
 		self.spammers = {}
-
-		self.mods = set(storage.data.get('mods', config['mods']))
-		self.subs = set(storage.data.get('subs', []))
-		self.autostatus = set(storage.data.get('autostatus', []))
-
-		self.engine, self.metadata = common.postgres.new_engine_and_metadata()
 
 		linkspam.LinkSpam.__init__(self, loop)
 
@@ -215,9 +219,15 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
 			self.service.subsystem_started("irc")
-		elif source.nick.lower() in self.autostatus:
-			from lrrbot.commands.misc import send_status
-			send_status(self, conn, source.nick)
+			return
+		users = self.metadata.tables["users"]
+		with self.engine.begin() as pg_conn:
+			res = pg_conn.execute(sqlalchemy.select([users.c.autostatus]).where(users.c.name == source.nick)).first()
+			if res is not None:
+				enabled, = res
+				if res[0]:
+					from lrrbot.commands.misc import send_status
+					send_status(self, conn, source.nick)
 
 	@utils.swallow_errors
 	def do_keepalive(self):
@@ -235,25 +245,25 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		nick = source.nick.lower()
 
 		if event.type == "pubmsg":
-			tags = dict((i['key'], i['value']) for i in event.tags)
-			self.check_moderator(conn, nick, tags)
+			tags = event.tags = dict((i['key'], i['value']) for i in event.tags)
+			self.check_message_tags(conn, nick, tags)
+
 			metadata = {
 				'usercolor': tags.get('color'),
 				'emotes': tags.get('emotes'),
 				'display-name': tags.get('display-name') or nick,
 				'specialuser': set(),
 			}
-			if int(tags.get('subscriber', 0)):
+			if tags['subscriber']:
 				metadata['specialuser'].add('subscriber')
 			if int(tags.get('turbo', 0)):
 				metadata['specialuser'].add('turbo')
 			if tags.get('user-type'):
 				metadata['specialuser'].add(tags.get('user-type'))
-			if self.is_mod(event):
+			if tags['mod']:
 				metadata['specialuser'].add('mod')
 			log.debug("Message metadata: %r", metadata)
 			chatlog.log_chat(event, metadata)
-			self.check_subscriber(conn, nick, metadata)
 
 		source = irc.client.NickMask(event.source)
 		# If the message was sent to a channel, respond in the channel
@@ -356,24 +366,43 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
 		common.http.api_request('notifications/newmessage', notifyparams, 'POST')
 
-		self.subs.add(user.lower())
-		storage.data['subs'] = list(self.subs)
-		storage.save()
+		users = self.metadata.tables["users"]
+		with self.engine.begin() as conn:
+			conn.execute(users.update().where(users.c.name == user), is_sub=True)
 
-	def check_subscriber(self, conn, nick, metadata):
+	def check_message_tags(self, conn, nick, tags):
 		"""
-		Whenever a user says something, update the subscriber list according to whether
-		their message has the subscriber-badge metadata attached to it.
+		Whenever a user says something, update database to have the latest version of user metadata.
+		Also corrects the tags.
 		"""
-		is_sub = 'subscriber' in metadata.get('specialuser', set())
-		if not is_sub and nick in self.subs:
-			self.subs.remove(nick)
-			storage.data['subs'] = list(self.subs)
-			storage.save()
-		elif is_sub and nick not in self.subs:
-			self.subs.add(nick)
-			storage.data['subs'] = list(self.subs)
-			storage.save()
+		tags["subscriber"] = is_sub = bool(int(tags.get("subscriber", 0)))
+
+		# Either:
+		#  * has sword
+		is_mod = bool(int(tags.get('mod', 0)))
+		#  * is some sort of Twitchsm'n
+		is_mod = is_mod or tags.get('user-type', '') in {'mod', 'global_mod', 'admin', 'staff'}
+		#  * is broadcaster
+		tags["mod"] = is_mod = is_mod or nick.lower() == config['channel']
+
+		if tags.get("display-name") == '':
+			del tags["display-name"]
+
+		tags["user-id"] = int(tags["user-id"])
+
+		with self.engine.begin() as conn:
+			# FIXME: Raw SQL query. Needs https://bitbucket.org/zzzeek/sqlalchemy/issues/960
+			conn.execute("""
+				INSERT INTO users (id, name, display_name, is_sub, is_mod)
+				VALUES (%s, %s, %s, %s, %s)
+				ON CONFLICT (id) DO UPDATE SET
+					name = EXCLUDED.name,
+					display_name = EXCLUDED.display_name,
+					is_sub = EXCLUDED.is_sub,
+					is_mod = EXCLUDED.is_mod
+			""", [tags["user-id"], nick, tags.get("display-name"), is_sub, is_mod])
+
+		tags["display_name"] = tags.get("display_name", nick)
 
 	@utils.swallow_errors
 	def on_clearchat(self, conn, event):
@@ -381,24 +410,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		# or "CLEARCHAT :someuser" to purge a single user
 		if len(event.arguments) >= 1:
 			chatlog.clear_chat_log(event.arguments[0])
-
-	def check_moderator(self, conn, nick, tags):
-		# Either:
-		#  * has sword
-		is_mod = tags.get('mod', '0') == '1'
-		#  * is some sort of Twitchsm'n
-		is_mod = is_mod or tags.get('user-type', '') in {'mod', 'global_mod', 'admin', 'staff'}
-		#  * is broadcaster
-		is_mod = is_mod or nick.lower() == config['channel']
-
-		if not is_mod and nick in self.mods:
-			self.mods.remove(nick)
-			storage.data['mods'] = list(self.mods)
-			storage.save()
-		if is_mod and nick not in self.mods:
-			self.mods.add(nick)
-			storage.data['mods'] = list(self.mods)
-			storage.save()
 
 	def get_current_game(self, readonly=True):
 		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
@@ -411,24 +422,28 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""
-		source = irc.client.NickMask(event.source)
-		return source.nick.lower() in self.mods
+		return event.tags["mod"]
 
 	def is_mod_nick(self, nick):
-		return nick.lower() in self.mods
+		users = self.metadata.tables["users"]
+		with self.engine.begin() as conn:
+			res = conn.execute(sqlalchemy.select([users.c.is_mod]).where(users.c.name == nick)).first()
+			return res is not None and res[0]
 
 	def is_sub(self, event):
 		"""Check whether the source of the event is a known subscriber to the channel"""
-		source = irc.client.NickMask(event.source)
-		return source.nick.lower() in self.subs
+		return event.tags["subscriber"]
 
 	def is_sub_nick(self, nick):
-		return nick.lower() in self.subs
+		users = self.metadata.tables["users"]
+		with self.engine.begin() as conn:
+			res = conn.execute(sqlalchemy.select([users.c.is_sub]).where(users.c.name == nick)).first()
+			return res is not None and res[0]
 
 	def ban(self, conn, event, reason):
 		source = irc.client.NickMask(event.source)
 		tags = dict((i['key'], i['value']) for i in event.tags)
-		display_name = tags.get("display_name") or source.nick
+		display_name = tags.get("display_name", source.nick)
 		self.spammers.setdefault(source.nick.lower(), 0)
 		self.spammers[source.nick.lower()] += 1
 		level = self.spammers[source.nick.lower()]
