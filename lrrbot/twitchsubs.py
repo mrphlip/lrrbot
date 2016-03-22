@@ -26,7 +26,7 @@ def do_check(lrrbot):
 
 	users = lrrbot.metadata.tables["users"]
 	with lrrbot.engine.begin() as conn:
-		token = conn.execute(sqlalchemy.select([users.c.twitch_oauth])
+		token, = conn.execute(sqlalchemy.select([users.c.twitch_oauth])
 			.where(users.c.name == config['channel'])).first()
 
 	sublist = None
