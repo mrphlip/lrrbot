@@ -66,7 +66,7 @@ class CardViewer:
 			for regex in self.re_local:
 				match = regex.match(url.path)
 				if match is not None:
-					return (match.group("set"), match.group("number"))
+					return (match.group("set"), match.group("number").lstrip('0'))
 			log.error("Failed to extract set and collector number from %r", message)
 			return None
 		else:

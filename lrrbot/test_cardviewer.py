@@ -27,3 +27,9 @@ class TestCardViewerExtract(unittest.TestCase):
 
 	def test_extract_local_underscore_set_code_with_underscore(self):
 		self.assertEqual(self.cardviewer._extract("http://localhost/cards/DD3_JVC_1.jpg"), ("DD3_JVC", "1"))
+
+	def test_extract_local_dash_leading_zeroes(self):
+		self.assertEqual(self.cardviewer._extract("http://localhost/cards/SOI-005a.jpg"), ("SOI", "5a"))
+
+	def test_extract_local_underscore_leading_zeroes(self):
+		self.assertEqual(self.cardviewer._extract("http://localhost/cards/SOI_005a.jpg"), ("SOI", "5a"))
