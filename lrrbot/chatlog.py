@@ -7,7 +7,7 @@ import logging
 import asyncio
 
 import irc.client
-from jinja2.utils import Markup, escape, urlize
+from jinja2.utils import Markup, escape, urlize as real_urlize
 import sqlalchemy
 
 import common.http
@@ -27,6 +27,9 @@ PURGE_PERIOD = datetime.timedelta(minutes=5)
 queue = asyncio.Queue()
 
 space.monkey_patch_urlize()
+
+def urlize(text):
+	return real_urlize(text).replace('<a ', '<a target="_blank" rel="noopener nofollow" ')
 
 # Chat-log handling functions live in an asyncio task, so that functions that take
 # a long time to run, like downloading the emote list, don't block the bot... but
@@ -158,12 +161,12 @@ def format_message(message, emotes):
 				stack.append((parts[0], Markup(emote["html"].format(escape(parts[1])))))
 				break
 		else:
-			ret += Markup(urlize(prefix).replace('<a ', '<a target="_blank" ')) + suffix
+			ret += Markup(urlize(prefix)) + suffix
 	return ret
 
 def format_message_explicit_emotes(message, emotes, size="1.0"):
 	if not emotes:
-		return Markup(urlize(message).replace('<a ', '<a target="_blank" '))
+		return Markup(urlize(message))
 
 	# emotes format is
 	# <emoteid>:<start>-<end>[,<start>-<end>,...][/<emoteid>:<start>-<end>,.../...]
@@ -186,13 +189,13 @@ def format_message_explicit_emotes(message, emotes, size="1.0"):
 	prev = 0
 	for start, end, emoteid in parsed_emotes:
 		if prev < start:
-			bits.append(urlize(message[prev:start]).replace('<a ', '<a target="_blank" '))
+			bits.append(urlize(message[prev:start]))
 		url = escape("https://static-cdn.jtvnw.net/emoticons/v1/%d/%s" % (emoteid, size))
 		command = escape(message[start:end])
 		bits.append('<img src="%s" alt="%s" title="%s">' % (url, command, command))
 		prev = end
 	if prev < len(message):
-		bits.append(urlize(message[prev:]).replace('<a ', '<a target="_blank" '))
+		bits.append(urlize(message[prev:]))
 	return Markup(''.join(bits))
 
 @asyncio.coroutine
