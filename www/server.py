@@ -5,6 +5,7 @@ import sqlalchemy
 import warnings
 
 from common.config import config
+from common import space
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config["postgres"]
@@ -16,5 +17,6 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=sqlalchemy.exc.SAWarning)
     db.reflect()
 csrf(app)
+space.monkey_patch_urlize()
 
 __all__ = ['app', 'db']

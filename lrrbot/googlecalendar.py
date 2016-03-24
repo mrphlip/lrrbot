@@ -10,6 +10,7 @@ import common.http
 import common.time
 from common import utils
 from common.config import config
+from common import space
 
 CACHE_EXPIRY = 15*60
 CALENDAR_LRL = "loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com"
@@ -131,7 +132,11 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 	strs = []
 	for i, ev in enumerate(events):
 		if ev['location'] is not None:
-			title = "%(title)s (%(location)s)" % ev
+			title = "%(title)s (%(location)s%(space)s)" % {
+				"title": ev["title"],
+				"location": ev["location"],
+				"space": space.SPACE,
+			}
 		else:
 			title = ev['title']
 		# If several events are at the same time, just show the time once after all of them
