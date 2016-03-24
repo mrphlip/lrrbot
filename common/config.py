@@ -101,3 +101,10 @@ config.setdefault('cardviewerchannel', 'xsplit_image')
 # Slack:
 # slack_webhook_url - URL to post messages to
 config.setdefault('slack_webhook_url', None)
+
+# Patreon:
+# patreon_clientid - Patreon API client ID
+config.setdefault('patreon_clientid', '')
+
+# patreon_clientsecret - Patreon API secret key
+config.setdefault('patreon_clientsecret', '')
