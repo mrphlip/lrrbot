@@ -120,6 +120,7 @@ def getcards(doc):
 			else:
 				c['number'] += "b"
 				o['number'] += "a"
+	cards.sort(key=lambda c:c['number'])
 	return cards
 
 def getcarddetails(card):
