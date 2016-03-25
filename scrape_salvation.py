@@ -147,7 +147,10 @@ def itertext(elm, withtail=False):
 				yield "{%s}" % ICONS[c]
 				break
 		else:
-			raise ValueError("Unrecognised mana symbol: %s (%s)" % (elm.attrib['class'], elm.text))
+			cls = set(cls)
+			# Weird symbols around ability words. I think they're meant to be italics tags.
+			if cls != {"tip", "mana-icon"} and cls != {"mana-icon"}:
+				raise ValueError("Unrecognised mana symbol: %s (%s)" % (elm.attrib['class'], elm.text))
 	else:
 		if elm.text:
 			yield elm.text
