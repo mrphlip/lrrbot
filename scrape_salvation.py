@@ -101,26 +101,15 @@ def getcards(doc):
 	for i in doc.iterfind(".//*[@class='t-spoiler-container']"):
 		cards.append(getcarddetails(i))
 	# postprocessing for double-faced cards
-	collect = {}
-	for c in cards:
-		if 'number' not in c:
-			pass
-		elif c['number'] not in collect:
-			collect[c['number']] = c
-		else:
-			o = collect[c['number']]
-			c['layout'] = 'double-faced'
-			o['layout'] = 'double-faced'
-			cs = [(1 if i.get('manaCost') else 2, i['name']) for i in [c, o]]
-			cs.sort()
-			c['names'] = o['names'] = [n for c, n in cs]
-			if c['name'] == c['names'][0]:
-				c['number'] += "a"
-				o['number'] += "b"
-			else:
-				c['number'] += "b"
-				o['number'] += "a"
-	cards.sort(key=lambda c:c['number'])
+	cards.sort(key=lambda c: (int(c['number']), 1 if c.get('manaCost') else 2))
+	lastcard = None
+	for card in cards:
+		if lastcard is not None and card.get('number') == lastcard.get('number'):
+			card['layout'] = lastcard['layout'] = 'double-faced'
+			card['names'] = lastcard['names'] = [lastcard['name'], card['name']]
+			lastcard['number'] += "a"
+			card['number'] += "b"
+		lastcard = card
 	return cards
 
 def getcarddetails(card):
