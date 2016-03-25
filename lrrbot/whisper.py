@@ -17,7 +17,7 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 			host=host,
 			port=port,
 			password=password,
-		) for host, port in twitch.get_group_servers(password[len("oauth:"):])]
+		) for host, port in loop.run_until_complete(twitch.get_group_servers(password[len("oauth:"):], loop))]
 		super(TwitchWhisper, self).__init__(
 			server_list=servers,
 			realname=config['username'],

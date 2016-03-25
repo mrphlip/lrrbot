@@ -1,6 +1,7 @@
 import json
 import random
 import asyncio
+import socket
 
 import common.http
 from common import utils
@@ -108,11 +109,12 @@ def get_subscribers(channel, token, count=5, offset=None, latest=True):
 		for sub in subscriber_data['subscriptions']
 	]
 
-def get_group_servers(token):
+@asyncio.coroutine
+def get_group_servers(token, loop):
 	"""
 	Get the secondary Twitch chat servers
 	"""
-	res = common.http.request("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': token}, maxtries=1)
+	res = yield from common.http.request_coro("https://chatdepot.twitch.tv/room_memberships", {'oauth_token': token}, maxtries=1)
 	res = json.loads(res)
 	def parse_server(s):
 		if ':' in s:
@@ -133,8 +135,28 @@ def get_group_servers(token):
 		else:
 			return random.choice(list(ports))
 	servers = [(host, preferred_port(ports)) for host,ports in server_dict.items()]
-	random.shuffle(servers)
-	return servers
+
+	# Try to connect to all servers. Out of 10 servers 4 are actually up.
+	connections = []
+	for addr in servers:
+		s = socket.socket()
+		s.setblocking(False)
+		connections.append((s, asyncio.async(asyncio.wait_for(loop.sock_connect(s, addr), 1, loop=loop), loop=loop)))
+	done, pending = yield from asyncio.wait([future for s, future in connections], loop=loop)
+	assert len(pending) == 0
+
+	working_servers = []
+	for address, (s, future) in zip(servers, connections):
+		s.close()
+		try:
+			future.result()
+			working_servers.append(address)
+		except (IOError, asyncio.TimeoutError):
+			# Connecting failed
+			continue
+
+	random.shuffle(working_servers)
+	return working_servers
 
 @asyncio.coroutine
 def get_follows_channels(username=None):
