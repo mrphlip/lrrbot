@@ -121,12 +121,16 @@ def main():
 			id=cardid,
 			filteredname="bfmbigfurrymonster",
 			name="B.F.M. (Big Furry Monster)""B.F.M. (Big Furry Monster)",
-			text="B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.""B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
+			text="B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
 			lastprinted=datetime.date(1998, 8, 11),
 		)
 		conn.execute(card_multiverse.insert(), [
 			{"id": 9780, "cardid": cardid},
 			{"id": 9844, "cardid": cardid},
+		])
+		conn.execute(card_collector.insert(), [
+			{"setid": "UGL", "collector": "28", "cardid": cardid},
+			{"setid": "UGL", "collector": "29", "cardid": cardid},
 		])
 
 def do_download_file(url, fn):
