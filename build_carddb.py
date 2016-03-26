@@ -21,7 +21,7 @@ import sqlalchemy
 
 from common import utils
 import common.postgres
-from lrrbot.commands.card import clean_text
+from common.cardname import clean_text
 
 URL = 'http://mtgjson.com/json/AllSets.json.zip'
 ZIP_FILENAME = 'AllSets.json.zip'

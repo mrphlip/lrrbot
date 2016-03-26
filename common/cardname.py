@@ -1,0 +1,44 @@
+import re
+
+re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/]")
+LETTERS_MAP = {
+	'\u00e0': 'a',
+	'\u00e1': 'a',
+	'\u00e2': 'a',
+	'\u00e3': 'a',
+	'\u00e4': 'a',
+	'\u00e5': 'a',
+	'\u00e6': 'ae',
+	'\u00e7': 'c',
+	'\u00e8': 'e',
+	'\u00e9': 'e',
+	'\u00ea': 'e',
+	'\u00eb': 'e',
+	'\u00ec': 'i',
+	'\u00ed': 'i',
+	'\u00ee': 'i',
+	'\u00ef': 'i',
+	'\u00f0': 'th',
+	'\u00f1': 'n',
+	'\u00f2': 'o',
+	'\u00f3': 'o',
+	'\u00f4': 'o',
+	'\u00f5': 'o',
+	'\u00f6': 'o',
+	'\u00f8': 'o',
+	'\u00f9': 'u',
+	'\u00fa': 'u',
+	'\u00fb': 'u',
+	'\u00fc': 'u',
+	'\u00fd': 'y',
+	'\u00fe': 'th',
+	'\u00ff': 'y',
+}
+
+def clean_text(text):
+	"""Clean up the search text, by removing special characters and canonicalising letters with diacritics etc"""
+	text = text.lower()
+	text = re_specialchars.sub('', text)
+	for k, v in LETTERS_MAP.items():
+		text = text.replace(k, v)
+	return text
