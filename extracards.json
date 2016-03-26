@@ -31,7 +31,7 @@
         "manaCost": "{3}{W}",
         "number": "4",
         "layout": "normal",
-        "text": "Flying.\n\nWhen Apothecary Geist enters the battlefield, if you control another Spirit, gain 3 life.",
+        "text": "Flying.\n\nWhen Apothecary Geist enters the battlefield, if you control another Spirit, you gain 3 life.",
         "toughness": "3",
         "name": "Apothecary Geist",
         "power": "2",
@@ -68,7 +68,7 @@
         "manaCost": "{3}{W}",
         "number": "6a",
         "layout": "double-faced",
-        "text": "At the beginning of your upkeep, if Avacynian Missionaries is equipped, transform it.",
+        "text": "At the beginning of your end step, if Avacynian Missionaries is equipped, transform it.",
         "toughness": "3",
         "names": [
           "Avacynian Missionaries",
@@ -245,7 +245,7 @@
         "manaCost": "{2}{W}",
         "number": "22",
         "layout": "normal",
-        "text": "Enchant creature.\n\nEnchanted creature gets +1+1 for each creature you control.\n\nAs long as enchanted creature is a Human, it has first strike.",
+        "text": "Enchant creature.\n\nEnchanted creature gets +1/+1 for each creature you control.\n\nAs long as enchanted creature is a Human, it has first strike.",
         "name": "Hope Against Hope",
         "type": "Enchantment \u2014 Aura"
       },
@@ -319,7 +319,7 @@
         "manaCost": "{1}{W}",
         "number": "30",
         "layout": "normal",
-        "text": "Put target card in a graveyard on the top or bottom of its owner's library. Put a 1/1 white Spirit creature token with flying onto the battlefield.",
+        "text": "Put target card from a graveyard on the top or bottom of its owner's library. Put a 1/1 white Spirit creature token with flying onto the battlefield.",
         "name": "Not Forgotten",
         "type": "Sorcery"
       },
@@ -428,7 +428,7 @@
         "manaCost": "{W}",
         "number": "40",
         "layout": "normal",
-        "text": "Target creature gets +2/+2 until end of turn. If you control an equipment, put a 1/1 white Human creature token onto the battlefield.",
+        "text": "Target creature gets +2/+2 until end of turn. If you control an equipment, put a 1/1 white Human Soldier creature token onto the battlefield.",
         "name": "Strength of Arms",
         "type": "Instant"
       },
@@ -436,7 +436,7 @@
         "manaCost": "{2}{W}",
         "number": "41",
         "layout": "normal",
-        "text": "Target creature get +1+0 and gains indestructible until end of turn. (Damage and effects that say \"destroy\" don't destroy it.)\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "text": "Target creature gets +1/+0 and gains indestructible until end of turn. (Damage and effects that say \"destroy\" don't destroy it.)\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
         "name": "Survive the Night",
         "type": "Instant"
       },
@@ -613,7 +613,7 @@
         "manaCost": "{2}{U}",
         "number": "55",
         "layout": "normal",
-        "text": "Counter target creature spell. If it's countered this way, exile it instead of putting it into its owner's graveyard.",
+        "text": "Counter target creature spell. If that spell is countered this way, exile it instead of putting it into its owner's graveyard.",
         "name": "Deny Existence",
         "type": "Instant"
       },
@@ -675,7 +675,7 @@
         "manaCost": "{U}",
         "number": "61",
         "layout": "normal",
-        "text": "Exile target creature you control, then return it to the battlefield under its owner's control. If it's a spirit, put a +1/+1 counter on it.",
+        "text": "Exile target creature you control, then return that card to the battlefield under its owner's control. If it's a spirit, put a +1/+1 counter on it.",
         "name": "Essence Flux",
         "type": "Instant"
       },
@@ -691,7 +691,7 @@
         "manaCost": "{3}{U}",
         "number": "63",
         "layout": "normal",
-        "text": "Skulk (This creature can't be blocked by creatures with greater power.)\n\nAt the beginning of your upkeep, you may discard your hand. If you do, draw that many cards.",
+        "text": "Skulk (This creature can't be blocked by creatures with greater power.)\n\nAt the beginning of your upkeep, you may discard all the cards in your hand. If you do, draw that many cards.",
         "toughness": "3",
         "name": "Forgotten Creation",
         "power": "3",
@@ -737,7 +737,7 @@
         "manaCost": "{U}",
         "number": "68",
         "layout": "normal",
-        "text": "Counter target sorcery spell.\n\nDelirium \u2014 If there are four or more card types amongst cards in your graveyard, search the graveyard, hand and library of that spell's owner for cards with the same name as that spell, exile those cards, then that player shuffles his or her library.",
+        "text": "Counter target sorcery spell.\n\nDelirium \u2014 If there are four or more card types among cards in your graveyard, search the graveyard, hand and library of that spell's controller for cards with the same name as that spell, exile those cards, then that player shuffles his or her library.",
         "name": "Invasive Surgery",
         "type": "Instant"
       },
@@ -780,7 +780,7 @@
         "manaCost": "{1}{U}",
         "number": "73",
         "layout": "normal",
-        "text": "When Manic Scribe enters the battlefield, each opponent puts the top three cards of his or her library into his or her graveyard.\n\nDelirium \u2014 At the beginning of each opponent's upkeep, if you have four or more card types among cards in your graveyard, that player puts the top three cards of his or her library into his or her graveyard.",
+        "text": "When Manic Scribe enters the battlefield, each opponent puts the top three cards of his or her library into his or her graveyard.\n\nDelirium \u2014 At the beginning of each opponent's upkeep, if there are four or more card types among cards in your graveyard, that player puts the top three cards of his or her library into his or her graveyard.",
         "toughness": "3",
         "name": "Manic Scribe",
         "power": "0",
@@ -815,7 +815,7 @@
         "type": "Creature \u2014 Spirit"
       },
       {
-        "manaCost": "{2}{U}",
+        "manaCost": "{1}{U}",
         "number": "77",
         "layout": "normal",
         "text": "Whenever one or more creatures you control deal combat damage to a player, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")\n\n{1}{G}, Exile a creature card from your graveyard: Investigate. You gain 2 life.",
@@ -954,7 +954,7 @@
         "toughness": "1",
         "name": "Stitchwing Skaab",
         "power": "3",
-        "type": "Creature \u2014 Horror Zombie"
+        "type": "Creature \u2014 Zombie Horror"
       },
       {
         "manaCost": "{4}{U}",
@@ -997,7 +997,7 @@
         "manaCost": "{2}{U}",
         "number": "93",
         "layout": "normal",
-        "text": "Whenever you cast an instant or sorcery spell, investigate. >(Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "text": "Whenever you cast an instant or sorcery spell, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
         "name": "Trail of Evidence",
         "type": "Enchantment"
       },
@@ -1040,7 +1040,7 @@
         "manaCost": "{2}{U}{U}",
         "number": "96",
         "layout": "normal",
-        "text": "Madness {X}{U}{U} (If you discard this card, discard it into exile. When you do, cast it for its Madness cost or put it into your graveyard.)\n\nGain control of target creature if its toughness if 2 or less. If Welcome to the Fold's madness cost was paid, instead gain control of that creature if its toughness is X or less.",
+        "text": "Madness {X}{U}{U} (If you discard this card, discard it into exile. When you do, cast it for its Madness cost or put it into your graveyard.)\n\nGain control of target creature if its toughness is 2 or less. If Welcome to the Fold's madness cost was paid, instead gain control of that creature if its toughness is X or less.",
         "name": "Welcome to the Fold",
         "type": "Sorcery"
       },
@@ -1124,7 +1124,7 @@
         "number": "105",
         "layout": "normal",
         "text": "Flying\n\nWhen Crow of Dark Tidings enters the battlefield or dies, put the top two cards of your library into your graveyard.",
-        "toughness": "2",
+        "toughness": "1",
         "name": "Crow of Dark Tidings",
         "power": "2",
         "type": "Creature \u2014 Zombie Bird"
@@ -1178,7 +1178,7 @@
         "manaCost": "{4}{B}{B}",
         "number": "109",
         "layout": "normal",
-        "text": "Return up to two target creatures from your graveyard to the battlefield. Each of those creatures is a black Zombie in addition to its other colors and types. Put Ever After on the bottom of it's owner's library.",
+        "text": "Return up to two target creature cards from your graveyard to the battlefield. Each of those creatures is a black Zombie in addition to its other colors and types. Put Ever After on the bottom of it's owner's library.",
         "name": "Ever After",
         "type": "Sorcery"
       },
@@ -1196,7 +1196,7 @@
         "manaCost": "{3}{B}{B}",
         "number": "111",
         "layout": "normal",
-        "text": "Madness {X}{B}{B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)\n\nPut three 2/2 black Zombie creature tokens onto the battlefield tapped and you gain 3 life.\n\nIf From Under the Floorboards's madness cost was paid, instead put X of those tokens onto the battlefield tapped and you gain X life.",
+        "text": "Madness {X}{B}{B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)\n\nPut three 2/2 black Zombie creature tokens onto the battlefield tapped and you gain 3 life. If From Under the Floorboards's madness cost was paid, instead put X of those tokens onto the battlefield tapped and you gain X life.",
         "name": "From Under the Floorboards",
         "type": "Sorcery"
       },
@@ -1224,7 +1224,7 @@
         "manaCost": "{2}{B}{B}",
         "number": "114",
         "layout": "normal",
-        "text": "Put two 2/2/ Zombie creature tokens onto the battlefield.\n\nMadness {2}{B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "text": "Put two 2/2 black Zombie creature tokens onto the battlefield.\n\nMadness {2}{B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
         "name": "Gisa's Bidding",
         "type": "Sorcery"
       },
@@ -1232,7 +1232,7 @@
         "manaCost": "{1}{B}",
         "number": "115",
         "layout": "normal",
-        "text": "Target creature gets +3/+1 and lifelink until end of turn. (Damage dealt by this creature also causes its contoller to gain that much life.)",
+        "text": "Target creature gets +3/+1 and gains lifelink until end of turn. (Damage dealt by this creature also causes its contoller to gain that much life.)",
         "name": "Grotesque Mutation",
         "type": "Instant"
       },
@@ -1287,7 +1287,7 @@
         "manaCost": "{2}{B}",
         "number": "119a",
         "layout": "double-faced",
-        "text": "Delirium \u2014 {2}{B}: Transform Kindly strange. Activate this ability only if there are four or more card types among cards in your graveyard .",
+        "text": "Delirium \u2014 {2}{B}: Transform Kindly Stranger. Activate this ability only if there are four or more card types among cards in your graveyard.",
         "toughness": "3",
         "names": [
           "Kindly Stranger",
@@ -1314,8 +1314,8 @@
         "manaCost": "{X}{B}",
         "number": "120",
         "layout": "normal",
-        "text": "Put the top X cards of your library into your graveyard. Target Player loses 2 life for each creature card put into the graveyard this way.",
-        "name": "Lilianna's Indgnation",
+        "text": "Put the top X cards of your library into your graveyard. Target Player loses 2 life for each creature card put into your graveyard this way.",
+        "name": "Liliana's Indignation",
         "type": "Sorcery"
       },
       {
@@ -1490,7 +1490,7 @@
         "layout": "normal",
         "text": "Target player sacrifices a creature or planeswalker.\n\nDelirium \u2014 If there are four or more card types among cards in your graveyard, instead that player sacrifices a creature and a planeswalker.",
         "name": "To the Slaughter",
-        "type": "Sorcery"
+        "type": "Instant"
       },
       {
         "manaCost": "{2}{B}",
@@ -2092,7 +2092,7 @@
         "manaCost": "{1}{G}",
         "number": "193",
         "layout": "normal",
-        "text": "Untap target creature. It gets +2+2 and gains reach until end of turn. (It can block creatures with flying.)",
+        "text": "Untap target creature. It gets +2/+2 and gains reach until end of turn. (It can block creatures with flying.)",
         "name": "Aim High",
         "type": "Instant"
       },
@@ -2224,7 +2224,7 @@
         "manaCost": "{3}{G}",
         "number": "204",
         "layout": "normal",
-        "text": "Enchant Creature\n\nEnchanted Creature gets +3/+3/\n\nAs long as enchanted creature is a Human, it has trample.",
+        "text": "Enchant Creature\n\nEnchanted Creature gets +3/+3.\n\nAs long as enchanted creature is a Human, it has trample.",
         "name": "Equestrian Skill",
         "type": "Enchantment \u2014 Aura"
       },
@@ -2324,7 +2324,7 @@
         "manaCost": "{2}{G}",
         "number": "211",
         "layout": "normal",
-        "text": "Flash (You may cast this spell any time you could cast an instant.)\n\nEach creature you control that's a Wolf or a Werewolf gets +1+1 and has trample.",
+        "text": "Flash (You may cast this spell any time you could cast an instant.)\n\nEach creature you control that's a Wolf or a Werewolf gets +1/+1 and has trample.",
         "name": "Howlpack Resurgence",
         "type": "Enchantment"
       },
@@ -2652,7 +2652,7 @@
         "manaCost": "{X}{2}{G}{U}",
         "number": "241",
         "layout": "normal",
-        "text": "Altered Ego can't be countered.\n\nYou may have Altered Ego enter the battlefield as a copy of any creature on the battlefield, except it enters with X additional +1+1 counters on it.",
+        "text": "Altered Ego can't be countered.\n\nYou may have Altered Ego enter the battlefield as a copy of any creature on the battlefield, except it enters with X additional +1/+1 counters on it.",
         "toughness": "0",
         "name": "Altered Ego",
         "power": "0",
@@ -2701,7 +2701,7 @@
         "manaCost": "{1}",
         "number": "263",
         "layout": "normal",
-        "text": "Equipped creature has Skulk (It can't be blocked by creatures with greater power.)\n\nWhenever equipped creature deals damage to a player, you may draw a card. If you do discard a card.\n\nEquip {2}",
+        "text": "Equipped creature has Skulk (It can't be blocked by creatures with greater power.)\n\nWhenever equipped creature deals combat damage to a player, you may draw a card. If you do discard a card.\n\nEquip {2}",
         "name": "Skeleton Key",
         "type": "Artifact \u2014 Equipment"
       },
@@ -2767,6 +2767,7 @@
         "manaCost": "{4}{W}{B}",
         "number": "251",
         "layout": "normal",
+        "loyalty": "6",
         "text": "+1: Reveal the top card of your library and put that card into your hand. Each opponent loses life equal to its converted mana cost.\n\n-X: Sorin, Grim Nemesis deals X damage to target creature or planeswalker and you gain X life.\n\n-9: Put a number of 1/1 black Vampire Knight creature tokens with lifelink onto the battlefield equal to the highest life total among all players.",
         "name": "Sorin, Grim Nemesis",
         "type": "Planeswalker \u2014 Sorin"
@@ -2831,6 +2832,7 @@
         "type": "Artifact \u2014 Equipment"
       },
       {
+        "manaCost": "{3}",
         "number": "257",
         "name": "Haunted Cloak",
         "layout": "normal",
@@ -2880,7 +2882,7 @@
         "manaCost": "{4}",
         "number": "261",
         "layout": "normal",
-        "text": "Trample",
+        "text": "Trample\n\nWhen Runaway Carriage attacks or blocks, sacrifice it at the end of combat.",
         "toughness": "6",
         "name": "Runaway Carriage",
         "power": "5",
@@ -2898,7 +2900,7 @@
         "manaCost": "{3}",
         "number": "264",
         "layout": "normal",
-        "text": "Equipped creature get +2/+2.\n\nWhenever Equipped creature dies if it was a Human, put a 1/1 white Spirit creature token with flying onto the battlefield.\n\nEquip {3}",
+        "text": "Equipped creature get +4/+2.\n\nWhenever Equipped creature dies if it was a Human, put a 1/1 white Spirit creature token with flying onto the battlefield.\n\nEquip {3}",
         "name": "Slayer's Plate",
         "type": "Artifact \u2014 Equipment"
       },
@@ -2958,7 +2960,7 @@
         "manaCost": "{3}",
         "number": "269",
         "layout": "normal",
-        "text": "Defender.\n\n{2}, Sacrifice Wild-Field Scarecrow: Search your library for up to two basic lands, reveal them and put them into your hand. Then shuffle your library.",
+        "text": "Defender.\n\n{2}, Sacrifice Wild-Field Scarecrow: Search your library for up to two basic land cards, reveal them and put them into your hand. Then shuffle your library.",
         "toughness": "4",
         "name": "Wild-Field Scarecrow",
         "power": "1",
