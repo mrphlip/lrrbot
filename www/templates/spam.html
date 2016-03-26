@@ -7,6 +7,16 @@
     window.link_spam = {{link_spam|tojson}};
 </script>
 <script type="text/javascript" src="{{url_for('static', filename='spam.js')|e}}"></script>
+<script type="text/javascript">
+$(function(){
+	$(".tooltip").tooltip({
+		'items': '.tooltip',
+		'content': function() {
+			return "<dl><dt>Spam</dt><dd>Intended for spam bots. First instance is just a purge, in case of a false positive, but second strike is a timeout, and third strike is a ban.</dd><dt>Censor</dt><dd>Inteneded for no-no words actual humans say, but we don't want them to. Will only purge, no escalation, and the whispered warning is more gentle.</dd></dl>";
+		}
+	});
+})
+</script>
 {%endblock%}
 {%block content%}
 <ol class="menu">
@@ -26,9 +36,10 @@
 <table class="nicetable spam">
 <thead>
 <tr>
-	<th class="action"></td>
-	<th class="re">Expression</td>
-	<th class="message">Message</td>
+	<th class="action"></th>
+	<th class="re">Expression</th>
+	<th class="message">Message</th>
+	<th class="type">Type <span class="tooltip" title="Spam: Intended for spam bots. First instance is just a purge, in case of a false positive, but second strike is a timeout, and third strike is a ban. // Censor: Inteneded for no-no words actual humans say, but we don't want them to. Will only purge, no escalation, and the whispered warning is more gentle.">[?]</span></th>
 </tr>
 </thead>
 <tbody>
@@ -42,6 +53,12 @@
 	</td>
 	<td class="response">
 		<input type="text" value="{{rule['message']|e}}">
+	</td>
+	<td class="type">
+		<select>
+			<option value="spam" {%if rule.get('type', 'spam') == 'spam'%}selected{%endif%}>Spam</option>
+			<option value="censor" {%if rule.get('type', 'spam') == 'censor'%}selected{%endif%}>Censor</option>
+		</select>
 	</td>
 </tr>
 {%endfor%}

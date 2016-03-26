@@ -109,7 +109,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.lastsubs = []
 		self.cardview = False
 
-		self.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
+		self.spam_rules = [(re.compile(i['re']), i['message'], i.get('type', 'spam')) for i in storage.data['spam_rules']]
 		self.spammers = {}
 
 		linkspam.LinkSpam.__init__(self, loop)
@@ -453,34 +453,40 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			res = conn.execute(sqlalchemy.select([users.c.is_sub]).where(users.c.name == nick)).first()
 			return res is not None and res[0]
 
-	def ban(self, conn, event, reason):
+	def ban(self, conn, event, reason, bantype):
 		source = irc.client.NickMask(event.source)
-		tags = dict((i['key'], i['value']) for i in event.tags)
-		display_name = tags.get("display_name", source.nick)
-		self.spammers.setdefault(source.nick.lower(), 0)
-		self.spammers[source.nick.lower()] += 1
-		level = self.spammers[source.nick.lower()]
-		if level <= 1:
-			log.info("First offence, flickering %s" % display_name)
+		display_name = event.tags.get("display_name", source.nick)
+		if bantype == "spam":
+			# Start lenient in case of false positives, but then escalate
+			self.spammers.setdefault(source.nick.lower(), 0)
+			self.spammers[source.nick.lower()] += 1
+			level = self.spammers[source.nick.lower()]
+			if level <= 1:
+				log.info("First offence, flickering %s" % display_name)
+				conn.privmsg(event.target, ".timeout %s 1" % source.nick)
+				conn.privmsg(source.nick, "Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+			elif level <= 2:
+				log.info("Second offence, timing out %s" % display_name)
+				conn.privmsg(event.target, ".timeout %s" % source.nick)
+				conn.privmsg(source.nick, "Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+			else:
+				log.info("Third offence, banning %s" % display_name)
+				conn.privmsg(event.target, ".ban %s" % source.nick)
+				conn.privmsg(source.nick, "Banned for persistent spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				level = 3
+			today = datetime.datetime.now(config['timezone']).date().toordinal()
+			if today != storage.data.get("spam", {}).get("date"):
+				storage.data["spam"] = {
+					"date": today,
+					"count": [0, 0, 0],
+				}
+			storage.data["spam"]["count"][level - 1] += 1
+			storage.save()
+		elif bantype == "censor":
+			# Only purges, no escalation
+			log.info("Censor hit, flickering %s" % display_name)
 			conn.privmsg(event.target, ".timeout %s 1" % source.nick)
-			conn.privmsg(event.target, "%s: Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (display_name, reason))
-		elif level <= 2:
-			log.info("Second offence, timing out %s" % display_name)
-			conn.privmsg(event.target, ".timeout %s" % source.nick)
-			conn.privmsg(event.target, "%s: Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (display_name, reason))
-		else:
-			log.info("Third offence, banning %s" % display_name)
-			conn.privmsg(event.target, ".ban %s" % source.nick)
-			conn.privmsg(event.target, "%s: Banned for persistent spam (%s). Please contact mrphlip or d3fr0st5 if this is incorrect." % (display_name, reason))
-			level = 3
-		today = datetime.datetime.now(config['timezone']).date().toordinal()
-		if today != storage.data.get("spam",{}).get("date"):
-			storage.data["spam"] = {
-				"date": today,
-				"count": [0, 0, 0],
-		}
-		storage.data["spam"]["count"][level - 1] += 1
-		storage.save()
+			conn.privmsg(source.nick, "Your message was automatically deleted (%s). You have not been banned or timed out, and are welcome to continue participating in the chat. Please contact mrphlip or any other channel moderator if you feel this is incorrect." % reason)
 
 	def check_spam(self, conn, event, message):
 		"""Check the message against spam detection rules"""
@@ -489,13 +495,13 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		respond_to = event.target
 		source = irc.client.NickMask(event.source)
 
-		for re, desc in self.spam_rules:
+		for re, desc, type in self.spam_rules:
 			matches = re.search(message)
 			if matches:
 				log.info("Detected spam from %s - %r matches %s" % (source.nick, message, re.pattern))
 				groups = {str(i+1):v for i,v in enumerate(matches.groups())}
 				desc = desc % groups
-				self.ban(conn, event, desc)
+				self.ban(conn, event, desc, type)
 				return True
 
 		return False

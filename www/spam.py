@@ -33,6 +33,9 @@ def verify_rules(rules):
 			return {"msg": "No group %s" % ex, "row": ix, "col": 1}
 		except TypeError:
 			return {"msg": "Must use named placeholders", "row": ix, "col": 1}
+		# Check the type setting
+		if rule['type'] not in ('spam', 'censor'):
+			return {"msg": "Incorrect type", "row": ix, "col": 2}
 
 @server.app.route('/spam/submit', methods=['POST'])
 @login.require_mod

@@ -201,6 +201,10 @@ ul.pagination li :visited {
 	padding: 0.1em;
 }
 
+.tooltip {
+	border-bottom: 1px dotted grey;
+}
+
 #notificationlist, #notificationlist li {
 	margin: 0;
 	border: none;

@@ -73,7 +73,7 @@ def modify_spam_rules(lrrbot, user, data):
 	log.info("Setting spam rules (%s) to %r" % (user, data))
 	storage.data['spam_rules'] = data
 	storage.save()
-	lrrbot.spam_rules = [(re.compile(i['re']), i['message']) for i in storage.data['spam_rules']]
+	lrrbot.spam_rules = [(re.compile(i['re']), i['message'], i.get('type', 'spam')) for i in storage.data['spam_rules']]
 
 @bot.server_event()
 def get_commands(bot, user, data):

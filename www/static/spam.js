@@ -25,6 +25,12 @@ function addRow()
 			"<td class='response'>" +
 				"<input type='text'>" +
 			"</td>" +
+			"<td class='type'>" +
+				"<select>" +
+					"<option value='spam'>Spam</option>" +
+					"<option value='censor'>Censor</option>" +
+				"</select>" +
+			"</td>" +
 		"</tr>"
 	);
 	row.find('div.button.remove').click(deleteRow);
@@ -143,7 +149,8 @@ function getAsJSON()
 		var row = $(this);
 		data.push({
 			're': row.find('td.re input').val(),
-			'message': row.find('td.response input').val()
+			'message': row.find('td.response input').val(),
+			'type': row.find('td.type select').val(),
 		});
 	});
 	return JSON.stringify(data);
@@ -191,7 +198,7 @@ function saveFailure(data)
 	if (data.error)
 	{
 		var row = $('table.spam tr').eq(data.error.row + 1);
-		var cell = row.find(data.error.col ? "td.response input" : "td.re input");
+		var cell = row.find(["td.response input", "td.re input", "td.type select"][data.error.col]);
 		cell.addClass("error");
 		alert(data.error.msg);
 		return true;

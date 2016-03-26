@@ -16,6 +16,7 @@ class LinkSpam:
 			{
 				"re": re.compile(rule["re"], re.IGNORECASE),
 				"message": rule["message"],
+				"type": rule.get('type', 'spam'),
 			}
 			for rule in storage.data.get("link_spam_rules", [])
 		]
@@ -28,6 +29,7 @@ class LinkSpam:
 			{
 				"re": re.compile(rule['re'], re.IGNORECASE),
 				"message": rule['message'],
+				"type": rule.get('type', 'spam'),
 			}
 			for rule in storage.data['link_spam_rules']
 		]
@@ -49,5 +51,5 @@ class LinkSpam:
 						source = irc.client.NickMask(event.source)
 						log.info("Detected link spam from %s - %r contains the URL %r which redirects to %r which matches %r",
 							source.nick, message, original_url, url, rule["re"].pattern)
-						self.ban(conn, event, rule["message"] % {str(i+1): v for i, v in enumerate(match.groups())})
+						self.ban(conn, event, rule["message"] % {str(i+1): v for i, v in enumerate(match.groups())}, rule['type'])
 						return
