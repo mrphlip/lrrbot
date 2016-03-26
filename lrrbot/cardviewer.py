@@ -101,7 +101,7 @@ class CardViewer:
 		self.last_card_id = card_id
 		self.last_time = time.time()
 
-		log.info("Got card from pubnub: %r" % card_id)
+		log.info("Got card from pubnub: %r", card_id)
 
 		yield from asyncio.sleep(ANNOUNCE_DELAY)
 
