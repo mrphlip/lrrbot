@@ -271,7 +271,7 @@
         "manaCost": "{3}{W}",
         "number": "24",
         "layout": "normal",
-        "text": "Delirium - Inquisitor's Ox gets +1/+0 and has vigilance as long as there are four or more card types among cards in your graveyard.",
+        "text": "Delirium \u2014 Inquisitor's Ox gets +1/+0 and has vigilance as long as there are four or more card types among cards in your graveyard.",
         "toughness": "5",
         "name": "Inquisitor's Ox",
         "power": "2",
@@ -291,7 +291,7 @@
         "manaCost": "{1}{W}",
         "number": "27",
         "layout": "normal",
-        "text": "Delirium - Moorland Drifter has flying as long as there are four or more card types among cards in your graveyard.",
+        "text": "Delirium \u2014 Moorland Drifter has flying as long as there are four or more card types among cards in your graveyard.",
         "toughness": "2",
         "name": "Moorland Drifter",
         "power": "2",
@@ -337,7 +337,7 @@
         "manaCost": "{1}{W}",
         "number": "32",
         "layout": "normal",
-        "text": "Search your library for an aura or equipment card, reveal it, and put it into your hand. Then shuffle your library.",
+        "text": "Search your library for an Aura or Equipment card, reveal it, and put it into your hand. Then shuffle your library.",
         "name": "Open the Armory",
         "type": "Sorcery"
       },
@@ -745,7 +745,7 @@
         "manaCost": "{3}{U}{U}",
         "number": "69",
         "layout": "normal",
-        "text": "+1: Scry 1, then draw a card.\n\n-2: Return target creature to its owner's hand.\n\n-8: You get an emblem with \"Whenever an opponent casts his or her first spell each turn, counter that spell.\"",
+        "text": "+1: Scry 1, then draw a card.\n\n\u22122: Return target creature to its owner's hand.\n\n\u2212-8: You get an emblem with \"Whenever an opponent casts his or her first spell each turn, counter that spell.\"",
         "loyalty": "5",
         "name": "Jace, Unraveler of Secrets",
         "type": "Planeswalker \u2014 Jace"
@@ -790,7 +790,7 @@
         "manaCost": "{1}{U}",
         "number": "74",
         "layout": "normal",
-        "text": "Look at the top two cards of your library. Put one of them into your hand and the other into your graveyard.\n\nMadness {1}{U} (If you discard this card, discard it into exile. When you do, cast it or put it into your graveyard.)",
+        "text": "Look at the top two cards of your library. Put one of them into your hand and the other into your graveyard.\n\nMadness {1}{U} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
         "name": "Nagging Thoughts",
         "type": "Sorcery"
       },
@@ -808,7 +808,7 @@
         "manaCost": "{2}{U}",
         "number": "76",
         "layout": "normal",
-        "text": "Flying\n\nProwess",
+        "text": "Flying\n\nProwess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)",
         "toughness": "1",
         "name": "Niblis of Dusk",
         "power": "2",
@@ -950,7 +950,7 @@
         "manaCost": "{3}{U}",
         "number": "90",
         "layout": "normal",
-        "text": "{1}{U}, Discard two cards: Return Stitchwing Skaab from your graveyard to the battlefield tapped.",
+        "text": "Flying\n\n{1}{U}, Discard two cards: Return Stitchwing Skaab from your graveyard to the battlefield tapped.",
         "toughness": "1",
         "name": "Stitchwing Skaab",
         "power": "3",
@@ -1040,7 +1040,7 @@
         "manaCost": "{2}{U}{U}",
         "number": "96",
         "layout": "normal",
-        "text": "Madness {X}{U}{U} (If you discard this card, discard it into exile. When you do, cast it for its Madness cost or put it into your graveyard.)\n\nGain control of target creature if its toughness is 2 or less. If Welcome to the Fold's madness cost was paid, instead gain control of that creature if its toughness is X or less.",
+        "text": "Madness {X}{U}{U} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)\n\nGain control of target creature if its toughness is 2 or less. If Welcome to the Fold's madness cost was paid, instead gain control of that creature if its toughness is X or less.",
         "name": "Welcome to the Fold",
         "type": "Sorcery"
       },
@@ -1065,7 +1065,7 @@
           "Infectious Curse"
         ],
         "layout": "double-faced",
-        "text": "Enchant Player.\n\nSpells you cast that target enchanted player cost {1} less to cast.\n\nAt the beginning of enchanted player's upkeep, that player loses one life and you gain one life.",
+        "text": "Enchant player.\n\nSpells you cast that target enchanted player cost {1} less to cast.\n\nAt the beginning of enchanted player's upkeep, that player loses one life and you gain one life.",
         "name": "Infectious Curse",
         "type": "Enchantment \u2014 Aura Curse"
       },
@@ -1083,7 +1083,7 @@
         "manaCost": "{2}{B}",
         "number": "100",
         "layout": "normal",
-        "text": "Creatures you control have skulk.\n\n(They can't be blocked by creatures with greater power.)\n\n{4}{W}: Creatures you control get +1/+1 until end of turn.",
+        "text": "Creatures you control have skulk. (They can't be blocked by creatures with greater power.)\n\n{4}{W}: Creatures you control get +1/+1 until end of turn.",
         "name": "Behind the Scenes",
         "type": "Enchantment"
       },
@@ -1482,7 +1482,7 @@
         "layout": "normal",
         "text": "Target Creature gets -4/-4 until end of turn.",
         "name": "Throttle",
-        "type": "instant"
+        "type": "Instant"
       },
       {
         "manaCost": "{2}{B}",
@@ -1925,7 +1925,7 @@
         "manaCost": "{1}{R}",
         "number": "178",
         "layout": "normal",
-        "text": "Prowess",
+        "text": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)",
         "toughness": "3",
         "name": "Sanguinary Mage",
         "power": "1",
@@ -2100,7 +2100,7 @@
         "manaCost": "{2}{G}",
         "number": "194a",
         "layout": "double-faced",
-        "text": "{B}: Put the top card of your library into your graveyard.\n\nDelirium - At the beginning of your end step, if there are four or more card types among cards in your graveyard, transform Autumnal Gloom.",
+        "text": "{B}: Put the top card of your library into your graveyard.\n\nDelirium \u2014 At the beginning of your end step, if there are four or more card types among cards in your graveyard, transform Autumnal Gloom.",
         "names": [
           "Autumnal Gloom",
           "Ancient of the Equinox"
@@ -2135,7 +2135,7 @@
         "manaCost": "{2}{G}",
         "number": "196",
         "layout": "normal",
-        "text": "When Byway courier dies, investigate.",
+        "text": "When Byway Courier dies, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
         "toughness": "2",
         "name": "Byway Courier",
         "power": "3",
@@ -2153,7 +2153,7 @@
         "manaCost": "{G}",
         "number": "198",
         "layout": "normal",
-        "text": "Investigate, then target creature gets +1/+1 until end of turn for each Clue you control.",
+        "text": "Investigate, then target creature gets +1/+1 until end of turn for each Clue you control. (To investigate, put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
         "name": "Confront the Unknown",
         "type": "Instant"
       },
@@ -2169,7 +2169,7 @@
         "manaCost": "{1}{G}",
         "number": "200",
         "layout": "normal",
-        "text": "Creature you control have \"{T}: Add one mana of any color to your mana pool.\"",
+        "text": "Creatures you control have \"{T}: Add one mana of any color to your mana pool.\"",
         "name": "Cryptolith Rite",
         "type": "Enchantment"
       },
@@ -2352,7 +2352,7 @@
         "manaCost": "{4}{G}{G}",
         "number": "214",
         "layout": "normal",
-        "text": "Delirium --- Kessig Dire Swine has trample as long as there are four or more card types among cards in your graveyard.",
+        "text": "Delirium \u2014 Kessig Dire Swine has trample as long as there are four or more card types among cards in your graveyard.",
         "toughness": "6",
         "name": "Kessig Dire Swine",
         "power": "6",
@@ -2393,13 +2393,13 @@
         "toughness": "2",
         "name": "Loam Dryad",
         "power": "1",
-        "type": "Creature \u2014 Dryad Horro"
+        "type": "Creature \u2014 Dryad Horror"
       },
       {
         "manaCost": "{3}{G}",
         "number": "217",
         "layout": "normal",
-        "text": "Put two +1/+1 counters on target creature.\n\nDelirium --- Put three +1/+1 counters on that creature instead if there are four or more card types among cards in your graveyard.",
+        "text": "Put two +1/+1 counters on target creature.\n\nDelirium \u2014 Put three +1/+1 counters on that creature instead if there are four or more card types among cards in your graveyard.",
         "name": "Might Beyond Reason",
         "type": "Instant"
       },
@@ -2407,7 +2407,7 @@
         "manaCost": "{1}{G}",
         "number": "218",
         "layout": "normal",
-        "text": "Delirium --- Moldfraf Scavenger gets +3/+0 as long as there are four or more card types among cards in your graveyard.",
+        "text": "Delirium \u2014 Moldfraf Scavenger gets +3/+0 as long as there are four or more card types among cards in your graveyard.",
         "toughness": "4",
         "name": "Moldgraf Scavenger",
         "power": "0",
@@ -2463,7 +2463,7 @@
         "manaCost": "{2}{G}",
         "number": "224",
         "layout": "normal",
-        "text": "Destroy target artifact or enchantment.\n\nInvestigate.",
+        "text": "Destroy target artifact or enchantment.\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
         "name": "Root Out",
         "type": "Sorcery"
       },
@@ -2532,7 +2532,7 @@
         ],
         "name": "Solitary Hunter",
         "power": "3",
-        "type": "Creature \u2014 Human Warrior Werewolf"
+        "type": "Creature \u2014 Human Werewolf"
       },
       {
         "number": "229b",
@@ -2542,9 +2542,9 @@
         ],
         "layout": "double-faced",
         "text": "At the beginning of each upkeep, if a player cast two or more spells last turn, transform One of the Pack.",
-        "toughness": "6",
+        "toughness": "5",
         "name": "One of the Pack",
-        "power": "5",
+        "power": "3",
         "type": "Creature \u2014 Werewolf"
       },
       {
@@ -2644,7 +2644,7 @@
         "manaCost": "{2}{G}",
         "number": "240",
         "layout": "normal",
-        "text": "Enchant Land\n\nWhen Weirding Wood enters the battlefield, investigate.\n\nEnchanted land has \"{T}: Add two mana of any one color to your mana pool.\"",
+        "text": "Enchant Land\n\nWhen Weirding Wood enters the battlefield, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")\n\nEnchanted land has \"{T}: Add two mana of any one color to your mana pool.\"",
         "name": "Weirding Wood",
         "type": "Enchantment \u2014 Aura"
       },
@@ -2701,18 +2701,18 @@
         "manaCost": "{1}",
         "number": "263",
         "layout": "normal",
-        "text": "Equipped creature has Skulk (It can't be blocked by creatures with greater power.)\n\nWhenever equipped creature deals combat damage to a player, you may draw a card. If you do discard a card.\n\nEquip {2}",
+        "text": "Equipped creature has Skulk. (It can't be blocked by creatures with greater power.)\n\nWhenever equipped creature deals combat damage to a player, you may draw a card. If you do discard a card.\n\nEquip {2}",
         "name": "Skeleton Key",
         "type": "Artifact \u2014 Equipment"
       },
       {
         "number": "243b",
+        "layout": "double-faced",
+        "text": "+1: Creatures you control get +1/+1 and gain trample until end of turn.\n\n\u22121: Arlinn, Embraced by the Moon deals 3 damage to target creature or player. Transform Arlinn, Embraced by the Moon.\n\n\u22126: You get an emblem with \"Creatures you control have haste and '{T}: This creature deals damage equal to its power to target creature or player.'\"",
         "names": [
           "Arlinn Kord",
           "Arlinn, Embraced by the Moon"
         ],
-        "layout": "double-faced",
-        "text": "+1: Creatures you control get +1/+1 and gain trample until end of turn.\n\n-1: Arlinn, Embraced by the Moon deals 3 damage to target creature or player. Transform Arlinn, Embraced by the Moon.\n\n-6: You get an emblem with \"Creatures you control have haste and '{T}: This creature deals damage equal to its power to target creature or player.'\"",
         "name": "Arlinn, Embraced by the Moon",
         "type": "Planeswalker \u2014 Arlinn"
       },
@@ -2728,7 +2728,7 @@
         "manaCost": "{2}{R}{W}",
         "number": "247",
         "layout": "normal",
-        "text": "+2: You may discard a card. If you do, draw a card.\n\n-2: Exile target enchantment, tapped artifact, or tapped creature.\n\n-8: Search your library for an artifact or creature card, put it onto the battlefield, then shuffle your library. It gains haste. Return it to your hand at the beginning of the next end step.",
+        "text": "+2: You may discard a card. If you do, draw a card.\n\n\u22122: Exile target enchantment, tapped artifact, or tapped creature.\n\n\u22128: Search your library for an artifact or creature card, put it onto the battlefield, then shuffle your library. It gains haste. Return it to your hand at the beginning of the next end step.",
         "loyalty": "4",
         "name": "Nahiri, the Harbinger",
         "type": "Planeswalker \u2014 Nahiri"
@@ -2768,7 +2768,7 @@
         "number": "251",
         "layout": "normal",
         "loyalty": "6",
-        "text": "+1: Reveal the top card of your library and put that card into your hand. Each opponent loses life equal to its converted mana cost.\n\n-X: Sorin, Grim Nemesis deals X damage to target creature or planeswalker and you gain X life.\n\n-9: Put a number of 1/1 black Vampire Knight creature tokens with lifelink onto the battlefield equal to the highest life total among all players.",
+        "text": "+1: Reveal the top card of your library and put that card into your hand. Each opponent loses life equal to its converted mana cost.\n\n\u2212X: Sorin, Grim Nemesis deals X damage to target creature or planeswalker and you gain X life.\n\n\u22129: Put a number of 1/1 black Vampire Knight creature tokens with lifelink onto the battlefield equal to the highest life total among all players.",
         "name": "Sorin, Grim Nemesis",
         "type": "Planeswalker \u2014 Sorin"
       },
@@ -2776,7 +2776,7 @@
         "manaCost": "{2}",
         "number": "252",
         "layout": "normal",
-        "text": "{1}, {T}: Put a charge counter on Brain in a Jar, then you may cast an instant or sorcery card with converted mana cost equal to the number of charge counters on Brain in a Jar from your hand without paying its mana cost.\n\n{3}, {T}: Remove X charge counters from Brain in a Jar: Scry X.",
+        "text": "{1}, {T}: Put a charge counter on Brain in a Jar, then you may cast an instant or sorcery card with converted mana cost equal to the number of charge counters on Brain in a Jar from your hand without paying its mana cost.\n\n{3}, {T}, Remove X charge counters from Brain in a Jar: Scry X.",
         "name": "Brain in a Jar",
         "type": "Artifact"
       },
@@ -2851,7 +2851,7 @@
         "manaCost": "{4}",
         "number": "259",
         "layout": "normal",
-        "text": "Equipped creature gets +2/+2.\n\nEquip-- Discard a card.",
+        "text": "Equipped creature gets +2/+2.\n\nEquip \u2014 Discard a card.",
         "name": "Murderer's Axe",
         "type": "Artifact \u2014 Equipment"
       },
@@ -2900,7 +2900,7 @@
         "manaCost": "{3}",
         "number": "264",
         "layout": "normal",
-        "text": "Equipped creature get +4/+2.\n\nWhenever Equipped creature dies if it was a Human, put a 1/1 white Spirit creature token with flying onto the battlefield.\n\nEquip {3}",
+        "text": "Equipped creature get +4/+2.\n\nWhenever equipped creature dies if it was a Human, put a 1/1 white Spirit creature token with flying onto the battlefield.\n\nEquip {3}",
         "name": "Slayer's Plate",
         "type": "Artifact \u2014 Equipment"
       },
