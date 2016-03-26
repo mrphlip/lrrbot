@@ -4,8 +4,10 @@
 {%block head%}
 <title>{%block title%}{%endblock%} &ndash; LRRbot</title>
 <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')|e}}">
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='jquery-ui-1.11.4-tooltip.css')|e}}">
 <link rel="shortcut icon" href="{{url_for('static', filename='favicon.ico')|e}}">
 <script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='jquery-ui-1.11.4-tooltip.js')|e}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='common.js')|e}}"></script>
 <script type="text/javascript" src="{{url_for('static', filename='infobar.js')|e}}"></script>
 {%block headextra%}{%endblock%}
