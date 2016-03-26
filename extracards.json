@@ -251,26 +251,18 @@
       },
       {
         "manaCost": "{4}{W}",
-        "number": "23a",
-        "layout": "double-faced",
+        "number": "23",
+        "layout": "normal",
         "text": "Destroy target creature with power 4 or greater.\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
-        "names": [
-          "Humble the Brute",
-          "Inspiring Captain"
-        ],
         "name": "Humble the Brute",
         "type": "Instant"
       },
       {
         "manaCost": "{3}{W}",
-        "number": "23b",
-        "layout": "double-faced",
+        "number": "25",
+        "layout": "normal",
         "text": "When Inspiring Captain enters the battlefield, creatures you control get +1/+1 until end of turn.",
         "toughness": "3",
-        "names": [
-          "Humble the Brute",
-          "Inspiring Captain"
-        ],
         "name": "Inspiring Captain",
         "power": "3",
         "type": "Creature \u2014 Human Knight"
@@ -647,25 +639,17 @@
       },
       {
         "manaCost": "{3}{U}",
-        "number": "58a",
-        "layout": "double-faced",
+        "number": "58",
+        "layout": "normal",
         "text": "Return to their owners' hands all creatures with toughness less than or equal to the number of Islands you control.",
-        "names": [
-          "Engulf the Shore",
-          "Alms of the Vein"
-        ],
         "name": "Engulf the Shore",
         "type": "Instant"
       },
       {
         "manaCost": "{2}{B}",
-        "number": "58b",
-        "layout": "double-faced",
+        "number": "98",
+        "layout": "normal",
         "text": "Target opponent loses 3 life and you gain three life\n\nMadness {B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
-        "names": [
-          "Engulf the Shore",
-          "Alms of the Vein"
-        ],
         "name": "Alms of the Vein",
         "type": "Sorcery"
       },
@@ -2692,47 +2676,39 @@
       },
       {
         "manaCost": "{2}{R}{G}",
-        "number": "245a",
+        "number": "243a",
         "layout": "double-faced",
         "text": "+1: Until end of turn, up to one target creature gets +2/+2 and gains vigilance and haste.\n\n0: Put a 2/2 green Wolf creature token onto the battlefield. Transform Arlinn Kord.",
         "loyalty": "3",
         "names": [
           "Arlinn Kord",
-          "The Gitrog Monster"
+          "Arlinn, Embraced by the Moon"
         ],
         "name": "Arlinn Kord",
         "type": "Planeswalker \u2014 Arlinn"
       },
       {
         "manaCost": "{3}{B}{G}",
-        "number": "245b",
-        "layout": "double-faced",
+        "number": "245",
+        "layout": "normal",
         "text": "Deathtouch\n\nAt the beginning of your upkeep, sacrifice The Gitrog Monster unless you sacrifice a land.\n\nYou may play an additional land on each of your turns.\n\nWhenever one or more land cards are put into your graveyard from anywhere, draw a card.",
         "toughness": "6",
-        "names": [
-          "Arlinn Kord",
-          "The Gitrog Monster"
-        ],
         "name": "The Gitrog Monster",
         "power": "6",
         "type": "Legendary Creature \u2014 Frog Horror"
       },
       {
         "manaCost": "{1}",
-        "number": "245a",
-        "layout": "double-faced",
+        "number": "263",
+        "layout": "normal",
         "text": "Equipped creature has Skulk (It can't be blocked by creatures with greater power.)\n\nWhenever equipped creature deals damage to a player, you may draw a card. If you do discard a card.\n\nEquip {2}",
-        "names": [
-          "Skeleton Key",
-          "Arlinn, Embraced by the Moon"
-        ],
         "name": "Skeleton Key",
         "type": "Artifact \u2014 Equipment"
       },
       {
-        "number": "245b",
+        "number": "243b",
         "names": [
-          "Skeleton Key",
+          "Arlinn Kord",
           "Arlinn, Embraced by the Moon"
         ],
         "layout": "double-faced",
@@ -3066,10 +3042,10 @@
         "type": "Land"
       },
       {
-        "number": "281a",
+        "number": "281b",
         "names": [
-          "Ormendahl, Profane Prince",
-          "Westvale Abbey"
+          "Westvale Abbey",
+          "Ormendahl, Profane Prince"
         ],
         "layout": "double-faced",
         "text": "Flying, lifelink, indestructible, haste",
@@ -3079,10 +3055,10 @@
         "type": "Legendary Creature \u2014 Demon"
       },
       {
-        "number": "281b",
+        "number": "281a",
         "names": [
-          "Ormendahl, Profane Prince",
-          "Westvale Abbey"
+          "Westvale Abbey",
+          "Ormendahl, Profane Prince"
         ],
         "layout": "double-faced",
         "text": "{T}: Add {C} to your mana pool.\n\n{5}, {T}, Pay 1 life: Put a 1/1 white and black Human Cleric creature token onto the battlefield.\n\n{5}, {T}, Sacrifice five creatures: Transform Westvale Abbey, then untap it.",
