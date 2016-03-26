@@ -1,0 +1,3192 @@
+{
+  "SOI": {
+    "cards": [
+      {
+        "manaCost": "{1}{W}{W}",
+        "number": "1",
+        "layout": "normal",
+        "text": "Nontoken creatures you control get +1/+1 and have vigilance.",
+        "name": "Always Watching",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{6}{W}{W}",
+        "number": "2",
+        "layout": "normal",
+        "text": "Flying\n\nDelirium \u2014 Whenever Angel of Deliverance deals damage, if there are four or more card types among cards in your graveyard, exile target creature an opponent controls.",
+        "toughness": "6",
+        "name": "Angel of Deliverance",
+        "power": "6",
+        "type": "Creature \u2014 Angel"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "3",
+        "layout": "normal",
+        "text": "As an additional cost to cast Angelic Purge, sacrifice a permanent.\n\nExile target artifact, creature or enchantment.",
+        "name": "Angelic Purge",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{3}{W}",
+        "number": "4",
+        "layout": "normal",
+        "text": "Flying.\n\nWhen Apothecary Geist enters the battlefield, if you control another Spirit, gain 3 life.",
+        "toughness": "3",
+        "name": "Apothecary Geist",
+        "power": "2",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{3}{W}{W}",
+        "number": "5a",
+        "layout": "double-faced",
+        "text": "Flash\n\nFlying, vigilance\n\nWhen Archangel Avacyn enters the battlefield, creatures you control gain indestructible until end of turn.\n\nWhen a non-Angel creature you control dies, transform Archangel Avacyn at the beginning of the next upkeep.",
+        "toughness": "4",
+        "names": [
+          "Archangel Avacyn",
+          "Avacyn, the Purifier"
+        ],
+        "name": "Archangel Avacyn",
+        "power": "4",
+        "type": "Legendary Creature \u2014 Angel"
+      },
+      {
+        "number": "5b",
+        "names": [
+          "Archangel Avacyn",
+          "Avacyn, the Purifier"
+        ],
+        "layout": "double-faced",
+        "text": "Flying\n\nWhen this creature transforms into Avacyn, the Purifier, it deals 3 damage to each other creature and each opponent.",
+        "toughness": "5",
+        "name": "Avacyn, the Purifier",
+        "power": "6",
+        "type": "Legendary Creature \u2014 Angel"
+      },
+      {
+        "manaCost": "{3}{W}",
+        "number": "6a",
+        "layout": "double-faced",
+        "text": "At the beginning of your upkeep, if Avacynian Missionaries is equipped, transform it.",
+        "toughness": "3",
+        "names": [
+          "Avacynian Missionaries",
+          "Lunarch Inquisitors"
+        ],
+        "name": "Avacynian Missionaries",
+        "power": "3",
+        "type": "Creature \u2014 Human Cleric"
+      },
+      {
+        "number": "6b",
+        "names": [
+          "Avacynian Missionaries",
+          "Lunarch Inquisitors"
+        ],
+        "layout": "double-faced",
+        "text": "When this creature transforms in to Lunarch Inquisitors, you may exile another target creature until Lunarch Inquisitors leaves the battlefield.",
+        "toughness": "4",
+        "name": "Lunarch Inquisitors",
+        "power": "4",
+        "type": "Creature \u2014 Human Cleric"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "7",
+        "layout": "normal",
+        "text": "Enchant creature.\n\nEnchanted creature can't attack, block, or transform.\n\nSacrifice another permanent: Attach Bound by Moonsilver to target creature. Activate this ability only any time you could cast a sorcery and only once each turn.",
+        "name": "Bound by Moonsilver",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "8",
+        "layout": "normal",
+        "text": "Flying\n\nWhenever you cast a creature spell with converted mana cost 3 or less, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "toughness": "3",
+        "name": "Bygone Bishop",
+        "power": "2",
+        "type": "Creature \u2014 Spirit Cleric"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "9",
+        "layout": "normal",
+        "text": "Whenever you cast a noncreature spell, Cathar's Companion gains indestructible until end of turn. (Damage and effects that say \"destroy\" don't destroy it.)",
+        "toughness": "1",
+        "name": "Cathar's Companion",
+        "power": "3",
+        "type": "Creature \u2014 Hound"
+      },
+      {
+        "manaCost": "{W}",
+        "number": "10",
+        "layout": "normal",
+        "text": "You gain 5 life.",
+        "name": "Chaplain's Blessing",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "11",
+        "layout": "normal",
+        "text": "{1}{W}, Exile Dauntless Cathar from your graveyard: Put a 1/1 white Spirit creature token with flying onto the battlefield. Activate this ability only any time you could cast a sorcery.",
+        "toughness": "2",
+        "name": "Dauntless Cathar",
+        "power": "3",
+        "type": "Creature \u2014 Human Soldier"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "12",
+        "layout": "normal",
+        "text": "Exile target creature and all other creatures its controller controls with the same name as that creature. That player investigates for each nontoken creature exiled this way.",
+        "name": "Declaration in Stone",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{4}{W}{W}",
+        "number": "13",
+        "layout": "normal",
+        "text": "Exile all creatures.\n\nDelirium \u2014 Put a 4/4 white Angel creature token with flying onto the battlefield if there are four or more card types among cards in your graveyard.",
+        "name": "Descend upon the Sinful",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "14",
+        "layout": "normal",
+        "toughness": "1",
+        "name": "Devilthorn Fox",
+        "power": "3",
+        "type": "Creature \u2014 Fox"
+      },
+      {
+        "manaCost": "{5}{W}{W}",
+        "number": "15",
+        "layout": "normal",
+        "text": "Flying\n\nWhenever another Spirit enters the battlefield under your control, you gain 2 life.\n\n{3}{W}: Put a 1/1 white Spirit creature token with flying onto the battlefield.",
+        "toughness": "4",
+        "name": "Drogskol Cavalry",
+        "power": "4",
+        "type": "Creature \u2014 Spirit Knight"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "16",
+        "layout": "normal",
+        "text": "Exile any number of target creatures you control. Return those cards to the battlefield under their owner's control at the beginning of the next end step.",
+        "name": "Eerie Interlude",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{4}{W}",
+        "number": "17",
+        "layout": "normal",
+        "text": "Flying\n\nWhen Emissary of the Sleepless enters the battlefield, if a creature died this turn, put a 1/1 white Spirit creature token with flying onto the battlefield.",
+        "toughness": "4",
+        "name": "Emissary of the Sleepless",
+        "power": "2",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "18",
+        "layout": "normal",
+        "text": "Creatures you control get +2/+1 until end of turn.",
+        "name": "Ethereal Guidance",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "19",
+        "layout": "normal",
+        "text": "Tap up to two target creatures.\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "name": "Expose Evil",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{W}",
+        "number": "20",
+        "layout": "normal",
+        "text": "Enchant creature\n\nEnchanted creature gets +1/+0 and has flying.\n\n{3}{W}: Return Gryff's Boon from your graveyard to the battlefield attached to target creature. Activate this ability only any time you could cast a sorcery.",
+        "name": "Gryff's Boon",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "21a",
+        "layout": "double-faced",
+        "text": "At the beginning of your upkeep, if you control four or more creatures, transform Hanweir Militia Captain.",
+        "toughness": "2",
+        "names": [
+          "Hanweir Militia Captain",
+          "Westvale Cult Leader"
+        ],
+        "name": "Hanweir Militia Captain",
+        "power": "2",
+        "type": "Creature \u2014 Human Soldier"
+      },
+      {
+        "number": "21b",
+        "names": [
+          "Hanweir Militia Captain",
+          "Westvale Cult Leader"
+        ],
+        "layout": "double-faced",
+        "text": "Westvale Cult Leader's power and toughness are each equal to the number of creatures you control.\n\nAt the beginning of your end step, put a 1/1 white and black Human Cleric creature token onto the battlefield.",
+        "toughness": "*",
+        "name": "Westvale Cult Leader",
+        "power": "*",
+        "type": "Creature \u2014 Human Cleric"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "22",
+        "layout": "normal",
+        "text": "Enchant creature.\n\nEnchanted creature gets +1+1 for each creature you control.\n\nAs long as enchanted creature is a Human, it has first strike.",
+        "name": "Hope Against Hope",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{4}{W}",
+        "number": "23a",
+        "layout": "double-faced",
+        "text": "Destroy target creature with power 4 or greater.\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "names": [
+          "Humble the Brute",
+          "Inspiring Captain"
+        ],
+        "name": "Humble the Brute",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{3}{W}",
+        "number": "23b",
+        "layout": "double-faced",
+        "text": "When Inspiring Captain enters the battlefield, creatures you control get +1/+1 until end of turn.",
+        "toughness": "3",
+        "names": [
+          "Humble the Brute",
+          "Inspiring Captain"
+        ],
+        "name": "Inspiring Captain",
+        "power": "3",
+        "type": "Creature \u2014 Human Knight"
+      },
+      {
+        "manaCost": "{3}{W}",
+        "number": "24",
+        "layout": "normal",
+        "text": "Delirium - Inquisitor's Ox gets +1/+0 and has vigilance as long as there are four or more card types among cards in your graveyard.",
+        "toughness": "5",
+        "name": "Inquisitor's Ox",
+        "power": "2",
+        "type": "Creature \u2014 Ox"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "26",
+        "layout": "normal",
+        "text": "Militant Inquisitor gets +1/+0 for each equipment you control.",
+        "toughness": "3",
+        "name": "Militant Inquisitor",
+        "power": "2",
+        "type": "Creature \u2014 Human Cleric"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "27",
+        "layout": "normal",
+        "text": "Delirium - Moorland Drifter has flying as long as there are four or more card types among cards in your graveyard.",
+        "toughness": "2",
+        "name": "Moorland Drifter",
+        "power": "2",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "28",
+        "layout": "normal",
+        "text": "At the beginning of combat on your turn, target creature you control gains indestructible until end of turn.\n\n{1}{R}: Nahiri's Machinations deals 1 damage to target blocking creature.",
+        "name": "Nahiri's Machinations",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{3}{W}",
+        "number": "29",
+        "layout": "normal",
+        "text": "Lifelink\n\n{2}{W}, Exile Nearheath Chaplain from your graveyard: Put two 1/1 white Spirit creature tokens with flying onto the battlefield. Activate this ability only any time you could cast a sorcery.",
+        "toughness": "1",
+        "name": "Nearheath Chaplain",
+        "power": "3",
+        "type": "Creature \u2014 Human Cleric"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "30",
+        "layout": "normal",
+        "text": "Put target card in a graveyard on the top or bottom of its owner's library. Put a 1/1 white Spirit creature token with flying onto the battlefield.",
+        "name": "Not Forgotten",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{3}{W}",
+        "number": "31",
+        "layout": "normal",
+        "text": "At the beginning of each combat, creatures you control gain first strike until end of turn if a creature you control has first strike. The same is true for flying, deathtouch, double strike, haste, hexproof, indestructible, lifelink, menace, reach, skulk, trample, and vigilance.",
+        "toughness": "3",
+        "name": "Odric, Lunarch Marshal",
+        "power": "3",
+        "type": "Legendary Creature \u2014 Human Soldier"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "32",
+        "layout": "normal",
+        "text": "Search your library for an aura or equipment card, reveal it, and put it into your hand. Then shuffle your library.",
+        "name": "Open the Armory",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "33",
+        "layout": "normal",
+        "text": "Delirium \u2014 Paranoid Parish-Blade gets +1/+0 and has first strike as long as there are four or more card types among cards in your graveyard.",
+        "toughness": "2",
+        "name": "Paranoid Parish-Blade",
+        "power": "3",
+        "type": "Creature \u2014 Human Soldier"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "34a",
+        "layout": "double-faced",
+        "text": "Whenever Pious Evangel or another creature enters the battlefield under your control, you gain 1 life.\n\n{2},{T}, Sacrifice another permanent: Transform Pious Evangel.",
+        "toughness": "2",
+        "names": [
+          "Pious Evangel",
+          "Wayward Disciple"
+        ],
+        "name": "Pious Evangel",
+        "power": "2",
+        "type": "Creature \u2014 Human Cleric"
+      },
+      {
+        "number": "34b",
+        "names": [
+          "Pious Evangel",
+          "Wayward Disciple"
+        ],
+        "layout": "double-faced",
+        "text": "Whenever Wayward Disciple or another creature you control dies, target opponent loses 1 life and you gain 1 life.",
+        "toughness": "4",
+        "name": "Wayward Disciple",
+        "power": "2",
+        "type": "Creature \u2014 Human Cleric"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "35",
+        "layout": "normal",
+        "text": "Destroy target attacking or blocking creature with power 3 or less.",
+        "name": "Puncturing Light",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{3}{W}{W}",
+        "number": "36",
+        "layout": "normal",
+        "text": "Flying\n\nDelirium \u2014 Sacrifice another creature: Reaper of Flight Moonsilver gets +2/+1 until end of turn. Activate this ability only if there are four or more card types among cards in your graveyard.",
+        "toughness": "3",
+        "name": "Reaper of Flight Moonsilver",
+        "power": "3",
+        "type": "Creature \u2014 Angel"
+      },
+      {
+        "manaCost": "{3}{W}",
+        "number": "37",
+        "layout": "normal",
+        "text": "Destroy target attacking creature. You gain 3 life.",
+        "name": "Silverstrike",
+        "type": "instant"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "38",
+        "layout": "normal",
+        "text": "Flying\n\n{1}{U}: Return target Spirit you control to its owner's hand.",
+        "toughness": "2",
+        "name": "Spectral Shepherd",
+        "power": "2",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{W}",
+        "number": "39",
+        "layout": "normal",
+        "text": "{T}, Discard a card: Tap target creature.",
+        "toughness": "1",
+        "name": "Stern Constable",
+        "power": "1",
+        "type": "Creature \u2014 Human Soldier"
+      },
+      {
+        "manaCost": "{W}",
+        "number": "40",
+        "layout": "normal",
+        "text": "Target creature gets +2/+2 until end of turn. If you control an equipment, put a 1/1 white Human creature token onto the battlefield.",
+        "name": "Strength of Arms",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{2}{W}",
+        "number": "41",
+        "layout": "normal",
+        "text": "Target creature get +1+0 and gains indestructible until end of turn. (Damage and effects that say \"destroy\" don't destroy it.)\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "name": "Survive the Night",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{3}{W}",
+        "number": "42",
+        "layout": "normal",
+        "text": "Creatures you control get +1/+1 and gain lifelink until end of turn. Untap those creatures.",
+        "name": "Tenacity",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "43",
+        "layout": "normal",
+        "text": "When Thalia's Lieutenant enters the battlefield, put a +1/+1 counter on each other Human you control.\n\nWhenever another Human enters the battlefield under your control, put a +1/+1 counter on Thalia's Lieutenant.",
+        "toughness": "1",
+        "name": "Thalia's Lieutenant",
+        "power": "1",
+        "type": "Creature \u2014 Human Soldier"
+      },
+      {
+        "manaCost": "{W}",
+        "number": "44",
+        "layout": "normal",
+        "text": "When Thraben Inspector enters the battlefield, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "toughness": "2",
+        "name": "Thraben Inspector",
+        "power": "1",
+        "type": "Creature \u2014 Human Soldier"
+      },
+      {
+        "manaCost": "{W}",
+        "number": "45",
+        "layout": "normal",
+        "text": "Flying\n\nWhen Topplegeist enters the battlefield, tap target creature an opponent controls.\n\nDelirium \u2014 At the beginning of each opponent's upkeep, if there are four or more card types among cards in your graveyard, tap target creature that player controls.",
+        "toughness": "1",
+        "name": "Topplegeist",
+        "power": "1",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{W}",
+        "number": "46a",
+        "layout": "double-faced",
+        "text": "{T}, Tap an untapped creature you control: Transform Town Gossipmonger.",
+        "toughness": "1",
+        "names": [
+          "Town Gossipmonger",
+          "Incited Rabble"
+        ],
+        "name": "Town Gossipmonger",
+        "power": "1",
+        "type": "Creature \u2014 Human"
+      },
+      {
+        "number": "46b",
+        "names": [
+          "Town Gossipmonger",
+          "Incited Rabble"
+        ],
+        "layout": "double-faced",
+        "text": "Incited Rabble attacks each combat if able.\n\n{2}: Incited Rabble gets +1/+0 until end of turn.",
+        "toughness": "3",
+        "name": "Incited Rabble",
+        "power": "2",
+        "type": "Creature \u2014 Human"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "47",
+        "layout": "normal",
+        "text": "Whenever another creature you control dies, put a +1/+1 counter on Unruly Mob.",
+        "toughness": "1",
+        "name": "Unruly Mob",
+        "power": "1",
+        "type": "Creature \u2014 Human"
+      },
+      {
+        "manaCost": "{1}{W}",
+        "number": "48",
+        "layout": "normal",
+        "text": "{2}{W}, Sacrifice Vessel of Ephemera: Put two 1/1 white Spirit creature tokens with flying onto the battlefield.",
+        "name": "Vessel of Ephemera",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{3}{U}",
+        "number": "49a",
+        "layout": "double-faced",
+        "text": "Flying\n\nAt the beginning of your upkeep, put the top card of your library into your graveyard. If it's an instant or sorcery card, transform Aberrant Researcher.",
+        "toughness": "2",
+        "names": [
+          "Aberrant Researcher",
+          "Perfected Form"
+        ],
+        "name": "Aberrant Researcher",
+        "power": "3",
+        "type": "Creature \u2014 Human Insect"
+      },
+      {
+        "number": "49b",
+        "names": [
+          "Aberrant Researcher",
+          "Perfected Form"
+        ],
+        "layout": "double-faced",
+        "text": "Flying",
+        "toughness": "4",
+        "name": "Perfected Form",
+        "power": "5",
+        "type": "Creature \u2014 Insect Horror"
+      },
+      {
+        "manaCost": "{1}{U}{U}",
+        "number": "50",
+        "layout": "normal",
+        "text": "Counter target spell.\n\nMadness {3}{U} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "name": "Broken Concentration",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "51",
+        "layout": "normal",
+        "text": "Draw two cards, then discard a card.",
+        "name": "Catalog",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "52",
+        "layout": "normal",
+        "text": "Return target nonland permanent to its owner's hand. Then that player discards a card if you control a Zombie.",
+        "name": "Compelling Deterrence",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{3}{U}{U}",
+        "number": "53",
+        "layout": "normal",
+        "text": "Counter target spell.\n\nInvestigate three times. (To investigate, put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "name": "Confirm Suspicions",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "54a",
+        "layout": "double-faced",
+        "text": "When you sacrifice a Clue, transform Daring Sleuth.",
+        "toughness": "1",
+        "names": [
+          "Daring Sleuth",
+          "Bearer of Overwhelming Truths"
+        ],
+        "name": "Daring Sleuth",
+        "power": "2",
+        "type": "Creature \u2014 Human Rogue"
+      },
+      {
+        "number": "54b",
+        "names": [
+          "Daring Sleuth",
+          "Bearer of Overwhelming Truths"
+        ],
+        "layout": "double-faced",
+        "text": "Prowess (Whenever you cast a noncreature spell, this creature gets +1/+1 until end of turn.)\n\nWhenever Bearer of Overwhelming Truths deals combat damage to a player, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "toughness": "2",
+        "name": "Bearer of Overwhelming Truths",
+        "power": "3",
+        "type": "Creature \u2014 Human Wizard"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "55",
+        "layout": "normal",
+        "text": "Counter target creature spell. If it's countered this way, exile it instead of putting it into its owner's graveyard.",
+        "name": "Deny Existence",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{3}{U}",
+        "number": "56",
+        "layout": "normal",
+        "text": "When Drownyard Explorers enters the battlefield, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "toughness": "4",
+        "name": "Drownyard Explorers",
+        "power": "2",
+        "type": "Creature \u2014 Human Wizard"
+      },
+      {
+        "manaCost": "{3}{U}",
+        "number": "57",
+        "layout": "normal",
+        "text": "When Drunau Corpse Trawler enters the battlefield, put a 2/2 black Zombie creature token onto the battlefield.\n\n{2}{B}: Target Zombie gains deathtouch until end of turn.",
+        "toughness": "1",
+        "name": "Drunau Corpse Trawler",
+        "power": "1",
+        "type": "Creature \u2014 Zombie"
+      },
+      {
+        "manaCost": "{3}{U}",
+        "number": "58a",
+        "layout": "double-faced",
+        "text": "Return to their owners' hands all creatures with toughness less than or equal to the number of Islands you control.",
+        "names": [
+          "Engulf the Shore",
+          "Alms of the Vein"
+        ],
+        "name": "Engulf the Shore",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "58b",
+        "layout": "double-faced",
+        "text": "Target opponent loses 3 life and you gain three life\n\nMadness {B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "names": [
+          "Engulf the Shore",
+          "Alms of the Vein"
+        ],
+        "name": "Alms of the Vein",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{X}{U}",
+        "number": "59",
+        "layout": "normal",
+        "text": "Reveal the top X plus one cards of your library and separate them into two piles. An opponent chooses one of those piles. Put that pile into your hand and the rest into your graveyard.",
+        "name": "Epiphany at the Drownyard",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "60",
+        "layout": "normal",
+        "text": "Flying\n\nWhenever you investigate for the first time each turn, investigate an additional time.",
+        "toughness": "3",
+        "name": "Erdwal Illuminator",
+        "power": "1",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{U}",
+        "number": "61",
+        "layout": "normal",
+        "text": "Exile target creature you control, then return it to the battlefield under its owner's control. If it's a spirit, put a +1/+1 counter on it.",
+        "name": "Essence Flux",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "62",
+        "layout": "normal",
+        "text": "When Fleeting Memories enters the battlefield, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")\n\nWhenever you sacrifice a Clue, target player puts the top three cards of his or her library into his or her graveyard.",
+        "name": "Fleeting Memories",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{3}{U}",
+        "number": "63",
+        "layout": "normal",
+        "text": "Skulk (This creature can't be blocked by creatures with greater power.)\n\nAt the beginning of your upkeep, you may discard your hand. If you do, draw that many cards.",
+        "toughness": "3",
+        "name": "Forgotten Creation",
+        "power": "3",
+        "type": "Creature \u2014 Zombie Horror"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "64",
+        "layout": "normal",
+        "text": "Skulk (This creature can't be blocked by creatures with greater power.)",
+        "toughness": "1",
+        "name": "Furtive Homunculus",
+        "power": "2",
+        "type": "Creature \u2014 Homunculus"
+      },
+      {
+        "manaCost": "{3}{U}{U}",
+        "number": "65",
+        "layout": "normal",
+        "text": "Flying\n\nGeralf's Masterpiece gets -1/-1 for each card in your hand.\n\n{3}{U}, Discard three cards: Return Geralf's Materpiece from your graveyard to the battlefield tapped.",
+        "toughness": "7",
+        "name": "Geralf's Masterpiece",
+        "power": "7",
+        "type": "Creature \u2014 Zombie Horror"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "66",
+        "layout": "normal",
+        "text": "Enchant creature\n\nEnchanted creature gets +1/+1 and has flying.\n\nDiscard a card: Return enchanted creature to its owner's hand.",
+        "name": "Ghostly Wings",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{4}{U}",
+        "number": "67",
+        "layout": "normal",
+        "text": "Put target permanent on top of its owner's library.\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "name": "Gone Missing",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{U}",
+        "number": "68",
+        "layout": "normal",
+        "text": "Counter target sorcery spell.\n\nDelirium \u2014 If there are four or more card types amongst cards in your graveyard, search the graveyard, hand and library of that spell's owner for cards with the same name as that spell, exile those cards, then that player shuffles his or her library.",
+        "name": "Invasive Surgery",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{3}{U}{U}",
+        "number": "69",
+        "layout": "normal",
+        "text": "+1: Scry 1, then draw a card.\n\n-2: Return target creature to its owner's hand.\n\n-8: You get an emblem with \"Whenever an opponent casts his or her first spell each turn, counter that spell.\"",
+        "loyalty": "5",
+        "name": "Jace, Unraveler of Secrets",
+        "type": "Planeswalker \u2014 Jace"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "70",
+        "layout": "normal",
+        "text": "Target creature gets -4/-0 until end of turn.\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "name": "Jace's Scrutiny",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "71",
+        "layout": "normal",
+        "text": "Return target creature to its owner's hand.\n\nMadness {U} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "name": "Just the Wind",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{4}{U}",
+        "number": "72",
+        "layout": "normal",
+        "text": "When Lamplighter of Selhoff enters the battlefield, if you control another Zombie, you may draw a card. If you do, discard a card.",
+        "toughness": "5",
+        "name": "Lamplighter of Selhoff",
+        "power": "3",
+        "type": "Creature \u2014 Zombie Horror"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "73",
+        "layout": "normal",
+        "text": "When Manic Scribe enters the battlefield, each opponent puts the top three cards of his or her library into his or her graveyard.\n\nDelirium \u2014 At the beginning of each opponent's upkeep, if you have four or more card types among cards in your graveyard, that player puts the top three cards of his or her library into his or her graveyard.",
+        "toughness": "3",
+        "name": "Manic Scribe",
+        "power": "0",
+        "type": "Creature \u2014 Human Wizard"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "74",
+        "layout": "normal",
+        "text": "Look at the top two cards of your library. Put one of them into your hand and the other into your graveyard.\n\nMadness {1}{U} (If you discard this card, discard it into exile. When you do, cast it or put it into your graveyard.)",
+        "name": "Nagging Thoughts",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{5}{U}{U}",
+        "number": "75",
+        "layout": "normal",
+        "text": "Flying\n\nWhen Nephalia Moondrakes enters the battlefield, target creature gains flying until end of turn.\n\n{4}{U}{U}, Exile Nephalia Moondrakes from your graveyard: Creatures you control gain flying until end of turn.",
+        "toughness": "5",
+        "name": "Nephalia Moondrakes",
+        "power": "5",
+        "type": "Creature \u2014 Drake"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "76",
+        "layout": "normal",
+        "text": "Flying\n\nProwess",
+        "toughness": "1",
+        "name": "Niblis of Dusk",
+        "power": "2",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "77",
+        "layout": "normal",
+        "text": "Whenever one or more creatures you control deal combat damage to a player, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")\n\n{1}{G}, Exile a creature card from your graveyard: Investigate. You gain 2 life.",
+        "name": "Ongoing Investigation",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "78",
+        "layout": "normal",
+        "text": "Reveal the top five cards of your library. Put up to two instant and/or sorcery cards from among them into your hand and the rest into your graveyard.",
+        "name": "Pieces of the Puzzle",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{3}{U}{U}",
+        "number": "79",
+        "layout": "normal",
+        "text": "Draw three cards, untap up to two lands, then discard a card.",
+        "name": "Pore Over the Pages",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "80",
+        "layout": "normal",
+        "text": "Tap target creature. It doesn't untap during its controller's next untap step.\n\nInvestigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "name": "Press for Answers",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "81",
+        "layout": "normal",
+        "text": "Flash\n\nFlying\n\nWhen Rattlechains enters the battlefield, target Spirit gains hexproof until end of turn.\n\nYou may cast Spirit spells as though they had flash.",
+        "toughness": "1",
+        "name": "Rattlechains",
+        "power": "2",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "82",
+        "layout": "normal",
+        "text": "{T}: Target player draws a card, then discards a card.",
+        "toughness": "1",
+        "name": "Reckless Scholar",
+        "power": "2",
+        "type": "Creature \u2014 Human Wizard"
+      },
+      {
+        "manaCost": "{5}{U}",
+        "number": "83",
+        "layout": "normal",
+        "text": "Put a 2/2 black Zombie creature token onto the battlefield tapped for each instant and sorcery card in your graveyard.",
+        "name": "Rise from the Tides",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "84",
+        "layout": "normal",
+        "toughness": "3",
+        "name": "Seagraf Skaab",
+        "power": "1",
+        "type": "Creature \u2014 Zombie"
+      },
+      {
+        "manaCost": "{5}{U}",
+        "number": "85",
+        "layout": "normal",
+        "text": "Silburlind Snapper can't attack unless you've cast a noncreature spell this turn.",
+        "toughness": "6",
+        "name": "Silburlind Snapper",
+        "power": "6",
+        "type": "Creature \u2014 Turtle"
+      },
+      {
+        "manaCost": "{3}{U}",
+        "number": "86",
+        "layout": "normal",
+        "text": "Flying",
+        "toughness": "5",
+        "name": "Silent Observer",
+        "power": "1",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{3}{U}",
+        "number": "87",
+        "layout": "normal",
+        "text": "Enchant creature\n\nWhen Sleep Paralysis enters the battlefield, tap enchanted creature.\n\nEnchanted creature doesn't untap during its controller's untap step.",
+        "name": "Sleep Paralysis",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{2}{U}{U}",
+        "number": "88a",
+        "layout": "double-faced",
+        "text": "Target opponent puts the top thirteen cards of his or her library into his or her graveyard.\n\n{3}{U}{U}: Put Startled Awake from your graveyard onto the battlefield transformed. Activate this ability only any time you could cast a sorcery.",
+        "names": [
+          "Startled Awake",
+          "Persistent Nightmare"
+        ],
+        "name": "Startled Awake",
+        "type": "Sorcery"
+      },
+      {
+        "number": "88b",
+        "names": [
+          "Startled Awake",
+          "Persistent Nightmare"
+        ],
+        "layout": "double-faced",
+        "text": "Skulk (This creature can't be blocked by creatures with greater power.)\n\nWhen Persistent Nightmare deals combat damage to a player, return it to its owner's hand.",
+        "toughness": "1",
+        "name": "Persistent Nightmare",
+        "power": "1",
+        "type": "Creature \u2014 Nightmare"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "89",
+        "layout": "normal",
+        "text": "Stitched Mangler enters the battlefield tapped.\n\nWhen Stitched Mangler enters the battlefield, tap target creature an opponent controls. That creature doesn't untap during its controller's next untap step.",
+        "toughness": "3",
+        "name": "Stitched Mangler",
+        "power": "2",
+        "type": "Creature \u2014 Zombie Horror"
+      },
+      {
+        "manaCost": "{3}{U}",
+        "number": "90",
+        "layout": "normal",
+        "text": "{1}{U}, Discard two cards: Return Stitchwing Skaab from your graveyard to the battlefield tapped.",
+        "toughness": "1",
+        "name": "Stitchwing Skaab",
+        "power": "3",
+        "type": "Creature \u2014 Horror Zombie"
+      },
+      {
+        "manaCost": "{4}{U}",
+        "number": "91",
+        "layout": "normal",
+        "text": "Flash (You may cast this spell any time you could cast an instant.)\n\nFlying",
+        "toughness": "3",
+        "name": "Stormrider Spirit",
+        "power": "3",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "92a",
+        "layout": "double-faced",
+        "text": "Defender\n\nThing in the Ice enters the battlefield with four ice counters on it.\n\nWhenever you cast an instant or sorcery spell, remove an ice counter from Thing in the Ice. Then, if it has no ice counters on it, transform it.",
+        "toughness": "4",
+        "names": [
+          "Thing in the Ice",
+          "Awoken Horror"
+        ],
+        "name": "Thing in the Ice",
+        "power": "0",
+        "type": "Creature \u2014 Horror"
+      },
+      {
+        "number": "92b",
+        "names": [
+          "Thing in the Ice",
+          "Awoken Horror"
+        ],
+        "layout": "double-faced",
+        "text": "When this creature transforms into Awoken Horror, return all non-Horror creatures to their owner's hands.",
+        "toughness": "8",
+        "name": "Awoken Horror",
+        "power": "7",
+        "type": "Creature \u2014 Kraken Horror"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "93",
+        "layout": "normal",
+        "text": "Whenever you cast an instant or sorcery spell, investigate. >(Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")",
+        "name": "Trail of Evidence",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{2}{U}",
+        "number": "94a",
+        "layout": "double-faced",
+        "text": "Skulk (This creature can't be blocked by creatures with greater power.)\n\nWhen Uninvited Geist deals combat damage to a player, transform it.",
+        "toughness": "2",
+        "names": [
+          "Uninvited Geist",
+          "Unimpeded Tresspasser"
+        ],
+        "name": "Uninvited Geist",
+        "power": "2",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "number": "94b",
+        "names": [
+          "Uninvited Geist",
+          "Unimpeded Tresspasser"
+        ],
+        "layout": "double-faced",
+        "text": "Unimpeded Tresspasser can't be blocked.",
+        "toughness": "3",
+        "name": "Unimpeded Tresspasser",
+        "power": "3",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{1}{U}",
+        "number": "95",
+        "layout": "normal",
+        "text": "{U}, Sacrifice Vessel of Paramnesia: Target player puts the top three cards of his or her library into his or her graveyard. Draw a card.",
+        "name": "Vessel of Paramnesia",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{2}{U}{U}",
+        "number": "96",
+        "layout": "normal",
+        "text": "Madness {X}{U}{U} (If you discard this card, discard it into exile. When you do, cast it for its Madness cost or put it into your graveyard.)\n\nGain control of target creature if its toughness if 2 or less. If Welcome to the Fold's madness cost was paid, instead gain control of that creature if its toughness is X or less.",
+        "name": "Welcome to the Fold",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{3}{B}",
+        "number": "97a",
+        "layout": "double-faced",
+        "text": "Spells your opponents cast that target Accursed Witch cost {1} less to cast.\n\nWhen Accursed Witch dies, return it to the battlefield transformed under your control attached to target opponent.",
+        "toughness": "2",
+        "names": [
+          "Accursed Witch",
+          "Infectious Curse"
+        ],
+        "name": "Accursed Witch",
+        "power": "4",
+        "type": "Creature \u2014 Human Shaman"
+      },
+      {
+        "number": "97b",
+        "names": [
+          "Accursed Witch",
+          "Infectious Curse"
+        ],
+        "layout": "double-faced",
+        "text": "Enchant Player.\n\nSpells you cast that target enchanted player cost {1} less to cast.\n\nAt the beginning of enchanted player's upkeep, that player loses one life and you gain one life.",
+        "name": "Infectious Curse",
+        "type": "Enchantment \u2014 Aura Curse"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "99",
+        "layout": "normal",
+        "text": "At the beginning of each player's upkeep, if that player has no cards in hand, you draw a card and you lose 1 life.\n\nMadness {1}{B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "toughness": "1",
+        "name": "Asylum Visitor",
+        "power": "3",
+        "type": "Creature \u2014 Vampire Wizard"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "100",
+        "layout": "normal",
+        "text": "Creatures you control have skulk.\n\n(They can't be blocked by creatures with greater power.)\n\n{4}{W}: Creatures you control get +1/+1 until end of turn.",
+        "name": "Behind the Scenes",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{5}{B}{B}",
+        "number": "101",
+        "layout": "normal",
+        "text": "Discard your hand. Search your library for three cards and put those cards into your hand. Then shuffle your library.",
+        "name": "Behold the Beyond",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{B}{B}",
+        "number": "102",
+        "layout": "normal",
+        "text": "All creatures get -2/-2 until end of turn.\n\nMadness {2}{B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "name": "Biting Rain",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "103",
+        "layout": "normal",
+        "text": "{1}, Discard a card: Put a 1/1 black Vampire Knight creature token with lifelink onto the battlefield. Activate this ability only once each turn.",
+        "name": "Call the Bloodline",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{3}{B}",
+        "number": "104",
+        "layout": "normal",
+        "text": "At the beginning of your upkeep, each player discards a card. Each opponent who discarded a card that shares a card type with the card you discarded loses 3 life. (Players reveal the discarded cards simultaneously.)",
+        "name": "Creeping Dread",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "105",
+        "layout": "normal",
+        "text": "Flying\n\nWhen Crow of Dark Tidings enters the battlefield or dies, put the top two cards of your library into your graveyard.",
+        "toughness": "2",
+        "name": "Crow of Dark Tidings",
+        "power": "2",
+        "type": "Creature \u2014 Zombie Bird"
+      },
+      {
+        "manaCost": "{B}",
+        "number": "106",
+        "layout": "normal",
+        "text": "Enchant creature\n\nEnchanted creature gets -2/-2.",
+        "name": "Dead Weight",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "107",
+        "layout": "normal",
+        "text": "Diregraf Colossus enters the battlefield with a +1/+1 counter on it for each Zombie card in your graveyard.\n\nWhenever you cast a Zombie spell, put a 2/2 black Zombie creature token onto the battlefield tapped.",
+        "toughness": "2",
+        "name": "Diregraf Colossus",
+        "power": "2",
+        "type": "Creature \u2014 Zombie Giant"
+      },
+      {
+        "manaCost": "{2}{B}{B}",
+        "number": "108a",
+        "layout": "double-faced",
+        "text": "{1}, Discard a card: Transform Elusive Tormentor.",
+        "toughness": "4",
+        "names": [
+          "Elusive Tormentor",
+          "Insidious Mist"
+        ],
+        "name": "Elusive Tormentor",
+        "power": "4",
+        "type": "Creature \u2014 Vampire Wizard"
+      },
+      {
+        "number": "108b",
+        "names": [
+          "Elusive Tormentor",
+          "Insidious Mist"
+        ],
+        "layout": "double-faced",
+        "text": "Hexproof, indestructible\n\nInsidious Mist can't block and can't be blocked.\n\nWhenever Insidious Mist attacks and isn't blocked, you may pay {2}{B}. If you do, transform it.",
+        "toughness": "1",
+        "name": "Insidious Mist",
+        "power": "0",
+        "type": "Creature \u2014 Elemental"
+      },
+      {
+        "manaCost": "{4}{B}{B}",
+        "number": "109",
+        "layout": "normal",
+        "text": "Return up to two target creatures from your graveyard to the battlefield. Each of those creatures is a black Zombie in addition to its other colors and types. Put Ever After on the bottom of it's owner's library.",
+        "name": "Ever After",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "110",
+        "layout": "normal",
+        "text": "Skulk (This creature can't be blocked by creatures with greater power.)\n\nLifelink (Damage dealt by this creature also causes you to gain that much life.)",
+        "toughness": "3",
+        "name": "Farbog Revenant",
+        "power": "1",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{3}{B}{B}",
+        "number": "111",
+        "layout": "normal",
+        "text": "Madness {X}{B}{B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)\n\nPut three 2/2 black Zombie creature tokens onto the battlefield tapped and you gain 3 life.\n\nIf From Under the Floorboards's madness cost was paid, instead put X of those tokens onto the battlefield tapped and you gain X life.",
+        "name": "From Under the Floorboards",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "112",
+        "layout": "normal",
+        "text": "{3}{B}, Exile Ghoulcaller's Accomplice from your graveyard: Put a 2/2 black Zombie creature token onto the battlefield. Activate this ability only anytime you could cast a sorcery.",
+        "toughness": "2",
+        "name": "Ghoulcaller's Accomplice",
+        "power": "2",
+        "type": "Creature \u2014 Human Rogue"
+      },
+      {
+        "manaCost": "{4}{B}",
+        "number": "113",
+        "layout": "normal",
+        "text": "{2}{B}, Discard two cards: Return Ghoulsteed from your graveyard to the battlefield tapped.",
+        "toughness": "4",
+        "name": "Ghoulsteed",
+        "power": "4",
+        "type": "Creature \u2014 Zombie Horse"
+      },
+      {
+        "manaCost": "{2}{B}{B}",
+        "number": "114",
+        "layout": "normal",
+        "text": "Put two 2/2/ Zombie creature tokens onto the battlefield.\n\nMadness {2}{B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "name": "Gisa's Bidding",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "115",
+        "layout": "normal",
+        "text": "Target creature gets +3/+1 and lifelink until end of turn. (Damage dealt by this creature also causes its contoller to gain that much life.)",
+        "name": "Grotesque Mutation",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "116a",
+        "layout": "double-faced",
+        "text": "Discard a card: Transform Heir of Falkenrath. Activate this ability only once each turn.",
+        "toughness": "1",
+        "names": [
+          "Heir of Falkenrath",
+          "Heir to the Night"
+        ],
+        "name": "Heir of Falkenrath",
+        "power": "2",
+        "type": "Creature \u2014 Vampire"
+      },
+      {
+        "number": "116b",
+        "names": [
+          "Heir of Falkenrath",
+          "Heir to the Night"
+        ],
+        "layout": "double-faced",
+        "text": "Flying",
+        "toughness": "2",
+        "name": "Heir to the Night",
+        "power": "3",
+        "type": "Creature \u2014 Vampire Berseker"
+      },
+      {
+        "manaCost": "{4}{B}",
+        "number": "117",
+        "layout": "normal",
+        "text": "Delirium \u2014 Hound of the Farbogs has menace as long as there are four or more card types among cards in your graveyard. (A creature with menace can't be blocked except by two or more creatures.)",
+        "toughness": "3",
+        "name": "Hound of the Farbogs",
+        "power": "5",
+        "type": "Creature \u2014 Zombie Hound"
+      },
+      {
+        "manaCost": "{B}",
+        "number": "118",
+        "layout": "normal",
+        "text": "Lifelink\n\n{2}, Sacrifice a creature: Put a +1/+1 counter on each Vampire you control.",
+        "toughness": "1",
+        "name": "Indulgent Aristocrat",
+        "power": "1",
+        "type": "Creature \u2014 Vampire"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "119a",
+        "layout": "double-faced",
+        "text": "Delirium \u2014 {2}{B}: Transform Kindly strange. Activate this ability only if there are four or more card types among cards in your graveyard .",
+        "toughness": "3",
+        "names": [
+          "Kindly Stranger",
+          "Demon-Possessed Witch"
+        ],
+        "name": "Kindly Stranger",
+        "power": "2",
+        "type": "Creature \u2014 Human"
+      },
+      {
+        "number": "119b",
+        "names": [
+          "Kindly Stranger",
+          "Demon-Possessed Witch"
+        ],
+        "layout": "double-faced",
+        "text": "When this creature transforms into Demon-Possessed Witch, you may destroy target creature.",
+        "toughness": "3",
+        "name": "Demon-Possessed Witch",
+        "power": "4",
+        "type": "Creature \u2014 Human Shaman"
+      },
+      {
+        "manaCost": "{X}{B}",
+        "number": "120",
+        "layout": "normal",
+        "text": "Put the top X cards of your library into your graveyard. Target Player loses 2 life for each creature card put into the graveyard this way.",
+        "name": "Lilianna's Indgnation",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "121",
+        "layout": "normal",
+        "text": "Return up to two target creature cards from your graveyard to your hand, then discard a card.",
+        "name": "Macabre Waltz",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{3}{B}{B}",
+        "number": "122",
+        "layout": "normal",
+        "text": "Flying\n\n{2}{B}, Discard a card: Put two +1/+1 counters on Markov Dreadknight.",
+        "toughness": "3",
+        "name": "Markov Dreadknight",
+        "power": "3",
+        "type": "Creature \u2014 Vampire Knight"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "123",
+        "layout": "normal",
+        "text": "As an additional cost to cast Merciless Resolve, sacrifice a creature or land.\n\nDraw two cards.",
+        "name": "Merciless Resolve",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{2}{B}{B}",
+        "number": "124",
+        "layout": "normal",
+        "text": "Flying, trample\n\nWhen Mindwrack Demon enters the battlefield, put the top four cards of your library into your graveyard.\n\nDelirium \u2014 At the beginning of your upkeep, you lose 4 life unless there are four or more card types among cards in your graveyard.",
+        "toughness": "5",
+        "name": "Mindwrack Demon",
+        "power": "4",
+        "type": "Creature \u2014 Demon"
+      },
+      {
+        "manaCost": "{5}{B}",
+        "number": "125",
+        "layout": "normal",
+        "text": "Menace (This creature can't be blocked except by two or more creatures.)\n\nWhenever Morkut Necropod attacks or blocks, sacrifice another creature or land.",
+        "toughness": "7",
+        "name": "Morkut Necropod",
+        "power": "7",
+        "type": "Creature \u2014 Slug Horror"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "126",
+        "layout": "normal",
+        "text": "Destroy target tapped creature.\n\nMadness {1}{B} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "name": "Murderous Compulsion",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "127",
+        "layout": "normal",
+        "text": "Flying\n\nOlivia's Bloodsworn can't block.\n\n{R}: Target Vampire gains haste until end of turn.",
+        "toughness": "1",
+        "name": "Olivia's Bloodsworn",
+        "power": "2",
+        "type": "Creature \u2014 Vampire Soldier"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "128",
+        "layout": "normal",
+        "text": "Skulk (This creature can't be blocked by creatures with greater power.)\n\nWhen Pale Rider of Trostad enters the battlefield, discard a card.",
+        "toughness": "3",
+        "name": "Pale Rider of Trostad",
+        "power": "3",
+        "type": "Creature \u2014 Spirit"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "129",
+        "layout": "normal",
+        "text": "Targer opponent reveals his or her hand. You choose a nonland card from it and exile that card.\n\nDelirium \u2014 If there are four or more card types among cards in your graveyard, search that player's graveyard, hand, and library for any number of cards with the same name as the exiled card, exile those cards, then that player shuffles his or her library.",
+        "name": "Pick the Brain",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "130",
+        "layout": "normal",
+        "text": "Skulk (This creature can't be blocked by creatures with greater power.)\n\nDeathtouch (Any amount of damage this deals to a creature is enough to destroy it.)",
+        "toughness": "1",
+        "name": "Rancid Rats",
+        "power": "1",
+        "type": "Creature \u2014 Zombie Rats"
+      },
+      {
+        "manaCost": "{B}{B}",
+        "number": "131",
+        "layout": "normal",
+        "text": "Menace (This creature can't be blocked except by two or more creatures.)\n\nWhen Relentless Dead dies, you may pay {B}. If you do, return it to its owner's hand.\n\nWhen Relentless Dead dies, you may pay {X}. If you do, return another target Zombie creature card with converted mana cost X from your graveyard to the battlefield.",
+        "toughness": "2",
+        "name": "Relentless Dead",
+        "power": "2",
+        "type": "Creature \u2014 Zombie"
+      },
+      {
+        "manaCost": "{3}{B}",
+        "number": "132",
+        "layout": "normal",
+        "text": "When Rottenheart Ghoul dies, target player discards a card.",
+        "toughness": "4",
+        "name": "Rottenheart Ghoul",
+        "power": "2",
+        "type": "Creature \u2014 Zombie"
+      },
+      {
+        "manaCost": "{B}",
+        "number": "133",
+        "layout": "normal",
+        "text": "{2}{B}: Return Sanitarium Skeleton from your graveyard to your hand.",
+        "toughness": "2",
+        "name": "Sanitarium Skeleton",
+        "power": "1",
+        "type": "Creature \u2014 Skeleton"
+      },
+      {
+        "manaCost": "{B}",
+        "number": "134",
+        "layout": "normal",
+        "text": "Exile target creature card from a graveyard. Put a 2/2 black Zombie creature token onto the battlefield. You gain 2 life.",
+        "name": "Shamble Back",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{B}",
+        "number": "135",
+        "layout": "normal",
+        "text": "{B}, Pay 1 life, Put the top card of your library into your graveyard, Discard a card, Sacrifice Sinister Concoction: Destroy target creature.",
+        "name": "Sinister Concoction",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{3}{B}",
+        "number": "136",
+        "layout": "normal",
+        "text": "Delirium \u2014 {1}{B}: Stallion of Ashmouth gets +1/+1 until end of turn. Activate this ability only if there are four or more card types among cards in your graveyard",
+        "toughness": "3",
+        "name": "Stallion of Ashmouth",
+        "power": "3",
+        "type": "Creature \u2014 Nightmare Horse"
+      },
+      {
+        "manaCost": "{3}{B}",
+        "number": "137",
+        "layout": "normal",
+        "text": "When Stromkirk Mentor enters the battlefield, put a +1/+1 counter on another target Vampire you control.",
+        "toughness": "2",
+        "name": "Stromkirk Mentor",
+        "power": "4",
+        "type": "Creature \u2014 Vampire Soldier"
+      },
+      {
+        "manaCost": "{4}{B}",
+        "number": "138",
+        "layout": "normal",
+        "text": "Target Creature gets -4/-4 until end of turn.",
+        "name": "Throttle",
+        "type": "instant"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "139",
+        "layout": "normal",
+        "text": "Target player sacrifices a creature or planeswalker.\n\nDelirium \u2014 If there are four or more card types among cards in your graveyard, instead that player sacrifices a creature and a planeswalker.",
+        "name": "To the Slaughter",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "140",
+        "layout": "normal",
+        "text": "When Tooth Collector enters the battlefield, target creature an opponent controls gets -1/-1 until end of turn.\n\nDelirium \u2014 At the beginning of each opponent's upkeep, if there are four or more card types among cards in your graveyard, target creature that player controls gets -1/-1 until end of turn.",
+        "toughness": "2",
+        "name": "Tooth Collector",
+        "power": "3",
+        "type": "Creature \u2014 Human Rogue"
+      },
+      {
+        "manaCost": "{3}{B}",
+        "number": "141",
+        "layout": "normal",
+        "text": "At the beginning of your upkeep, choose one \u2014\n\n\u2022 Each player with exactly 13 life loses the game, then each player gains 1 life.\n\n\u2022 Each player with exactly 13 life loses the game, then each player loses 1 life.",
+        "name": "Triskaidekaphobia",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{4}{B}",
+        "number": "142",
+        "layout": "normal",
+        "text": "Madness {2}{B}",
+        "toughness": "5",
+        "name": "Twins of Maurer Estate",
+        "power": "3",
+        "type": "Creature \u2014 Vampire"
+      },
+      {
+        "manaCost": "{2}{B}",
+        "number": "143",
+        "layout": "normal",
+        "toughness": "2",
+        "name": "Vampire Noble",
+        "power": "3",
+        "type": "Creature \u2014 Vampire"
+      },
+      {
+        "manaCost": "{1}{B}",
+        "number": "144",
+        "layout": "normal",
+        "text": "{1}{B}, Sacrifice Vessel of Malignity: Target opponent exiles two cards from his or her hand. Activate this ability only any time you could cast a sorcery.",
+        "name": "Vessel of Malignity",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "145",
+        "layout": "normal",
+        "text": "Madness {X}{R} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)\n\nAvacyn's Judgment deals 2 damage divided as you choose among any number of target creatures and/or players. If Avacyn's Judgment's madness cost was paid, it deals X damage divided as you choose among those creatures and/or players instead.",
+        "name": "Avacyn's Judgment",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "146",
+        "layout": "normal",
+        "text": "Whenever Bloodmad Vampire deals combat damage to a player, put a +1/+1 counter on it.\n\nMadness {1}{R} (If you discard this card, discard it into exile. When you do, you may cast it for its madness cost or put it into your graveyard.)",
+        "toughness": "1",
+        "name": "Bloodmad Vampire",
+        "power": "4",
+        "type": "Creature \u2014 Vampire Berserker"
+      },
+      {
+        "manaCost": "{1}{R}{R}",
+        "number": "147a",
+        "layout": "double-faced",
+        "text": "At the beginning of each upkeep, if no spells were cast last turn, transform Breakneck Rider.",
+        "toughness": "3",
+        "names": [
+          "Breakneck Rider",
+          "Neck Breaker"
+        ],
+        "name": "Breakneck Rider",
+        "power": "3",
+        "type": "Creature \u2014 Human Scout Werewolf"
+      },
+      {
+        "number": "147b",
+        "names": [
+          "Breakneck Rider",
+          "Neck Breaker"
+        ],
+        "layout": "double-faced",
+        "text": "Attacking creatures you control get +1/+0 and have trample.\n\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Neck Breaker.",
+        "toughness": "3",
+        "name": "Neck Breaker",
+        "power": "4",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{X}{R}",
+        "number": "148",
+        "layout": "normal",
+        "text": "Burn from Within deals X damage to target creature or player. If a creature is dealt damage this way, it loses indestructible until end of turn. If that creature would die this turn, exile it instead.",
+        "name": "Burn from Within",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "149a",
+        "layout": "double-faced",
+        "text": "At the beginning of each upkeep, if no spells were cast last turn, transform Convicted Killer",
+        "toughness": "2",
+        "names": [
+          "Convicted Killer",
+          "Branded Howler"
+        ],
+        "name": "Convicted Killer",
+        "power": "2",
+        "type": "Creature \u2014 Human Werewolf"
+      },
+      {
+        "number": "149b",
+        "names": [
+          "Convicted Killer",
+          "Branded Howler"
+        ],
+        "layout": "double-faced",
+        "text": "At the beginning of each upkeep, if a player casts two or more spells last turn, transform Branded Howler",
+        "toughness": "4",
+        "name": "Branded Howler",
+        "power": "4",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{3}{R}",
+        "number": "150",
+        "layout": "normal",
+        "text": "Put two 1/1 red Devil creature tokens onto the battlefield. They have \"When this creature dies, it deals 1 damage to target creature or player.\"",
+        "name": "Dance with Devils",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{4}{R}{R}",
+        "number": "151",
+        "layout": "normal",
+        "text": "Put four 1/1 red Devil creature tokens onto the battlefield. They have \"When this creature dies, it deals 1 damage to target creature or player.\"",
+        "name": "Devil's Playground",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{3}{R}{R}",
+        "number": "152",
+        "layout": "normal",
+        "text": "Target blocking creature fights another target blocking creature.",
+        "name": "Dissension in the Ranks",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{R}",
+        "number": "153",
+        "layout": "normal",
+        "text": "Dual Shot deals 1 damage to each of up to two target creatures.",
+        "name": "Dual Shot",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "154",
+        "layout": "normal",
+        "text": "Haste\n\n{1}{R}: Ember-Eye Wolf gets +2/+0 until end of turn.",
+        "toughness": "2",
+        "name": "Ember-Eye Wolf",
+        "power": "1",
+        "type": "Creature \u2014 Wolf"
+      },
+      {
+        "manaCost": "{R}",
+        "number": "155",
+        "layout": "normal",
+        "text": "Each Vampire creature card you own that isn't on the battlefield has madness. The madness cost is equal to its mana cost.",
+        "toughness": "1",
+        "name": "Falkenrath Gorger",
+        "power": "2",
+        "type": "Creature \u2014 Vampire Berseker"
+      },
+      {
+        "manaCost": "{1}{R}{R}",
+        "number": "156",
+        "layout": "normal",
+        "text": "Fiery Temper deals 3 damage to target creature or player.\n\nMadness {R}",
+        "name": "Fiery Temper",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{4}{R}{R}",
+        "number": "157",
+        "layout": "normal",
+        "text": "Flying\n\nWhenever a source an opponent controls deals damage to you or a permanent you control, you may have Flameblade Angel deal 1 damage to that source's controller.",
+        "toughness": "4",
+        "name": "Flameblade Angel",
+        "power": "4",
+        "type": "Creature \u2014 Angel"
+      },
+      {
+        "manaCost": "{4}{R}",
+        "number": "158a",
+        "layout": "double-faced",
+        "text": "At the beginning of each upkeep, if no spells were cast last turn, transform Gatstaf Arsonists.",
+        "toughness": "4",
+        "names": [
+          "Gatstaf Arsonists",
+          "Gatstaf Ravagers"
+        ],
+        "name": "Gatstaf Arsonists",
+        "power": "5",
+        "type": "Creature \u2014 Human Werewolf"
+      },
+      {
+        "number": "158b",
+        "names": [
+          "Gatstaf Arsonists",
+          "Gatstaf Ravagers"
+        ],
+        "layout": "double-faced",
+        "text": "Menace\n\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Gatstaf Ravagers.",
+        "toughness": "5",
+        "name": "Gatstaf Ravagers",
+        "power": "6",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "159a",
+        "layout": "double-faced",
+        "text": "Haste\n\nAt the beginning of each upkeep, if no spells were cast last turn, transform Geier Reach Bandit.",
+        "toughness": "2",
+        "names": [
+          "Geier Reach Bandit",
+          "Vildin-Pack Alpha"
+        ],
+        "name": "Geier Reach Bandit",
+        "power": "3",
+        "type": "Creature \u2014 Human Rogue Werewolf"
+      },
+      {
+        "number": "159b",
+        "names": [
+          "Geier Reach Bandit",
+          "Vildin-Pack Alpha"
+        ],
+        "layout": "double-faced",
+        "text": "Whenever a Werewolf enters the battlefield under your control, you may transform it.\n\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Vildin-Pack Alpha.",
+        "toughness": "3",
+        "name": "Vildin-Pack Alpha",
+        "power": "4",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "160",
+        "layout": "normal",
+        "text": "Geistblast deals 2 damage to target creature or player.\n\n{2}{U}, Exile Geistblast from your graveyard: Copy target instant or sorcery spell you control. You may choose new targets for the copy.",
+        "name": "Geistblast",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "161",
+        "layout": "normal",
+        "text": "When Gibbering Fiend enters the battlefield, it deals 1 damage to each opponent.\n\nDelirium \u2014 At the beginning of each opponent's upkeep, if there are four or more card types among cards in your graveyard, Gibbering Fiend deals 1 damage to that player.",
+        "toughness": "1",
+        "name": "Gibbering Fiend",
+        "power": "2",
+        "type": "Creature \u2014 Devil"
+      },
+      {
+        "manaCost": "{2}{R}{R}",
+        "number": "162",
+        "layout": "normal",
+        "text": "Flying, haste\n\nIf a source would deal damage to you, it deals double that damage to you instead.\n\nIf a source would deal damage to Goldnight Castigator, it deals double that damage to Goldnight Castigator instead.",
+        "toughness": "9",
+        "name": "Goldnight Castigator",
+        "power": "4",
+        "type": "Creature \u2014 Angel"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "163",
+        "layout": "normal",
+        "text": "Whenever you cast an instant or sorcery spell from your hand, you may cast target card with the same name as that spell from your graveyard. (You still pay its costs.)",
+        "name": "Harness the Storm",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "164",
+        "layout": "normal",
+        "text": "Howlpack Wolf can't block unless you control another Wolf or Werewolf.",
+        "toughness": "3",
+        "name": "Howlpack Wolf",
+        "power": "3",
+        "type": "Creature \u2014 Wolf"
+      },
+      {
+        "manaCost": "{3}{R}",
+        "number": "165",
+        "layout": "normal",
+        "toughness": "2",
+        "name": "Hulking Devil",
+        "power": "5",
+        "type": "Creature \u2014 Devil"
+      },
+      {
+        "manaCost": "{3}{R}{R}",
+        "number": "166",
+        "layout": "normal",
+        "text": "Haste\n\nMadness {2}{R}",
+        "toughness": "3",
+        "name": "Incorrigible Youths",
+        "power": "4",
+        "type": "Creature \u2014 Vampire"
+      },
+      {
+        "manaCost": "{3}{R}",
+        "number": "167",
+        "layout": "normal",
+        "text": "Target creature deals damage to itself equal to its power.",
+        "name": "Inner Struggle",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{R}",
+        "number": "168",
+        "layout": "normal",
+        "text": "Menace (This creature can't be blocked except by two or more creatures.)\n\nDiscard a card, Sacrifice Insolent Neonate: Draw a card.",
+        "toughness": "1",
+        "name": "Insolent Neonate",
+        "power": "1",
+        "type": "Creature \u2014 Vampire"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "169a",
+        "layout": "double-faced",
+        "text": "Whenever Kessig Forgemaster blocks or becomes blocked by a creature, Kessig Forgemaster deals 1 damage to that creature.\n\nAt the beginning of each upkeep, if no spells were cast last turn, transform Kessig Forgemaster",
+        "toughness": "1",
+        "names": [
+          "Kessig Forgemaster",
+          "Flameheart Werewolf"
+        ],
+        "name": "Kessig Forgemaster",
+        "power": "2",
+        "type": "Creature \u2014 Human Shaman Werewolf"
+      },
+      {
+        "number": "169b",
+        "names": [
+          "Kessig Forgemaster",
+          "Flameheart Werewolf"
+        ],
+        "layout": "double-faced",
+        "text": "Whenever Flameheart Werewolf blocks or becomes blocked by a creature, Flameheart Werewolf deals 2 damage to that creature.\n\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Flameheart Werewolf.",
+        "toughness": "2",
+        "name": "Flameheart Werewolf",
+        "power": "3",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{R}",
+        "number": "170",
+        "layout": "normal",
+        "text": "As an additional cost to cast Lightning Axe, discard a card or pay {5}.\n\nLightning Axe deals 5 damage to target creature.",
+        "name": "Lightning Axe",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{3}{R}",
+        "number": "171",
+        "layout": "normal",
+        "text": "Haste\n\n{T}, Discard a card: Draw a card.",
+        "toughness": "2",
+        "name": "Mad Prophet",
+        "power": "2",
+        "type": "Creature \u2014 Human Shaman"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "172",
+        "layout": "normal",
+        "text": "Creatures without flying can't block this turn.",
+        "name": "Magmatic Chasm",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{3}{R}",
+        "number": "173",
+        "layout": "normal",
+        "text": "Gain control of target creature until end of turn. Untap that creature. It gets +2/+0 and gains haste until end of turn.\n\nMadness {3}{R} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "name": "Malevolent Whispers",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{3}{R}",
+        "number": "174",
+        "layout": "normal",
+        "text": "Trample\n\nWhenever you cast an instant or sorcery spell, put a +1/+1 counter on Pyre Hound.",
+        "toughness": "3",
+        "name": "Pyre Hound",
+        "power": "2",
+        "type": "Creature \u2014 Elemental Hound"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "175",
+        "layout": "normal",
+        "text": "Discard a card: Ravenous Bloodseeker gets +2/-2 until end of turn.",
+        "toughness": "3",
+        "name": "Ravenous Bloodseeker",
+        "power": "1",
+        "type": "Creature \u2014 Vampire Berserker"
+      },
+      {
+        "manaCost": "{4}{R}",
+        "number": "176",
+        "layout": "normal",
+        "text": "Reduce to Ashes deals 5 damage to target creature. If that creature would die this turn, exile it instead.",
+        "name": "Reduce to Ashes",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{R}",
+        "number": "177",
+        "layout": "normal",
+        "text": "Target creature gets +2/+1 and gains trample until end of turn.",
+        "name": "Rush of Adrenaline",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "178",
+        "layout": "normal",
+        "text": "Prowess",
+        "toughness": "3",
+        "name": "Sanguinary Mage",
+        "power": "1",
+        "type": "Creature \u2014 Vampire Wizard"
+      },
+      {
+        "manaCost": "{R}{R}",
+        "number": "179",
+        "layout": "normal",
+        "text": "First strike\n\nDelirium \u2014 Scourge Wolf has double strike as long as there are four or more card types among cards in your graveyard.",
+        "toughness": "2",
+        "name": "Scourge Wolf",
+        "power": "2",
+        "type": "Creature \u2014 Wolf Horror"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "180",
+        "layout": "normal",
+        "text": "Enchant creature\n\nEnchanted creature gets +2/+2.\n\nMadness {1}{R} (If you discard this card, discard it into exile. When you do, cast this card for its madness cost or put it into your graveyard.)",
+        "name": "Senseless Rage",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "181",
+        "layout": "normal",
+        "text": "Menace\n\nAt the beginning of your upkeep, reveal the top card of your library. Any opponent may have you put that card into your graveyard. If a player does, Sin Prodder deals damage to that player equal to that card's converted mana cost. Otherwise, put that card into your hand.",
+        "toughness": "2",
+        "name": "Sin Prodder",
+        "power": "3",
+        "type": "Creature \u2014 Devil"
+      },
+      {
+        "manaCost": "{R}",
+        "number": "182a",
+        "layout": "double-faced",
+        "text": "Enchant creature\n\nEnchanted creature attacks each combat if able.\n\nWhen enchanted creature dies, return Skin Invasion to the battlefield transformed under your control.",
+        "names": [
+          "Skin Invasion",
+          "Skin Shedder"
+        ],
+        "name": "Skin Invasion",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "number": "182b",
+        "names": [
+          "Skin Invasion",
+          "Skin Shedder"
+        ],
+        "layout": "double-faced",
+        "toughness": "4",
+        "name": "Skin Shedder",
+        "power": "3",
+        "type": "Creature \u2014 Insect Horror"
+      },
+      {
+        "manaCost": "{3}{R}",
+        "number": "183",
+        "layout": "normal",
+        "text": "Flash\n\nEnchant creature\n\nEnchanted creature gets +3/+0 and has first strike.",
+        "name": "Spiteful Motives",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "184",
+        "layout": "normal",
+        "text": "Attacking creatures you control have first strike.\n\nWhenever a Vampire you control deals combat damage to a player, put a +1/+1 counter on it.\n\nMadness {2}{R} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
+        "name": "Stensia Masquerade",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{3}{R}",
+        "number": "185",
+        "layout": "normal",
+        "text": "Exile target artifact or land. Structural Distortion deals 2 damage to that permanent's controller.",
+        "name": "Structural Distortion",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "186",
+        "layout": "normal",
+        "text": "As an additional cost to cast Tormenting Voice, discard a card.\n\nDraw two cards.",
+        "name": "Tormenting Voice",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "187",
+        "layout": "normal",
+        "text": "Trample\n\n{3}{G}: Target attacking Wolf or Werewolf gains indestructible until end of turn.",
+        "toughness": "2",
+        "name": "Ulrich's Kindred",
+        "power": "3",
+        "type": "Creature \u2014 Wolf"
+      },
+      {
+        "manaCost": "{2}{R}",
+        "number": "188",
+        "layout": "normal",
+        "text": "Target creature gets +1/+1 and gains double strike until end of turn.",
+        "name": "Uncaged Fury",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{R}",
+        "number": "189",
+        "layout": "normal",
+        "text": "{1}{R}, Sacrifice Vessel of Volatility: Add {R}{R}{R}{R} to your mana pool.",
+        "name": "Vessel of Volatility",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{R}",
+        "number": "190a",
+        "layout": "double-faced",
+        "text": "Haste\n\nAt the beginning of each upkeep, if no spells were cast last turn, transform Village Messenger.",
+        "toughness": "1",
+        "names": [
+          "Village Messenger",
+          "Moonrise Intruder"
+        ],
+        "name": "Village Messenger",
+        "power": "1",
+        "type": "Creature \u2014 Human Werewolf"
+      },
+      {
+        "number": "190b",
+        "names": [
+          "Village Messenger",
+          "Moonrise Intruder"
+        ],
+        "layout": "double-faced",
+        "text": "Menace (This creature can't be blocked except by two or more creatures.)\n\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Moonrise Intruder.",
+        "toughness": "2",
+        "name": "Moonrise Intruder",
+        "power": "2",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{3}{R}",
+        "number": "191",
+        "layout": "normal",
+        "text": "Haste\n\nWhen Voldaren Duelist enters the battlefield, target creature can't block this turn.",
+        "toughness": "2",
+        "name": "Voldaren Duelist",
+        "power": "3",
+        "type": "Creature \u2014 Vampire Warrior"
+      },
+      {
+        "manaCost": "{3}{R}{R}",
+        "number": "192",
+        "layout": "normal",
+        "text": "Whenever Wolf of Devil's Breach attacks, you may pay {1}{R} and discard a card. If you do, Wolf of Devil's Breach deals damage to target creature or planeswalker equal to the discarded card's converted mana cost.",
+        "toughness": "5",
+        "name": "Wolf of Devil's Breach",
+        "power": "5",
+        "type": "Creature \u2014 Elemental Wolf"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "193",
+        "layout": "normal",
+        "text": "Untap target creature. It gets +2+2 and gains reach until end of turn. (It can block creatures with flying.)",
+        "name": "Aim High",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "194a",
+        "layout": "double-faced",
+        "text": "{B}: Put the top card of your library into your graveyard.\n\nDelirium - At the beginning of your end step, if there are four or more card types among cards in your graveyard, transform Autumnal Gloom.",
+        "names": [
+          "Autumnal Gloom",
+          "Ancient of the Equinox"
+        ],
+        "name": "Autumnal Gloom",
+        "type": "Enchantment"
+      },
+      {
+        "number": "194b",
+        "names": [
+          "Autumnal Gloom",
+          "Ancient of the Equinox"
+        ],
+        "layout": "double-faced",
+        "text": "Trample, hexproof",
+        "toughness": "4",
+        "name": "Ancient of the Equinox",
+        "power": "4",
+        "type": "Creature \u2014 Treefolk"
+      },
+      {
+        "manaCost": "{3}{G}",
+        "number": "195",
+        "layout": "normal",
+        "text": "Whenever Briarbridge Patrol deals damage to one or more creatures, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")\n\nAt the beginning of each end step, if you sacrificed three or more Clues this turn, you may put a creature card from your hand onto the battlefield.",
+        "toughness": "3",
+        "name": "Briarbridge Patrol",
+        "power": "3",
+        "type": "Creature \u2014 Human Warrior"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "196",
+        "layout": "normal",
+        "text": "When Byway courier dies, investigate.",
+        "toughness": "2",
+        "name": "Byway Courier",
+        "power": "3",
+        "type": "Creature \u2014 Human Scout"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "197",
+        "layout": "normal",
+        "text": "Each opponent sacrifices a creature with flying.",
+        "name": "Clip Wings",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{G}",
+        "number": "198",
+        "layout": "normal",
+        "text": "Investigate, then target creature gets +1/+1 until end of turn for each Clue you control.",
+        "name": "Confront the Unknown",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "199",
+        "layout": "normal",
+        "text": "At the beginning of your upkeep, you ma put the top two cards of your library into your graveyard.\n\nWhenever one or more land cards are put into your graveyard from anywhere for the first time each turn, put a 1/1 green Insect creature token on to the battlefield.",
+        "name": "Crawling Sensation",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "200",
+        "layout": "normal",
+        "text": "Creature you control have \"{T}: Add one mana of any color to your mana pool.\"",
+        "name": "Cryptolith Rite",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{4}{G}",
+        "number": "201",
+        "layout": "normal",
+        "text": "Whenever a permanent you control transforms into a non-Human creature, put a 2/2 green Wolf creature token onto the battlefield.",
+        "toughness": "4",
+        "name": "Cult of the Waxing Moon",
+        "power": "5",
+        "type": "Creature \u2014 Human Shaman"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "202",
+        "layout": "normal",
+        "text": "{T}: Add {B} or {G} to your mana pool.\n\nDelirium \u2014 Deathcap Cultivator has deathtouch as long as there are four or more card types among cards in your graveyard.",
+        "toughness": "1",
+        "name": "Deathcap Cultivator",
+        "power": "2",
+        "type": "Creature \u2014 Human Druid"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "203a",
+        "layout": "double-faced",
+        "text": "{2}{G}: Look at the top three cards of your library. You may reveal a creature card from among them and put it into your hand. Put the rest on the bottom of your library in any order.\n\nAt the beginning of each upkeep, if no spells were cast last turn, transform Duskwatch Recruiter.",
+        "toughness": "2",
+        "names": [
+          "Duskwatch Recruiter",
+          "Krallenhorde Howler"
+        ],
+        "name": "Duskwatch Recruiter",
+        "power": "2",
+        "type": "Creature \u2014 Human Warrior Werewolf"
+      },
+      {
+        "number": "203b",
+        "names": [
+          "Duskwatch Recruiter",
+          "Krallenhorde Howler"
+        ],
+        "layout": "double-faced",
+        "text": "Creature spells you cast cost {1} less to cast.\n\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Krallenhorde Howler.",
+        "toughness": "3",
+        "name": "Krallenhorde Howler",
+        "power": "3",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{3}{G}",
+        "number": "204",
+        "layout": "normal",
+        "text": "Enchant Creature\n\nEnchanted Creature gets +3/+3/\n\nAs long as enchanted creature is a Human, it has trample.",
+        "name": "Equestrian Skill",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "205",
+        "layout": "normal",
+        "text": "Search your library for up to two basic land cards and reveal them. Put one into your hand and the other into your graveyard. Then shuffle your library.",
+        "name": "Fork in the Road",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "206",
+        "layout": "normal",
+        "text": "Reach\n\nGloomwidow can block only creatures with flying.",
+        "toughness": "3",
+        "name": "Gloomwidow",
+        "power": "3",
+        "type": "Creature \u2014 Spider"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "207",
+        "layout": "normal",
+        "text": "Whenever you sacrifice a Clue, you gain 3 life.",
+        "toughness": "4",
+        "name": "Graf Mole",
+        "power": "2",
+        "type": "Creature \u2014 Mole Beast"
+      },
+      {
+        "manaCost": "{G}",
+        "number": "208",
+        "layout": "normal",
+        "text": "{1}{G}: Return target basic land card from your graveyard to your hand.",
+        "toughness": "1",
+        "name": "Groundskeeper",
+        "power": "1",
+        "type": "Creature \u2014 Human Druid"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "209a",
+        "layout": "double-faced",
+        "text": "Whenever an opponent casts a spell during your turn, draw a card.\n\nAt the beginning of each upkeep, if no spells were cast last turn, transform Hermit of the Natterknolls.",
+        "toughness": "3",
+        "names": [
+          "Hermit of the Natterknolls",
+          "Lone Wolf of the Natterknolls"
+        ],
+        "name": "Hermit of the Natterknolls",
+        "power": "2",
+        "type": "Creature \u2014 Human Werewolf"
+      },
+      {
+        "number": "209b",
+        "names": [
+          "Hermit of the Natterknolls",
+          "Lone Wolf of the Natterknolls"
+        ],
+        "layout": "double-faced",
+        "text": "Whenever an opponent casts a spell during your turn, draw two cards.\n\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Lone Wolf of the Natterknolls.",
+        "toughness": "5",
+        "name": "Lone Wolf of the Natterknolls",
+        "power": "3",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "210a",
+        "layout": "double-faced",
+        "text": "At the beginning of each upkeep, if no spells were cast last turn, transform Hinterland Logger.",
+        "toughness": "1",
+        "names": [
+          "Hinterland Logger",
+          "Timber Shredder"
+        ],
+        "name": "Hinterland Logger",
+        "power": "2",
+        "type": "Creature \u2014 Human Werewolf"
+      },
+      {
+        "number": "210b",
+        "names": [
+          "Hinterland Logger",
+          "Timber Shredder"
+        ],
+        "layout": "double-faced",
+        "text": "Trample\n\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Timber Shredder.",
+        "toughness": "2",
+        "name": "Timber Shredder",
+        "power": "4",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "211",
+        "layout": "normal",
+        "text": "Flash (You may cast this spell any time you could cast an instant.)\n\nEach creature you control that's a Wolf or a Werewolf gets +1+1 and has trample.",
+        "name": "Howlpack Resurgence",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "212",
+        "layout": "normal",
+        "text": "Delirium \u2014 Whenever Inexorable Blob attacks, if there are four or more card types among cards in your graveyard, put a 3/3 green Ooze creature token onto the battlefield tapped and attacking.",
+        "toughness": "3",
+        "name": "Inexorable Blob",
+        "power": "3",
+        "type": "Creature \u2014 Ooze"
+      },
+      {
+        "manaCost": "{3}{G}",
+        "number": "213",
+        "layout": "normal",
+        "text": "Trample\n\nWhen Intrepid Provisioner enters the battlefield, another target Human you control gets +2/+2 until end of turn.",
+        "toughness": "3",
+        "name": "Intrepid Provisioner",
+        "power": "3",
+        "type": "Creature \u2014 Human Scout"
+      },
+      {
+        "manaCost": "{4}{G}{G}",
+        "number": "214",
+        "layout": "normal",
+        "text": "Delirium --- Kessig Dire Swine has trample as long as there are four or more card types among cards in your graveyard.",
+        "toughness": "6",
+        "name": "Kessig Dire Swine",
+        "power": "6",
+        "type": "Creature \u2014 Boar Horror"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "215a",
+        "layout": "double-faced",
+        "text": "Lambholt Pacifist can't attack unless you control a creature with power 4 or greater.\n\nAt the beginning of each upkeep, if no spells were cast last turn, transform Lambholt Pacifist.",
+        "toughness": "3",
+        "names": [
+          "Lambholt Pacifist",
+          "Lambholt Butcher"
+        ],
+        "name": "Lambholt Pacifist",
+        "power": "3",
+        "type": "Creature \u2014 Human Shaman Werewolf"
+      },
+      {
+        "number": "215b",
+        "names": [
+          "Lambholt Pacifist",
+          "Lambholt Butcher"
+        ],
+        "layout": "double-faced",
+        "text": "At the beginning of each upkeep, if a player cast two or more spells last turn, transform Lambholt Butcher.",
+        "toughness": "4",
+        "name": "Lambholt Butcher",
+        "power": "4",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{G}",
+        "number": "216",
+        "layout": "normal",
+        "text": "{T}, Tap an untapped creature you control: Add one mana of any color to your mana pool.",
+        "toughness": "2",
+        "name": "Loam Dryad",
+        "power": "1",
+        "type": "Creature \u2014 Dryad Horro"
+      },
+      {
+        "manaCost": "{3}{G}",
+        "number": "217",
+        "layout": "normal",
+        "text": "Put two +1/+1 counters on target creature.\n\nDelirium --- Put three +1/+1 counters on that creature instead if there are four or more card types among cards in your graveyard.",
+        "name": "Might Beyond Reason",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "218",
+        "layout": "normal",
+        "text": "Delirium --- Moldfraf Scavenger gets +3/+0 as long as there are four or more card types among cards in your graveyard.",
+        "toughness": "4",
+        "name": "Moldgraf Scavenger",
+        "power": "0",
+        "type": "Creature \u2014 Fungus"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "219",
+        "layout": "normal",
+        "text": "Choose target creature you don't control. Each creature you control that's a Wolf or a Werewolf deals damage equal to its power to that creature.",
+        "name": "Moonlight Hunt",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "220",
+        "layout": "normal",
+        "text": "When Obsessive Skinner enters the battlefield, put a +1/+1 counter on target creature.\n\nDelirium \u2014 At the beginning of each opponent's upkeep, if there are four or more card types among cards in your graveyard, put a +1/+1 counter on target creature.",
+        "toughness": "1",
+        "name": "Obsessive Skinner",
+        "power": "1",
+        "type": "Creature \u2014 Human Rogue"
+      },
+      {
+        "manaCost": "{2}{G}{G}",
+        "number": "221",
+        "layout": "normal",
+        "text": "Flash\n\nWhen Pack Guardian enters the battlefield, you may discard a land card. If you do, put a 2/2 green wolf creature token onto the battlefield.",
+        "toughness": "3",
+        "name": "Pack Guardian",
+        "power": "4",
+        "type": "Creature \u2014 Wolf Spirit"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "222",
+        "layout": "normal",
+        "text": "{5}{G}: Quilled Wolf gets +4/+4 until end of turn.",
+        "toughness": "2",
+        "name": "Quilled Wolf",
+        "power": "2",
+        "type": "Creature \u2014 Wolf"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "223",
+        "layout": "normal",
+        "text": "Target creature you control deals damage equal to its power to target creature you don't control.",
+        "name": "Rabid Bite",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "224",
+        "layout": "normal",
+        "text": "Destroy target artifact or enchantment.\n\nInvestigate.",
+        "name": "Root Out",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{4}{G}",
+        "number": "225a",
+        "layout": "double-faced",
+        "text": "Sage of Ancient Lore's power and toughness are each equal to the number of cards in your hand.\n\nWhen Sage of Ancient Lore enters the battlefield, draw a card.\n\nAt the beginning of each upkeep, if no spells were cast last turn, transform Sage of Ancient Lore.",
+        "toughness": "*",
+        "names": [
+          "Sage of Ancient Lore",
+          "Werewolf of Ancient Hunger"
+        ],
+        "name": "Sage of Ancient Lore",
+        "power": "*",
+        "type": "Creature \u2014 Human Shaman Werewolf"
+      },
+      {
+        "number": "225b",
+        "names": [
+          "Sage of Ancient Lore",
+          "Werewolf of Ancient Hunger"
+        ],
+        "layout": "double-faced",
+        "text": "Vigilance, trample\n\nWerewolf of Ancient Hunger's power and toughness are each equal to the total number of cards in all players' hands.\n\nAt the beginning of each upkeep, if a player cast two or more spells last turn, transform Werewolf of Ancient Hunger.",
+        "toughness": "*",
+        "name": "Werewolf of Ancient Hunger",
+        "power": "*",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{4}{G}{G}",
+        "number": "226",
+        "layout": "normal",
+        "text": "Return any number of cards with different converted mana costs from your graveyard to your hand. Put Seasons Past on the bottom of its owner's library.",
+        "name": "Seasons Past",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{2}{G}{G}",
+        "number": "227",
+        "layout": "normal",
+        "text": "For each token you control, put a token onto the battlefield that's a copy of that permanent.",
+        "name": "Second Harvest",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "228",
+        "layout": "normal",
+        "text": "Trample\n\nWhenever a Wolf or Werewolf you control becomes the target of an instant or sorcery spell, put a 2/2 green Wolf creature token onto the battlefield.",
+        "toughness": "2",
+        "name": "Silverfur Partisan",
+        "power": "2",
+        "type": "Creature \u2014 Wolf Warrior"
+      },
+      {
+        "manaCost": "{3}{G}",
+        "number": "229a",
+        "layout": "double-faced",
+        "text": "At the beginning of each upkeep, if no spells were cast last turn, transform Solitary Hunter.",
+        "toughness": "4",
+        "names": [
+          "Solitary Hunter",
+          "One of the Pack"
+        ],
+        "name": "Solitary Hunter",
+        "power": "3",
+        "type": "Creature \u2014 Human Warrior Werewolf"
+      },
+      {
+        "number": "229b",
+        "names": [
+          "Solitary Hunter",
+          "One of the Pack"
+        ],
+        "layout": "double-faced",
+        "text": "At the beginning of each upkeep, if a player cast two or more spells last turn, transform One of the Pack.",
+        "toughness": "6",
+        "name": "One of the Pack",
+        "power": "5",
+        "type": "Creature \u2014 Werewolf"
+      },
+      {
+        "manaCost": "{2}{G}{G}",
+        "number": "230",
+        "layout": "normal",
+        "text": "Trample\n\nDelirium \u2014 At the beginning of your upkeep, if there are four or more card types among cards in your graveyard, put three +1/+1 counters on Soul Swallower.",
+        "toughness": "3",
+        "name": "Soul Swallower",
+        "power": "3",
+        "type": "Creature \u2014 Wurm"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "231",
+        "layout": "normal",
+        "text": "When Stoic Builder enters the battlefield, you may return target land card from your graveyard to your hand.",
+        "toughness": "3",
+        "name": "Stoic Builder",
+        "power": "2",
+        "type": "Creature \u2014 Human"
+      },
+      {
+        "manaCost": "{4}{G}",
+        "number": "232",
+        "layout": "normal",
+        "toughness": "5",
+        "name": "Thornhide Wolves",
+        "power": "4",
+        "type": "Creature \u2014 Wolf"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "233",
+        "layout": "normal",
+        "text": "Whenever a land enters the battlefield under your control, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")\n\nWhenever you sacrifice a Clue, put a +1/+1 counter on Tireless Tracker.",
+        "toughness": "2",
+        "name": "Tireless Tracker",
+        "power": "3",
+        "type": "Creature \u2014 Human Scout"
+      },
+      {
+        "manaCost": "{G}",
+        "number": "234",
+        "layout": "normal",
+        "text": "Search your library for a basic land card, reveal it, put it into your hand, then shuffle your library.\n\nDelirium \u2014 If there are four or more card types among cards in your graveyard, instead search your library for a creature or land card, reveal it, put it into your hand, then shuffle your library.",
+        "name": "Traverse the Ulvenwald",
+        "type": "Sorcery"
+      },
+      {
+        "manaCost": "{4}{G}{G}",
+        "number": "235",
+        "layout": "normal",
+        "text": "Reach\n\nUlvenwald Hydra's power and toughness are each equal to the number of lands you control.\n\nWhen Ulvenwald Hydra enters the battlefield, you may search your library for a land card, put it onto the battlefield tapped, then shuffle your library.",
+        "toughness": "*",
+        "name": "Ulvenwald Hydra",
+        "power": "*",
+        "type": "Creature \u2014 Hydra"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "236",
+        "layout": "normal",
+        "text": "Whenever a nontoken creature you control dies, investigate. (Put a colorless Clue artifact token onto the battlefield with \"{2}, Sacrifice this artifact: Draw a card.\")\n\nWhenever you sacrifice a Clue, put a 1/1 white Human Soldier creature token onto the battlefield.",
+        "name": "Ulvenwald Mysteries",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{G}",
+        "number": "237",
+        "layout": "normal",
+        "text": "{1}{G}, Sacrifice Vessel of Nascency: Reveal the top four cards of your library. You may put an artifact, creature, enchantment, land, or planeswalker card from among them into your hand. Put the rest into your graveyard.",
+        "name": "Vessel of Nascency",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{1}{G}",
+        "number": "238",
+        "layout": "normal",
+        "text": "{3}{W}: Target Human gains double strike until end of turn.",
+        "toughness": "2",
+        "name": "Veteran Cathar",
+        "power": "2",
+        "type": "Creature \u2014 Human Soldier"
+      },
+      {
+        "manaCost": "{4}{G}",
+        "number": "239",
+        "layout": "normal",
+        "text": "Reach (This creature can block creatures with flying.)\n\nWatcher in the Web can block an additional seven creatures each combat.",
+        "toughness": "5",
+        "name": "Watcher in the Web",
+        "power": "2",
+        "type": "Creature \u2014 Spider"
+      },
+      {
+        "manaCost": "{2}{G}",
+        "number": "240",
+        "layout": "normal",
+        "text": "Enchant Land\n\nWhen Weirding Wood enters the battlefield, investigate.\n\nEnchanted land has \"{T}: Add two mana of any one color to your mana pool.\"",
+        "name": "Weirding Wood",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{X}{2}{G}{U}",
+        "number": "241",
+        "layout": "normal",
+        "text": "Altered Ego can't be countered.\n\nYou may have Altered Ego enter the battlefield as a copy of any creature on the battlefield, except it enters with X additional +1+1 counters on it.",
+        "toughness": "0",
+        "name": "Altered Ego",
+        "power": "0",
+        "type": "Creature \u2014 Shapeshifter"
+      },
+      {
+        "manaCost": "{1}{W}{B}",
+        "number": "242",
+        "layout": "normal",
+        "text": "Exile target nonland permanent. You lose 3 life.",
+        "name": "Anguished Unmaking",
+        "type": "Instant"
+      },
+      {
+        "manaCost": "{1}{U}{R}",
+        "number": "244",
+        "layout": "normal",
+        "text": "At the beginning of each player's end step, that player draws a card. If that player is your opponent and has four or more cards in hand, Fevered Visions deals 2 damage to him or her.",
+        "name": "Fevered Visions",
+        "type": "Enchantment"
+      },
+      {
+        "manaCost": "{2}{R}{G}",
+        "number": "245a",
+        "layout": "double-faced",
+        "text": "+1: Until end of turn, up to one target creature gets +2/+2 and gains vigilance and haste.\n\n0: Put a 2/2 green Wolf creature token onto the battlefield. Transform Arlinn Kord.",
+        "loyalty": "3",
+        "names": [
+          "Arlinn Kord",
+          "The Gitrog Monster"
+        ],
+        "name": "Arlinn Kord",
+        "type": "Planeswalker \u2014 Arlinn"
+      },
+      {
+        "manaCost": "{3}{B}{G}",
+        "number": "245b",
+        "layout": "double-faced",
+        "text": "Deathtouch\n\nAt the beginning of your upkeep, sacrifice The Gitrog Monster unless you sacrifice a land.\n\nYou may play an additional land on each of your turns.\n\nWhenever one or more land cards are put into your graveyard from anywhere, draw a card.",
+        "toughness": "6",
+        "names": [
+          "Arlinn Kord",
+          "The Gitrog Monster"
+        ],
+        "name": "The Gitrog Monster",
+        "power": "6",
+        "type": "Legendary Creature \u2014 Frog Horror"
+      },
+      {
+        "manaCost": "{1}",
+        "number": "245a",
+        "layout": "double-faced",
+        "text": "Equipped creature has Skulk (It can't be blocked by creatures with greater power.)\n\nWhenever equipped creature deals damage to a player, you may draw a card. If you do discard a card.\n\nEquip {2}",
+        "names": [
+          "Skeleton Key",
+          "Arlinn, Embraced by the Moon"
+        ],
+        "name": "Skeleton Key",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "number": "245b",
+        "names": [
+          "Skeleton Key",
+          "Arlinn, Embraced by the Moon"
+        ],
+        "layout": "double-faced",
+        "text": "+1: Creatures you control get +1/+1 and gain trample until end of turn.\n\n-1: Arlinn, Embraced by the Moon deals 3 damage to target creature or player. Transform Arlinn, Embraced by the Moon.\n\n-6: You get an emblem with \"Creatures you control have haste and '{T}: This creature deals damage equal to its power to target creature or player.'\"",
+        "name": "Arlinn, Embraced by the Moon",
+        "type": "Planeswalker \u2014 Arlinn"
+      },
+      {
+        "manaCost": "{1}{W}{U}",
+        "number": "246",
+        "layout": "normal",
+        "text": "Enchant creature\n\nEnchanted creature has \"Whenever this creature attacks, put a 4/4 white Angel creature token with flying onto the battlefield tapped and attacking. Exile that token at end of combat.\"",
+        "name": "Invocation of Saint Traft",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "manaCost": "{2}{R}{W}",
+        "number": "247",
+        "layout": "normal",
+        "text": "+2: You may discard a card. If you do, draw a card.\n\n-2: Exile target enchantment, tapped artifact, or tapped creature.\n\n-8: Search your library for an artifact or creature card, put it onto the battlefield, then shuffle your library. It gains haste. Return it to your hand at the beginning of the next end step.",
+        "loyalty": "4",
+        "name": "Nahiri, the Harbinger",
+        "type": "Planeswalker \u2014 Nahiri"
+      },
+      {
+        "manaCost": "{1}{B}{R}",
+        "number": "248",
+        "layout": "normal",
+        "text": "Flying\n\nWhenever another creature enters the battlefield under your control, you may discard a card. If you do, put a +1/+1 counter on that creature, it gains haste until end of turn, and it becomes a Vampire in addition to its other types.",
+        "toughness": "3",
+        "name": "Olivia, Mobilized for War",
+        "power": "3",
+        "type": "Legendary Creature \u2014 Vampire Knight"
+      },
+      {
+        "manaCost": "{1}{U}{B}",
+        "number": "249",
+        "layout": "normal",
+        "text": "Whenever a creature enters the battlefield, if it entered from your graveyard or you cast it from your graveyard, return Prized Amalgam from your graveyard to the battlefield tapped at the beginning of the next end step.",
+        "toughness": "3",
+        "name": "Prized Amalgam",
+        "power": "3",
+        "type": "Creature \u2014 Zombie"
+      },
+      {
+        "manaCost": "{3}{G}{W}",
+        "number": "250",
+        "layout": "normal",
+        "text": "Flying\n\nYou and Humans you control have hexproof.\n\n{2}, Exile a card from your graveyard: Put a 1/1 white Human Soldier creature token onto the battlefield.",
+        "toughness": "5",
+        "name": "Sigarda, Heron's Grace",
+        "power": "4",
+        "type": "Legendary Creature \u2014 Angel"
+      },
+      {
+        "manaCost": "{4}{W}{B}",
+        "number": "251",
+        "layout": "normal",
+        "text": "+1: Reveal the top card of your library and put that card into your hand. Each opponent loses life equal to its converted mana cost.\n\n-X: Sorin, Grim Nemesis deals X damage to target creature or planeswalker and you gain X life.\n\n-9: Put a number of 1/1 black Vampire Knight creature tokens with lifelink onto the battlefield equal to the highest life total among all players.",
+        "name": "Sorin, Grim Nemesis",
+        "type": "Planeswalker \u2014 Sorin"
+      },
+      {
+        "manaCost": "{2}",
+        "number": "252",
+        "layout": "normal",
+        "text": "{1}, {T}: Put a charge counter on Brain in a Jar, then you may cast an instant or sorcery card with converted mana cost equal to the number of charge counters on Brain in a Jar from your hand without paying its mana cost.\n\n{3}, {T}: Remove X charge counters from Brain in a Jar: Scry X.",
+        "name": "Brain in a Jar",
+        "type": "Artifact"
+      },
+      {
+        "manaCost": "{2}",
+        "number": "253",
+        "layout": "normal",
+        "text": "Corrupted Grafstone enters the battlefield tapped.\n\n{T}: Choose a color of a card in your graveyard. Add one mana of that color to your mana pool.",
+        "name": "Corrupted Grafstone",
+        "type": "Artifact"
+      },
+      {
+        "manaCost": "{5}",
+        "number": "254",
+        "layout": "normal",
+        "text": "{2}: Put target card from your graveyard on the bottom of your library.",
+        "toughness": "5",
+        "name": "Epitaph Golem",
+        "power": "3",
+        "type": "Artifact Creature \u2014 Golem"
+      },
+      {
+        "manaCost": "{1}",
+        "number": "255",
+        "layout": "normal",
+        "text": "{3}, {T}, Sacrifice Explosive Apparatus: Explosive Apparatus deals 2 damage to target creature or player.",
+        "name": "Explosive Apparatus",
+        "type": "Artifact"
+      },
+      {
+        "manaCost": "{3}",
+        "number": "256a",
+        "layout": "double-faced",
+        "text": "When Harvest Hand dies, return it to the battlefield transformed under your control.",
+        "toughness": "2",
+        "names": [
+          "Harvest Hand",
+          "Scrounged Scythe"
+        ],
+        "name": "Harvest Hand",
+        "power": "2",
+        "type": "Artifact Creature \u2014 Scarecrow"
+      },
+      {
+        "number": "256b",
+        "names": [
+          "Harvest Hand",
+          "Scrounged Scythe"
+        ],
+        "layout": "double-faced",
+        "text": "Equipped creature gets +1/+1.\n\nAs long as equipped creature is a Human, it has menace. (It can't be blocked except by two or more creatures.)\n\nEquip {2}",
+        "name": "Scrounged Scythe",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "number": "257",
+        "name": "Haunted Cloak",
+        "layout": "normal",
+        "text": "Equipped creature has vigilance, trample, and haste.\n\nEquip {1}",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "manaCost": "{3}",
+        "number": "258",
+        "layout": "normal",
+        "text": "{T}: Add {C} to your mana pool.\n\n{4}, {T}: Investigate. (Put a colorless Clue artifact token onto the battlefield with \"2, Sacrifice this artifact: Draw a card.\")",
+        "name": "Magnifying Glass",
+        "type": "Artifact"
+      },
+      {
+        "manaCost": "{4}",
+        "number": "259",
+        "layout": "normal",
+        "text": "Equipped creature gets +2/+2.\n\nEquip-- Discard a card.",
+        "name": "Murderer's Axe",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "manaCost": "{1}",
+        "number": "260a",
+        "layout": "double-faced",
+        "text": "Equipped creature gets +1/+1.\n\nWhen equipped creature transforms, transform Neglected Heirloom.\n\nEquip {1}",
+        "names": [
+          "Neglected Heirloom",
+          "Ashmouth Blade"
+        ],
+        "name": "Neglected Heirloom",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "number": "260b",
+        "names": [
+          "Neglected Heirloom",
+          "Ashmouth Blade"
+        ],
+        "layout": "double-faced",
+        "text": "Equipped creature gets +3/+3 and has first strike.\n\nEquip {3}",
+        "name": "Ashmouth Blade",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "manaCost": "{4}",
+        "number": "261",
+        "layout": "normal",
+        "text": "Trample",
+        "toughness": "6",
+        "name": "Runaway Carriage",
+        "power": "5",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "manaCost": "{1}",
+        "number": "262",
+        "layout": "normal",
+        "text": "Equipped creature gets +1/+0.\n\nWhenever equipped creature attacks, you may put the top two cards of your library into your graveyard.\n\nEquip {1}",
+        "name": "Shard of Broken Glass",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "manaCost": "{3}",
+        "number": "264",
+        "layout": "normal",
+        "text": "Equipped creature get +2/+2.\n\nWhenever Equipped creature dies if it was a Human, put a 1/1 white Spirit creature token with flying onto the battlefield.\n\nEquip {3}",
+        "name": "Slayer's Plate",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "manaCost": "{5}",
+        "number": "265",
+        "layout": "normal",
+        "text": "At the beginning of your upkeep, investigate. (Put a colourless Clue artifact token onto the battlefield with : \"{2}: Sacrifice this artifact: Draw a card.\")\n\n{T}, Sacrifice three Clues: Search your library for a card and put that card into your hand. Then shuffle your library.",
+        "name": "Tamiyo's Journal",
+        "type": "Legendary Artifact"
+      },
+      {
+        "manaCost": "{1}",
+        "number": "266a",
+        "layout": "double-faced",
+        "text": "Defender\n\n{6}: Transform Thraben Gargoyle.",
+        "toughness": "2",
+        "names": [
+          "Thraben Gargoyle",
+          "Stonewing Antagonizer"
+        ],
+        "name": "Thraben Gargoyle",
+        "power": "2",
+        "type": "Artifact Creature \u2014 Gargoyle"
+      },
+      {
+        "number": "266b",
+        "names": [
+          "Thraben Gargoyle",
+          "Stonewing Antagonizer"
+        ],
+        "layout": "double-faced",
+        "text": "Flying",
+        "toughness": "2",
+        "name": "Stonewing Antagonizer",
+        "power": "4",
+        "type": "Artifact Creature \u2014 Gargoyle Horror"
+      },
+      {
+        "manaCost": "{2}",
+        "number": "267",
+        "layout": "normal",
+        "text": "Equipped creature gets +1/+1 and has vigilance.\n\nAs long as equipped creature is a Human it gets an addition +1/+0.\n\nEquip {2}",
+        "name": "True-Faith Censer",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "manaCost": "{3}",
+        "number": "268",
+        "layout": "normal",
+        "toughness": "1",
+        "name": "Wicker Witch",
+        "power": "3",
+        "type": "Artifact Creature \u2014 Scarecrow"
+      },
+      {
+        "manaCost": "{3}",
+        "number": "269",
+        "layout": "normal",
+        "text": "Defender.\n\n{2}, Sacrifice Wild-Field Scarecrow: Search your library for up to two basic lands, reveal them and put them into your hand. Then shuffle your library.",
+        "toughness": "4",
+        "name": "Wild-Field Scarecrow",
+        "power": "1",
+        "type": "Artifact Creature \u2014 Scarecrow"
+      },
+      {
+        "number": "270",
+        "name": "Choked Estuary",
+        "layout": "normal",
+        "text": "As Choked Estuary enters the battlefield, you may reveal an Island or Swamp card from your hand. If you don't, Choked Estuary enters the battlefield tapped.\n\n{T}: Add {U} or {B} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "271",
+        "name": "Drownyard Temple",
+        "layout": "normal",
+        "text": "{T}: Add {C} to your mana pool.\n\n{3}: Return Drownyard Temple from your graveyard to the battlefield tapped.",
+        "type": "Land"
+      },
+      {
+        "number": "272",
+        "name": "Foreboding Ruins",
+        "layout": "normal",
+        "text": "As Foreboding Ruins enters the battlefield, you may reveal a Swamp or Mountain card from your hand. If you don't, Foreboding Ruins enters the battlefield tapped.\n\n{T}: Add {B} or {R} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "273",
+        "name": "Forsaken Sanctuary",
+        "layout": "normal",
+        "text": "Forsaken Sanctuary enters the battlefield tapped.\n\n{T}: Add {W} or {B} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "274",
+        "name": "Fortified Village",
+        "layout": "normal",
+        "text": "As Fortified Village enters the battlefield, you may reveal a Forest or Plains card from your hand. If you don't, Fortified Village enters the battlefield tapped.\n\n{T}: Add {G} or {W} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "275",
+        "name": "Foul Orchard",
+        "layout": "normal",
+        "text": "Foul Orchard enters the battlefield tapped.\n\n{T}: Add {B} or {G} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "276",
+        "name": "Game Trail",
+        "layout": "normal",
+        "text": "As Game Trail enters the battlefield, you may reveal a Mountain or Forest card from your hand. If you don't, Game Trail enters the battlefield tapped.\n\n{T}: Add {R} or {G} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "277",
+        "name": "Highland Lake",
+        "layout": "normal",
+        "text": "Highland Lake enters the battlefield tapped.\n\n{T}: Add {U} or {R} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "278",
+        "name": "Port Town",
+        "layout": "normal",
+        "text": "As Port Town enters the battlefield, you may reveal a Plains or Island card from your hand. If you don't, Port Town enters the battlefield tapped.\n\n{T}: Add {W} or {U} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "279",
+        "name": "Stone Quarry",
+        "layout": "normal",
+        "text": "Stone Quarry enters the battlefield tapped.\n\n{T}: Add {R} or {W} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "280",
+        "name": "Warped Landscape",
+        "layout": "normal",
+        "text": "{T}: Add {C} to your mana pool.\n\n{2}, {T}, Sacrifice Warped Landscape: Search your library for a basic land card and put it onto the battlefield tapped. Then shuffle your library.",
+        "type": "Land"
+      },
+      {
+        "number": "281a",
+        "names": [
+          "Ormendahl, Profane Prince",
+          "Westvale Abbey"
+        ],
+        "layout": "double-faced",
+        "text": "Flying, lifelink, indestructible, haste",
+        "toughness": "7",
+        "name": "Ormendahl, Profane Prince",
+        "power": "9",
+        "type": "Legendary Creature \u2014 Demon"
+      },
+      {
+        "number": "281b",
+        "names": [
+          "Ormendahl, Profane Prince",
+          "Westvale Abbey"
+        ],
+        "layout": "double-faced",
+        "text": "{T}: Add {C} to your mana pool.\n\n{5}, {T}, Pay 1 life: Put a 1/1 white and black Human Cleric creature token onto the battlefield.\n\n{5}, {T}, Sacrifice five creatures: Transform Westvale Abbey, then untap it.",
+        "name": "Westvale Abbey",
+        "type": "Land"
+      },
+      {
+        "number": "282",
+        "name": "Woodland Stream",
+        "layout": "normal",
+        "text": "Woodland Stream enters the battlefield tapped.\n\n{T}: Add {G} or {U} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "number": "283",
+        "name": "Plains",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Plains"
+      },
+      {
+        "number": "284",
+        "name": "Plains",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Plains"
+      },
+      {
+        "number": "285",
+        "name": "Plains",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Plains"
+      },
+      {
+        "number": "286",
+        "name": "Island",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Island"
+      },
+      {
+        "number": "287",
+        "name": "Island",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Island"
+      },
+      {
+        "number": "288",
+        "name": "Island",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Island"
+      },
+      {
+        "number": "289",
+        "name": "Swamp",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Swamp"
+      },
+      {
+        "number": "290",
+        "name": "Swamp",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Swamp"
+      },
+      {
+        "number": "291",
+        "name": "Swamp",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Swamp"
+      },
+      {
+        "number": "292",
+        "name": "Mountain",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Mountain"
+      },
+      {
+        "number": "293",
+        "name": "Mountain",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Mountain"
+      },
+      {
+        "number": "294",
+        "name": "Mountain",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Mountain"
+      },
+      {
+        "number": "295",
+        "name": "Forest",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Forest"
+      },
+      {
+        "number": "296",
+        "name": "Forest",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Forest"
+      },
+      {
+        "number": "297",
+        "name": "Forest",
+        "layout": "normal",
+        "type": "Basic Land \u2014 Forest"
+      }
+    ],
+    "releaseDate": "1970-01-01T00:00:00Z"
+  }
+}
