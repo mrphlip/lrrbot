@@ -745,7 +745,7 @@
         "manaCost": "{3}{U}{U}",
         "number": "69",
         "layout": "normal",
-        "text": "+1: Scry 1, then draw a card.\n\n\u22122: Return target creature to its owner's hand.\n\n\u2212-8: You get an emblem with \"Whenever an opponent casts his or her first spell each turn, counter that spell.\"",
+        "text": "+1: Scry 1, then draw a card.\n\n\u22122: Return target creature to its owner's hand.\n\n\u22128: You get an emblem with \"Whenever an opponent casts his or her first spell each turn, counter that spell.\"",
         "loyalty": "5",
         "name": "Jace, Unraveler of Secrets",
         "type": "Planeswalker \u2014 Jace"
@@ -2532,7 +2532,7 @@
         ],
         "name": "Solitary Hunter",
         "power": "3",
-        "type": "Creature \u2014 Human Werewolf"
+        "type": "Creature \u2014 Human Warrior Werewolf"
       },
       {
         "number": "229b",
@@ -2542,9 +2542,9 @@
         ],
         "layout": "double-faced",
         "text": "At the beginning of each upkeep, if a player cast two or more spells last turn, transform One of the Pack.",
-        "toughness": "5",
+        "toughness": "6",
         "name": "One of the Pack",
-        "power": "3",
+        "power": "5",
         "type": "Creature \u2014 Werewolf"
       },
       {
