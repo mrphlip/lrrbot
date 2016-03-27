@@ -51,5 +51,5 @@ class LinkSpam:
 						source = irc.client.NickMask(event.source)
 						log.info("Detected link spam from %s - %r contains the URL %r which redirects to %r which matches %r",
 							source.nick, message, original_url, url, rule["re"].pattern)
-						self.ban(conn, event, rule["message"] % {str(i+1): v for i, v in enumerate(match.groups())}, rule['type'])
+						yield from self.ban(conn, event, rule["message"] % {str(i+1): v for i, v in enumerate(match.groups())}, rule['type'])
 						return

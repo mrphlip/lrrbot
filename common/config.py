@@ -97,3 +97,11 @@ config.setdefault('cardsubkey', None)
 
 # cardviewerchannel - Pubnub channel for xsplit card viewer
 config.setdefault('cardviewerchannel', 'xsplit_image')
+
+# Slack:
+# slack_webhook_url - URL to post messages to
+config.setdefault('slack_webhook_url', None)
+# slack_username - name to post as
+config.setdefault('slack_username', 'LRRbot')
+# slack_icon_url - user icon
+config.setdefault('slack_icon_url', 'https://lrrbot.mrphlip.com/static/logo.png')
