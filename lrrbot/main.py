@@ -467,7 +467,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 				log.info("First offence, flickering %s" % display_name)
 				conn.privmsg(event.target, ".timeout %s 1" % source.nick)
 				conn.privmsg(source.nick, "Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
-				yield from slack.send_message("%s flicked for auto-detected spam (%s)" % (display_name, reason))
+				yield from slack.send_message("%s flickered for auto-detected spam (%s)" % (display_name, reason))
 			elif level <= 2:
 				log.info("Second offence, timing out %s" % display_name)
 				conn.privmsg(event.target, ".timeout %s" % source.nick)
