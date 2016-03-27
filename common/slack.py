@@ -7,8 +7,6 @@ from common import http
 @asyncio.coroutine
 def send_message(text, **keys):
 	keys['text'] = text
-	keys.setdefault('username', config['slack_username'])
-	keys.setdefault('icon_url', config['slack_icon_url'])
 
 	headers = {
 		"Content-Type": "application/json",
