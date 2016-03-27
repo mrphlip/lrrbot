@@ -23,6 +23,7 @@ import lrrbot.systemd
 from common import utils
 from common.config import config
 from common import twitch
+from common import slack
 from lrrbot import chatlog, storage, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
 
 log = logging.getLogger('lrrbot')
@@ -453,6 +454,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			res = conn.execute(sqlalchemy.select([users.c.is_sub]).where(users.c.name == nick)).first()
 			return res is not None and res[0]
 
+	@asyncio.coroutine
 	def ban(self, conn, event, reason, bantype):
 		source = irc.client.NickMask(event.source)
 		display_name = event.tags.get("display_name", source.nick)
@@ -465,14 +467,17 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 				log.info("First offence, flickering %s" % display_name)
 				conn.privmsg(event.target, ".timeout %s 1" % source.nick)
 				conn.privmsg(source.nick, "Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				yield from slack.send_message("%s flicked for auto-detected spam (%s)" % (display_name, reason))
 			elif level <= 2:
 				log.info("Second offence, timing out %s" % display_name)
 				conn.privmsg(event.target, ".timeout %s" % source.nick)
 				conn.privmsg(source.nick, "Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				yield from slack.send_message("%s timed out for auto-detected spam (%s)" % (display_name, reason))
 			else:
 				log.info("Third offence, banning %s" % display_name)
 				conn.privmsg(event.target, ".ban %s" % source.nick)
 				conn.privmsg(source.nick, "Banned for persistent spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				yield from slack.send_message("%s banned for auto-detected spam (%s)" % (display_name, reason))
 				level = 3
 			today = datetime.datetime.now(config['timezone']).date().toordinal()
 			if today != storage.data.get("spam", {}).get("date"):
@@ -487,6 +492,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			log.info("Censor hit, flickering %s" % display_name)
 			conn.privmsg(event.target, ".timeout %s 1" % source.nick)
 			conn.privmsg(source.nick, "Your message was automatically deleted (%s). You have not been banned or timed out, and are welcome to continue participating in the chat. Please contact mrphlip or any other channel moderator if you feel this is incorrect." % reason)
+			yield from slack.send_message(text="%s censored (%s)" % (display_name, reason))
 
 	def check_spam(self, conn, event, message):
 		"""Check the message against spam detection rules"""
@@ -501,7 +507,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 				log.info("Detected spam from %s - %r matches %s" % (source.nick, message, re.pattern))
 				groups = {str(i+1):v for i,v in enumerate(matches.groups())}
 				desc = desc % groups
-				self.ban(conn, event, desc, type)
+				asyncio.async(self.ban(conn, event, desc, type)).add_done_callback(utils.check_exception)
 				return True
 
 		return False
