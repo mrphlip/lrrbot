@@ -16,12 +16,15 @@ class Application(Flask):
 
 	def add_url_rule(self, rule, endpoint, view_func, **options):
 		# Cache the wrapper functions so Flask doesn't complain.
-		if asyncio.iscoroutinefunction(view_func) and view_func not in self.__wrapped_view_funcs:
-			@functools.wraps(view_func)
-			def inner(*args, **kwargs):
-				return asyncio.get_event_loop().run_until_complete(view_func(*args, **kwargs))
-			self.__wrapped_view_funcs[view_func] = inner
-			func = inner
+		if asyncio.iscoroutinefunction(view_func):
+			if view_func not in self.__wrapped_view_funcs:
+				@functools.wraps(view_func)
+				def inner(*args, **kwargs):
+					return asyncio.get_event_loop().run_until_complete(view_func(*args, **kwargs))
+				self.__wrapped_view_funcs[view_func] = inner
+				func = inner
+			else:
+				func = self.__wrapped_view_funcs[view_func]
 		else:
 			func = view_func
 
@@ -40,4 +43,3 @@ csrf(app)
 space.monkey_patch_urlize()
 
 __all__ = ['app', 'db']
-csrf(app)
