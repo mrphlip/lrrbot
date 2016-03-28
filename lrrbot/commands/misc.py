@@ -159,7 +159,7 @@ def viewers(lrrbot, conn, event, respond_to):
 	else:
 		viewers = None
 
-	chatters = len(lrrbot.channels["#loadingreadyrun"].users())
+	chatters = len(lrrbot.channels["#%s" % config["channel"]].users())
 
 	if viewers is not None:
 		viewers = "%d %s viewing the stream." % (viewers, "user" if viewers == 1 else "users")
