@@ -14,8 +14,6 @@ if config['logfile'] is not None:
 logging.getLogger("requests").setLevel(logging.ERROR)
 
 import lrrbot.commands
-import lrrbot.serverevents
-bot.compile()
 
 try:
 	log.info("Bot startup")

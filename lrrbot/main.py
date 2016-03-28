@@ -1,22 +1,16 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
-import time
 import datetime
-import json
 import logging
 import functools
 import asyncio
-import traceback
 
 import irc.bot
 import irc.client
-import irc.modes
 import irc.connection
 import sqlalchemy
 
-import common.http
 import common.postgres
 import lrrbot.decorators
 import lrrbot.systemd
@@ -25,18 +19,22 @@ from common.config import config
 from common import twitch
 from common import slack
 from lrrbot import chatlog, storage, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
+from lrrbot import spam
+from lrrbot import command_parser
+from lrrbot import rpc
 
 log = logging.getLogger('lrrbot')
 
 SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', 'emoteset': {317}}
 
-class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
+class LRRBot(irc.bot.SingleServerIRCBot):
 	def __init__(self, loop):
 		self.engine, self.metadata = common.postgres.new_engine_and_metadata()
 		users = self.metadata.tables["users"]
 		if config['password'] == "oauth":
 			with self.engine.begin() as conn:
-				password, = conn.execute(sqlalchemy.select([users.c.twitch_oauth]).where(users.c.name == config['username'])).first()
+				password, = conn.execute(sqlalchemy.select([users.c.twitch_oauth])
+					.where(users.c.name == config['username'])).first()
 			password = "oauth:" + password
 		else:
 			password = config['password']
@@ -80,24 +78,19 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.cardviewer = cardviewer.CardViewer(self, self.loop)
 
 		# IRC event handlers
-		self.reactor.add_global_handler('welcome', self.on_connect)
-		self.reactor.add_global_handler('join', self.on_channel_join)
-		self.reactor.add_global_handler('pubmsg', self.on_message)
-		self.reactor.add_global_handler('privmsg', self.on_message)
-		self.reactor.add_global_handler('action', self.on_message_action)
+		self.reactor.add_global_handler('welcome', self.check_privmsg_wrapper, 0)
+		self.reactor.add_global_handler('welcome', self.on_connect, 1)
+		self.reactor.add_global_handler('join', self.on_channel_join, 0)
+
+		for event in ['pubmsg', 'privmsg']:
+			self.reactor.add_global_handler(event, self.check_privmsg_wrapper, 0)
+			self.reactor.add_global_handler(event, self.check_message_tags, 1)
+			self.reactor.add_global_handler(event, self.log_chat, 2)
+
+		self.reactor.add_global_handler('action', self.on_message_action, 99)
 		self.reactor.add_global_handler('clearchat', self.on_clearchat)
 		if self.whisperconn:
 			self.whisperconn.add_whisper_handler(self.on_whisper)
-
-		# Commands
-		self.commands = {}
-		self.re_botcommand = None
-		self.command_groups = {}
-		self.server_events = {}
-
-		# Precompile regular expressions
-		self.re_subscription = re.compile(r"^(.*) just subscribed!$", re.IGNORECASE)
-		self.re_resubscription = re.compile(r"^(.*) subscribed for (\d+) months? in a row!$", re.IGNORECASE)
 
 		# Set up bot state
 		self.game_override = None
@@ -107,13 +100,18 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		self.access = "all"
 		self.show = ""
 		self.polls = []
-		self.lastsubs = []
 		self.cardview = False
 
-		self.spam_rules = [(re.compile(i['re']), i['message'], i.get('type', 'spam')) for i in storage.data['spam_rules']]
 		self.spammers = {}
 
-		linkspam.LinkSpam.__init__(self, loop)
+		self.rpc_server = rpc.Server(self, loop)
+
+		self.commands = command_parser.CommandParser(self, loop)
+		self.command = self.commands.decorator
+
+		self.link_spam = linkspam.LinkSpam(self, loop)
+		self.spam = spam.Spam(self, loop)
+		self.subs = twitchsubs.TwitchSubs(self, loop)
 
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)
@@ -135,7 +133,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			event_server = None
 
 		# Start background tasks
-		substask = asyncio.async(twitchsubs.watch_subs(self), loop=self.loop)
+		substask = asyncio.async(self.subs.watch_subs(), loop=self.loop)
 		chatlogtask = asyncio.async(chatlog.run_task(), loop=self.loop)
 
 		self._connect()
@@ -162,50 +160,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			self.cardviewer.stop()
 			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
 
-	def add_command(self, pattern, function):
-		if not asyncio.iscoroutinefunction(function):
-			function = asyncio.coroutine(function)
-		pattern = pattern.replace(" ", r"(?:\s+)")
-		self.commands[pattern] = {
-			"groups": re.compile(pattern, re.IGNORECASE).groups,
-			"func": function,
-		}
-
-	def remove_command(self, pattern):
-		del self.commands[pattern.replace(" ", r"(?:\s+)")]
-
-	def command(self, pattern):
-		def wrapper(function):
-			self.add_command(pattern, function)
-			return function
-		return wrapper
-
-	def compile(self):
-		self.re_botcommand = r"^\s*%s\s*(?:" % re.escape(config["commandprefix"])
-		self.re_botcommand += "|".join(map(lambda re: '(%s)' % re, self.commands))
-		self.re_botcommand += r")\s*$"
-		self.re_botcommand = re.compile(self.re_botcommand, re.IGNORECASE)
-
-		i = 1
-		for val in self.commands.values():
-			self.command_groups[i] = (val["func"], i+val["groups"])
-			i += 1+val["groups"]
-
-	def add_server_event(self, name, function):
-		self.server_events[name.lower()] = function
-
-	def remove_server_event(self, name):
-		del self.server_events[name.lower()]
-
-	def server_event(self, name=None):
-		def wrapper(function):
-			nonlocal name
-			if name is None:
-				name = function.__name__
-			self.add_server_event(name, function)
-			return function
-		return wrapper
-
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
@@ -213,22 +167,13 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		conn.cap("REQ", "twitch.tv/commands") # get special commands
 		conn.cap("REQ", "twitch.tv/membership") # get join/part messages
 		conn.join("#%s" % config['channel'])
-		self.check_privmsg_wrapper(conn)
 
 	def on_channel_join(self, conn, event):
 		source = irc.client.NickMask(event.source)
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
 			self.service.subsystem_started("irc")
-			return
-		users = self.metadata.tables["users"]
-		with self.engine.begin() as pg_conn:
-			res = pg_conn.execute(sqlalchemy.select([users.c.autostatus]).where(users.c.name == source.nick)).first()
-			if res is not None:
-				enabled, = res
-				if res[0]:
-					from lrrbot.commands.misc import send_status
-					send_status(self, conn, source.nick)
+			return "NO MORE"
 
 	@utils.swallow_errors
 	def do_keepalive(self):
@@ -237,70 +182,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			self.connection.ping("keep-alive")
 		except irc.client.ServerNotConnectedError:
 			pass
-
-	@utils.swallow_errors
-	def on_message(self, conn, event):
-		self.check_privmsg_wrapper(conn)
-
-		source = irc.client.NickMask(event.source)
-		nick = source.nick.lower()
-
-		tags = event.tags = dict((i['key'], i['value']) for i in event.tags)
-		if event.type == "pubmsg":
-			self.check_message_tags(conn, nick, tags)
-
-			metadata = {
-				'usercolor': tags.get('color'),
-				'emotes': tags.get('emotes'),
-				'display-name': tags.get('display-name') or nick,
-				'specialuser': set(),
-			}
-			if tags['subscriber']:
-				metadata['specialuser'].add('subscriber')
-			if int(tags.get('turbo', 0)):
-				metadata['specialuser'].add('turbo')
-			if tags.get('user-type'):
-				metadata['specialuser'].add(tags.get('user-type'))
-			if tags['mod']:
-				metadata['specialuser'].add('mod')
-			log.debug("Message metadata: %r", metadata)
-			chatlog.log_chat(event, metadata)
-		else:
-			users = self.metadata.tables['users']
-			with self.engine.begin() as pg_conn:
-				row = pg_conn.execute(sqlalchemy.select([users.c.is_sub, users.c.is_mod])
-					.where(users.c.id == event.tags['user-id'])).first()
-				if row is not None:
-					event.tags['subscriber'], event.tags['mod'] = row
-				else:
-					event.tags['subscriber'] = False
-					event.tags['mod'] = False
-
-		source = irc.client.NickMask(event.source)
-		# If the message was sent to a channel, respond in the channel
-		# If it was sent via PM, respond via PM
-		if event.type == "pubmsg":
-			respond_to = event.target
-		else:
-			respond_to = source.nick
-
-		if (nick == config['notifyuser']):
-			self.on_notification(conn, event, respond_to)
-		elif self.check_spam(conn, event, event.arguments[0]):
-			return
-		else:
-			asyncio.async(self.check_urls(conn, event, event.arguments[0]), loop=self.loop).add_done_callback(utils.check_exception)
-			if self.access == "mod" and not self.is_mod(event):
-				return
-			if self.access == "sub" and not self.is_mod(event) and not self.is_sub(event):
-				return
-			command_match = self.re_botcommand.match(event.arguments[0])
-			if command_match:
-				command = command_match.group(command_match.lastindex)
-				log.info("Command from %s: %s " % (source.nick, command))
-				proc, end = self.command_groups[command_match.lastindex]
-				params = command_match.groups()[command_match.lastindex:end]
-				asyncio.async(proc(self, conn, event, respond_to, *params), loop=self.loop).add_done_callback(utils.check_exception)
 
 	def on_message_action(self, conn, event):
 		# Treat CTCP ACTION messages as the raw "/me does whatever" message that
@@ -311,81 +192,38 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			event.type = "pubmsg"
 		else:
 			event.type = "privmsg"
-		return self.on_message(conn, event)
+		self.reactor._handle_event(conn, event)
 
-	def on_notification(self, conn, event, respond_to):
-		"""Handle notification messages from Twitch, sending the message up to the web"""
-		log.info("Notification: %s" % event.arguments[0])
-		subscribe_match = self.re_subscription.match(event.arguments[0])
-		if subscribe_match and irc.client.is_channel(event.target):
-			# Don't highlight the same sub via both the chat and the API
-			if subscribe_match.group(1).lower() not in self.lastsubs:
-				self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time())
-			return
-
-		subscribe_match = self.re_resubscription.match(event.arguments[0])
-		if subscribe_match and irc.client.is_channel(event.target):
-			if subscribe_match.group(1).lower() not in self.lastsubs:
-				self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time(), monthcount=int(subscribe_match.group(2)))
-			return
-
-		notifyparams = {
-			'apipass': config['apipass'],
-			'message': event.arguments[0],
-			'eventtime': time.time(),
+	def log_chat(self, conn, event):
+		metadata = {
+			'usercolor': event.tags.get('color'),
+			'emotes': event.tags.get('emotes'),
+			'display-name': event.tags.get('display-name') or nick,
+			'specialuser': set(),
 		}
-		if irc.client.is_channel(event.target):
-			notifyparams['channel'] = event.target[1:]
-		common.http.api_request('notifications/newmessage', notifyparams, 'POST')
+		if event.tags['subscriber']:
+			metadata['specialuser'].add('subscriber')
+		if int(event.tags.get('turbo', 0)):
+			metadata['specialuser'].add('turbo')
+		if event.tags.get('user-type'):
+			metadata['specialuser'].add(event.tags.get('user-type'))
+		if event.tags['mod']:
+			metadata['specialuser'].add('mod')
+		log.debug("Message metadata: %r", metadata)
+		chatlog.log_chat(event, metadata)
 
-	def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None):
-		notifyparams = {
-			'apipass': config['apipass'],
-			'message': "%s just subscribed!" % user,
-			'eventtime': eventtime,
-			'subuser': user,
-			'channel': channel,
-		}
-
-		if logo is None:
-			try:
-				channel_info = twitch.get_info_uncached(user)
-			except utils.PASSTHROUGH_EXCEPTIONS:
-				raise
-			except Exception:
-				pass
-			else:
-				if channel_info.get('logo'):
-					notifyparams['avatar'] = channel_info['logo']
-		else:
-			notifyparams['avatar'] = logo
-
-		if monthcount is not None:
-			notifyparams['monthcount'] = monthcount
-
-		# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
-		today = datetime.datetime.now(config['timezone']).date().toordinal()
-		if today != storage.data.get("storm",{}).get("date"):
-			storage.data["storm"] = {
-				"date": today,
-				"count": 0,
-			}
-		storage.data["storm"]["count"] += 1
-		self.lastsubs.append(user.lower())
-		self.lastsubs = self.lastsubs[-10:]
-		storage.save()
-		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
-		common.http.api_request('notifications/newmessage', notifyparams, 'POST')
-
-		users = self.metadata.tables["users"]
-		with self.engine.begin() as conn:
-			conn.execute(users.update().where(users.c.name == user), is_sub=True)
-
-	def check_message_tags(self, conn, nick, tags):
+	def check_message_tags(self, conn, event):
 		"""
 		Whenever a user says something, update database to have the latest version of user metadata.
 		Also corrects the tags.
 		"""
+		tags = event.tags = dict((i['key'], i['value']) for i in event.tags)
+		source = irc.client.NickMask(event.source)
+		nick = source.nick.lower()
+
+		if tags.get("display-name") == '':
+			del tags["display-name"]
+
 		tags["subscriber"] = is_sub = bool(int(tags.get("subscriber", 0)))
 
 		# Either:
@@ -396,25 +234,33 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		#  * is broadcaster
 		tags["mod"] = is_mod = is_mod or nick.lower() == config['channel']
 
-		if tags.get("display-name") == '':
-			del tags["display-name"]
-
 		if "user-id" not in tags:
+			tags["display_name"] = tags.get("display_name", nick)
 			return
-
 		tags["user-id"] = int(tags["user-id"])
 
-		with self.engine.begin() as conn:
-			# FIXME: Raw SQL query. Needs https://bitbucket.org/zzzeek/sqlalchemy/issues/960
-			conn.execute("""
-				INSERT INTO users (id, name, display_name, is_sub, is_mod)
-				VALUES (%s, %s, %s, %s, %s)
-				ON CONFLICT (id) DO UPDATE SET
-					name = EXCLUDED.name,
-					display_name = EXCLUDED.display_name,
-					is_sub = EXCLUDED.is_sub,
-					is_mod = EXCLUDED.is_mod
-			""", [tags["user-id"], nick, tags.get("display-name"), is_sub, is_mod])
+		if event.type == "pubmsg":
+			with self.engine.begin() as conn:
+				# FIXME: Raw SQL query. Needs https://bitbucket.org/zzzeek/sqlalchemy/issues/960
+				conn.execute("""
+					INSERT INTO users (id, name, display_name, is_sub, is_mod)
+					VALUES (%s, %s, %s, %s, %s)
+					ON CONFLICT (id) DO UPDATE SET
+						name = EXCLUDED.name,
+						display_name = EXCLUDED.display_name,
+						is_sub = EXCLUDED.is_sub,
+						is_mod = EXCLUDED.is_mod
+				""", [tags["user-id"], nick, tags.get("display-name"), is_sub, is_mod])
+		else:
+			users = self.metadata.tables['users']
+			with self.engine.begin() as pg_conn:
+				row = pg_conn.execute(sqlalchemy.select([users.c.is_sub, users.c.is_mod])
+					.where(users.c.id == event.tags['user-id'])).first()
+				if row is not None:
+					tags['subscriber'], tags['mod'] = row
+				else:
+					tags['subscriber'] = False
+					tags['mod'] = False
 
 		tags["display_name"] = tags.get("display_name", nick)
 
@@ -438,21 +284,9 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""
 		return event.tags["mod"]
 
-	def is_mod_nick(self, nick):
-		users = self.metadata.tables["users"]
-		with self.engine.begin() as conn:
-			res = conn.execute(sqlalchemy.select([users.c.is_mod]).where(users.c.name == nick)).first()
-			return res is not None and res[0]
-
 	def is_sub(self, event):
 		"""Check whether the source of the event is a known subscriber to the channel"""
 		return event.tags["subscriber"]
-
-	def is_sub_nick(self, nick):
-		users = self.metadata.tables["users"]
-		with self.engine.begin() as conn:
-			res = conn.execute(sqlalchemy.select([users.c.is_sub]).where(users.c.name == nick)).first()
-			return res is not None and res[0]
 
 	@asyncio.coroutine
 	def ban(self, conn, event, reason, bantype):
@@ -494,31 +328,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 			conn.privmsg(source.nick, "Your message was automatically deleted (%s). You have not been banned or timed out, and are welcome to continue participating in the chat. Please contact mrphlip or any other channel moderator if you feel this is incorrect." % reason)
 			yield from slack.send_message(text="%s censored (%s)" % (display_name, reason))
 
-	def check_spam(self, conn, event, message):
-		"""Check the message against spam detection rules"""
-		if not irc.client.is_channel(event.target):
-			return False
-		respond_to = event.target
-		source = irc.client.NickMask(event.source)
-
-		for re, desc, type in self.spam_rules:
-			matches = re.search(message)
-			if matches:
-				log.info("Detected spam from %s - %r matches %s" % (source.nick, message, re.pattern))
-				groups = {str(i+1):v for i,v in enumerate(matches.groups())}
-				desc = desc % groups
-				asyncio.async(self.ban(conn, event, desc, type)).add_done_callback(utils.check_exception)
-				return True
-
-		return False
-
-	def rpc_server(self):
-		return RPCServer(self)
-
-	def on_server_event(self, request):
-		eventproc = self.server_events[request['command'].lower()]
-		return eventproc(self, request['user'], request['param'])
-
 	@utils.swallow_errors
 	def check_polls(self):
 		from lrrbot.commands.strawpoll import check_polls
@@ -530,12 +339,7 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		if self.vote_update is not None:
 			vote_respond(self, self.connection, *self.vote_update)
 
-	@utils.swallow_errors
-	def on_api_subscriber(self, user, logo, eventtime, channel):
-		if user.lower() not in self.lastsubs:
-			self.on_subscriber(self.connection, "#%s" % channel, user, eventtime, logo)
-
-	def check_privmsg_wrapper(self, conn):
+	def check_privmsg_wrapper(self, conn, event):
 		"""
 		Install a wrapper around privmsg that handles:
 		* Throttle messages sent so we don't get banned by Twitch
@@ -562,32 +366,6 @@ class LRRBot(irc.bot.SingleServerIRCBot, linkspam.LinkSpam):
 		# Act like this is a private message
 		event.type = "privmsg"
 		event.target = config['username']
-		self.on_message(self.connection, event)
-
-class RPCServer(asyncio.Protocol):
-	def __init__(self, lrrbot):
-		self.lrrbot = lrrbot
-		self.buffer = b""
-	def connection_made(self, transport):
-		self.transport = transport
-		log.debug("Received event connection from server")
-	def data_received(self, data):
-		self.buffer += data
-		if b"\n" in self.buffer:
-			request = json.loads(self.buffer.decode())
-			log.debug("Command from server (%s): %s(%r)", request['user'], request['command'], request['param'])
-			try:
-				response = self.lrrbot.on_server_event(request)
-			except utils.PASSTHROUGH_EXCEPTIONS:
-				raise
-			except Exception:
-				log.exception("Exception in on_server_event")
-				response = {'success': False, 'result': ''.join(traceback.format_exc())}
-			else:
-				log.debug("Returning: %r", response)
-				response = {'success': True, 'result': response}
-			response = json.dumps(response).encode() + b"\n"
-			self.transport.write(response)
-			self.transport.close()
+		self.reactor._handle_event(self.connection, event)
 
 bot = LRRBot(asyncio.get_event_loop())

@@ -1,7 +1,10 @@
+import asyncio
 import random
 import re
 import math
 import logging
+import json
+import traceback
 
 import sqlalchemy
 
@@ -9,13 +12,74 @@ import common.utils
 from common import utils
 from common.config import config
 from common import twitch
-from lrrbot import googlecalendar, storage, commands
-from lrrbot.main import bot
+from lrrbot import googlecalendar, storage
 import lrrbot.docstring
 
 log = logging.getLogger('serverevents')
 
-@bot.server_event()
+GLOBAL_FUNCTIONS = {}
+def global_function(name=None):
+	def wrapper(function):
+		nonlocal name
+		if name is None:
+			name = function.__name__
+		GLOBAL_FUNCTIONS[name] = function
+		return function
+	return wrapper
+
+class Server:
+	def __init__(self, lrrbot, loop):
+		self.lrrbot = lrrbot
+		self.loop = loop
+		self.functions = dict(GLOBAL_FUNCTIONS)
+
+	def add(self, name, function):
+		self.functions[name] = function
+
+	def remove(self, name):
+		del self.functions[name]
+
+	def function(self, name=None):
+		def wrapper(function):
+			nonlocal name
+			if name is None:
+				name = function.__name__
+			self.add(name, function)
+			return function
+		return wrapper
+
+	def __call__(self):
+		return Protocol(self)
+
+class Protocol(asyncio.Protocol):
+	def __init__(self, server):
+		self.server = server
+		self.buffer = b""
+
+	def connection_made(self, transport):
+		self.transport = transport
+		log.debug("Received event connection from server")
+
+	def data_received(self, data):
+		self.buffer += data
+		if b"\n" in self.buffer:
+			request = json.loads(self.buffer.decode())
+			log.debug("Command from server (%s): %s(%r)", request['user'], request['command'], request['param'])
+			try:
+				response = self.server.functions[request['command']](self.server.lrrbot, request['user'], request['param'])
+			except utils.PASSTHROUGH_EXCEPTIONS:
+				raise
+			except Exception:
+				log.exception("Exception in on_server_event")
+				response = {'success': False, 'result': ''.join(traceback.format_exc())}
+			else:
+				log.debug("Returning: %r", response)
+				response = {'success': True, 'result': response}
+			response = json.dumps(response).encode() + b"\n"
+			self.transport.write(response)
+			self.transport.close()
+
+@global_function()
 def current_game(lrrbot, user, data):
 	game = lrrbot.get_current_game()
 	if game:
@@ -23,7 +87,7 @@ def current_game(lrrbot, user, data):
 	else:
 		return None
 
-@bot.server_event()
+@global_function()
 def current_game_name(lrrbot, user, data):
 	game = lrrbot.get_current_game()
 	if game:
@@ -31,7 +95,7 @@ def current_game_name(lrrbot, user, data):
 	else:
 		return None
 
-@bot.server_event()
+@global_function()
 def get_data(lrrbot, user, data):
 	if not isinstance(data['key'], (list, tuple)):
 		data['key'] = [data['key']]
@@ -40,7 +104,7 @@ def get_data(lrrbot, user, data):
 		node = node.get(subkey, {})
 	return node
 
-@bot.server_event()
+@global_function()
 def set_data(lrrbot, user, data):
 	if not isinstance(data['key'], (list, tuple)):
 		data['key'] = [data['key']]
@@ -56,26 +120,7 @@ def set_data(lrrbot, user, data):
 	node[data['key'][-1]] = data['value']
 	storage.save()
 
-@bot.server_event()
-def modify_commands(lrrbot, user, data):
-	log.info("Setting commands (%s) to %r" % (user, data))
-	commands.static.modify_commands(data)
-	bot.compile()
-
-@bot.server_event()
-def modify_explanations(lrrbot, user, data):
-	log.info("Setting explanations (%s) to %r" % (user, data))
-	commands.explain.modify_explanations(data)
-	bot.compile()
-
-@bot.server_event()
-def modify_spam_rules(lrrbot, user, data):
-	log.info("Setting spam rules (%s) to %r" % (user, data))
-	storage.data['spam_rules'] = data
-	storage.save()
-	lrrbot.spam_rules = [(re.compile(i['re']), i['message'], i.get('type', 'spam')) for i in storage.data['spam_rules']]
-
-@bot.server_event()
+@global_function()
 def get_commands(bot, user, data):
 	ret = []
 	for command in bot.commands.values():
@@ -97,7 +142,7 @@ def get_commands(bot, user, data):
 			}]
 	return ret
 
-@bot.server_event()
+@global_function()
 def get_header_info(lrrbot, user, data):
 	game = lrrbot.get_current_game()
 	live = twitch.is_stream_live()
@@ -146,20 +191,20 @@ def get_header_info(lrrbot, user, data):
 
 	return data
 
-@bot.server_event()
+@global_function()
 def nextstream(lrrbot, user, data):
 	return googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
 
-@bot.server_event()
+@global_function()
 def set_show(lrrbot, user, data):
 	commands.show.set_show(lrrbot, data["show"])
 	return {"status": "OK"}
 
-@bot.server_event()
+@global_function()
 def get_show(lrrbot, user, data):
 	return lrrbot.show_override or lrrbot.show
 
-@bot.server_event()
+@global_function()
 def get_tweet(lrrbot, user, data):
 	mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
 	if mode == 0: # get random !advice
