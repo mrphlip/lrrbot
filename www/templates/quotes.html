@@ -18,13 +18,14 @@
 {%endblock%}
 {%block pagecontent%}
 <ol class="quotes">
-{% for qid, quote, name, date in quotes %}
+{% for qid, quote, name, date, context in quotes %}
 <li value="{{qid|e}}" {%if loop.first%}class="first"{%endif%}>
 	<div class="num">#{{qid|e}}</div>
 	<blockquote>{{quote|e}}</blockquote>
-	{% if name or date %}
+	{% if name or date or context %}
 	<div class="attrib">&#8212;
-		{% if name %}{{name|e}}{% endif %}
+		{% if name %}{{name|e}}{% if context %}, {% endif %}{% endif %}
+		{% if context %}{{context|e}}{% endif %}
 		{% if date %}<span class="date">[{{date|e}}]</span>{% endif %}
 	</div>
 	{% endif %}

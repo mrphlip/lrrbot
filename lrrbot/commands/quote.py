@@ -24,12 +24,17 @@ import common.time
 import common.utils
 import lrrbot.decorators
 from lrrbot.main import bot
+from lrrbot.commands.game import game_name
+from lrrbot.commands.show import show_name
+
 import sqlalchemy
 
-def format_quote(tag, qid, quote, name, date):
+def format_quote(tag, qid, quote, name, date, context):
 	quote_msg = "{tag} #{qid}: \"{quote}\"".format(tag=tag, qid=qid, quote=quote)
 	if name:
 		quote_msg += " —{name}".format(name=name)
+	if context:
+		quote_msg += ", {context}".format(context=context)
 	if date:
 		quote_msg += " [{date!s}]".format(date=date)
 	return quote_msg
@@ -51,7 +56,7 @@ def quote(lrrbot, conn, event, respond_to, qid, attrib):
 	Post the quotation with the specified ID.
 	"""
 	quotes = lrrbot.metadata.tables["quotes"]
-	query = sqlalchemy.select([quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date])
+	query = sqlalchemy.select([quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date, quotes.c.context])
 	if qid:
 		query = query.where(quotes.c.id == int(qid))
 	elif attrib:
@@ -63,20 +68,21 @@ def quote(lrrbot, conn, event, respond_to, qid, attrib):
 		conn.privmsg(respond_to, "Could not find any matching quotes.")
 		return
 
-	qid, quote, name, date = row
-	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date))
+	qid, quote, name, date, context = row
+	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date, context))
 
-@bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
+@bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+)(?: \| )?([^\|]*)")
 @lrrbot.decorators.mod_only
-def addquote(lrrbot, conn, event, respond_to, name, date, quote):
+def addquote(lrrbot, conn, event, respond_to, name, date, quote, context):
 	"""
+	Command: !addquote (NAME) [DATE] QUOTE | CONTEXT
 	Command: !addquote (NAME) [DATE] QUOTE
 	Command: !addquote (NAME) QUOTE
 	Command: !addquote [DATE] QUOTE
 	Command: !addquote QUOTE
 	Section: quotes
 
-	 Add a quotation with optional attribution to the quotation database.
+	 Add a quotation with optional attribution, date and context to the quotation database.
 	"""
 	if date:
 		try:
@@ -84,15 +90,18 @@ def addquote(lrrbot, conn, event, respond_to, name, date, quote):
 		except ValueError:
 			return conn.privmsg(respond_to, "Could not add quote due to invalid date.")
 	quotes = lrrbot.metadata.tables["quotes"]
+	game = game_name(lrrbot.get_current_game()) if lrrbot.get_current_game() else None;
+	show = show_name(lrrbot.show_override) if lrrbot.show_override else show_name(lrrbot.show) if lrrbot.show else None
 	with lrrbot.engine.begin() as pg_conn:
-		qid, = pg_conn.execute(quotes.insert().returning(quotes.c.id), quote=quote, attrib_name=name, attrib_date=date).first()
+		qid, = pg_conn.execute(quotes.insert().returning(quotes.c.id), quote=quote, attrib_name=name, attrib_date=date, context=context, game=game, show=show).first()
 
-	conn.privmsg(respond_to, format_quote("New quote", qid, quote, name, date))
+	conn.privmsg(respond_to, format_quote("New quote", qid, quote, name, date, context))
 
-@bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? (.+)")
+@bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+)(?: \| )?([^\|]*)")
 @lrrbot.decorators.mod_only
-def modquote(lrrbot, conn, event, respond_to, qid, name, date, quote):
+def modquote(lrrbot, conn, event, respond_to, qid, name, date, quote, context):
 	"""
+	Command: !modquote QID (NAME) [DATE] QUOTE | CONTEXT
 	Command: !modquote QID (NAME) [DATE] QUOTE
 	Command: !modquote QID (NAME) QUOTE
 	Command: !modquote QID [DATE] QUOTE
@@ -110,9 +119,9 @@ def modquote(lrrbot, conn, event, respond_to, qid, name, date, quote):
 	quotes = lrrbot.metadata.tables["quotes"]
 	with lrrbot.engine.begin() as pg_conn:
 		res = pg_conn.execute(quotes.update().where((quotes.c.id == int(qid)) & (~quotes.c.deleted)),
-			quote=quote, attrib_name=name, attrib_date=date)
+			quote=quote, attrib_name=name, attrib_date=date, context=context)
 	if res.rowcount == 1:
-		conn.privmsg(respond_to, format_quote("Modified quote", qid, quote, name, date))
+		conn.privmsg(respond_to, format_quote("Modified quote", qid, quote, name, date, context))
 	else:
 		conn.privmsg(respond_to, "Could not modify quote.")
 
@@ -143,18 +152,18 @@ def findquote(lrrbot, conn, event, respond_to, query):
 	Section: quotes
 
 	Search for a quote in the quote database.
-	"""
+	""" 
 
 	quotes = lrrbot.metadata.tables["quotes"]
 	with lrrbot.engine.begin() as pg_conn:
 		fts_column = sqlalchemy.func.to_tsvector('english', quotes.c.quote)
 		query = sqlalchemy.select([
-			quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date
+			quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date, quotes.c.context
 		]).where(
 			(fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', query))) & (~quotes.c.deleted)
 		)
 		row = common.utils.pick_random_elements(pg_conn.execute(query), 1)[0]
 	if row is None:
 		return conn.privmsg(respond_to, "Could not find any matching quotes.")
-	qid, quote, name, date = row
-	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date))
+	qid, quote, name, date, context = row
+	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date, context))
