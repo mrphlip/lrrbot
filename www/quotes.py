@@ -4,6 +4,7 @@ import sqlalchemy
 import www.utils
 from www import server
 from www import login
+import common.postgres
 
 QUOTES_PER_PAGE = 25
 
