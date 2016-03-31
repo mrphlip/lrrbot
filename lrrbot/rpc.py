@@ -123,7 +123,7 @@ def set_data(lrrbot, user, data):
 @global_function()
 def get_commands(bot, user, data):
 	ret = []
-	for command in bot.commands.values():
+	for command in bot.commands.commands.values():
 		doc = lrrbot.docstring.parse_docstring(command['func'].__doc__)
 		for cmd in doc.walk():
 			if cmd.get_content_maintype() == "multipart":
