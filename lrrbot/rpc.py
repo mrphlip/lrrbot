@@ -196,8 +196,9 @@ def nextstream(lrrbot, user, data):
 	return googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
 
 @global_function()
-def set_show(lrrbot, user, data):
-	commands.show.set_show(lrrbot, data["show"])
+def set_show(bot, user, data):
+	import lrrbot.commands
+	lrrbot.commands.show.set_show(bot, data["show"])
 	return {"status": "OK"}
 
 @global_function()
@@ -206,6 +207,7 @@ def get_show(lrrbot, user, data):
 
 @global_function()
 def get_tweet(lrrbot, user, data):
+	import lrrbot.commands
 	mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
 	if mode == 0: # get random !advice
 		return random.choice(storage.data['responses']['advice']['response'])
@@ -235,4 +237,4 @@ def get_tweet(lrrbot, user, data):
 		game = storage.data['shows'][show]['games'][game_id]
 		count = game['stats'][stat]
 		display = storage.data['stats'][stat].get("singular", stat) if count == 1 else storage.data['stats'][stat].get("plural", stat + "s")
-		return "%d %s for %s on %s" % (count, display, commands.game.game_name(game), commands.show.show_name(show))
+		return "%d %s for %s on %s" % (count, display, lrrbot.commands.game.game_name(game), lrrbot.commands.show.show_name(show))
