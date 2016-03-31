@@ -195,10 +195,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.reactor._handle_event(conn, event)
 
 	def log_chat(self, conn, event):
+		source = irc.client.NickMask(event.source)
 		metadata = {
 			'usercolor': event.tags.get('color'),
 			'emotes': event.tags.get('emotes'),
-			'display-name': event.tags.get('display-name') or nick,
+			'display-name': event.tags.get('display-name') or source.nick,
 			'specialuser': set(),
 		}
 		if event.tags['subscriber']:
