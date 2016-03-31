@@ -11,7 +11,7 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 	Command: !explain TOPIC
 	Mod-Only: true
 	Section: text
-	
+
 	Provide an explanation for a given topic.
 	--command
 	Command: !explain show
@@ -41,6 +41,8 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response)
 
-def modify_explanations(commands):
+@bot.rpc_server.function()
+def modify_explanations(lrrbot, user, commands):
+	log.info("Setting explanations (%s) to %r" % (user, commands))
 	storage.data["explanations"] = {k.lower(): v for k,v in commands.items()}
 	storage.save()

@@ -268,3 +268,15 @@ def autostatus_set(lrrbot, conn, event, respond_to, enable):
 		conn.privmsg(source.nick, "Auto-status enabled.")
 	else:
 		conn.privmsg(source.nick, "Auto-status disabled.")
+
+def autostatus_on_join(conn, event):
+	source = irc.client.NickMask(event.source)
+	users = bot.metadata.tables["users"]
+	with bot.engine.begin() as pg_conn:
+		res = pg_conn.execute(sqlalchemy.select([users.c.autostatus])
+			.where(users.c.name == source.nick)).first()
+		if res is not None:
+			enabled, = res
+			if res[0]:
+				send_status(bot, conn, source.nick)
+bot.reactor.add_global_handler('join', autostatus_on_join, 99)

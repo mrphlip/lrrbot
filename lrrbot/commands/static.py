@@ -56,7 +56,9 @@ def static_response(lrrbot, conn, event, respond_to, command):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response)
 
-def modify_commands(commands):
+@bot.rpc_server.function()
+def modify_commands(lrrbot, user, commands):
+	log.info("Setting commands (%s) to %r" % (user, commands))
 	storage.data["responses"] = {" ".join(k.lower().split()): v for k,v in commands.items()}
 	storage.save()
 	generate_hook()
@@ -65,9 +67,9 @@ command_expression = None
 def generate_hook():
 	global command_expression
 	if command_expression is not None:
-		bot.remove_command(command_expression)
+		bot.commands.remove(command_expression)
 	static_response.__doc__ = generate_docstring()
 	command_expression = generate_expression()
-	bot.add_command(command_expression, static_response)
+	bot.commands.add(command_expression, static_response)
 
 generate_hook()
