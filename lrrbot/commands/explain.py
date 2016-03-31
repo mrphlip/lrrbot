@@ -1,4 +1,5 @@
 import random
+import irc.client
 
 import lrrbot.decorators
 from lrrbot import storage
@@ -31,10 +32,14 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 	if response_data["access"] == "sub":
 		if not lrrbot.is_sub(event) and not lrrbot.is_mod(event):
 			log.info("Refusing explain %s due to inadequate access" % command)
+			source = irc.client.NickMask(event.source)
+			conn.privmsg(source.nick, "That is a sub-only command.")
 			return
 	if response_data["access"] == "mod":
 		if not lrrbot.is_mod(event):
 			log.info("Refusing explain %s due to inadequate access" % command)
+			source = irc.client.NickMask(event.source)
+			conn.privmsg(source.nick, "That is a mod-only command.")
 			return
 	response = response_data['response']
 	if isinstance(response, (tuple, list)):

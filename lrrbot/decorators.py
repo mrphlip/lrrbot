@@ -20,17 +20,6 @@ def mod_only(func):
 	def on_event(self, conn, event, ...):
 		...
 	"""
-	# Only complain about non-mods with throttle
-	# but allow the command itself to be run without throttling
-	@throttle(notify=Visibility.SILENT, modoverride=False)
-	def mod_complaint(self, conn, event):
-		source = irc.client.NickMask(event.source)
-		if irc.client.is_channel(event.target):
-			respond_to = event.target
-		else:
-			respond_to = source.nick
-		conn.privmsg(respond_to, "%s: That is a mod-only command" % source.nick)
-
 	@functools.wraps(func)
 	@asyncio.coroutine
 	def wrapper(self, conn, event, *args, **kwargs):
@@ -38,7 +27,8 @@ def mod_only(func):
 			return (yield from func(self, conn, event, *args, **kwargs))
 		else:
 			log.info("Refusing %s due to not-a-mod" % func.__name__)
-			mod_complaint(self, conn, event)
+			source = irc.client.NickMask(event.source)
+			conn.privmsg(source.nick, "That is a mod-only command.")
 			return None
 	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
 		"Mod-Only", "true"))
@@ -53,15 +43,6 @@ def sub_only(func):
 	def on_event(self, conn, event, ...):
 		...
 	"""
-	@throttle(notify=Visibility.SILENT, modoverride=False)
-	def sub_complaint(self, conn, event):
-		source = irc.client.NickMask(event.source)
-		if irc.client.is_channel(event.target):
-			respond_to = event.target
-		else:
-			respond_to = source.nick
-		conn.privmsg(respond_to, "%s: That is a subscriber-only command" % source.nick)
-
 	@functools.wraps(func)
 	@asyncio.coroutine
 	def wrapper(self, conn, event, *args, **kwargs):
@@ -69,7 +50,8 @@ def sub_only(func):
 			return (yield from func(self, conn, event, *args, **kwargs))
 		else:
 			log.info("Refusing %s due to not-a-sub" % func.__name__)
-			sub_complaint(self, conn, event)
+			source = irc.client.NickMask(event.source)
+			conn.privmsg(source.nick, "That is a sub-only command.")
 			return None
 	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
 		"Sub-Only", "true"))
@@ -91,7 +73,7 @@ def public_only(func):
 			return (yield from func(self, conn, event, *args, **kwargs))
 		else:
 			source = irc.client.NickMask(event.source)
-			conn.privmsg(source.nick, "That command cannot be used via private message")
+			conn.privmsg(source.nick, "That command cannot be used via private message.")
 	wrapper.__doc__ = encode_docstring(add_header(parse_docstring(wrapper.__doc__),
 		"Public-Only", "true"))
 	return wrapper
@@ -154,11 +136,7 @@ class throttle(throttle_base):
 			conn = args[1]
 			event = args[2]
 			source = irc.client.NickMask(event.source)
-			if irc.client.is_channel(event.target) and self.notify is Visibility.PUBLIC:
-				respond_to = event.target
-			else:
-				respond_to = source.nick
-			conn.privmsg(respond_to, "%s: A similar command has been registered recently" % source.nick)
+			conn.privmsg(source.nick, "A similar command has been registered recently.")
 		return super().cache_hit(func, args, kwargs)
 
 	def decorate(self, func):
