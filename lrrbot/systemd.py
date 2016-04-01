@@ -27,6 +27,7 @@ class Service:
 		self.watchdog_handle = self.loop.call_later(self.timeout, self.watchdog)
 
 	def subsystem_started(self, subsystem):
-		self.subsystems.remove(subsystem)
-		if self.subsystems == set():
-			notify("READY=1")
+		if subsystem in self.subsystems:
+			self.subsystems.remove(subsystem)
+			if self.subsystems == set():
+				notify("READY=1")
