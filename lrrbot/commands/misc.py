@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import json
 import logging
@@ -146,6 +147,7 @@ def time24(lrrbot, conn, event, respond_to):
 
 @bot.command("viewers")
 @lrrbot.decorators.throttle()
+@asyncio.coroutine
 def viewers(lrrbot, conn, event, respond_to):
 	"""
 	Command: !viewers
@@ -160,15 +162,16 @@ def viewers(lrrbot, conn, event, respond_to):
 		viewers = None
 
 	chatters = len(lrrbot.channels["#%s" % config["channel"]].users())
+	# Twitch stops sending JOINs and PARTs at 1000 users. Need to double-check if over.
+	if chatters > 950:
+		data = yield from common.http.request_coro("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
+		chatters = json.loads(data).get("chatter_count", chatters)
 
 	if viewers is not None:
 		viewers = "%d %s viewing the stream." % (viewers, "user" if viewers == 1 else "users")
 	else:
 		viewers = "Stream is not live."
-	if chatters is not None:
-		chatters = "%d %s in the chat." % (chatters, "user" if chatters == 1 else "users")
-	else:
-		chatters = "No-one in the chat."
+	chatters = "%d %s in the chat." % (chatters, "user" if chatters == 1 else "users")
 	conn.privmsg(respond_to, "%s %s" % (viewers, chatters))
 
 def uptime_msg(stream_info=None, factor=1):
