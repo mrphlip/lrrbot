@@ -41,6 +41,6 @@ class JoinFilter:
 
 	def remove_stale_entries(self):
 		now = time.time()
-		for nick, last_part in self.last_parts.items():
+		for nick, last_part in list(self.last_parts.items()):
 			if now - last_part > TIMEOUT:
 				del self.last_parts[nick]
