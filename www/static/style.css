@@ -565,14 +565,19 @@ ol.quotes .num {
 ol.quotes blockquote {
 	margin: 0;
 	padding: 0;
+	padding-bottom: 0.03em;
 }
 ol.quotes .attrib {
 	margin: 0.5em 0 0 1em;
+	width: 100%;
 	font-size: 80%;
 	font-style: italic;
 }
 ol.quotes .date {
 	font-size: 80%;
+}
+ol.quotes .game {
+	float: right;
 }
 
 table.quote-search {
