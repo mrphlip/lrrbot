@@ -1,11 +1,8 @@
 import time
-import logging
 
 import irc.client
 
 from common.config import config
-
-log = logging.getLogger('lrrbot')
 
 TIMEOUT = 90
 
@@ -29,10 +26,8 @@ class JoinFilter:
 			now = time.time()
 			last_part = self.last_parts.pop(source.nick, 0)
 			if now - self.bot_start <= TIMEOUT:
-				log.info("Filtered JOIN from %s because it was %f seconds from bot start", source.nick, now - self.bot_start)
 				return "NO MORE"
 			if now - last_part <= TIMEOUT:
-				log.info("Filtered JOIN from %s because it was %f seconds from last PART", source.nick, now - last_part)
 				return "NO MORE"
 
 	def on_part(self, conn, event):
