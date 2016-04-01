@@ -22,6 +22,7 @@ from lrrbot import chatlog, storage, twitchsubs, whisper, asyncreactor, linkspam
 from lrrbot import spam
 from lrrbot import command_parser
 from lrrbot import rpc
+from lrrbot import join_filter
 
 log = logging.getLogger('lrrbot')
 
@@ -112,6 +113,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.link_spam = linkspam.LinkSpam(self, loop)
 		self.spam = spam.Spam(self, loop)
 		self.subs = twitchsubs.TwitchSubs(self, loop)
+		self.join_filter = join_filter.JoinFilter(self, loop)
 
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)
@@ -173,7 +175,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
 			self.service.subsystem_started("irc")
-			return "NO MORE"
 
 	@utils.swallow_errors
 	def do_keepalive(self):
@@ -359,7 +360,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			elif self.whisperconn:
 				self.whisperconn.whisper(target, text)
 			else:
-				log.debug("Not sending private message to %s: %s", target, text)
+				log.info("Not sending private message to %s: %s", target, text)
 		new_privmsg.is_wrapped = True
 		conn.privmsg = new_privmsg
 
