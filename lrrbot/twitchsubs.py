@@ -5,6 +5,7 @@ import datetime
 import dateutil
 import asyncio
 import sqlalchemy
+import urllib.error
 import irc.client
 from common import utils
 from common.config import config
@@ -47,7 +48,11 @@ class TwitchSubs:
 
 		sublist = None
 		if token is not None:
-			sublist = yield from twitch.get_subscribers(config['channel'], token)
+			try:
+				sublist = yield from twitch.get_subscribers(config['channel'], token)
+			except urllib.error.HTTPError as e:
+				if e.code == 422: # Unprocessable Entity, channel not partnered
+					return
 		if not sublist:
 			log.info("Failed to get subscriber list from Twitch")
 			self.last_subs = None
