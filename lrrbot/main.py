@@ -23,6 +23,7 @@ from lrrbot import spam
 from lrrbot import command_parser
 from lrrbot import rpc
 from lrrbot import join_filter
+from lrrbot import emote_spam
 
 log = logging.getLogger('lrrbot')
 
@@ -114,6 +115,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.spam = spam.Spam(self, loop)
 		self.subs = twitchsubs.TwitchSubs(self, loop)
 		self.join_filter = join_filter.JoinFilter(self, loop)
+		self.emote_spam = emote_spam.EmoteSpam(self, loop)
 
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)
