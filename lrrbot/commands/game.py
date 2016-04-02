@@ -107,7 +107,7 @@ def override_game(lrrbot, conn, event, respond_to, game):
 	else:
 		lrrbot.game_override = game
 		operation = "enabled"
-	twitch.get_game.reset_throttle()
+	twitch.get_info.reset_throttle()
 	current_game.reset_throttle()
 	game = lrrbot.get_current_game()
 	message = "Override %s. " % operation
@@ -126,7 +126,7 @@ def refresh(lrrbot, conn, event, respond_to):
 
 	Force a refresh of the current Twitch game (normally this is updated at most once every 15 minutes)
 	"""
-	twitch.get_game.reset_throttle()
+	twitch.get_info.reset_throttle()
 	current_game.reset_throttle()
 	current_game(lrrbot, conn, event, respond_to)
 

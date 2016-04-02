@@ -206,14 +206,14 @@ def get_show(lrrbot, user, data):
 	return lrrbot.show_override or lrrbot.show
 
 @global_function()
-def get_tweet(lrrbot, user, data):
+def get_tweet(bot, user, data):
 	import lrrbot.commands
 	mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
 	if mode == 0: # get random !advice
 		return random.choice(storage.data['responses']['advice']['response'])
 	elif mode == 1: # get a random !quote
-		quotes = lrrbot.metadata.tables["quotes"]
-		with lrrbot.engine.begin() as conn:
+		quotes = bot.metadata.tables["quotes"]
+		with bot.engine.begin() as conn:
 			query = sqlalchemy.select([quotes.c.quote, quotes.c.attrib_name]).where(~quotes.c.deleted)
 			row = common.utils.pick_random_elements(conn.execute(query), 1)[0]
 		if row is None:
