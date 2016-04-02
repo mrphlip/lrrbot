@@ -39,10 +39,10 @@ def format_quote(tag, qid, quote, name, date, context):
 		quote_msg += " [{date!s}]".format(date=date)
 	return quote_msg
 
-@bot.command("quote(?: (?:(\d+)|(.+)))?")
+@bot.command("quote\s*(?:(game|show)\s+(.+)|(?:(\d+)|(.+)))?")
 @lrrbot.decorators.sub_only
 @lrrbot.decorators.throttle(60, count=2)
-def quote(lrrbot, conn, event, respond_to, qid, attrib):
+def quote(lrrbot, conn, event, respond_to, meta_param, meta_value, qid, attrib):
 	"""
 	Command: !quote
 	Command: !quote ATTRIB
@@ -59,8 +59,13 @@ def quote(lrrbot, conn, event, respond_to, qid, attrib):
 	query = sqlalchemy.select([quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date, quotes.c.context])
 	if qid:
 		query = query.where(quotes.c.id == int(qid))
+	elif meta_param:
+		if meta_param == "game":
+			query = query.where(quotes.c.game.ilike("%" + common.postgres.escape_like(meta_value) + "%"))
+		elif meta_param == "show":
+			query = query.where(quotes.c.show.ilike("%" + common.postgres.escape_like(meta_value) + "%"))
 	elif attrib:
-		query = query.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(attrib.lower()) + "%"))
+			query = query.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(attrib.lower()) + "%"))
 	query = query.where(~quotes.c.deleted)
 	with lrrbot.engine.begin() as pg_conn:
 		row = common.utils.pick_random_elements(pg_conn.execute(query), 1)[0]
