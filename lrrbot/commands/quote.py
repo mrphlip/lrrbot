@@ -71,7 +71,7 @@ def quote(lrrbot, conn, event, respond_to, qid, attrib):
 	qid, quote, name, date, context = row
 	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date, context))
 
-@bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+?)(?:\s*\|\s*([^\|]*))?")
+@bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+?)(?: ?\| ?([^\|]*))?")
 @lrrbot.decorators.mod_only
 def addquote(lrrbot, conn, event, respond_to, name, date, quote, context):
 	"""
@@ -97,7 +97,7 @@ def addquote(lrrbot, conn, event, respond_to, name, date, quote, context):
 
 	conn.privmsg(respond_to, format_quote("New quote", qid, quote, name, date, context))
 
-@bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+?)(?:\s*\|\s*([^\|]*))?")
+@bot.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+?)(?: ?\| ?([^\|]*))?")
 @lrrbot.decorators.mod_only
 def modquote(lrrbot, conn, event, respond_to, qid, name, date, quote, context):
 	"""
