@@ -46,7 +46,8 @@ def quote(lrrbot, conn, event, respond_to, meta_param, meta_value, qid, attrib):
 	"""
 	Command: !quote
 	Command: !quote ATTRIB
-	Command: !quote game|show VALUE
+	Command: !quote game GAME
+	Command: !quote show SHOW
 	Section: quotes
 
 	Post a randomly selected quotation, optionally filtered by attribution, game or show.
