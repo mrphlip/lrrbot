@@ -66,7 +66,7 @@ def quote(lrrbot, conn, event, respond_to, meta_param, meta_value, qid, attrib):
 		elif meta_param == "show":
 			query = query.where(quotes.c.show.ilike("%" + common.postgres.escape_like(meta_value.lower()) + "%"))
 	elif attrib:
-			query = query.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(attrib.lower()) + "%"))
+		query = query.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(attrib.lower()) + "%"))
 	query = query.where(~quotes.c.deleted)
 	with lrrbot.engine.begin() as pg_conn:
 		row = common.utils.pick_random_elements(pg_conn.execute(query), 1)[0]
