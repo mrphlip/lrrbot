@@ -39,7 +39,7 @@ def format_quote(tag, qid, quote, name, date, context):
 		quote_msg += " [{date!s}]".format(date=date)
 	return quote_msg
 
-@bot.command("quote(?: (?:(game|show)\s+(.+)|(?:(\d+)|(.+))))?")
+@bot.command("quote(?: (?:(game|show) (.+)|(?:(\d+)|(.+))))?")
 @lrrbot.decorators.sub_only
 @lrrbot.decorators.throttle(60, count=2)
 def quote(lrrbot, conn, event, respond_to, meta_param, meta_value, qid, attrib):
