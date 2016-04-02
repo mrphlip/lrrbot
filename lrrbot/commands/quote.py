@@ -62,9 +62,9 @@ def quote(lrrbot, conn, event, respond_to, meta_param, meta_value, qid, attrib):
 		query = query.where(quotes.c.id == int(qid))
 	elif meta_param:
 		if meta_param == "game":
-			query = query.where(quotes.c.game.ilike("%" + common.postgres.escape_like(meta_value) + "%"))
+			query = query.where(quotes.c.game.ilike("%" + common.postgres.escape_like(meta_value.lower()) + "%"))
 		elif meta_param == "show":
-			query = query.where(quotes.c.show.ilike("%" + common.postgres.escape_like(meta_value) + "%"))
+			query = query.where(quotes.c.show.ilike("%" + common.postgres.escape_like(meta_value.lower()) + "%"))
 	elif attrib:
 			query = query.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(attrib.lower()) + "%"))
 	query = query.where(~quotes.c.deleted)
