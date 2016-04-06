@@ -27,6 +27,9 @@ class EmoteSpam:
         self.lrrbot.reactor.add_global_handler('pubmsg', self.check_emotes, 22)
 
     def emote_cost(self, emote_id):
+        if emote_id == 44650: # lrrHORN
+            return 3
+
         set_id = self.emote_sets[emote_id]
         if set_id == 0:
             return 8
