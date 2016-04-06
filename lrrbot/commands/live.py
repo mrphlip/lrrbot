@@ -46,6 +46,7 @@ def extract_new_channels(loop, token):
 
 @bot.command("live")
 @lrrbot.decorators.throttle()
+@lrrbot.decorators.private_reply_when_live
 @asyncio.coroutine
 def live(lrrbot, conn, event, respond_to):
 	"""

@@ -112,6 +112,7 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 
 @bot.command("nextfan( .*)?")
 @lrrbot.decorators.throttle()
+@lrrbot.decorators.private_reply_when_live
 def nextfan(lrrbot, conn, event, respond_to, timezone):
 	"""
 	Command: !nextfan

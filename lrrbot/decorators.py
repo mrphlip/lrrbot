@@ -8,6 +8,7 @@ import irc.client
 
 from common.utils import coro_decorator, throttle_base, DEFAULT_THROTTLE
 from lrrbot.docstring import encode_docstring, add_header, parse_docstring
+from common import twitch
 
 log = logging.getLogger("lrrbot.decorators")
 
@@ -144,3 +145,21 @@ class throttle(throttle_base):
 		wrapper.__doc__ = encode_docstring(add_header(add_header(parse_docstring(wrapper.__doc__),
 			"Throttled", str(self.period)), "Throttle-Count", str(self.count)))
 		return wrapper
+
+@coro_decorator
+def private_reply_when_live(func):
+	"""Cause command handler to respond with private message when the stream is live.
+
+	Usage:
+	@private_reply_when_live
+	def on_event(self, conn, event, respond_to, ...):
+		...
+	"""
+	@functools.wraps(func)
+	@asyncio.coroutine
+	def wrapper(self, conn, event, respond_to, *args, **kwargs):
+		if event.type == "pubmsg" and twitch.get_info()["live"]:
+			source = irc.client.NickMask(event.source)
+			respond_to = source.nick
+		return (yield from func(self, conn, event, respond_to, *args, **kwargs))
+	return wrapper
