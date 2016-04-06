@@ -30,7 +30,7 @@ class EmoteSpam:
         set_id = self.emote_sets[emote_id]
         if set_id == 0:
             return 8
-        elif set_id = 317:
+        elif set_id == 317:
             return 3
         else:
             return 5
