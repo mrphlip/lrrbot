@@ -1,62 +1,25 @@
-import irc.bot, irc.client
-from common import utils
-from common import twitch
-from common.config import config
-from lrrbot import storage, asyncreactor
+import irc.client
 import logging
 import asyncio
 
 log = logging.getLogger('whisper')
 
-class TwitchWhisper(irc.bot.SingleServerIRCBot):
-	def __init__(self, password, loop, service):
-		assert password.startswith("oauth:")
+class TwitchWhisper:
+	def __init__(self, lrrbot, loop):
+		self.lrrbot = lrrbot
 		self.loop = loop
-		self.service = service
-		servers = [irc.bot.ServerSpec(
-			host=host,
-			port=port,
-			password=password,
-		) for host, port in loop.run_until_complete(twitch.get_group_servers(password[len("oauth:"):], loop))]
-		super(TwitchWhisper, self).__init__(
-			server_list=servers,
-			realname=config['username'],
-			nickname=config['username'],
-			reconnection_interval=config['reconnecttime'],
-		)
-
-		self.reactor.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
-		self.reactor.add_global_handler('welcome', self.on_connect)
-
 		self.message_queue = asyncio.Queue(loop=loop)
 		self.message_pump_task = asyncio.async(self.message_pump(), loop=loop)
-
-	def reactor_class(self):
-		return asyncreactor.AsyncReactor(self.loop)
 
 	def stop_task(self):
 		self.message_pump_task.cancel()
 		return self.message_pump_task
 
-	@utils.swallow_errors
-	def do_keepalive(self):
-		"""Send a ping to the server, to ensure our connection stays alive, or to detect when it drops out."""
-		try:
-			self.connection.ping("keep-alive")
-		except irc.client.ServerNotConnectedError:
-			pass
-
-	def on_connect(self, conn, event):
-		"""On connecting to the server, set up the connection"""
-		log.info("Connected to group chat server")
-		conn.cap("REQ", "twitch.tv/tags") # get metadata tags
-		conn.cap("REQ", "twitch.tv/commands") # get special commands
-		self.service.subsystem_started("whispers")
-
 	def add_whisper_handler(self, handler):
-		self.reactor.add_global_handler('whisper', handler)
+		self.lrrbot.reactor.add_global_handler("whisper", handler, 20)
 
 	def whisper(self, target, text):
+		log.debug("Enqueue whisper: %r", (target, text))
 		self.message_queue.put_nowait((target, text))
 
 	@asyncio.coroutine
@@ -66,9 +29,10 @@ class TwitchWhisper(irc.bot.SingleServerIRCBot):
 		# some buffer area due to network lag
 		while True:
 			target, text = yield from self.message_queue.get()
-			if self.connection:
+			log.debug("Dequeue whisper: %r", (target, text))
+			if self.lrrbot.connection:
 				try:
-					self.connection.privmsg("#jtv", "/w %s %s" % (target, text))
+					self.lrrbot.connection.privmsg("#jtv", "/w %s %s" % (target, text))
 				except irc.client.ServerNotConnectedError:
 					pass
 			yield from asyncio.sleep(2/3)

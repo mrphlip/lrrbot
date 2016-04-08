@@ -70,10 +70,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# create secondary connection
 		if config['whispers']:
-			self.whisperconn = whisper.TwitchWhisper(password, self.loop, self.service)
+			self.whisperconn = whisper.TwitchWhisper(self, self.loop)
 		else:
 			self.whisperconn = None
-			self.service.subsystem_started("whispers")
 
 		# create pubnub listener
 		self.cardviewer = cardviewer.CardViewer(self, self.loop)
@@ -139,14 +138,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		chatlogtask = asyncio.async(chatlog.run_task(), loop=self.loop)
 
 		self._connect()
-		if self.whisperconn:
-			self.whisperconn._connect()
 		self.cardviewer.start()
 
 		# Don't fall over if the server sends something that's not real UTF-8
 		self.connection.buffer.errors = "replace"
-		if self.whisperconn:
-			self.whisperconn.connection.buffer.errors = "replace"
 
 		try:
 			self.loop.run_forever()
@@ -219,7 +214,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		Whenever a user says something, update database to have the latest version of user metadata.
 		Also corrects the tags.
 		"""
-		tags = event.tags = dict((i['key'], i['value']) for i in event.tags)
+		if isinstance(event.tags, list):
+			tags = event.tags = dict((i['key'], i['value']) for i in event.tags)
+		else:
+			tags = event.tags
 		source = irc.client.NickMask(event.source)
 		nick = source.nick.lower()
 

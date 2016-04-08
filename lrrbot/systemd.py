@@ -20,7 +20,7 @@ class Service:
 			self.timeout = (int(timeout_usec) * 1e-6) / 2
 			self.watchdog_handle = self.loop.call_later(self.timeout, self.watchdog)
 
-		self.subsystems = {"irc", "whispers"}
+		self.subsystems = {"irc"}
 
 	def watchdog(self):
 		notify("WATCHDOG=1")
