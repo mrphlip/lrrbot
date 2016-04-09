@@ -90,7 +90,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.reactor.add_global_handler('action', self.on_message_action, 99)
 		self.reactor.add_global_handler('clearchat', self.on_clearchat)
 		if self.whisperconn:
-			self.whisperconn.add_whisper_handler(self.on_whisper)
+			self.whisperconn.add_whisper_handler(self.on_whisper_received)
 
 		# Set up bot state
 		self.game_override = None
@@ -362,7 +362,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		new_privmsg.is_wrapped = True
 		conn.privmsg = new_privmsg
 
-	def on_whisper(self, conn, event):
+	def on_whisper_received(self, conn, event):
 		# Act like this is a private message
 		event.type = "privmsg"
 		event.target = config['username']
