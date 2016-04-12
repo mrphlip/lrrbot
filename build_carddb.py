@@ -40,11 +40,16 @@ def main():
 		fp = io.TextIOWrapper(zfp.open(SOURCE_FILENAME))
 		mtgjson = json.load(fp)
 
-	with open("extracards.json") as fp:
+	try:
+		with open("extracards.json") as fp:
+			extracards = json.load(fp)
+	except IOError:
+		pass
+	else:
 		# If the set is in both mtgjson and the extra data, use the one from mtgjson
-		allcards = json.load(fp)
-		allcards.update(mtgjson)
-		mtgjson = allcards
+		extracards.update(mtgjson)
+		mtgjson = extracards
+		del extracards
 
 	print("Processing...")
 	cards = metadata.tables["cards"]
@@ -140,7 +145,9 @@ def do_download_file(url, fn):
 	"""
 	# Much of this code cribbed from urllib.request.urlretrieve, with If-Modified-Since logic added
 
-	req = urllib.request.Request(url)
+	req = urllib.request.Request(url, headers={
+		'User-Agent': "LRRbot/2.0 (https://lrrbot.mrphlip.com/)",
+	})
 	try:
 		stat = os.stat(fn)
 	except FileNotFoundError:
