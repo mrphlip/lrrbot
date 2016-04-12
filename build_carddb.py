@@ -61,7 +61,7 @@ def main():
 		conn.execute(cards.delete())
 		cardid = 0
 		for setid, expansion in mtgjson.items():
-			release_date = dateutil.parser.parse(expansion['releaseDate']).date()
+			release_date = dateutil.parser.parse(expansion.get('releaseDate', '1970-01-01')).date()
 			for card in expansion['cards']:
 				cardid += 1
 				if card['layout'] in ('token', 'plane', 'scheme', 'phenomenon', 'vanguard'):  # don't care about these special cards for now
