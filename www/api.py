@@ -52,11 +52,11 @@ def set_show(session, show):
 
 @server.app.route("/api/game")
 def get_game():
-	return botinteract.get_current_game_name()
+	return botinteract.get_current_game_name() or "-"
 
 @server.app.route("/api/show")
 def get_show():
-	return botinteract.get_show()
+	return botinteract.get_show() or "-"
 
 @server.app.route("/api/tweet")
 @login.with_minimal_session
