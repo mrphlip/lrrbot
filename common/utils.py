@@ -9,6 +9,7 @@ import random
 import socket
 import textwrap
 import time
+import heapq
 
 import werkzeug.datastructures
 
@@ -320,3 +321,13 @@ def pick_random_elements(iterable, k):
 			ret[j] = elem
 
 	return ret
+
+def pick_weighted_random_elements(iterable, k):
+	queue = []
+	for elem, weight in iterable:
+		r = random.random() ** (1 / weight)
+		if len(queue) < k:
+			heapq.heappush(queue, (r, elem))
+		elif queue[0][0] < r:
+			heapq.heapreplace(queue, (r, elem))
+	return [elem for r, elem in queue]

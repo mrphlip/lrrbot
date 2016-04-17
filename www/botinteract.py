@@ -34,11 +34,11 @@ def send_bot_command(command, param, timeout=5, session=None):
 	else:
 		raise APIError("Server error in %s:\n%s" % (command, result['result']))
 
-def get_current_game():
-	return send_bot_command("current_game", None)
+def get_game_id():
+	return send_bot_command("get_game_id", None)
 
-def get_current_game_name():
-	return send_bot_command("current_game_name", None)
+def get_show_id():
+	return send_bot_command("get_show_id", None)
 
 def get_data(key):
 	return send_bot_command("get_data", {
@@ -88,9 +88,6 @@ def nextstream():
 
 def set_show(show):
 	return send_bot_command("set_show", {'show': show})
-
-def get_show():
-	return send_bot_command("get_show", None)
 
 def get_tweet():
 	return send_bot_command("get_tweet", None)

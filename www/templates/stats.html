@@ -19,7 +19,7 @@
         {%if show_id == show['id']%}
         <strong>{{show['name']|e}}</strong>
         {%else%}
-        <a href="{{url_for('stats')|e}}?show={{show['id']|urlencode|e}}">{{show['name']|e}}</a>
+        <a href="{{url_for('stats')|e}}?id={{show['id']|e}}">{{show['name']|e}}</a>
         {%endif%}
     </li>
     {%endfor%}
@@ -29,7 +29,7 @@
 <tr>
 	<th class="game">{%if show_id is none%}Show{%else%}Game{%endif%}</th>
 	{%for stat in stats%}
-		<th class="stat {{stat['statkey']|e}}">{{stat['plural']|ucfirst|e}}</th>
+		<th class="stat{%if totals.get(stat['statkey'], (0, False))[1]%} disabled{%endif%}">{{stat['plural']|ucfirst|e}}</th>
 	{%endfor%}
 </tr>
 </thead>
@@ -42,10 +42,11 @@
 			{%else%}
 				{{entry['display']|e}}
 			{%endif%}
-			{%if 'show' in entry%}({{entry['show']|e}}){%endif%}
 		</td>
 		{%for stat in stats%}
-			<td class="stat {{stat['statkey']|e}}">{{entry['stats'][stat['statkey']]|e}}</td>
+			<td class="stat{%if entry['stats'].get(stat['statkey'], (0, totals.get(stat['statkey'], (0, False))[1]))[1]%} disabled{%endif%}">
+                {{entry['stats'].get(stat['statkey'], (0, False))[0]|e}}
+            </td>
 		{%endfor%}
 	</tr>
 {%endfor%}
@@ -54,7 +55,9 @@
 <tr>
 	<th class="total">Total</th>
 	{%for stat in stats%}
-		<th class="stat {{stat['statkey']|e}}">{{stat['total']|e}}</th>
+		<th class="stat{%if totals.get(stat['statkey'], (0, False))[1]%} disabled{%endif%}">
+            {{totals.get(stat['statkey'], (0, False))[0]|e}}
+        </th>
 	{%endfor%}
 </tr>
 </tfoot>
@@ -91,7 +94,6 @@ $(document).ready(function() {
 				{%if game['display'] != game['name']%}<span class="alias" title="{{game['name']|e}}">{%endif%}
 				{{game['display']|e}}
 				{%if game['display'] != game['name']%}</span>{%endif%}
-				{%if 'show' in game%}({{game['show']|e}}){%endif%}
 			</td>
 			<td class="rating graph">
 				<div class="rating">

@@ -1,99 +1,208 @@
+import irc.client
+import sqlalchemy
+
+from common import game_data
+
 import lrrbot.decorators
 from lrrbot import storage
 from lrrbot.main import bot
-from lrrbot.commands.game import completed, game_name
-from lrrbot.commands.show import show_name
 
-re_stats = "|".join(storage.data["stats"])
+with bot.engine.begin() as conn:
+	stats = [id for id, in conn.execute(sqlalchemy.select([bot.metadata.tables["stats"].c.string_id]))]
+	re_stats = "|".join(stats)
 
-def stat_update(lrrbot, stat, n, set_=False):
-	game = lrrbot.get_current_game(readonly=False)
-	if game is None:
-		return None
-	game.setdefault("stats", {}).setdefault(stat, 0)
-	if set_:
-		game["stats"][stat] = n
+def stat_increment(lrrbot, conn, game_id, show_id, stat_id, n):
+	conn.execute("""
+		INSERT INTO game_stats (
+			game_id,
+			show_id,
+			stat_id,
+			count
+		) VALUES (
+			%(game_id)s,
+			%(show_id)s,
+			%(stat_id)s,
+			%(count)s
+		) ON CONFLICT (game_id, show_id, stat_id) DO UPDATE SET
+			count = game_stats.count + EXCLUDED.count
+	""", {
+		"game_id": game_id,
+		"show_id": show_id,
+		"stat_id": stat_id,
+		"count": n,
+	})
+
+def stat_set(lrrbot, conn, game_id, show_id, stat_id, n):
+	conn.execute("""
+		INSERT INTO game_stats (
+			game_id,
+			show_id,
+			stat_id,
+			count
+		) VALUES (
+			%(game_id)s,
+			%(show_id)s,
+			%(stat_id)s,
+			%(count)s
+		) ON CONFLICT (game_id, show_id, stat_id) DO UPDATE SET
+			count = EXCLUDED.count
+	""", {
+		"game_id": game_id,
+		"show_id": show_id,
+		"stat_id": stat_id,
+		"count": n,
+	})
+
+def stat_print(lrrbot, conn, respond_to, pg_conn, game_id, show_id, stat_id, with_emote=False):
+	games = lrrbot.metadata.tables["games"]
+	game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
+	game_stats = lrrbot.metadata.tables["game_stats"]
+	stats = lrrbot.metadata.tables["stats"]
+	shows = lrrbot.metadata.tables["shows"]
+
+	game, stat, count, show, emote = pg_conn.execute(
+		sqlalchemy.select([
+			sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
+			game_data.stat_plural(stats, game_stats.c.count),
+			game_stats.c.count,
+			shows.c.name,
+			stats.c.emote,
+		]).select_from(
+			game_stats
+				.join(games, games.c.id == game_stats.c.game_id)
+				.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == game_stats.c.game_id)
+					& (game_per_show_data.c.show_id == game_stats.c.show_id))
+				.join(stats, stats.c.id == game_stats.c.stat_id)
+				.join(shows, shows.c.id == game_stats.c.show_id)
+		)
+		.where(game_stats.c.game_id == game_id)
+		.where(game_stats.c.show_id == show_id)
+		.where(game_stats.c.stat_id == stat_id)
+	).first()
+	if with_emote and emote is not None:
+		emote = emote + " "
 	else:
-		game["stats"][stat] += n
-	storage.save()
-	return game
+		emote = ""
+	conn.privmsg(respond_to, "%s%d %s for %s on %s" % (emote, count, stat, game, show))
 
 @bot.command("(%s)" % re_stats)
 @lrrbot.decorators.public_only
 @lrrbot.decorators.throttle(30, notify=lrrbot.decorators.Visibility.PUBLIC, params=[4], modoverride=False, allowprivate=False)
 def increment(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
-	if stat == "completed":
-		completed(lrrbot, conn, event, respond_to)
-		return
-	game = stat_update(lrrbot, stat, 1)
-	if game is None:
+
+	game_id = lrrbot.get_game_id()
+	if game_id is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print(lrrbot, conn, event, respond_to, stat, game, with_emote=True)
+	show_id = lrrbot.get_show_id()
+
+	stats = lrrbot.metadata.tables["stats"]
+	disabled_stats = lrrbot.metadata.tables["disabled_stats"]
+	with lrrbot.engine.begin() as pg_conn:
+		stat_id, = pg_conn.execute(sqlalchemy.select([stats.c.id]).where(stats.c.string_id == stat)).first()
+		disabled, = pg_conn.execute(sqlalchemy.select([sqlalchemy.exists(sqlalchemy.select([1])
+			.where(disabled_stats.c.show_id == show_id)
+			.where(disabled_stats.c.stat_id == stat_id)
+		)])).first()
+		if disabled:
+			source = irc.client.NickMask(event.source)
+			conn.privmsg(source.nick, "This stat has been disabled.")
+			return
+
+		stat_increment(lrrbot, pg_conn, game_id, show_id, stat_id, 1)
+		stat_print(lrrbot, conn, respond_to, pg_conn, game_id, show_id, stat_id, with_emote=True)
 
 @bot.command("(%s) add( \d+)?" % re_stats)
 @lrrbot.decorators.mod_only
 def add(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
 	n = 1 if n is None else int(n)
-	game = stat_update(lrrbot, stat, n)
-	if game is None:
+
+	game_id = lrrbot.get_game_id()
+	if game_id is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print(lrrbot, conn, event, respond_to, stat, game)
+	show_id = lrrbot.get_show_id()
+
+	stats = lrrbot.metadata.tables["stats"]
+	with lrrbot.engine.begin() as pg_conn:
+		stat_id, = pg_conn.execute(sqlalchemy.select([stats.c.id]).where(stats.c.string_id == stat)).first()
+		stat_increment(lrrbot, pg_conn, game_id, show_id, stat_id, n)
+		stat_print(lrrbot, conn, respond_to, pg_conn, game_id, show_id, stat_id)
 
 @bot.command("(%s) remove( \d+)?" % re_stats)
 @lrrbot.decorators.mod_only
 def remove(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
 	n = 1 if n is None else int(n)
-	game = stat_update(lrrbot, stat, -n)
-	if game is None:
+
+	game_id = lrrbot.get_game_id()
+	if game_id is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print(lrrbot, conn, event, respond_to, stat, game)
+	show_id = lrrbot.get_show_id()
+
+	stats = lrrbot.metadata.tables["stats"]
+	with lrrbot.engine.begin() as pg_conn:
+		stat_id, = pg_conn.execute(sqlalchemy.select([stats.c.id]).where(stats.c.string_id == stat)).first()
+		stat_increment(lrrbot, pg_conn, game_id, show_id, stat_id, -n)
+		stat_print(lrrbot, conn, respond_to, pg_conn, game_id, show_id, stat_id)
 
 @bot.command("(%s) set (\d+)" % re_stats)
 @lrrbot.decorators.mod_only
-def stat_set(lrrbot, conn, event, respond_to, stat, n):
+def stat_set_(lrrbot, conn, event, respond_to, stat, n):
 	stat = stat.lower()
 	n = 1 if n is None else int(n)
-	game = stat_update(lrrbot, stat, n, True)
-	if game is None:
+
+	game_id = lrrbot.get_game_id()
+	if game_id is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	stat_print(lrrbot, conn, event, respond_to, stat, game)
+	show_id = lrrbot.get_show_id()
+
+	stats = lrrbot.metadata.tables["stats"]
+	with lrrbot.engine.begin() as pg_conn:
+		stat_id, = pg_conn.execute(sqlalchemy.select([stats.c.id]).where(stats.c.string_id == stat)).first()
+		stat_set(lrrbot, pg_conn, game_id, show_id, stat_id, n)
+		stat_print(lrrbot, conn, respond_to, pg_conn, game_id, show_id, stat_id)
 
 @bot.command("(%s)count" % re_stats)
 @lrrbot.decorators.throttle(params=[4])
 def get_stat(lrrbot, conn, event, respond_to, stat):
-	stat_print(lrrbot, conn, event, respond_to, stat)
-
-def stat_print(lrrbot, conn, event, respond_to, stat, game=None, with_emote=False):
 	stat = stat.lower()
-	if game is None:
-		game = lrrbot.get_current_game()
-		if game is None:
-			conn.privmsg(respond_to, "Not currently playing any game")
-			return
-	count = game.get("stats", {}).get(stat, 0)
-	show = lrrbot.show_override or lrrbot.show
-	stat_details = storage.data["stats"][stat]
-	display = stat_details.get("singular", stat) if count == 1 else stat_details.get("plural", stat + "s")
-	if with_emote and stat_details.get("emote"):
-		emote = stat_details["emote"] + " "
-	else:
-		emote = ""
-	conn.privmsg(respond_to, "%s%d %s for %s on %s" % (emote, count, display, game_name(game), show_name(show)))
+	game_id = lrrbot.get_game_id()
+	if game_id is None:
+		conn.privmsg(respond_to, "Not currently playing any game")
+		return
+	show_id = lrrbot.get_show_id()
+
+	stats = lrrbot.metadata.tables["stats"]
+	with lrrbot.engine.begin() as pg_conn:
+		stat_print(lrrbot, conn, respond_to, pg_conn, game_id, show_id,
+			sqlalchemy.select([stats.c.id]).where(stats.c.string_id == stat))
 
 @bot.command("total(%s)s?" % re_stats)
 @lrrbot.decorators.throttle(params=[4])
 def printtotal(lrrbot, conn, event, respond_to, stat):
 	stat = stat.lower()
-	count = 0
-	for show in storage.data.get("shows", {}).values():
-		count += sum(game.get("stats", {}).get(stat, 0) for game in show.get("games", {}).values())
-	display = storage.data["stats"][stat]
-	display = display.get("singular", stat) if count == 1 else display.get("plural", stat + "s")
-	conn.privmsg(respond_to, "%d total %s" % (count, display))
+	game_stats = lrrbot.metadata.tables["game_stats"]
+	stats = lrrbot.metadata.tables["stats"]
+	with lrrbot.engine.begin() as pg_conn:
+		stat_id, = pg_conn.execute(sqlalchemy.select([stats.c.id]).where(stats.c.string_id == stat)).first()
+		count_query = sqlalchemy.alias(sqlalchemy.select([sqlalchemy.func.sum(game_stats.c.count).label("count")])
+			.where(game_stats.c.stat_id == stat_id))
+		count, stat = pg_conn.execute(
+			sqlalchemy.select([
+				count_query.c.count,
+				sqlalchemy.case(
+					{1: sqlalchemy.func.coalesce(stats.c.singular, stats.c.string_id)},
+					value=count_query.c.count,
+					else_=sqlalchemy.func.coalesce(stats.c.plural,
+						sqlalchemy.func.coalesce(stats.c.singular, stats.c.string_id).concat("s")
+					)
+				)
+			])
+			.where(stats.c.id == stat_id)
+		).first()
+		conn.privmsg(respond_to, "%d total %s" % (count, stat))

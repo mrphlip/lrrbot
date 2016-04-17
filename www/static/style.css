@@ -600,3 +600,7 @@ table.quote-search input,
 table.quote-search select {
 	width: 100%
 }
+
+.stat.disabled {
+	color: #999999;
+}

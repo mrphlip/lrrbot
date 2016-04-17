@@ -11,6 +11,7 @@ import sqlalchemy
 import common.utils
 from common import utils
 from common.config import config
+from common import game_data
 from common import twitch
 from lrrbot import googlecalendar, storage
 import lrrbot.docstring
@@ -80,20 +81,8 @@ class Protocol(asyncio.Protocol):
 			self.transport.close()
 
 @global_function()
-def current_game(lrrbot, user, data):
-	game = lrrbot.get_current_game()
-	if game:
-		return game['id']
-	else:
-		return None
-
-@global_function()
-def current_game_name(lrrbot, user, data):
-	game = lrrbot.get_current_game()
-	if game:
-		return game['name']
-	else:
-		return None
+def get_game_id(lrrbot, user, data):
+	return lrrbot.get_game_id()
 
 @global_function()
 def get_data(lrrbot, user, data):
@@ -144,45 +133,23 @@ def get_commands(bot, user, data):
 
 @global_function()
 def get_header_info(lrrbot, user, data):
-	game = lrrbot.get_current_game()
-	live = twitch.is_stream_live()
+	live = twitch.is_stream_live() or True
+	game_id = lrrbot.get_game_id()
 
 	data = {
 		"is_live": live,
 		"channel": config['channel'],
 	}
 
-	if live and game is not None:
+	if live and game_id is not None:
 		data['current_game'] = {
-			"name": game['name'],
-			"display": game.get("display", game["name"]),
-			"id": game["id"],
+			"id": game_id,
 			"is_override": lrrbot.game_override is not None,
 		}
-		show = lrrbot.show_override or lrrbot.show
 		data['current_show'] = {
-			"id": show,
-			"name": storage.data.get("shows", {}).get(show, {}).get("name", show),
+			"id": lrrbot.get_show_id(),
+			"is_override": lrrbot.show_override is not None,
 		}
-		stats = [{
-			"count": v,
-			"type": storage.data['stats'][k].get("singular" if v == 1 else "plural", k)
-		} for (k, v) in game['stats'].items() if v]
-		stats.sort(key=lambda i: (-i['count'], i['type']))
-		data['current_game']['stats'] = stats
-		if game.get("votes"):
-			good = sum(game['votes'].values())
-			total = len(game['votes'])
-			data["current_game"]["rating"] = {
-				"good": good,
-				"total": total,
-				"perc": 100.0 * good / total,
-			}
-		if user is not None:
-			users = lrrbot.metadata.tables["users"]
-			with lrrbot.engine.begin() as conn:
-				name, = conn.execute(sqlalchemy.select([users.c.name]).where(users.c.id == user)).first()
-			data["current_game"]["my_rating"] = game.get("votes", {}).get(name)
 	elif not live:
 		data['nextstream'] = googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
 
@@ -202,8 +169,8 @@ def set_show(bot, user, data):
 	return {"status": "OK"}
 
 @global_function()
-def get_show(lrrbot, user, data):
-	return lrrbot.show_override or lrrbot.show
+def get_show_id(lrrbot, user, data):
+	return lrrbot.get_show_id()
 
 @global_function()
 def get_tweet(bot, user, data):
@@ -226,15 +193,30 @@ def get_tweet(bot, user, data):
 			quote_msg += " —{name}".format(name=name)
 		return quote_msg
 	else: # get a random statistic
-		show, game_id, stat = utils.weighted_choice(
-			((show, game_id, stat), math.log(count))
-			for show in storage.data['shows']
-			for game_id in storage.data['shows'][show]['games']
-			for stat in storage.data['stats']
-			for count in [storage.data['shows'][show]['games'][game_id]['stats'].get(stat)]
-			if count
-		)
-		game = storage.data['shows'][show]['games'][game_id]
-		count = game['stats'][stat]
-		display = storage.data['stats'][stat].get("singular", stat) if count == 1 else storage.data['stats'][stat].get("plural", stat + "s")
-		return "%d %s for %s on %s" % (count, display, lrrbot.commands.game.game_name(game), lrrbot.commands.show.show_name(show))
+		game_per_show_data = bot.metadata.tables["game_per_show_data"]
+		game_stats = bot.metadata.tables["game_stats"]
+		games = bot.metadata.tables["games"]
+		shows = bot.metadata.tables["shows"]
+		stats = bot.metadata.tables["stats"]
+		with bot.engine.begin() as conn:
+			res = conn.execute(
+				sqlalchemy.select([
+					sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
+					shows.name,
+					game_data.stats_plural(stats, game_stats.c.count),
+					game_stats.c.count,
+					sqlalchemy.func.log(game_stats.c.count)
+				]).select_from(
+					game_stats
+						.join(games, games.c.id == game_stats.c.game_id)
+						.join(shows, shows.c.id == game_stats.c.show_id)
+						.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == game_stats.c.game_id) & (game_per_show_data.c.show_id == game_stats.c.show_id))
+						.join(stats, stats.c.id == game_stats.c.stat_id)
+				).where(game_stats.c.count > 0)
+			)
+			game, show, stat, count = utils.pick_weighted_random_elements((
+				((game, show, stat, count), weight)
+				for game, show, stat, count, weight in res
+			), 1)[0]
+
+		return "%d %s for %s on %s" % (count, stat, game, show)

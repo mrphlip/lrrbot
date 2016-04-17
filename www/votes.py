@@ -1,4 +1,5 @@
 import flask
+import sqlalchemy
 from www import server
 from www import login
 from www import botinteract
@@ -6,29 +7,91 @@ from www import botinteract
 @server.app.route('/votes')
 @login.require_login
 def votes(session):
-	data = botinteract.get_data('shows')
-	current_game_id = botinteract.get_current_game()
-	current_show_id = botinteract.get_show()
+	current_game_id = botinteract.get_game_id()
+	current_show_id = botinteract.get_show_id()
 
-	if current_game_id not in data[current_show_id]["games"]:
-		current_game_id = None
-	shows = [{
-		"id": show_id,
-		"name": show.get("name", show_id),
-		"games": sorted([{
-				"id": game_id,
-				"name": game["name"],
-				"display": game.get("display", game["name"]),
-				"vote": game.get("votes", {}).get(session["user"]["name"]),
-			    } for game_id,game in show['games'].items()],
-			key=lambda game: (1 if game['id'] == current_game_id and show_id == current_show_id else 2, game['display'].upper()))
-	} for show_id, show in data.items()]
-	shows.sort(key=lambda show: (1 if show["id"] == current_show_id and current_game_id is not None else 2, show["name"].upper()))
+	game_votes = server.db.metadata.tables["game_votes"]
+	game_stats = server.db.metadata.tables["game_stats"]
+	games = server.db.metadata.tables["games"]
+	shows = server.db.metadata.tables["shows"]
+	game_per_show_data = server.db.metadata.tables["game_per_show_data"]
+	with server.db.engine.begin() as conn:
+		votes_query = sqlalchemy.select([game_votes.c.game_id, game_votes.c.show_id, game_votes.c.vote]) \
+			.where(game_votes.c.user_id == session['user']['id'])
+		votes = {
+			(show_id, game_id): vote
+			for game_id, show_id, vote in conn.execute(votes_query)
+		}
+
+		all_games_ids = sqlalchemy.alias(sqlalchemy.select([game_votes.c.game_id, game_votes.c.show_id])
+			.union(sqlalchemy.select([game_stats.c.game_id, game_stats.c.show_id])))
+		all_games_query = sqlalchemy.select([
+			all_games_ids.c.game_id,
+			games.c.name,
+			sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
+			all_games_ids.c.show_id,
+			shows.c.name,
+		]).select_from(all_games_ids
+			.join(games, games.c.id == all_games_ids.c.game_id)
+			.join(shows, shows.c.id == all_games_ids.c.show_id)
+			.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == all_games_ids.c.game_id) & (game_per_show_data.c.show_id == all_games_ids.c.show_id))
+		)
+
+		shows = {}
+		for game_id, game_name, game_display, show_id, show_name in conn.execute(all_games_query):
+			try:
+				shows[show_id]["games"][game_id] = {
+					"id": game_id,
+					"name": game_name,
+					"display": game_display,
+					"vote": votes.get((show_id, game_id)),
+				}
+			except KeyError:
+				shows[show_id] = {
+					"id": show_id,
+					"name": show_name,
+					"games": {
+						game_id: {
+							"id": game_id,
+							"name": game_name,
+							"display": game_display,
+							"vote": votes.get((show_id, game_id)),
+						}
+					}
+				}
+		for show in shows.values():
+			show["games"] = sorted(
+				show["games"].values(),
+				key=lambda game: (-(game['id'] == current_game_id and show["id"] == current_show_id), game['display'].upper()),
+			)
+		shows = sorted(
+			(show for show in shows.values()),
+			key=lambda show: (-(show['id'] == current_show_id and current_game_id is not None), show['name'].upper()),
+		)
 
 	return flask.render_template("votes.html", shows=shows, current_show_id=current_show_id, current_game_id=current_game_id, session=session)
 
 @server.app.route('/votes/submit', methods=['POST'])
 @login.require_login
 def vote_submit(session):
-	botinteract.set_data(['shows', flask.request.values['show'], 'games', flask.request.values['id'], 'votes', session['user']['name']], bool(int(flask.request.values['vote'])))
+	with server.db.engine.begin() as conn:
+		conn.execute("""
+			INSERT INTO game_votes (
+				game_id,
+				show_id,
+				user_id,
+				vote
+			) VALUES (
+				%(game_id)s,
+				%(show_id)s,
+				%(user_id)s,
+				%(vote)s
+			) ON CONFLICT (game_id, show_id, user_id) DO UPDATE SET
+				vote = EXCLUDED.vote
+		""", {
+			"game_id": int(flask.request.values['id']),
+			"show_id": int(flask.request.values['show']),
+			"user_id": session["user"]["id"],
+			"vote": bool(int(flask.request.values['vote'])),
+		})
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())

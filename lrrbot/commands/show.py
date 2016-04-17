@@ -1,15 +1,14 @@
+import sqlalchemy
+
 from common import twitch
 import lrrbot.decorators
 from lrrbot import storage
 from lrrbot.main import bot
 
 def set_show(lrrbot, show):
-	if lrrbot.show != show.lower():
-		lrrbot.show = show.lower()
-		twitch.get_game.reset_throttle()
-
-def show_name(show):
-	return storage.data.get("shows", {}).get(show, {}).get("name", show)
+	lrrbot.set_show(show.lower())
+	twitch.get_game.reset_throttle()
+	lrrbot.get_game_id.reset_throttle()
 
 @bot.command("show")
 @lrrbot.decorators.throttle()
@@ -23,12 +22,16 @@ def get_show(lrrbot, conn, event, respond_to):
 	print_show(lrrbot, conn, respond_to)
 
 def print_show(lrrbot, conn, respond_to):
-	if lrrbot.show_override:
-		conn.privmsg(respond_to, "Currently live: %s (overridden)" % show_name(lrrbot.show_override))
-	elif lrrbot.show:
-		conn.privmsg(respond_to, "Currently live: %s" % show_name(lrrbot.show))
-	else:
+	show_id = lrrbot.get_show_id()
+	shows = lrrbot.metadata.tables["shows"]
+	with lrrbot.engine.begin() as pg_conn:
+		name, string_id = pg_conn.execute(sqlalchemy.select([shows.c.name, shows.c.string_id])
+			.where(shows.c.id == show_id)).first()
+	if string_id == "":
 		conn.privmsg(respond_to, "Current show not set.")
+		return
+	conn.privmsg(respond_to, "Currently live: %s%s" % (name, " (overriden)" if lrrbot.show_override is not None else ""))
+
 
 @bot.command("show override (.*?)")
 @lrrbot.decorators.mod_only
@@ -46,12 +49,17 @@ def show_override(lrrbot, conn, event, respond_to, show):
 	"""
 	show = show.lower()
 	if show == "off":
-		lrrbot.show_override = None
-	elif show not in storage.data.get("shows", {}):
-		shows = sorted(storage.data.get("shows", {}).keys())
-		shows = [s for s in shows if s]
-		conn.privmsg(respond_to, "Recognised shows: %s" % ", ".join(shows))
-		return
+		lrrbot.override_show(None)
 	else:
-		lrrbot.show_override = show
+		try:
+			lrrbot.override_show(show)
+		except KeyError:
+			shows = lrrbot.metadata.tables["shows"]
+			with lrrbot.engine.begin() as pg_conn:
+				all_shows = pg_conn.execute(sqlalchemy.select([shows.c.string_id])
+					.where(shows.c.string_id != "")
+					.order_by(shows.c.string_id))
+				all_shows = [name for name, in all_shows]
+				conn.privmsg(respond_to, "Recognised shows: %s" % ", ".join(all_shows))
+				return
 	print_show(lrrbot, conn, respond_to)
