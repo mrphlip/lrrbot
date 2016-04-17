@@ -13,6 +13,9 @@ QUOTES_PER_PAGE = 25
 @login.with_session
 def quotes(session, page=1):
 	quotes = server.db.metadata.tables["quotes"]
+	games = server.db.metadata.tables["games"]
+	shows = server.db.metadata.tables["shows"]
+	game_per_show_data = server.db.metadata.tables["game_per_show_data"]
 	with server.db.engine.begin() as conn:
 		count, = conn.execute(quotes.count().where(~quotes.c.deleted)).first()
 		pages = (count - 1) // QUOTES_PER_PAGE + 1
@@ -21,8 +24,15 @@ def quotes(session, page=1):
 
 		quotes = conn.execute(sqlalchemy.select([
 			quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date, quotes.c.context,
-			quotes.c.game, quotes.c.show,
-		]).where(~quotes.c.deleted).order_by(quotes.c.id.desc()).offset((page-1) * QUOTES_PER_PAGE).limit(QUOTES_PER_PAGE)).fetchall()
+			sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
+			shows.c.name,
+		]).select_from(quotes
+			.outerjoin(games, games.c.id == quotes.c.game_id)
+			.outerjoin(shows, shows.c.id == quotes.c.show_id)
+			.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == quotes.c.game_id) & (game_per_show_data.c.show_id == quotes.c.show_id))
+		).where(~quotes.c.deleted)
+			.order_by(quotes.c.id.desc()).offset((page-1) * QUOTES_PER_PAGE)
+			.limit(QUOTES_PER_PAGE)).fetchall()
 
 	return flask.render_template('quotes.html', session=session, quotes=quotes, page=page, pages=pages)
 
@@ -33,10 +43,18 @@ def quote_search(session):
 	mode = flask.request.values.get('mode', 'text')
 	page = int(flask.request.values.get("page", 1))
 	quotes = server.db.metadata.tables["quotes"]
+	games = server.db.metadata.tables["games"]
+	shows = server.db.metadata.tables["shows"]
+	game_per_show_data = server.db.metadata.tables["game_per_show_data"]
 	sql = sqlalchemy.select([
 		quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date, quotes.c.context,
-		quotes.c.game, quotes.c.show,
-	]).where(~quotes.c.deleted).order_by(quotes.c.id.desc())
+		sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
+		shows.c.name,
+	]).select_from(quotes
+		.outerjoin(games, games.c.id == quotes.c.game_id)
+		.outerjoin(shows, shows.c.id == quotes.c.show_id)
+		.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == quotes.c.game_id) & (game_per_show_data.c.show_id == quotes.c.show_id))
+	).where(~quotes.c.deleted).order_by(quotes.c.id.desc())
 	if mode == 'text':
 		fts_column = sqlalchemy.func.to_tsvector('english', quotes.c.quote)
 		sql = sql.where(fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', query)))

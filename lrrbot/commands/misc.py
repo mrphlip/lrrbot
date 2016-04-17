@@ -203,10 +203,30 @@ def get_status_msg(lrrbot):
 	messages = []
 	stream_info = twitch.get_info()
 	if stream_info and stream_info.get('live'):
-		game = lrrbot.get_current_game()
-		game = game and game.get("display", game["name"])
-		show = lrrbot.show_override or lrrbot.show
-		show = show and storage.data.get("shows", {}).get(show, {}).get("name", show)
+		game_id = lrrbot.get_game_id()
+		show_id = lrrbot.get_show_id()
+
+		shows = lrrbot.metadata.tables["shows"]
+		games = lrrbot.metadata.tables["games"]
+		game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
+		with lrrbot.engine.begin() as conn:
+			show = conn.execute(sqlalchemy.select([shows.c.name])
+				.where(shows.c.id == show_id)
+				.where(shows.c.string_id != "")).first()
+			if show is not None:
+				show, = show
+
+			if game_id is not None:
+				game, = conn.execute(sqlalchemy.select([
+					sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name)
+				]).select_from(
+					games.outerjoin(game_per_show_data,
+						(game_per_show_data.c.game_id == games.c.id) &
+							(game_per_show_data.c.show_id == show_id))
+				).where(games.c.id == game_id)).first()
+			else:
+				game = None
+
 		if game and show:
 			messages.append("Currently playing %s on %s." % (game, show))
 		elif game:

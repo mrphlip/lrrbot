@@ -18,6 +18,7 @@ from common import utils
 from common.config import config
 from common import twitch
 from common import slack
+from common import game_data
 from lrrbot import chatlog, storage, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
 from lrrbot import spam
 from lrrbot import command_parser
@@ -95,10 +96,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# Set up bot state
 		self.game_override = None
 		self.show_override = None
-		self.calendar_override = None
 		self.vote_update = None
 		self.access = "all"
-		self.show = ""
+		self.set_show("")
 		self.polls = []
 		self.cardview = False
 
@@ -271,14 +271,109 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if len(event.arguments) >= 1:
 			chatlog.clear_chat_log(event.arguments[0])
 
-	def get_current_game(self, readonly=True):
-		"""Returns the game currently being played, with caching to avoid hammering the Twitch server"""
-		show = self.show_override or self.show
-		if self.game_override is not None:
-			game_obj = {'_id': self.game_override, 'name': self.game_override, 'is_override': True}
-			return storage.find_game(show, game_obj, readonly)
+	@utils.cache(twitch.GAME_CHECK_INTERVAL)
+	def get_game_id(self):
+		if self.game_override is None:
+			game = twitch.get_game_playing()
+			if game is None:
+				return None
+			game_id, game_name = game["_id"], game["name"]
+
+			games = self.metadata.tables["games"]
+			with self.engine.begin() as conn:
+				game_data.lock_tables(conn, self.metadata)
+				old_id = conn.execute(sqlalchemy.select([games.c.id]).where(games.c.name == game_name)).first()
+				if old_id is None:
+					conn.execute(games.insert(), {
+						games.c.id: game_id,
+						games.c.name: game_name
+					})
+				else:
+					old_id, = old_id
+					conn.execute("""
+						INSERT INTO games (
+							id,
+							name
+						) VALUES (
+							%(id)s,
+							%(name)s
+						) ON CONFLICT (id) DO NOTHING
+					""", {
+						"id": game_id,
+						"name": "__LRRBOT_TEMP_GAME_%s__" % game_name,
+					})
+					game_data.merge_games(conn, self.metadata, old_id, game_id, game_id)
+					conn.execute(games.update().where(games.c.id == game_id), {
+						"name": game_name,
+					})
+			return game_id
+		return self.game_override
+
+	def override_game(self, name):
+		"""
+			Override current game.
+
+			`name`: Name of the game or `None` to disable override
+		"""
+		if name is None:
+			self.game_override = None
 		else:
-			return storage.find_game(show, twitch.get_game_playing(), readonly)
+			games = self.metadata.tables["games"]
+			with self.engine.begin() as conn:
+				# need to update to get the `id`
+				self.game_override, = conn.execute("""
+					INSERT INTO games (
+						name
+					) VALUES (
+						%(name)s
+					) ON CONFLICT (name) DO UPDATE SET
+						name = EXCLUDED.name
+					RETURNING id
+				""", {
+					"name": name,
+				}).first()
+		self.get_game_id.reset_throttle()
+
+	def get_show_id(self):
+		if self.show_override is None:
+			return self.show_id
+		return self.show_override
+
+	def set_show(self, string_id):
+		"""
+			Set current show.
+		"""
+		with self.engine.begin() as conn:
+			# need to update to get the `id`
+			self.show_id, = conn.execute("""
+				INSERT INTO shows (
+					string_id,
+					name
+				) VALUES (
+					%(string_id)s,
+					%(string_id)s
+				) ON CONFLICT (string_id) DO UPDATE SET
+					string_id = EXCLUDED.string_id
+				RETURNING id
+			""", {
+				"string_id": string_id,
+			}).first()
+
+	def override_show(self, string_id):
+		"""
+			Override current show.
+		"""
+		if string_id is None:
+			self.show_override = None
+		else:
+			shows = self.metadata.tables["shows"]
+			with self.engine.begin() as conn:
+				show_id = conn.execute(sqlalchemy.select([shows.c.id])
+					.where(shows.c.string_id == string_id)).first()
+				if show_id is None:
+					raise KeyError(string_id)
+				self.show_override, = show_id
+
 
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""

@@ -24,8 +24,6 @@ import common.time
 import common.utils
 import lrrbot.decorators
 from lrrbot.main import bot
-from lrrbot.commands.game import game_name
-from lrrbot.commands.show import show_name
 
 import sqlalchemy
 
@@ -58,17 +56,22 @@ def quote(lrrbot, conn, event, respond_to, meta_param, meta_value, qid, attrib):
 	Post the quotation with the specified ID.
 	"""
 	quotes = lrrbot.metadata.tables["quotes"]
+	games = lrrbot.metadata.tables["games"]
+	shows = lrrbot.metadata.tables["shows"]
 	query = sqlalchemy.select([quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date, quotes.c.context])
+	source = quotes
 	if qid:
 		query = query.where(quotes.c.id == int(qid))
 	elif meta_param:
 		if meta_param == "game":
-			query = query.where(quotes.c.game.ilike("%" + common.postgres.escape_like(meta_value.lower()) + "%"))
+			query = query.where(games.c.name.ilike("%" + common.postgres.escape_like(meta_value.lower()) + "%"))
+			source = source.join(games, games.c.id == quotes.c.game_id)
 		elif meta_param == "show":
-			query = query.where(quotes.c.show.ilike("%" + common.postgres.escape_like(meta_value.lower()) + "%"))
+			query = query.where(shows.c.name.ilike("%" + common.postgres.escape_like(meta_value.lower()) + "%"))
+			source = source.join(shows, shows.c.id == quotes.c.show_id)
 	elif attrib:
 		query = query.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(attrib.lower()) + "%"))
-	query = query.where(~quotes.c.deleted)
+	query = query.select_from(source).where(~quotes.c.deleted)
 	with lrrbot.engine.begin() as pg_conn:
 		row = common.utils.pick_random_elements(pg_conn.execute(query), 1)[0]
 	if row is None:
@@ -97,10 +100,10 @@ def addquote(lrrbot, conn, event, respond_to, name, date, quote, context):
 		except ValueError:
 			return conn.privmsg(respond_to, "Could not add quote due to invalid date.")
 	quotes = lrrbot.metadata.tables["quotes"]
-	game = game_name(lrrbot.get_current_game()) if lrrbot.get_current_game() else None;
-	show = show_name(lrrbot.show_override) if lrrbot.show_override else show_name(lrrbot.show) if lrrbot.show else None
+	game_id = lrrbot.get_game_id()
+	show_id = lrrbot.get_show_id()
 	with lrrbot.engine.begin() as pg_conn:
-		qid, = pg_conn.execute(quotes.insert().returning(quotes.c.id), quote=quote, attrib_name=name, attrib_date=date, context=context, game=game, show=show).first()
+		qid, = pg_conn.execute(quotes.insert().returning(quotes.c.id), quote=quote, attrib_name=name, attrib_date=date, context=context, game_id=game_id, show_id=show_id).first()
 
 	conn.privmsg(respond_to, format_quote("New quote", qid, quote, name, date, context))
 
@@ -159,7 +162,7 @@ def findquote(lrrbot, conn, event, respond_to, query):
 	Section: quotes
 
 	Search for a quote in the quote database.
-	""" 
+	"""
 
 	quotes = lrrbot.metadata.tables["quotes"]
 	with lrrbot.engine.begin() as pg_conn:
