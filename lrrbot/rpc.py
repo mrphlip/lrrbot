@@ -133,7 +133,7 @@ def get_commands(bot, user, data):
 
 @global_function()
 def get_header_info(lrrbot, user, data):
-	live = twitch.is_stream_live() or True
+	live = twitch.is_stream_live()
 	game_id = lrrbot.get_game_id()
 
 	data = {
