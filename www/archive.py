@@ -84,7 +84,11 @@ def archive_feed_data_html(channel, broadcasts, rss):
 	# Deep copy so we don't modify the cached data
 	data = copy.deepcopy(archive_feed_data(channel, broadcasts))
 	for vid in data:
-		vid['thumbnails'] = [i for i in vid['thumbnails'] if i['url'] != vid['preview']]
+		# For new clips, sometimes: vid['thumbnails'] == "https://www.twitch.tv/images/xarth/404_processing_320x240.png"
+		if isinstance(vid['thumbnails'], list):
+			vid['thumbnails'] = [i for i in vid['thumbnails'] if i['url'] != vid['preview']]
+		else:
+			vid['thumbnails'] = []
 		vid['html'] = flask.render_template("archive_video.html", vid=vid, rss=rss)
 	return data
 
