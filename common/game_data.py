@@ -20,7 +20,8 @@ def merge_games(conn, metadata, old_id, new_id, result_id):
 	"""
 
 	if old_id == result_id and new_id == result_id:
-		return
+		#return
+		pass
 
 	quotes = metadata.tables["quotes"]
 	conn.execute(quotes.update().where(quotes.c.game_id.in_({old_id, new_id})), {
@@ -28,25 +29,12 @@ def merge_games(conn, metadata, old_id, new_id, result_id):
 	})
 
 	game_stats = metadata.tables["game_stats"]
-	conn.execute("""
-		INSERT INTO game_stats (
-			game_id,
-			show_id,
-			stat_id,
-			count
-		) SELECT
-			%(result_id)s,
-			show_id,
-			stat_id,
-			SUM(count)
-		FROM
-			game_stats
-		WHERE
-			game_id = %(old_id)s OR game_id = %(new_id)s
-		GROUP BY (show_id, stat_id)
-		ON CONFLICT (game_id, show_id, stat_id) DO UPDATE SET
-			count = EXCLUDED.count
-	""", {
+	conn.execute(game_stats.insert(postgresql_on_conflict="update")
+		.from_select(["game_id", "show_id", "stat_id", "count"],
+			sqlalchemy.select([result_id, game_stats.c.show_id, game_stats.c.stat_id, sqlalchemy.func.sum(game_stats.c.count)])
+				.where((game_stats.c.game_id == old_id) | (game_stats.c.game_id == new_id))
+				.group_by(game_stats.c.show_id, game_stats.c.stat_id)
+		), {
 		"result_id": result_id,
 		"old_id": old_id,
 		"new_id": new_id,

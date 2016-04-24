@@ -74,21 +74,9 @@ def votes(session):
 @server.app.route('/votes/submit', methods=['POST'])
 @login.require_login
 def vote_submit(session):
+	game_votes = server.db.metadata.tables["game_votes"]
 	with server.db.engine.begin() as conn:
-		conn.execute("""
-			INSERT INTO game_votes (
-				game_id,
-				show_id,
-				user_id,
-				vote
-			) VALUES (
-				%(game_id)s,
-				%(show_id)s,
-				%(user_id)s,
-				%(vote)s
-			) ON CONFLICT (game_id, show_id, user_id) DO UPDATE SET
-				vote = EXCLUDED.vote
-		""", {
+		conn.execute(game_votes.insert(postgresql_on_conflict="update"), {
 			"game_id": int(flask.request.values['id']),
 			"show_id": int(flask.request.values['show']),
 			"user_id": session["user"]["id"],
