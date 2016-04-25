@@ -284,8 +284,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				old_id = conn.execute(sqlalchemy.select([games.c.id]).where(games.c.name == game_name)).first()
 				if old_id is None:
 					conn.execute(games.insert(), {
-						games.c.id: game_id,
-						games.c.name: game_name
+						"id": game_id,
+						"name": game_name
 					})
 				else:
 					old_id, = old_id
