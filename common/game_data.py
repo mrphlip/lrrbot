@@ -20,8 +20,7 @@ def merge_games(conn, metadata, old_id, new_id, result_id):
 	"""
 
 	if old_id == result_id and new_id == result_id:
-		#return
-		pass
+		return
 
 	quotes = metadata.tables["quotes"]
 	conn.execute(quotes.update().where(quotes.c.game_id.in_({old_id, new_id})), {
