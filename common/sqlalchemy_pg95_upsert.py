@@ -110,299 +110,294 @@ ISUPDATE = util.symbol('ISUPDATE')
 ISDELETE = util.symbol('ISDELETE')
 
 def _setup_crud_params(compiler, stmt, local_stmt_type, **kw):
-    restore_isinsert = compiler.isinsert
-    restore_isupdate = compiler.isupdate
-    restore_isdelete = compiler.isdelete
+	restore_isinsert = compiler.isinsert
+	restore_isupdate = compiler.isupdate
+	restore_isdelete = compiler.isdelete
 
-    should_restore = (
-        restore_isinsert or restore_isupdate or restore_isdelete
-    ) or len(compiler.stack) > 1
+	should_restore = (
+		restore_isinsert or restore_isupdate or restore_isdelete
+	) or len(compiler.stack) > 1
 
-    if local_stmt_type is ISINSERT:
-        compiler.isupdate = False
-        compiler.isinsert = True
-    elif local_stmt_type is ISUPDATE:
-        compiler.isupdate = True
-        compiler.isinsert = False
-    elif local_stmt_type is ISDELETE:
-        if not should_restore:
-            compiler.isdelete = True
-    else:
-        assert False, "ISINSERT, ISUPDATE, or ISDELETE expected"
+	if local_stmt_type is ISINSERT:
+		compiler.isupdate = False
+		compiler.isinsert = True
+	elif local_stmt_type is ISUPDATE:
+		compiler.isupdate = True
+		compiler.isinsert = False
+	elif local_stmt_type is ISDELETE:
+		if not should_restore:
+			compiler.isdelete = True
+	else:
+		assert False, "ISINSERT, ISUPDATE, or ISDELETE expected"
 
-    try:
-        if local_stmt_type in (ISINSERT, ISUPDATE):
-            return crud._get_crud_params(compiler, stmt, **kw)
-    finally:
-        if should_restore:
-            compiler.isinsert = restore_isinsert
-            compiler.isupdate = restore_isupdate
-            compiler.isdelete = restore_isdelete
+	try:
+		if local_stmt_type in (ISINSERT, ISUPDATE):
+			return crud._get_crud_params(compiler, stmt, **kw)
+	finally:
+		if should_restore:
+			compiler.isinsert = restore_isinsert
+			compiler.isupdate = restore_isupdate
+			compiler.isdelete = restore_isdelete
 
 def visit_insert(self, insert_stmt, asfrom=False, **kw):
-    toplevel = not self.stack
+	toplevel = not self.stack
 
-    self.stack.append({
-        'correlate_froms': set(),
-        "asfrom_froms": set(),
-        "selectable": insert_stmt
-    })
+	self.stack.append({
+		'correlate_froms': set(),
+		"asfrom_froms": set(),
+		"selectable": insert_stmt
+	})
 
-    crud_params = _setup_crud_params(self, insert_stmt, ISINSERT, **kw)
+	crud_params = _setup_crud_params(self, insert_stmt, ISINSERT, **kw)
 
-    if not crud_params and \
-            not self.dialect.supports_default_values and \
-            not self.dialect.supports_empty_insert:
-        raise exc.CompileError("The '%s' dialect with current database version settings does not "
-                               "support empty inserts." % self.dialect.name)
+	if not crud_params and \
+			not self.dialect.supports_default_values and \
+			not self.dialect.supports_empty_insert:
+		raise exc.CompileError("The '%s' dialect with current database version settings does not "
+		                       "support empty inserts." % self.dialect.name)
 
-    if insert_stmt._has_multi_parameters:
-        if not self.dialect.supports_multivalues_insert:
-            raise exc.CompileError("The '%s' dialect with current database version settings does "
-                                   "not support in-place multirow inserts." % self.dialect.name)
-        crud_params_single = crud_params[0]
-    else:
-        crud_params_single = crud_params
+	if insert_stmt._has_multi_parameters:
+		if not self.dialect.supports_multivalues_insert:
+			raise exc.CompileError("The '%s' dialect with current database version settings does "
+			                       "not support in-place multirow inserts." % self.dialect.name)
+		crud_params_single = crud_params[0]
+	else:
+		crud_params_single = crud_params
 
-    preparer = self.preparer
-    supports_default_values = self.dialect.supports_default_values
+	preparer = self.preparer
+	supports_default_values = self.dialect.supports_default_values
 
-    text = "INSERT "
+	text = "INSERT "
 
-    if insert_stmt._prefixes:
-        text += self._generate_prefixes(insert_stmt, insert_stmt._prefixes, **kw)
+	if insert_stmt._prefixes:
+		text += self._generate_prefixes(insert_stmt, insert_stmt._prefixes, **kw)
 
-    text += "INTO "
-    table_text = preparer.format_table(insert_stmt.table)
+	text += "INTO "
+	table_text = preparer.format_table(insert_stmt.table)
 
-    if insert_stmt._hints:
-        dialect_hints, table_text = self._setup_crud_hints(insert_stmt, table_text)
-    else:
-        dialect_hints = None
+	if insert_stmt._hints:
+		dialect_hints, table_text = self._setup_crud_hints(insert_stmt, table_text)
+	else:
+		dialect_hints = None
 
-    text += table_text
+	text += table_text
 
-    if crud_params_single or not supports_default_values:
-        text += " (%s)" % ', '.join([preparer.format_column(c[0]) for c in crud_params_single])
+	if crud_params_single or not supports_default_values:
+		text += " (%s)" % ', '.join([preparer.format_column(c[0]) for c in crud_params_single])
 
-    if self.returning or insert_stmt._returning:
-        returning_clause = self.returning_clause(insert_stmt,
-                                                 self.returning or insert_stmt._returning)
+	if self.returning or insert_stmt._returning:
+		returning_clause = self.returning_clause(insert_stmt,
+		                                         self.returning or insert_stmt._returning)
 
-        if self.returning_precedes_values:
-            text += " " + returning_clause
-    else:
-        returning_clause = None
+		if self.returning_precedes_values:
+			text += " " + returning_clause
+	else:
+		returning_clause = None
 
-    if insert_stmt.select is not None:
-        text += " %s" % self.process(self._insert_from_select, **kw)
-    elif not crud_params and supports_default_values:
-        text += " DEFAULT VALUES"
-    elif insert_stmt._has_multi_parameters:
-        text += " VALUES %s" % (
-            ", ".join(
-                "(%s)" % (
-                    ', '.join(c[1] for c in crud_param_set)
-                )
-                for crud_param_set in crud_params
-            )
-        )
-    else:
-        text += " VALUES (%s)" % ', '.join([c[1] for c in crud_params])
+	if insert_stmt.select is not None:
+		text += " %s" % self.process(self._insert_from_select, **kw)
+	elif not crud_params and supports_default_values:
+		text += " DEFAULT VALUES"
+	elif insert_stmt._has_multi_parameters:
+		text += " VALUES %s" % (
+			", ".join(
+				"(%s)" % (', '.join(c[1] for c in crud_param_set))
+				for crud_param_set in crud_params
+			)
+		)
+	else:
+		text += " VALUES (%s)" % ', '.join([c[1] for c in crud_params])
 
-    on_conflict_option = resolve_on_conflict_option(
-        insert_stmt.dialect_options['postgresql']['on_conflict'],
-        crud_params_single
-    )
-    if on_conflict_option is not None:
-        text += " " + self.process(on_conflict_option)
+	on_conflict_option = resolve_on_conflict_option(
+		insert_stmt.dialect_options['postgresql']['on_conflict'],
+		crud_params_single
+	)
+	if on_conflict_option is not None:
+		text += " " + self.process(on_conflict_option)
 
-    if returning_clause and not self.returning_precedes_values:
-        text += " " + returning_clause
+	if returning_clause and not self.returning_precedes_values:
+		text += " " + returning_clause
 
-    if self.ctes and toplevel:
-        text = self._render_cte_clause() + text
+	if self.ctes and toplevel:
+		text = self._render_cte_clause() + text
 
-    self.stack.pop(-1)
+	self.stack.pop(-1)
 
-    if asfrom:
-        return "(" + text + ")"
-    else:
-        return text
+	if asfrom:
+		return "(" + text + ")"
+	else:
+		return text
 
 class _EXCLUDED:
-    pass
+	pass
 
 def resolve_on_conflict_option(option_value, crud_columns):
-    if option_value is None:
-        return None
-    if isinstance(option_value, OnConflictAction):
-        return option_value
-    if str(option_value) == 'update':
-        if not crud_columns:
-            raise CompileError("Cannot compile postgresql_on_conflict='update' option when no insert columns are available")
-        crud_table_pk = crud_columns[0][0].table.primary_key
-        if not crud_table_pk.columns:
-            raise CompileError("Cannot compile postgresql_on_conflict='update' option when no target table has no primary key column(s)")
-        return DoUpdate(crud_table_pk.columns.values()).set_with_excluded(
-            *[c[0] for c in crud_columns if not crud_table_pk.contains_column(c[0])]
-        )
-    if str(option_value) == 'nothing':
-        return DoNothing()
+	if option_value is None:
+		return None
+	if isinstance(option_value, OnConflictAction):
+		return option_value
+	if str(option_value) == 'update':
+		if not crud_columns:
+			raise CompileError("Cannot compile postgresql_on_conflict='update' option when no insert columns are available")
+		crud_table_pk = crud_columns[0][0].table.primary_key
+		if not crud_table_pk.columns:
+			raise CompileError("Cannot compile postgresql_on_conflict='update' option when no target table has no primary key column(s)")
+		return DoUpdate(crud_table_pk.columns.values()).set_with_excluded(
+			*[c[0] for c in crud_columns if not crud_table_pk.contains_column(c[0])]
+		)
+	if str(option_value) == 'nothing':
+		return DoNothing()
 
 class OnConflictAction(ClauseElement):
-    def __init__(self, conflict_target):
-        super(OnConflictAction, self).__init__()
-        self.conflict_target = conflict_target
+	def __init__(self, conflict_target):
+		super(OnConflictAction, self).__init__()
+		self.conflict_target = conflict_target
 
 class DoUpdate(OnConflictAction):
-    def __init__(self, conflict_target):
-        super(DoUpdate, self).__init__(ConflictTarget(conflict_target))
-        if not self.conflict_target.contents:
-            raise ValueError("conflict_target may not be None or empty for DoUpdate")
-        self.values_to_set = {}
+	def __init__(self, conflict_target):
+		super(DoUpdate, self).__init__(ConflictTarget(conflict_target))
+		if not self.conflict_target.contents:
+			raise ValueError("conflict_target may not be None or empty for DoUpdate")
+		self.values_to_set = {}
 
-    def set_with_excluded(self, *columns):
-        for col in columns:
-            if not isinstance(col, (ColumnClause, str)):
-                raise ValueError("column arguments must be ColumnClause objects or str object with column name: %r" % col)
-            self.values_to_set[col] = _EXCLUDED
-        return self
+	def set_with_excluded(self, *columns):
+		for col in columns:
+			if not isinstance(col, (ColumnClause, str)):
+				raise ValueError("column arguments must be ColumnClause objects or str object with column name: %r" % col)
+			self.values_to_set[col] = _EXCLUDED
+		return self
 
-    def set(self, **columns):
-        for col, value in columns.items():
-            if not isinstance(value, ColumnElement):
-                raise ValueError("value arguments must be ColumnElement objects: %r" % value)
-            self.values_to_set[col] = value
-        return self
+	def set(self, **columns):
+		for col, value in columns.items():
+			if not isinstance(value, ColumnElement):
+				raise ValueError("value arguments must be ColumnElement objects: %r" % value)
+			self.values_to_set[col] = value
+		return self
 
 class DoNothing(OnConflictAction):
-    def __init__(self, conflict_target=None):
-        super(DoNothing, self).__init__(ConflictTarget(conflict_target) if conflict_target else None)
+	def __init__(self, conflict_target=None):
+		super(DoNothing, self).__init__(ConflictTarget(conflict_target) if conflict_target else None)
 
 class ConflictTarget(ClauseElement):
-    """
-    A ConflictTarget represents the targeted constraint that will be used to determine
-    when a row proposed for insertion is in conflict and should be handled as specified
-    in the OnConflictAction.
+	"""
+	A ConflictTarget represents the targeted constraint that will be used to determine
+	when a row proposed for insertion is in conflict and should be handled as specified
+	in the OnConflictAction.
 
-    A target can be one of the following:
+	A target can be one of the following:
 
-    - A column or list of columns, either column objects or strings, that together
-      represent a unique or primary key constraint on the table. The compiler
-      will produce a list like `(col1, col2, col3)` as the conflict target SQL clause.
+	- A column or list of columns, either column objects or strings, that together
+	  represent a unique or primary key constraint on the table. The compiler
+	  will produce a list like `(col1, col2, col3)` as the conflict target SQL clause.
 
-    - A single PrimaryKeyConstraint or UniqueConstraint object representing the constraint
-      used to detect the conflict. If the object has a :attr:`.name` attribute,
-      the compiler will produce `ON CONSTRAINT constraint_name` as the conflict target
-      SQL clause. If the constraint lacks a `.name` attribute, a list of its
-      constituent columns, like `(col1, col2, col3)` will be used.
+	- A single PrimaryKeyConstraint or UniqueConstraint object representing the constraint
+	  used to detect the conflict. If the object has a :attr:`.name` attribute,
+	  the compiler will produce `ON CONSTRAINT constraint_name` as the conflict target
+	  SQL clause. If the constraint lacks a `.name` attribute, a list of its
+	  constituent columns, like `(col1, col2, col3)` will be used.
 
-    - An single :class:`Index` object representing the index used to detect the conflict.
-      Use this in place of the Constraint objects mentioned above if you require
-      the clauses of a conflict target specific to index definitions -- collation,
-      opclass used to detect conflict, and WHERE clauses for partial indexes.
-    """
-    def __init__(self, contents):
-        if isinstance(contents, (str, ColumnClause)):
-            self.contents = (contents,)
-        elif isinstance(contents, (list, tuple)):
-            if not contents:
-                raise ValueError("list of column arguments cannot be empty")
-            for c in contents:
-                if not isinstance(c, (str, ColumnClause)):
-                    raise ValueError("column arguments must be ColumnClause objects or str object with column name: %r" % c)
-            self.contents = tuple(contents)
-        elif isinstance(contents, (PrimaryKeyConstraint, UniqueConstraint, Index)):
-            self.contents = contents
-        else:
-            raise ValueError(
-                "ConflictTarget contents must be single Column/str, "
-                "sequence of Column/str; or a PrimaryKeyConsraint, UniqueConstraint, or Index")
+	- An single :class:`Index` object representing the index used to detect the conflict.
+	  Use this in place of the Constraint objects mentioned above if you require
+	  the clauses of a conflict target specific to index definitions -- collation,
+	  opclass used to detect conflict, and WHERE clauses for partial indexes.
+	"""
+	def __init__(self, contents):
+		if isinstance(contents, (str, ColumnClause)):
+			self.contents = (contents,)
+		elif isinstance(contents, (list, tuple)):
+			if not contents:
+				raise ValueError("list of column arguments cannot be empty")
+			for c in contents:
+				if not isinstance(c, (str, ColumnClause)):
+					raise ValueError("column arguments must be ColumnClause objects or str object with column name: %r" % c)
+			self.contents = tuple(contents)
+		elif isinstance(contents, (PrimaryKeyConstraint, UniqueConstraint, Index)):
+			self.contents = contents
+		else:
+			raise ValueError(
+				"ConflictTarget contents must be single Column/str, "
+				"sequence of Column/str; or a PrimaryKeyConsraint, UniqueConstraint, or Index")
 
 @compiles(ConflictTarget)
 def compile_conflict_target(conflict_target, compiler, **kw):
-    target = conflict_target.contents
-    if isinstance(target, (PrimaryKeyConstraint, UniqueConstraint)):
-        fmt_cnst = None
-        if target.name is not None:
-            fmt_cnst = compiler.preparer.format_constraint(target)
-        if fmt_cnst is not None:
-            return "ON CONSTRAINT %s" % fmt_cnst
-        else:
-            return "(" + (", ".join(compiler.preparer.format_column(i) for i in target.columns.values())) + ")"
-    if isinstance(target, (str, ColumnClause)):
-        return "(" + compiler.preparer.format_column(target) + ")"
-    if isinstance(target, (list, tuple)):
-        return "(" + (", ".join(compiler.preparer.format_column(i) for i in target)) + ")"
-    if isinstance(target, Index):
-        # columns required first.
-        ops = target.dialect_options["postgresql"]["ops"]
-        text = "(%s)" \
-                % (
-                    ', '.join([
-                        compiler.process(
-                            expr.self_group()
-                            if not isinstance(expr, ColumnClause)
-                            else expr,
-                            include_table=False, literal_binds=True) +
-                        (
-                            (' ' + ops[expr.key])
-                            if hasattr(expr, 'key')
-                            and expr.key in ops else ''
-                        )
-                        for expr in target.expressions
-                    ])
-                )
+	target = conflict_target.contents
+	if isinstance(target, (PrimaryKeyConstraint, UniqueConstraint)):
+		fmt_cnst = None
+		if target.name is not None:
+			fmt_cnst = compiler.preparer.format_constraint(target)
+		if fmt_cnst is not None:
+			return "ON CONSTRAINT %s" % fmt_cnst
+		else:
+			return "(" + (", ".join(compiler.preparer.format_column(i) for i in target.columns.values())) + ")"
+	if isinstance(target, (str, ColumnClause)):
+		return "(" + compiler.preparer.format_column(target) + ")"
+	if isinstance(target, (list, tuple)):
+		return "(" + (", ".join(compiler.preparer.format_column(i) for i in target)) + ")"
+	if isinstance(target, Index):
+		# columns required first.
+		ops = target.dialect_options["postgresql"]["ops"]
+		text = "(%s)" \
+				% (
+					', '.join([
+						compiler.process(
+							expr.self_group()
+							if not isinstance(expr, ColumnClause)
+							else expr,
+							include_table=False, literal_binds=True) +
+						(
+							(' ' + ops[expr.key])
+							if hasattr(expr, 'key')
+							and expr.key in ops else ''
+						)
+						for expr in target.expressions
+					])
+				)
 
-        whereclause = target.dialect_options["postgresql"]["where"]
+		whereclause = target.dialect_options["postgresql"]["where"]
 
-        if whereclause is not None:
-            where_compiled = compiler.process(
-                whereclause, include_table=False,
-                literal_binds=True)
-            text += " WHERE " + where_compiled
-        return text
+		if whereclause is not None:
+			where_compiled = compiler.process(
+				whereclause, include_table=False,
+				literal_binds=True)
+			text += " WHERE " + where_compiled
+		return text
 
 @compiles(DoUpdate)
 def compile_do_update(do_update, compiler, **kw):
-    compiled_cf = compiler.process(do_update.conflict_target)
-    if not compiled_cf:
-        raise CompileError("Cannot have empty conflict_target")
-    text = "ON CONFLICT %s DO UPDATE" % compiled_cf
-    if not do_update.values_to_set:
-        raise CompileEror("Cannot have empty set of values to SET in DO UPDATE")
-    names = []
-    for col, value in do_update.values_to_set.items():
-        fmt_name = compiler.preparer.format_column(col) if isinstance(col, ColumnClause) else col
-        if value is _EXCLUDED:
-            fmt_value = "excluded.%s" % fmt_name
-        elif isinstance(value, ColumnElement):
-            fmt_value = compiler.process(value)
-        else:
-            raise CompileError("Value to SET in DO UPDATE of unsupported type: %r" % value)
-        names.append("%s = %s" % (fmt_name, fmt_value))
-    text += (
-        " SET " +
-        ", ".join(names)
-        )
-    return text
+	compiled_cf = compiler.process(do_update.conflict_target)
+	if not compiled_cf:
+		raise CompileError("Cannot have empty conflict_target")
+	text = "ON CONFLICT %s DO UPDATE" % compiled_cf
+	if not do_update.values_to_set:
+		raise CompileEror("Cannot have empty set of values to SET in DO UPDATE")
+	names = []
+	for col, value in do_update.values_to_set.items():
+		fmt_name = compiler.preparer.format_column(col) if isinstance(col, ColumnClause) else col
+		if value is _EXCLUDED:
+			fmt_value = "excluded.%s" % fmt_name
+		elif isinstance(value, ColumnElement):
+			fmt_value = compiler.process(value)
+		else:
+			raise CompileError("Value to SET in DO UPDATE of unsupported type: %r" % value)
+		names.append("%s = %s" % (fmt_name, fmt_value))
+	text += (" SET " + ", ".join(names))
+	return text
 
 @compiles(DoNothing)
 def compile_do_nothing(do_nothing, compiler, **kw):
-    if do_nothing.conflict_target is not None:
-        return "ON CONFLICT %s DO NOTHING" % compiler.process(do_nothing.conflict_target)
-    else:
-        return "ON CONFLICT DO NOTHING"
+	if do_nothing.conflict_target is not None:
+		return "ON CONFLICT %s DO NOTHING" % compiler.process(do_nothing.conflict_target)
+	else:
+		return "ON CONFLICT DO NOTHING"
 
 
 sqlalchemy.dialects.postgresql.base.PGCompiler.visit_insert = visit_insert
 
 for cls, args in sqlalchemy.dialects.postgresql.base.PGDialect.construct_arguments:
-    if cls == expression.Insert:
-        args["on_conflict"] = None
-        break
+	if cls == expression.Insert:
+		args["on_conflict"] = None
+		break
 else:
-    sqlalchemy.dialects.postgresql.base.PGDialect.construct_arguments.append((
-        expression.Insert, {"on_conflict": None}
-    ))
+	sqlalchemy.dialects.postgresql.base.PGDialect.construct_arguments.append((
+		expression.Insert, {"on_conflict": None}
+	))
