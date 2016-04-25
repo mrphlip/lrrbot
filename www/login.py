@@ -16,15 +16,14 @@ from common import twitch
 from common import game_data
 
 with server.db.engine.begin() as conn:
+	users = server.db.metadata.tables["users"]
 	from_apipass = {
-		# FIXME: Raw SQL query. Needs https://bitbucket.org/zzzeek/sqlalchemy/issues/960
-		key: conn.execute("""
-			INSERT INTO users (id, name, display_name) VALUES (%(_id)s, %(name)s, %(display_name)s)
-			ON CONFLICT (id) DO UPDATE SET
-				name = EXCLUDED.name,
-				display_name = EXCLUDED.display_name
-			RETURNING id
-		""", twitch.get_user(name)).first()[0]
+		key: conn.execute(
+				users.insert(postgresql_on_conflict="update")
+					.values(id=sqlalchemy.bindparam("_id"))
+					.returning(users.c.id),
+			twitch.get_user(name)
+		).first()[0]
 		for key, name in from_apipass.items()
 	}
 
@@ -131,14 +130,12 @@ def load_session(include_url=True, include_header=True):
 	if user_id is None and user_name is not None:
 		# Upgrade old session
 		with server.db.engine.begin() as conn:
-			# FIXME: Raw SQL query. Needs https://bitbucket.org/zzzeek/sqlalchemy/issues/960
-			user_id, = conn.execute("""
-				INSERT INTO users (id, name, display_name) VALUES (%(_id)s, %(name)s, %(display_name)s)
-				ON CONFLICT (id) DO UPDATE SET
-					name = EXCLUDED.name,
-					display_name = EXCLUDED.display_name
-				RETURNING id
-			""", twitch.get_user(user_name)).first()
+			user_id, = conn.execute(
+				users.insert(postgresql_on_conflict="update")
+					.values(id=sqlalchemy.bindparam("_id"))
+					.returning(users.c.id),
+				twitch.get_user(user_name)
+			).first()
 		flask.session["id"] = user_id
 	if 'user' in flask.session:
 		del flask.session["user"]
@@ -312,17 +309,10 @@ def login(return_to=None):
 
 			# Store the user to the database
 			user = twitch.get_user(user_name)
+			user["id"] = user["_id"]
 			user["twitch_oauth"] = access_token
 			with server.db.engine.begin() as conn:
-				# FIXME: Raw SQL query. Needs https://bitbucket.org/zzzeek/sqlalchemy/issues/960
-				conn.execute("""
-					INSERT INTO users (id, name, display_name, twitch_oauth)
-					VALUES (%(_id)s, %(name)s, %(display_name)s, %(twitch_oauth)s)
-					ON CONFLICT (id) DO UPDATE SET
-						name = EXCLUDED.name,
-						display_name = EXCLUDED.display_name,
-						twitch_oauth = EXCLUDED.twitch_oauth
-				""", user)
+				conn.execute(users.insert(postgresql_on_conflict="update"), user)
 
 			# Store the user ID into the session
 			flask.session['id'] = user["_id"]

@@ -1,3 +1,5 @@
+import common.sqlalchemy_pg95_upsert
+
 from flask import Flask
 from flaskext.csrf import csrf
 from flask_sqlalchemy import SQLAlchemy
@@ -33,6 +35,7 @@ class Application(Flask):
 app = Application(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config["postgres"]
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ECHO'] = config["debug"]
 db = SQLAlchemy(app)
 db.engine.update_execution_options(autocommit=False)
 with warnings.catch_warnings():

@@ -19,6 +19,7 @@ from common.config import config
 from common import twitch
 from common import slack
 from common import game_data
+from common.sqlalchemy_pg95_upsert import DoUpdate
 from lrrbot import chatlog, storage, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
 from lrrbot import spam
 from lrrbot import command_parser
@@ -240,17 +241,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		tags["user-id"] = int(tags["user-id"])
 
 		if event.type == "pubmsg":
+			users = self.metadata.tables["users"]
 			with self.engine.begin() as conn:
-				# FIXME: Raw SQL query. Needs https://bitbucket.org/zzzeek/sqlalchemy/issues/960
-				conn.execute("""
-					INSERT INTO users (id, name, display_name, is_sub, is_mod)
-					VALUES (%s, %s, %s, %s, %s)
-					ON CONFLICT (id) DO UPDATE SET
-						name = EXCLUDED.name,
-						display_name = EXCLUDED.display_name,
-						is_sub = EXCLUDED.is_sub,
-						is_mod = EXCLUDED.is_mod
-				""", [tags["user-id"], nick, tags.get("display-name"), is_sub, is_mod])
+				conn.execute(users.insert(postgresql_on_conflict="update"), {
+					"id": tags["user-id"],
+					"name": nick,
+					"display_name": tags.get("display-name"),
+					"is_sub": is_sub,
+					"is_mod": is_mod,
+				})
 		else:
 			users = self.metadata.tables['users']
 			with self.engine.begin() as pg_conn:
@@ -290,15 +289,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					})
 				else:
 					old_id, = old_id
-					conn.execute("""
-						INSERT INTO games (
-							id,
-							name
-						) VALUES (
-							%(id)s,
-							%(name)s
-						) ON CONFLICT (id) DO NOTHING
-					""", {
+					conn.execute(games.insert(postgresql_on_conflict="nothing"), {
 						"id": game_id,
 						"name": "__LRRBOT_TEMP_GAME_%s__" % game_name,
 					})
@@ -321,15 +312,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			games = self.metadata.tables["games"]
 			with self.engine.begin() as conn:
 				# need to update to get the `id`
-				self.game_override, = conn.execute("""
-					INSERT INTO games (
-						name
-					) VALUES (
-						%(name)s
-					) ON CONFLICT (name) DO UPDATE SET
-						name = EXCLUDED.name
-					RETURNING id
-				""", {
+				self.game_override, = conn.execute(
+					games.insert(postgresql_on_conflict=DoUpdate([games.c.name]).set_with_excluded(games.c.name))
+						.returning(games.c.id), {
 					"name": name,
 				}).first()
 		self.get_game_id.reset_throttle()
@@ -343,19 +328,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""
 			Set current show.
 		"""
+		shows = self.metadata.tables["shows"]
 		with self.engine.begin() as conn:
 			# need to update to get the `id`
-			self.show_id, = conn.execute("""
-				INSERT INTO shows (
-					string_id,
-					name
-				) VALUES (
-					%(string_id)s,
-					%(string_id)s
-				) ON CONFLICT (string_id) DO UPDATE SET
-					string_id = EXCLUDED.string_id
-				RETURNING id
-			""", {
+			self.show_id, = conn.execute(shows.insert(postgresql_on_conflict=DoUpdate([shows.c.string_id])
+					.set_with_excluded(shows.c.string_id)).returning(shows.c.id), {
+				"name": string_id,
 				"string_id": string_id,
 			}).first()
 

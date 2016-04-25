@@ -3,6 +3,7 @@ import sqlalchemy
 
 from common import game_data
 
+from common.sqlalchemy_pg95_upsert import DoUpdate
 import lrrbot.decorators
 from lrrbot import storage
 from lrrbot.main import bot
@@ -12,20 +13,10 @@ with bot.engine.begin() as conn:
 	re_stats = "|".join(stats)
 
 def stat_increment(lrrbot, conn, game_id, show_id, stat_id, n):
-	conn.execute("""
-		INSERT INTO game_stats (
-			game_id,
-			show_id,
-			stat_id,
-			count
-		) VALUES (
-			%(game_id)s,
-			%(show_id)s,
-			%(stat_id)s,
-			%(count)s
-		) ON CONFLICT (game_id, show_id, stat_id) DO UPDATE SET
-			count = game_stats.count + EXCLUDED.count
-	""", {
+	game_stats = lrrbot.metadata.tables["game_stats"]
+	do_update = DoUpdate([game_stats.c.game_id, game_stats.c.show_id, game_stats.c.stat_id]) \
+		.set(count=game_stats.c.count + sqlalchemy.literal_column("EXCLUDED.count"))
+	conn.execute(game_stats.insert(postgresql_on_conflict=do_update), {
 		"game_id": game_id,
 		"show_id": show_id,
 		"stat_id": stat_id,
@@ -33,20 +24,8 @@ def stat_increment(lrrbot, conn, game_id, show_id, stat_id, n):
 	})
 
 def stat_set(lrrbot, conn, game_id, show_id, stat_id, n):
-	conn.execute("""
-		INSERT INTO game_stats (
-			game_id,
-			show_id,
-			stat_id,
-			count
-		) VALUES (
-			%(game_id)s,
-			%(show_id)s,
-			%(stat_id)s,
-			%(count)s
-		) ON CONFLICT (game_id, show_id, stat_id) DO UPDATE SET
-			count = EXCLUDED.count
-	""", {
+	game_stats = lrrbot.metadata.tables["game_stats"]
+	conn.execute(game_stats.insert(postgresql_on_conflict="update"), {
 		"game_id": game_id,
 		"show_id": show_id,
 		"stat_id": stat_id,

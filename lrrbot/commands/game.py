@@ -67,21 +67,9 @@ def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
 	show_id = lrrbot.get_show_id()
+	game_votes = lrrbot.metadata.tables["game_votes"]
 	with lrrbot.engine.begin() as pg_conn:
-		pg_conn.execute("""
-			INSERT INTO game_votes (
-				game_id,
-				show_id,
-				user_id,
-				vote
-			) VALUES (
-				%(game_id)s,
-				%(show_id)s,
-				%(user_id)s,
-				%(vote)s
-			) ON CONFLICT (game_id, show_id, user_id) DO UPDATE SET
-				vote = EXCLUDED.vote
-		""", {
+		pg_conn.execute(game_votes.insert(postgresql_on_conflict="update"), {
 			"game_id": game_id,
 			"show_id": show_id,
 			"user_id": event.tags["user-id"],
@@ -145,18 +133,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 	game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
 	with lrrbot.engine.begin() as pg_conn:
 		real_name, = pg_conn.execute(sqlalchemy.select([games.c.name]).where(games.c.id == game_id)).first()
-		pg_conn.execute("""
-			INSERT INTO game_per_show_data (
-				game_id,
-				show_id,
-				display_name
-			) VALUES (
-				%(game_id)s,
-				%(show_id)s,
-				%(display_name)s
-			) ON CONFLICT (game_id, show_id) DO UPDATE SET
-				display_name = EXCLUDED.display_name
-		""", {
+		pg_conn.execute(game_per_show_data.insert(postgresql_on_conflict="update"), {
 			"game_id": game_id,
 			"show_id": show_id,
 			"display_name": name if real_name != name else None,
