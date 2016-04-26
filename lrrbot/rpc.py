@@ -203,7 +203,7 @@ def get_tweet(bot, user, data):
 				sqlalchemy.select([
 					sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
 					shows.name,
-					game_data.stats_plural(stats, game_stats.c.count),
+					game_data.stat_plural(stats, game_stats.c.count),
 					game_stats.c.count,
 					sqlalchemy.func.log(game_stats.c.count)
 				]).select_from(
