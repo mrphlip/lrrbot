@@ -179,7 +179,7 @@ def load_session(include_url=True, include_header=True):
 					good,
 					sqlalchemy.func.count(game_votes.c.vote),
 				]).where(game_votes.c.game_id == game_id).where(game_votes.c.show_id == show_id)).first()
-				if rating is not None:
+				if rating[0] is not None and rating[1] is not None:
 					session['header']['current_game']["rating"] = {
 						'perc': rating[0],
 						'good': rating[1],
