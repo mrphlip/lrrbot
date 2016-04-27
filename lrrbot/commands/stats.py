@@ -39,7 +39,7 @@ def stat_print(lrrbot, conn, respond_to, pg_conn, game_id, show_id, stat_id, wit
 	stats = lrrbot.metadata.tables["stats"]
 	shows = lrrbot.metadata.tables["shows"]
 
-	game, stat, count, show, emote = pg_conn.execute(
+	res = pg_conn.execute(
 		sqlalchemy.select([
 			sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
 			game_data.stat_plural(stats, game_stats.c.count),
@@ -58,6 +58,25 @@ def stat_print(lrrbot, conn, respond_to, pg_conn, game_id, show_id, stat_id, wit
 		.where(game_stats.c.show_id == show_id)
 		.where(game_stats.c.stat_id == stat_id)
 	).first()
+	if res is None:
+		res = pg_conn.execute(
+			sqlalchemy.select([
+				sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
+				game_data.stat_plural(stats, 0),
+				0,
+				shows.c.name,
+				stats.c.emote,
+			]).select_from(
+				games
+					.join(shows, shows.c.id == show_id)
+					.join(stats, stats.c.id == stat_id)
+					.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == games.c.id) & (game_per_show_data.c.show_id == shows.c.id))
+			)
+				.where(games.c.id == game_id)
+				.where(shows.c.id == show_id)
+				.where(stats.c.id == stat_id)
+		).first()
+	game, stat, count, show, emote = res
 	if with_emote and emote is not None:
 		emote = emote + " "
 	else:
