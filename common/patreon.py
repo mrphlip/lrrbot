@@ -31,28 +31,28 @@ def get_token(engine, metadata, user):
 			raise Exception("`user` not an ID nor a name")
 
 	users = metadata.tables["users"]
+	patreon_users = metadata.tables["patreon_users"]
 	with engine.begin() as conn:
 		query = sqlalchemy.select([
-			users.c.patreon_access_token,
-			users.c.patreon_refresh_token,
-			users.c.patreon_token_expires
+			patreon_users.c.id,
+			patreon_users.c.access_token,
+			patreon_users.c.refresh_token,
+			patreon_users.c.token_expires,
 		])
 		query = filter_by_user(query, user)
-		row = conn.execute(query).first()
+		row = conn.execute(query.select_from(users.join(patreon_users, users.c.patreon_user == patreon_users.c.id))).first()
 		if row is None:
 			raise Exception("User not logged in")
-		access_token, refresh_token, expiry = row
+		patreon_id, access_token, refresh_token, expiry = row
 		if access_token is None:
 			raise Exception("User not logged in")
 	if expiry < datetime.datetime.now(pytz.utc):
 		access_token, refresh_token, expiry = yield from request_token("refresh_token", refresh_token=refresh_token)
 		with engine.begin() as conn:
-			query = users.update()
-			query = filter_by_user(query, user)
-			conn.execute(query,
-				patreon_access_token=access_token,
-				patreon_refresh_token=refresh_token,
-				patreon_token_expires=expiry,
+			conn.execute(patreon_users.update().where(patreon_users.c.id == patreon_id),
+				access_token=access_token,
+				refresh_token=refresh_token,
+				token_expires=expiry,
 			)
 
 	return access_token

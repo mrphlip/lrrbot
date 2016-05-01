@@ -39,9 +39,10 @@ def get_patreon_info(lrrbot, conn, event, respond_to):
 	next_goals.sort(key=lambda goal: goal["attributes"]["amount_cents"])
 
 	if len(next_goals) > 0:
-		next_goal = " Next goal \"%s\" at $%.2f per %s." % (
+		next_goal = " Next goal \"%s\" at %s per %s." % (
 			next_goals[0]["attributes"]["title"],
-			next_goals[0]["attributes"]["amount_cents"] / 100,
+			# `printf`-style formatting doesn't support thousands separators
+			"${:,.2f}".format(next_goals[0]["attributes"]["amount_cents"] / 100),
 			campaign["pay_per_name"]
 		)
 	else:
