@@ -13,10 +13,11 @@ def get_patreon_info(lrrbot, conn, event, respond_to):
 	token = yield from patreon.get_token(lrrbot.engine, lrrbot.metadata, config["channel"])
 	campaigns = yield from patreon.get_campaigns(token, ["creator", "goals"])
 	campaign = campaigns["data"][0]["attributes"]
-	total = "%d %s for a total of $%.2f per %s." % (
+	total = "%d %s for a total of %s per %s." % (
 		campaign["patron_count"],
 		"patrons" if campaign["patron_count"] != 1 else "patron",
-		campaign["pledge_sum"] / 100,
+		# `printf`-style formatting doesn't support thousands separators
+		"${:,.2f}".format(campaign["pledge_sum"] / 100),
 		campaign["pay_per_name"],
 	)
 	creator_id = campaigns["data"][0]["relationships"]["creator"]["data"]
