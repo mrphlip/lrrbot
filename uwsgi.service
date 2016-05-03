@@ -1,0 +1,14 @@
+[Unit]
+Description=LoadingReadyLive chatbot: uWSGI workers
+
+[Service]
+Type=notify
+KillSignal=SIGINT
+TimeoutStartSec=15s
+Restart=always
+NotifyAccess=main
+WorkingDirectory=%h/lrrbot
+ExecStart=/usr/bin/env uwsgi --ini uwsgi.ini --socket /tmp/uwsgi-lrrbot.sock
+
+[Install]
+WantedBy=default.target
