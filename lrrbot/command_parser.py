@@ -62,9 +62,9 @@ class CommandParser:
 			respond_to = event.target
 		else:
 			respond_to = source.nick
-		if self.lrrbot.access == "mod" and not self.is_mod(event):
+		if self.lrrbot.access == "mod" and not self.lrrbot.is_mod(event):
 			return
-		if self.lrrbot.access == "sub" and not self.is_mod(event) and not self.is_sub(event):
+		if self.lrrbot.access == "sub" and not self.lrrbot.is_mod(event) and not self.lrrbot.is_sub(event):
 			return
 		if self.re_botcommand is None:
 			self.compile()
