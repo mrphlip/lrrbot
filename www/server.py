@@ -10,6 +10,7 @@ import functools
 
 from common.config import config
 from common import space
+from common import sqlalchemy_pg95_upsert
 
 class Application(Flask):
 	def __init__(self, *args, **kwargs):

@@ -240,9 +240,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return
 		tags["user-id"] = int(tags["user-id"])
 
-		if event.type == "pubmsg":
-			users = self.metadata.tables["users"]
-			with self.engine.begin() as conn:
+		users = self.metadata.tables["users"]
+		patreon_users = self.metadata.tables["patreon_users"]
+		with self.engine.begin() as conn:
+			if event.type == "pubmsg":
 				conn.execute(users.insert(postgresql_on_conflict="update"), {
 					"id": tags["user-id"],
 					"name": nick,
@@ -250,16 +251,18 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					"is_sub": is_sub,
 					"is_mod": is_mod,
 				})
-		else:
-			users = self.metadata.tables['users']
-			with self.engine.begin() as pg_conn:
-				row = pg_conn.execute(sqlalchemy.select([users.c.is_sub, users.c.is_mod])
+			else:
+				row = conn.execute(sqlalchemy.select([users.c.is_sub, users.c.is_mod])
 					.where(users.c.id == event.tags['user-id'])).first()
 				if row is not None:
 					tags['subscriber'], tags['mod'] = row
 				else:
 					tags['subscriber'] = False
 					tags['mod'] = False
+			tags['patron'] = conn.execute(sqlalchemy.select([patreon_users.c.pledge_start.isnot(None)])
+				.select_from(patreon_users.join(users))
+				.where(users.c.id == tags['user-id'])
+			)
 
 		tags["display_name"] = tags.get("display_name", nick)
 
@@ -359,7 +362,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	def is_sub(self, event):
 		"""Check whether the source of the event is a known subscriber to the channel"""
-		return event.tags["subscriber"]
+		return event.tags["subscriber"] or event.tags["patron"]
 
 	@asyncio.coroutine
 	def ban(self, conn, event, reason, bantype):

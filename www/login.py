@@ -207,12 +207,13 @@ def load_session(include_url=True, include_header=True):
 
 	if user_id is not None:
 		users = server.db.metadata.tables["users"]
+		patreon_users = server.db.metadata.tables["patreon_users"]
 		with server.db.engine.begin() as conn:
 			query = sqlalchemy.select([
 				users.c.name, sqlalchemy.func.coalesce(users.c.display_name, users.c.name), users.c.twitch_oauth,
-				users.c.is_sub, users.c.is_mod, users.c.autostatus,
+				users.c.is_sub, users.c.is_mod, users.c.autostatus, users.c.patreon_user
 			]).where(users.c.id == user_id)
-			name, display_name, token, is_sub, is_mod, autostatus = conn.execute(query).first()
+			name, display_name, token, is_sub, is_mod, autostatus, patreon_user = conn.execute(query).first()
 			session['user'] = {
 				"id": user_id,
 				"name": name,
@@ -221,6 +222,7 @@ def load_session(include_url=True, include_header=True):
 				"is_sub": is_sub,
 				"is_mod": is_mod,
 				"autostatus": autostatus,
+				"patreon_user": patreon_user,
 			}
 	else:
 		session['user'] = {

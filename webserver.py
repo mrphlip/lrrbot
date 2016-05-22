@@ -18,8 +18,10 @@ import www.botinteract
 import www.history
 import www.api
 import www.quotes
+import www.patreon
 
 app.secret_key = config["session_secret"]
+app.config["PREFERRED_URL_SCHEME"] = config["preferred_url_scheme"],
 app.add_template_filter(common.time.nice_duration)
 app.add_template_filter(utils.ucfirst)
 app.add_template_filter(www.utils.timestamp)

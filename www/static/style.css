@@ -604,3 +604,16 @@ table.quote-search select {
 .stat.disabled {
 	color: #999999;
 }
+
+.flash {
+	padding: 1em;
+	border-radius: 0.5em;
+}
+
+.flash-error {
+	background-color: #f2dede;
+}
+
+.flash-success {
+	background-color: #dff0d8;
+}

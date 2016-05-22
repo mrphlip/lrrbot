@@ -63,3 +63,9 @@ def get_campaigns(token, include=["creator", "goals", "rewards"]):
 	headers = {"Authorization": "Bearer %s" % token}
 	data = yield from http.request_coro("https://api.patreon.com/oauth2/api/current_user/campaigns", data=data, headers=headers)
 	return json.loads(data)
+
+@asyncio.coroutine
+def current_user(token):
+	headers = {"Authorization": "Bearer %s" % token}
+	data = yield from http.request_coro("https://api.patreon.com/oauth2/api/current_user", headers=headers)
+	return json.loads(data)

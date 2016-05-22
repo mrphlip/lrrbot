@@ -88,6 +88,9 @@ config.setdefault('twitch_clientsecret', '')
 # session_secret - Secret key for signing session cookies
 config.setdefault('session_secret', '')
 
+# preferred_url_scheme - Flask config key PREFERRED_URL_SCHEME: the URL scheme to use when no scheme is available
+config.setdefault('preferred_url_scheme', 'https')
+
 # whispers - boolean option, whether to connect to group chat server and respond to whispers
 config.setdefault('whispers', False)
 config['whispers'] = str(config['whispers']).lower() != 'false'

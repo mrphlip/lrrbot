@@ -1,0 +1,36 @@
+{%extends "master.html"%}
+{%block title%}Patreon{%endblock%}
+{%block header%}Patreon{%endblock%}
+{%block content%}
+
+{% if session['user']['patreon_user'] is none %}
+<p>You haven't yet linked your Patreon account. Patrons with linked Patreon accounts can use
+	subscriber-only commands even when they're not subscribers. There also might be other
+	effects.</p>
+<form action="https://www.patreon.com/oauth2/authorize" method="GET">
+	<input type="hidden" name="response_type" value="code">
+	<input type="hidden" name="client_id" value="{{ client_id }}">
+	<input type="hidden" name="redirect_uri" value="{{ redirect_url }}">
+	<input type="hidden" name="scope" value="{{ scope }}">
+	<input type="hidden" name="state" value="{{ state }}">
+	<input type="submit" value="Link Patreon account">
+</form>
+{% elif is_patron %}
+<p>You are supporting {{ channel_patreon_name }} on Patreon. As long as you are a patron you can
+	use subscriber-only commands even when you're not a subscriber. There also might be other
+	effects.</p>
+{% else %}
+<p>You aren't supporting {{ channel_patreon_name }} on Patreon. Patrons with linked Patreon
+	accounts can use subscriber-only commands even when they're not subscribers. There also might
+	be other effects.</p>
+<form action="{{ pledge_url[0] }}" method="GET">
+	{% for key, values in pledge_url[1].items() %}
+		{% for value in values %}
+			<input type="hidden" name="{{ key }}" value="{{ value }}">
+		{% endfor %}
+	{% endfor %}
+	<input type="submit" value="Support {{ channel_patreon_name }} on Patreon">
+</form>
+{% endif %}
+
+{%endblock%}
