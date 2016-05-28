@@ -32,8 +32,8 @@ class CardViewer:
 		else:
 			self.pubnub = None
 		self.re_local = [
-			re.compile("^/cards/(?P<set>[^-]+)-(?P<number>[^.]+)\.", re.I),
-			re.compile("^/cards/(?P<set>.+)_(?P<number>[^.]+)\.", re.I)
+			re.compile("^/cards/(?P<set>[^-]+)-(?P<name>[^.]+)\.", re.I),
+			re.compile("^/cards/(?P<set>.+)_(?P<name>[^.]+)\.", re.I)
 		]
 
 	def start(self):
@@ -61,13 +61,13 @@ class CardViewer:
 			except (ValueError, KeyError, IndexError):
 				log.exception("Failed to extract multiverse ID from %r", message)
 				return None
-		# Card images for the pre-prerelease, extract set and collector number
+		# Card images for the pre-prerelease, extract set and card name
 		elif url.netloc == "localhost":
 			for regex in self.re_local:
 				match = regex.match(url.path)
 				if match is not None:
-					return (match.group("set"), match.group("number").lstrip('0'))
-			log.error("Failed to extract set and collector number from %r", message)
+					return urllib.parse.unquote(match.group("name"))
+			log.error("Failed to extract set and card name from %r", message)
 			return None
 		else:
 			log.error("Unrecognised card image URL: %r", message)
