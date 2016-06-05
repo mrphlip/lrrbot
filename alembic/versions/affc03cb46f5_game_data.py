@@ -228,8 +228,8 @@ def upgrade():
 	alembic.op.drop_column("quotes", "game")
 	alembic.op.drop_column("quotes", "show")
 
-	del data["shows"]
-	del data["stats"]
+	data.pop("shows", None)
+	data.pop("stats", None)
 	with open(datafile, "w") as f:
 		json.dump(data, f, indent=2, sort_keys=True)
 
