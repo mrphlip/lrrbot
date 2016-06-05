@@ -212,7 +212,7 @@ def get_tweet(bot, user, data):
 						.join(shows, shows.c.id == game_stats.c.show_id)
 						.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == game_stats.c.game_id) & (game_per_show_data.c.show_id == game_stats.c.show_id))
 						.join(stats, stats.c.id == game_stats.c.stat_id)
-				).where(game_stats.c.count > 0)
+				).where(game_stats.c.count > 1)
 			)
 			game, show, stat, count = utils.pick_weighted_random_elements((
 				((game, show, stat, count), weight)

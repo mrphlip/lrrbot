@@ -325,6 +325,8 @@ def pick_random_elements(iterable, k):
 def pick_weighted_random_elements(iterable, k):
 	queue = []
 	for elem, weight in iterable:
+		if not weight:
+			continue
 		r = random.random() ** (1 / weight)
 		if len(queue) < k:
 			heapq.heappush(queue, (r, elem))
