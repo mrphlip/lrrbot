@@ -174,6 +174,12 @@ def get_show_id(lrrbot, user, data):
 
 @global_function()
 def get_tweet(bot, user, data):
+	tweet = generate_tweet(bot, user, data)
+	while len(tweet) > 140:
+		tweet = generate_tweet(bot, user, data)
+	return tweet
+
+def generate_tweet(bot, user, data):
 	import lrrbot.commands
 	mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
 	if mode == 0: # get random !advice
@@ -181,16 +187,18 @@ def get_tweet(bot, user, data):
 	elif mode == 1: # get a random !quote
 		quotes = bot.metadata.tables["quotes"]
 		with bot.engine.begin() as conn:
-			query = sqlalchemy.select([quotes.c.quote, quotes.c.attrib_name]).where(~quotes.c.deleted)
+			query = sqlalchemy.select([quotes.c.quote, quotes.c.attrib_name, quotes.c.context]).where(~quotes.c.deleted)
 			row = common.utils.pick_random_elements(conn.execute(query), 1)[0]
 		if row is None:
 			return None
 
-		quote, name = row
+		quote, name, context = row
 
 		quote_msg = "\"{quote}\"".format(quote=quote)
 		if name:
 			quote_msg += " —{name}".format(name=name)
+			if context:
+				quote_msg += ", {context}".format(context=context)
 		return quote_msg
 	else: # get a random statistic
 		game_per_show_data = bot.metadata.tables["game_per_show_data"]
