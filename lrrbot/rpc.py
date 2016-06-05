@@ -210,7 +210,7 @@ def generate_tweet(bot, user, data):
 			res = conn.execute(
 				sqlalchemy.select([
 					sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
-					shows.name,
+					shows.c.name,
 					game_data.stat_plural(stats, game_stats.c.count),
 					game_stats.c.count,
 					sqlalchemy.func.log(game_stats.c.count)
