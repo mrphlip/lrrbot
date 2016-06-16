@@ -12,8 +12,11 @@ from common.config import config
 from common import twitch
 from common import http
 from lrrbot import storage
+import common.rpc
 
 log = logging.getLogger('twitchsubs')
+
+DELAY_FOR_SUBS_FROM_API = 60
 
 class TwitchSubs:
 	def __init__(self, lrrbot, loop):
@@ -21,6 +24,7 @@ class TwitchSubs:
 		self.loop = loop
 		self.last_subs = None
 		self.last_announced_subs = []
+		users = self.lrrbot.metadata.tables['users']
 
 		# Precompile regular expressions
 		self.re_subscription = re.compile(r"^(.*) just subscribed!$", re.IGNORECASE)
@@ -28,17 +32,14 @@ class TwitchSubs:
 
 		self.lrrbot.reactor.add_global_handler('privmsg', self.on_notification, 90)
 		self.lrrbot.reactor.add_global_handler('pubmsg', self.on_notification, 90)
+		self.lrrbot.reactor.add_global_handler('usernotice', self.on_usernotice, 90)
 
-	@asyncio.coroutine
+		self.watch_subs()
+
 	def watch_subs(self):
-		try:
-			while True:
-				yield from self.do_check()
-				yield from asyncio.sleep(config['checksubstime'])
-		except asyncio.CancelledError:
-			pass
+		asyncio.ensure_future(self.do_check()).add_done_callback(utils.check_exception)
+		self.loop.call_later(config['checksubstime'], self.watch_subs)
 
-	@utils.swallow_errors
 	@asyncio.coroutine
 	def do_check(self):
 		users = self.lrrbot.metadata.tables["users"]
@@ -62,12 +63,13 @@ class TwitchSubs:
 		# as all of them will appear "new" even if we saw them on a previous run
 		# Just add them to the "seen" list
 		if self.last_subs is not None:
-			for user, logo, eventtime in sublist:
+			for user, logo, sub_start, eventtime in sublist:
 				if user.lower() not in self.last_subs:
 					log.info("Found new subscriber via Twitch API: %s" % user)
-					eventtime = dateutil.parser.parse(eventtime).timestamp()
-					if user.lower() not in self.last_announced_subs:
-						self.on_subscriber(self.lrrbot.connection, "#%s" % config['channel'], user, eventtime, logo)
+					sub_start = dateutil.parser.parse(sub_start)
+					eventtime = dateutil.parser.parse(eventtime)
+					monthcount = round((eventtime - sub_start) / datetime.timedelta(days=30))
+					self.loop.call_later(DELAY_FOR_SUBS_FROM_API, lambda: asyncio.ensure_future(self.on_subscriber(self.lrrbot.connection, "#%s" % config['channel'], user, eventtime, logo, monthcount)).add_done_callback(utils.check_exception))
 		else:
 			log.debug("Got initial subscriber list from Twitch")
 
@@ -79,41 +81,46 @@ class TwitchSubs:
 		if source.nick != config['notifyuser']:
 			return
 
+		eventtime = datetime.datetime.now(pytz.utc)
+
 		respond_to = "#%s" % config["channel"]
 		log.info("Notification: %s" % event.arguments[0])
+
 		subscribe_match = self.re_subscription.match(event.arguments[0])
 		if subscribe_match and irc.client.is_channel(event.target):
 			# Don't highlight the same sub via both the chat and the API
 			if subscribe_match.group(1).lower() not in self.last_announced_subs:
-				self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time())
+				asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime).add_done_callback(utils.check_exception)
 			# Halt message processing
 			return "NO MORE"
 
 		subscribe_match = self.re_resubscription.match(event.arguments[0])
 		if subscribe_match and irc.client.is_channel(event.target):
 			if subscribe_match.group(1).lower() not in self.last_announced_subs:
-				self.on_subscriber(conn, event.target, subscribe_match.group(1), time.time(), monthcount=int(subscribe_match.group(2)))
+				asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime, monthcount=int(subscribe_match.group(2))).add_done_callback(utils.check_exception)
 			# Halt message processing
 			return "NO MORE"
 
-		notifyparams = {
-			'apipass': config['apipass'],
-			'message': event.arguments[0],
-			'eventtime': time.time(),
-		}
-		if irc.client.is_channel(event.target):
-			notifyparams['channel'] = event.target[1:]
-		http.api_request('notifications/newmessage', notifyparams, 'POST')
+		asyncio.ensure_future(common.rpc.eventserver.event('twitch-message', {'message': event.arguments[0], 'count': common.storm.increment('twitch-message')}, eventtime)).add_done_callback(utils.check_exception)
+
 		# Halt message processing
 		return "NO MORE"
 
-	def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None):
-		notifyparams = {
-			'apipass': config['apipass'],
-			'message': "%s just subscribed!" % user,
-			'eventtime': eventtime,
-			'subuser': user,
-			'channel': channel,
+	def on_usernotice(self, conn, event):
+		tags = {tag['key']: tag['value'] for tag in event.tags}
+		if tags.get('msg-id') == 'resub':
+				if len(event.arguments) > 0:
+					message = event.arguments[0]
+				else:
+					message = None
+				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tag['display-name'], datetime.datetime.now(tz=pytz.utc), monthcount=tags.get('msg-param-months'), message=message)).add_done_callback(utils.check_exception)
+				return "NO MORE"
+
+	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None):
+		if user.lower() in self.last_announced_subs:
+			return
+		data = {
+			'name': user,
 		}
 
 		if logo is None:
@@ -125,27 +132,26 @@ class TwitchSubs:
 				pass
 			else:
 				if channel_info.get('logo'):
-					notifyparams['avatar'] = channel_info['logo']
+					data['avatar'] = channel_info['logo']
 		else:
-			notifyparams['avatar'] = logo
+			data['avatar'] = logo
 
-		if monthcount is not None:
-			notifyparams['monthcount'] = monthcount
-
-		# have to get this in a roundabout way as datetime.date.today doesn't take a timezone argument
-		today = datetime.datetime.now(config['timezone']).date().toordinal()
-		if today != storage.data.get("storm",{}).get("date"):
-			storage.data["storm"] = {
-				"date": today,
-				"count": 0,
-			}
-		storage.data["storm"]["count"] += 1
 		self.last_announced_subs.append(user.lower())
 		self.last_announced_subs = self.last_announced_subs[-10:]
-		storage.save()
-		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (notifyparams['subuser'], storage.data["storm"]["count"]))
-		http.api_request('notifications/newmessage', notifyparams, 'POST')
 
 		users = self.lrrbot.metadata.tables["users"]
 		with self.lrrbot.engine.begin() as conn:
 			conn.execute(users.update().where(users.c.name == user), is_sub=True)
+
+		if monthcount is not None and monthcount > 1:
+			event = "twitch-resubscription"
+			data['monthcount'] = monthcount
+			data['count'] = common.storm.increment(event)
+
+			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's {} count: %d)" % (data['name'], utils.counter(), data['count']))
+		else:
+			event = "twitch-subscription"
+			data['count'] = common.storm.increment(event)
+			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (data['name'], data['count']))
+
+		await common.rpc.eventserver.event(event, data, eventtime)

@@ -14,7 +14,6 @@ import www.archive
 import www.votes
 import www.commands
 import www.spam
-import www.botinteract
 import www.history
 import www.api
 import www.quotes

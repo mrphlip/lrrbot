@@ -1,6 +1,8 @@
 import asyncio
 import base64
+import datetime
 import dateutil.parser
+import pytz
 import flask
 from flaskext.csrf import csrf_exempt
 import hmac
@@ -13,6 +15,7 @@ from common.config import config
 from common import patreon
 from common import sqlalchemy_pg95_upsert
 from common import utils
+import common.rpc
 
 PATREON_BASE_URL = "https://www.patreon.com/"
 
@@ -148,7 +151,7 @@ class HmacRequestStream:
 
 @csrf_exempt
 @server.app.route('/patreon/webhooks', methods=["POST"])
-def patreon_webhooks():
+async def patreon_webhooks():
 	stream = HmacRequestStream(flask.request.environ['wsgi.input'])
 	flask.request.environ['wsgi.input'] = stream
 
@@ -180,6 +183,21 @@ def patreon_webhooks():
 					full_name=patron['attributes']['full_name'],
 					pledge_start=pledge_start,
 			).first()
+			twitch_user = conn.execute(sqlalchemy.select([users.c.name]).where(users.c.patreon_user == patron_id)).first()
+			if twitch_user is not None:
+				twitch_user = {
+					'name': twitch_user[0]
+				}
+			data = {
+				'patreon': {
+					'full_name': patron['attributes']['full_name'],
+					'avatar': patron['attributes']['image_url'],
+					'url': patron['attributes']['url']
+				},
+				'twitch': twitch_user,
+			}
+		data["count"] = common.storm.increment(server.db.engine, server.db.metadata, 'patreon-pledge')
+		await asyncio.gather(common.rpc.bot.patreon_pledge(data), common.rpc.eventserver.event('patreon-pledge', data, datetime.datetime.now(tz=pytz.utc)), return_exceptions=True)
 	elif event == 'pledges:update':
 		with server.db.engine.begin() as conn:
 			do_update = sqlalchemy_pg95_upsert.DoUpdate(patreon_users.c.patreon_id)

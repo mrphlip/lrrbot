@@ -11,3 +11,5 @@ alembic>=0.8.4
 sqlalchemy>=1.0.12
 flask-sqlalchemy>=2.1
 requests>=2.9.1
+python-mimeparse>=1.5.2
+aiomas>=1.0.3

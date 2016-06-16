@@ -105,7 +105,7 @@ def get_subscribers(channel, token, count=5, offset=None, latest=True):
 	res = yield from common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
 	subscriber_data = json.loads(res)
 	return [
-		(sub['user']['display_name'], sub['user'].get('logo'), sub['created_at'])
+		(sub['user']['display_name'], sub['user'].get('logo'), sub['created_at'], sub['updated_at'])
 		for sub in subscriber_data['subscriptions']
 	]
 

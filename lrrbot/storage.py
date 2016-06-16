@@ -43,7 +43,7 @@ def save():
 		# Save with pretty-printing enabled, as we probably want it to be editable
 		json.dump(data, fp, indent=2, sort_keys=True)
 
-	os.rename(realfile, backupfile)
-	os.rename(tempfile, realfile)
+	os.replace(realfile, backupfile)
+	os.replace(tempfile, realfile)
 
 load()

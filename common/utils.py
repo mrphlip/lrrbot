@@ -333,3 +333,20 @@ def pick_weighted_random_elements(iterable, k):
 		elif queue[0][0] < r:
 			heapq.heapreplace(queue, (r, elem))
 	return [elem for r, elem in queue]
+
+COUNTER_RANGES = [
+    (0x0300, 0x036F), # Combining Diacritical Marks
+    (0x20D0, 0x20F0), # Combining Diacritical Marks for Symbols
+    (0x2190, 0x21FF), # Arrows
+    (0x2200, 0x22FF), # Mathematical Operators
+    (0x2300, 0x23FA), # Miscellaneous Technical
+    (0x2600, 0x26FF), # Miscellaneous Symbols
+    (0x2700, 0x27BF), # Dingbats
+    (0xFF71, 0xFF9D), # Halfwidth katakana
+]
+
+def counter(n=6):
+	s = ""
+	for _ in range(n):
+		s += chr(random.randint(*random.choice(COUNTER_RANGES)))
+	return s

@@ -1,16 +1,17 @@
 import sqlalchemy
 from www import server
-from www import botinteract
 from www import login
 from common.config import config
+import common.rpc
 import datetime
 
 @server.app.route("/api/stats/<stat>")
-def api_stats(stat):
-	game_id = botinteract.get_game_id()
+async def api_stats(stat):
+	await common.rpc.bot.connect()
+	game_id = await common.rpc.bot.get_game_id()
 	if game_id is None:
 		return "-"
-	show_id = botinteract.get_show_id()
+	show_id = await common.rpc.bot.get_show_id()
 
 	game_stats = server.db.metadata.tables["game_stats"]
 	stats = server.db.metadata.tables["stats"]
@@ -29,23 +30,26 @@ def api_stats(stat):
 	return str(count)
 
 @server.app.route("/api/stormcount")
-def stormcount():
+async def stormcount():
+	await common.rpc.bot.connect()
 	today = datetime.datetime.now(config["timezone"]).date().toordinal()
-	data = botinteract.get_data("storm")
+	data = await common.rpc.bot.get_data("storm")
 	if data.get("date") != today:
 		return "0"
 	return str(data.get("count", 0))
 
 @server.app.route("/api/next")
-def nextstream():
-	return botinteract.nextstream()
+async def nextstream():
+	await common.rpc.bot.connect()
+	return await common.rpc.bot.nextstream()
 
 @server.app.route("/api/votes")
-def api_votes():
-	game_id = botinteract.get_game_id()
+async def api_votes():
+	await common.rpc.bot.connect()
+	game_id = await common.rpc.bot.get_game_id()
 	if game_id is None:
 		return "-"
-	show_id = botinteract.get_show_id()
+	show_id = await common.rpc.bot.get_show_id()
 
 	game_votes = server.db.metadata.tables["game_votes"]
 	with server.db.engine.begin() as conn:
@@ -65,30 +69,30 @@ def api_votes():
 
 @server.app.route("/api/show/<show>")
 @login.with_minimal_session
-def set_show(session, show):
+async def set_show(session, show):
 	if not session['user']['is_mod']:
 		return "%s is not a mod" % (session['user']['display_name'])
 	if show == "off":
 		show = ""
-	response = botinteract.set_show(show)
-	if response["status"] == "OK":
-		return ""
-	return response["status"]
+	await common.rpc.bot.connect()
+	await common.rpc.bot.set_show(show)
 
 @server.app.route("/api/game")
-def get_game():
-	game_id = botinteract.get_game_id()
+async def get_game():
+	await common.rpc.bot.connect()
+	game_id = await common.rpc.bot.get_game_id()
 	if game_id is None:
 		return "-"
-	show_id = botinteract.get_show_id()
+	show_id = await common.rpc.bot.get_show_id()
 
 	games = server.db.metadata.tables["games"]
 	with server.db.engine.begin() as conn:
 		return conn.execute(sqlalchemy.select([games.c.name]).where(games.c.id == game_id)).first()[0]
 
 @server.app.route("/api/show")
-def get_show():
-	show_id = botinteract.get_show_id()
+async def get_show():
+	await common.rpc.bot.connect()
+	show_id = await common.rpc.bot.get_show_id()
 
 	shows = server.db.metadata.tables["shows"]
 	with server.db.engine.begin() as conn:
@@ -97,8 +101,9 @@ def get_show():
 
 @server.app.route("/api/tweet")
 @login.with_minimal_session
-def get_tweet(session):
+async def get_tweet(session):
 	tweet = None
 	if session['user']['is_mod']:
-		tweet = botinteract.get_tweet()
+		await common.rpc.bot.connect()
+		tweet = await common.rpc.bot.get_tweet()
 	return tweet or "-"

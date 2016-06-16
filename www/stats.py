@@ -4,7 +4,6 @@ import sqlalchemy
 from common import game_data
 from www import server
 from www import login
-from www import botinteract
 
 import time
 

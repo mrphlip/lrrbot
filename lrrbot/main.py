@@ -119,23 +119,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		return asyncreactor.AsyncReactor(self.loop)
 
 	def start(self):
-		# Let us run on windows, without the socket
-		if hasattr(self.loop, 'create_unix_server'):
-			# TODO: To be more robust, the code really should have a way to shut this socket down
-			# when the bot exits... currently, it's assuming that there'll only be one LRRBot
-			# instance, that lasts the life of the program... which is true for now...
-			try:
-				os.unlink(config['socket_filename'])
-			except OSError:
-				if os.path.exists(config['socket_filename']):
-					raise
-			event_server = self.loop.create_unix_server(self.rpc_server, path=config['socket_filename'])
-			self.loop.run_until_complete(event_server)
-		else:
-			event_server = None
+		self.loop.run_until_complete(self.rpc_server.start(config['socket_filename'], config['socket_port']))
 
 		# Start background tasks
-		substask = asyncio.async(self.subs.watch_subs(), loop=self.loop)
 		chatlogtask = asyncio.async(chatlog.run_task(), loop=self.loop)
 
 		self._connect()
@@ -148,11 +134,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.loop.run_forever()
 		finally:
 			log.info("Bot shutting down...")
-			if event_server:
-				event_server.close()
-			substask.cancel()
+			self.loop.run_until_complete(self.rpc_server.close())
 			chatlog.stop_task()
-			tasks_waiting = [substask, chatlogtask]
+			tasks_waiting = [chatlogtask]
 			if self.whisperconn:
 				tasks_waiting.append(self.whisperconn.stop_task())
 			self.cardviewer.stop()
@@ -171,6 +155,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
 			self.service.subsystem_started("irc")
+			conn.privmsg(event.target, utils.counter())
+			conn.privmsg(event.target, utils.counter())
+			conn.privmsg(event.target, utils.counter())
+			conn.privmsg(event.target, utils.counter())
 
 	@utils.swallow_errors
 	def do_keepalive(self):

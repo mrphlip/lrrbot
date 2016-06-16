@@ -1,3 +1,4 @@
+import aiomas
 import random
 import re
 import irc.client
@@ -61,12 +62,16 @@ def static_response(lrrbot, conn, event, respond_to, command):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response)
 
-@bot.rpc_server.function()
-def modify_commands(lrrbot, user, commands):
-	log.info("Setting commands (%s) to %r" % (user, commands))
-	storage.data["responses"] = {" ".join(k.lower().split()): v for k,v in commands.items()}
+@aiomas.expose
+def modify_commands(commands):
+	log.info("Setting commands to %r" % commands)
+	storage.data["responses"] = {" ".join(k.lower().split()): v for k, v in commands.items()}
 	storage.save()
 	generate_hook()
+
+bot.rpc_server.static = aiomas.rpc.ServiceDict({
+	'modify_commands': modify_commands,
+})
 
 command_expression = None
 def generate_hook():

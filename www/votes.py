@@ -2,13 +2,14 @@ import flask
 import sqlalchemy
 from www import server
 from www import login
-from www import botinteract
+import common.rpc
 
 @server.app.route('/votes')
 @login.require_login
-def votes(session):
-	current_game_id = botinteract.get_game_id()
-	current_show_id = botinteract.get_show_id()
+async def votes(session):
+	await common.rpc.bot.connect()
+	current_game_id = await common.rpc.bot.get_game_id()
+	current_show_id = await common.rpc.bot.get_show_id()
 
 	game_votes = server.db.metadata.tables["game_votes"]
 	game_stats = server.db.metadata.tables["game_stats"]
