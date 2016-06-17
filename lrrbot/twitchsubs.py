@@ -7,12 +7,14 @@ import asyncio
 import sqlalchemy
 import urllib.error
 import irc.client
+import pytz
 from common import utils
 from common.config import config
 from common import twitch
 from common import http
 from lrrbot import storage
 import common.rpc
+import common.storm
 
 log = logging.getLogger('twitchsubs')
 
@@ -90,18 +92,18 @@ class TwitchSubs:
 		if subscribe_match and irc.client.is_channel(event.target):
 			# Don't highlight the same sub via both the chat and the API
 			if subscribe_match.group(1).lower() not in self.last_announced_subs:
-				asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime).add_done_callback(utils.check_exception)
+				asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime)).add_done_callback(utils.check_exception)
 			# Halt message processing
 			return "NO MORE"
 
 		subscribe_match = self.re_resubscription.match(event.arguments[0])
 		if subscribe_match and irc.client.is_channel(event.target):
 			if subscribe_match.group(1).lower() not in self.last_announced_subs:
-				asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime, monthcount=int(subscribe_match.group(2))).add_done_callback(utils.check_exception)
+				asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime, monthcount=int(subscribe_match.group(2)))).add_done_callback(utils.check_exception)
 			# Halt message processing
 			return "NO MORE"
 
-		asyncio.ensure_future(common.rpc.eventserver.event('twitch-message', {'message': event.arguments[0], 'count': common.storm.increment('twitch-message')}, eventtime)).add_done_callback(utils.check_exception)
+		asyncio.ensure_future(common.rpc.eventserver.event('twitch-message', {'message': event.arguments[0], 'count': common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, 'twitch-message')}, eventtime)).add_done_callback(utils.check_exception)
 
 		# Halt message processing
 		return "NO MORE"
@@ -140,18 +142,18 @@ class TwitchSubs:
 		self.last_announced_subs = self.last_announced_subs[-10:]
 
 		users = self.lrrbot.metadata.tables["users"]
-		with self.lrrbot.engine.begin() as conn:
-			conn.execute(users.update().where(users.c.name == user), is_sub=True)
+		with self.lrrbot.engine.begin() as pg_conn:
+			pg_conn.execute(users.update().where(users.c.name == user), is_sub=True)
 
 		if monthcount is not None and monthcount > 1:
 			event = "twitch-resubscription"
 			data['monthcount'] = monthcount
-			data['count'] = common.storm.increment(event)
+			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
 
-			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's {} count: %d)" % (data['name'], utils.counter(), data['count']))
+			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's %s count: %d)" % (data['name'], utils.counter(), data['count']))
 		else:
 			event = "twitch-subscription"
-			data['count'] = common.storm.increment(event)
+			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
 			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (data['name'], data['count']))
 
 		await common.rpc.eventserver.event(event, data, eventtime)

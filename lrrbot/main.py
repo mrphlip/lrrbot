@@ -155,10 +155,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if (source.nick.lower() == config['username'].lower()):
 			log.info("Channel %s joined" % event.target)
 			self.service.subsystem_started("irc")
-			conn.privmsg(event.target, utils.counter())
-			conn.privmsg(event.target, utils.counter())
-			conn.privmsg(event.target, utils.counter())
-			conn.privmsg(event.target, utils.counter())
 
 	@utils.swallow_errors
 	def do_keepalive(self):

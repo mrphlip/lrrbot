@@ -31,18 +31,25 @@ def upgrade():
 		if eventtime is None:
 			continue
 		if subuser is not None:
-			all_events.append({
-				'event': 'twitch-subscriber',
-				'data': {
-					'name': subuser,
-					'avatar': useravatar,
-					'monthcount': monthcount,
-				},
-				'time': eventtime,
-			})
+			data = {'name': subuser}
+			if useravatar is not None:
+				data['avatar'] = useravatar
+			if monthcount is not None:
+				data['monthcount'] = monthcount
+				all_events.append({
+					'event': 'twitch-resubscription',
+					'data': data,
+					'time': eventtime,
+				})
+			else:
+				all_events.append({
+					'event': 'twitch-subscription',
+					'data': data,
+					'time': eventtime,
+				})
 		else:
 			all_events.append({
-				'event': 'notification',
+				'event': 'twitch-message',
 				'data': {
 					'message': message,
 				},
@@ -73,7 +80,7 @@ def downgrade():
 	all_events = conn.execute(sqlalchemy.select([events.c.event, events.c.data, events.c.time]).where(events.c.event.in_({'notification', 'twitch-subscriber'})))
 	notifications = []
 	for event, data, time in all_events:
-		if event == 'twitch-subscriber':
+		if event in {'twitch-subscription', 'twitch-resubscription'}:
 			message = '%(name)s just subscribed!' % data
 			if data['monthcount'] is not None:
 				message += ' %(monthcount)d months in a row!' % data
@@ -86,7 +93,7 @@ def downgrade():
 				'monthcount': data['monthcount'],
 				'test': False,
 			})
-		elif event == 'notification':
+		elif event == 'twitch-message':
 			notifications.append({
 				'message': data['message'],
 				'channel': alembic.context.config.get_section_option("lrrbot", "channel", "loadingreadyrun"),

@@ -61,6 +61,7 @@ class Server(common.rpc.Server):
 		response.enable_chunked_encoding()
 		response.headers['Access-Control-Allow-Origin'] = '*'
 		response.headers['Content-Encoding'] = 'text/event-stream; charset=utf-8'
+		response.headers['Vary'] = "Accept"
 		await response.prepare(request)
 
 		while True:
@@ -88,7 +89,7 @@ class Server(common.rpc.Server):
 	async def json(self, request):
 		return aiohttp.web.json_response({
 			'events': self.get_last_events(request),
-		})
+		}, headers={"Vary": "Accept"})
 
 	async def cors_preflight(self, request):
 		return aiohttp.web.Response(headers={

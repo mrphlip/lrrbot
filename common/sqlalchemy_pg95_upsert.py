@@ -372,7 +372,7 @@ def compile_do_update(do_update, compiler, **kw):
 		raise CompileEror("Cannot have empty set of values to SET in DO UPDATE")
 	names = []
 	for col, value in do_update.values_to_set.items():
-		fmt_name = compiler.preparer.format_column(col) if isinstance(col, ColumnClause) else col
+		fmt_name = compiler.preparer.format_column(col) if isinstance(col, ColumnClause) else compiler.preparer.format_column(None, name=col)
 		if value is _EXCLUDED:
 			fmt_value = "excluded.%s" % fmt_name
 		elif isinstance(value, ColumnElement):
