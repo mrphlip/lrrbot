@@ -70,7 +70,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.service = lrrbot.systemd.Service(loop)
 
-		# create secondary connection
 		if config['whispers']:
 			self.whisperconn = whisper.TwitchWhisper(self, self.loop)
 		else:
@@ -119,6 +118,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		return asyncreactor.AsyncReactor(self.loop)
 
 	def start(self):
+		try:
+			os.unlink(config['socket_filename'])
+		except FileNotFoundError:
+			pass
 		self.loop.run_until_complete(self.rpc_server.start(config['socket_filename'], config['socket_port']))
 
 		# Start background tasks

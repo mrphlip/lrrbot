@@ -149,8 +149,8 @@ class HmacRequestStream:
 		self.hmac.update(data)
 		return data
 
-@csrf_exempt
 @server.app.route('/patreon/webhooks', methods=["POST"])
+@csrf_exempt
 async def patreon_webhooks():
 	stream = HmacRequestStream(flask.request.environ['wsgi.input'])
 	flask.request.environ['wsgi.input'] = stream
@@ -159,8 +159,10 @@ async def patreon_webhooks():
 	if not hmac.compare_digest(stream.hmac.hexdigest(), flask.request.headers['X-Patreon-Signature']):
 		return flask.abort(400)
 
-
-	pledge_start = dateutil.parser.parse(pledge['data']['attributes']['created_at'])
+	if pledge['data']['attributes']['created_at']:
+		pledge_start = dateutil.parser.parse(pledge['data']['attributes']['created_at'])
+	else:
+		pledge_start = None
 	patron_ref = pledge['data']['relationships']['patron']['data']
 	for obj in pledge['included']:
 		if obj['id'] == patron_ref['id'] and obj['type'] == patron_ref['type']:
@@ -170,6 +172,7 @@ async def patreon_webhooks():
 		raise Exception("user %r not included" % patron_ref)
 
 	patreon_users = server.db.metadata.tables['patreon_users']
+	users = server.db.metadata.tables['users']
 
 	event = flask.request.headers['X-Patreon-Event']
 	if event == 'pledges:create':

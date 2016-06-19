@@ -2,6 +2,7 @@ import common.sqlalchemy_pg95_upsert
 
 from flask import Flask
 from flaskext.csrf import csrf
+import flaskext.csrf
 from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy
 import warnings
@@ -26,6 +27,8 @@ class Application(Flask):
 					return asyncio.get_event_loop().run_until_complete(view_func(*args, **kwargs))
 				self.__wrapped_view_funcs[view_func] = inner
 				func = inner
+				if view_func in flaskext.csrf._exempt_views:
+					flaskext.csrf.csrf_exempt(func)
 			else:
 				func = self.__wrapped_view_funcs[view_func]
 		else:

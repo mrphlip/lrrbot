@@ -68,6 +68,8 @@ class Client:
 					return await getattr(self.__connection.remote, key)(*args, **kwargs)
 				except ConnectionResetError:
 					log.info("Connection reset, retrying...")
+					await asyncio.sleep(1)
+			raise ConnectionResetError()
 		return call
 
 bot = Client(config['socket_filename'], config['socket_port'])

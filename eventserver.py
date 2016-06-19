@@ -8,6 +8,7 @@ import sys
 import json
 import datetime
 import pytz
+import os
 
 import common.rpc
 import common.postgres
@@ -127,6 +128,10 @@ app = None
 async def main(loop):
 	global server, srv, app, handler
 
+	try:
+		os.unlink(config['eventsocket'])
+	except FileNotFoundError:
+		pass
 	server = Server()
 	await server.start(config['eventsocket'], config['event_port'])
 	app = aiohttp.web.Application()
