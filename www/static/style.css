@@ -239,16 +239,32 @@ ul.pagination li :visited {
 	border-color: #8F8;
 	background: #DFD;
 }
+
+#notificationlist .container {
+	width: 40em;
+	margin: 0 auto;
+}
+
+#notificationlist .container > .message {
+	margin-left: 64px;
+}
+
 #notificationlist .duration {
 	color: #666;
 	font: italic 80% sans-serif;
 	float: right;
 }
-#notificationlist .channel {
-	color: #666;
-	font: italic 80% sans-serif;
-	float: left;
+
+#notificationlist .user.with-avatar {
+	height: 64px;
 }
+
+#notificationlist .user.with-avatar .message-container {
+	position: relative;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
 #notificationlist .user a {
 	color: black;
 	font-weight: bold;
@@ -257,7 +273,11 @@ ul.pagination li :visited {
 #notificationlist .user img {
 	height: 64px;
 	width: 64px;
-	vertical-align: middle;
+	float: left;
+}
+
+#notificationlist .user .message {
+	font-style: italic;
 }
 
 table.nicetable, table.nicetable tr, table.nicetable td, table.nicetable th {

@@ -183,6 +183,12 @@ class Server(common.rpc.Server):
 
 	@aiomas.expose
 	def patreon_pledge(self, data):
-
-		self.lrrbot.connection.privmsg("#" + config['channel'], "lrrSPOT %s just pledged on Patreon! (%scount: %d)", (data['twitch']['name'] if data['twitch'] is not None else data['patreon']['full_name'], utils.counter(), count))
-		return count
+		patreon_users = self.lrrbot.metadata.tables['patreon_users']
+		users = self.lrrbot.metadata.tables['users']
+		with self.lrrbot.engine.begin() as conn:
+			name = conn.execute(sqlalchemy.select([patreon_users.c.full_name])
+				.select_from(users.join(patreon_users))
+				.where(users.c.name == config['channel'])
+			).first()
+		if name:
+			self.lrrbot.connection.privmsg("#" + config['channel'], "lrrSPOT Thanks for supporting %s on Patreon, %s ! (%scount: %d)", (name[0], data['twitch']['name'] if data['twitch'] is not None else data['patreon']['full_name'], utils.counter(), count))

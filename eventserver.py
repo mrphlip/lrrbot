@@ -37,7 +37,7 @@ class Server(common.rpc.Server):
 
 	def get_last_events(self, request):
 		try:
-			last_event_id = int(request.GET.get('last-event-id', request.headers.get('Last-Event-Id')))
+			last_event_id = int(request.headers.get('Last-Event-Id', request.GET.get('last-event-id')))
 		except (ValueError, TypeError):
 			last_event_id = None
 		if last_event_id is not None:
@@ -47,7 +47,7 @@ class Server(common.rpc.Server):
 					{'id': id, 'event': event, 'data': dict(data, time=time.isoformat())}
 					for id, event, data, time in conn.execute(sqlalchemy.select([
 						events.c.id, events.c.event, events.c.data, events.c.time
-					]).where(events.c.id > last_event_id))
+					]).where(events.c.id > last_event_id).order_by(events.c.time))
 				]
 		return []
 
@@ -59,8 +59,8 @@ class Server(common.rpc.Server):
 
 		response = aiohttp.web.StreamResponse()
 		response.enable_chunked_encoding()
-		response.headers['Access-Control-Allow-Origin'] = '*'
-		response.headers['Content-Encoding'] = 'text/event-stream; charset=utf-8'
+		response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+		response.headers['Content-Type'] = 'text/event-stream; charset=utf-8'
 		response.headers['Vary'] = "Accept"
 		await response.prepare(request)
 
@@ -89,11 +89,11 @@ class Server(common.rpc.Server):
 	async def json(self, request):
 		return aiohttp.web.json_response({
 			'events': self.get_last_events(request),
-		}, headers={"Vary": "Accept"})
+		}, headers={"Vary": "Accept", 'Access-Control-Allow-Origin': request.headers.get('Origin', '*')})
 
 	async def cors_preflight(self, request):
 		return aiohttp.web.Response(headers={
-			'Access-Control-Allow-Origin': "*",
+			'Access-Control-Allow-Origin': request.headers.get('Origin', '*'),
 		})
 
 	@aiomas.expose
@@ -120,13 +120,12 @@ class Server(common.rpc.Server):
 			await queue.put({'event': Poison})
 
 server = None
-rpc_server = None
 srv = None
 handler = None
 app = None
 
 async def main(loop):
-	global server, rpc_server, srv, app, handler
+	global server, srv, app, handler
 
 	server = Server()
 	await server.start(config['eventsocket'], config['event_port'])
@@ -144,7 +143,7 @@ async def main(loop):
 		windows_is_butts()
 
 async def cleanup():
-	global server, rpc_server, srv, app, handler
+	global server, srv, app, handler
 
 	srv.close()
 	await server.close()
@@ -152,7 +151,6 @@ async def cleanup():
 	await app.shutdown()
 	await handler.finish_connections(60.0)
 	await app.cleanup()
-	await rpc_server.wait_closed()
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main(loop))

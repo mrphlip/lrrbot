@@ -4,6 +4,8 @@ from www import login
 from common.config import config
 import common.rpc
 import datetime
+import flask
+import common.storm
 
 @server.app.route("/api/stats/<stat>")
 async def api_stats(stat):
@@ -30,13 +32,13 @@ async def api_stats(stat):
 	return str(count)
 
 @server.app.route("/api/stormcount")
-async def stormcount():
-	await common.rpc.bot.connect()
-	today = datetime.datetime.now(config["timezone"]).date().toordinal()
-	data = await common.rpc.bot.get_data("storm")
-	if data.get("date") != today:
-		return "0"
-	return str(data.get("count", 0))
+def stormcount():
+	return flask.jsonify({
+		'twitch-subscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-subscription'),
+		'twitch-resubscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-resubscription'),
+		'twitch-follow': common.storm.get(server.db.engine, server.db.metadata, 'twitch-follow'),
+		'patreon-pledge': common.storm.get(server.db.engine, server.db.metadata, 'patreon-pledge'),
+	})
 
 @server.app.route("/api/next")
 async def nextstream():
