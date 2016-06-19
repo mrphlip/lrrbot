@@ -200,7 +200,10 @@ async def patreon_webhooks():
 				'twitch': twitch_user,
 			}
 		data["count"] = common.storm.increment(server.db.engine, server.db.metadata, 'patreon-pledge')
-		await asyncio.gather(common.rpc.bot.patreon_pledge(data), common.rpc.eventserver.event('patreon-pledge', data, datetime.datetime.now(tz=pytz.utc)), return_exceptions=True)
+		results = await asyncio.gather(common.rpc.bot.patreon_pledge(data), common.rpc.eventserver.event('patreon-pledge', data, datetime.datetime.now(tz=pytz.utc)), return_exceptions=True)
+		for result in results:
+			if isinstance(result, BaseException):
+				raise result
 	elif event == 'pledges:update':
 		with server.db.engine.begin() as conn:
 			do_update = sqlalchemy_pg95_upsert.DoUpdate(patreon_users.c.patreon_id)
