@@ -1,0 +1,9 @@
+[Unit]
+Description=asyncio server-sent events server
+
+[Service]
+WorkingDirectory=%h/lrrbot
+ExecStart=/usr/bin/env python3 %h/lrrbot/eventserver.py
+
+[Install]
+WantedBy=default.target
