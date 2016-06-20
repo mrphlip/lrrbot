@@ -89,7 +89,7 @@ def require_login(func):
 			kwargs['session'] = session
 			return await asyncio.coroutine(func)(*args, **kwargs)
 		else:
-			return login(session['url'])
+			return await login(session['url'])
 	return wrapper
 
 def require_mod(func):
@@ -108,7 +108,7 @@ def require_mod(func):
 			else:
 				return flask.render_template('require_mod.html', session=session)
 		else:
-			return login(session['url'])
+			return await login(session['url'])
 	return wrapper
 
 async def load_session(include_url=True, include_header=True):

@@ -118,7 +118,7 @@ class Server(common.rpc.Server):
 	@aiomas.expose
 	def set_show(self, show):
 		import lrrbot.commands
-		lrrbot.commands.show.set_show(self.lrrbot, data["show"])
+		lrrbot.commands.show.set_show(self.lrrbot, show)
 
 	@aiomas.expose
 	def get_show_id(self):

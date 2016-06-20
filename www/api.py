@@ -78,6 +78,7 @@ async def set_show(session, show):
 		show = ""
 	await common.rpc.bot.connect()
 	await common.rpc.bot.set_show(show)
+	return ""
 
 @server.app.route("/api/game")
 async def get_game():

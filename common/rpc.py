@@ -61,7 +61,7 @@ class Client:
 			await self.__connection.close()
 
 	def __getattr__(self, key):
-		if self.__connection.remote is None:
+		if self.__connection is None:
 			raise ConnectionResetError()
 		return getattr(self.__connection.remote, key)
 

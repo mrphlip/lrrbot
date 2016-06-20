@@ -102,7 +102,6 @@ class TwitchSubs:
 				asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime, monthcount=int(subscribe_match.group(2)))).add_done_callback(utils.check_exception)
 			# Halt message processing
 			return "NO MORE"
-
 		asyncio.ensure_future(common.rpc.eventserver.event('twitch-message', {'message': event.arguments[0], 'count': common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, 'twitch-message')}, eventtime)).add_done_callback(utils.check_exception)
 
 		# Halt message processing
@@ -156,4 +155,5 @@ class TwitchSubs:
 			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
 			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (data['name'], data['count']))
 
+		await common.rpc.eventserver.connect()
 		await common.rpc.eventserver.event(event, data, eventtime)
