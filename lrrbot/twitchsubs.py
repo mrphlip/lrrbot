@@ -70,7 +70,7 @@ class TwitchSubs:
 					log.info("Found new subscriber via Twitch API: %s" % user)
 					sub_start = dateutil.parser.parse(sub_start)
 					eventtime = dateutil.parser.parse(eventtime)
-					monthcount = round((eventtime - sub_start) / datetime.timedelta(days=30))
+					monthcount = round((eventtime - sub_start) / datetime.timedelta(days=30)) + 1 
 					self.loop.call_later(DELAY_FOR_SUBS_FROM_API, lambda: asyncio.ensure_future(self.on_subscriber(self.lrrbot.connection, "#%s" % config['channel'], user, eventtime, logo, monthcount)).add_done_callback(utils.check_exception))
 		else:
 			log.debug("Got initial subscriber list from Twitch")

@@ -61,16 +61,9 @@ class Client:
 			await self.__connection.close()
 
 	def __getattr__(self, key):
-		async def call(*args, **kwargs):
-			for _ in range(3):
-				try:
-					await self.connect()
-					return await getattr(self.__connection.remote, key)(*args, **kwargs)
-				except ConnectionResetError:
-					log.info("Connection reset, retrying...")
-					await asyncio.sleep(1)
+		if self.__connection.remote is None:
 			raise ConnectionResetError()
-		return call
+		return getattr(self.__connection.remote, key)
 
 bot = Client(config['socket_filename'], config['socket_port'])
 eventserver = Client(config['eventsocket'], config['event_port'])

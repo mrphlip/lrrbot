@@ -230,7 +230,7 @@ async def load_session(include_url=True, include_header=True):
 	return session
 
 @server.app.route('/login')
-def login(return_to=None):
+async def login(return_to=None):
 	if 'code' not in flask.request.values:
 		if return_to is None:
 			return_to = flask.request.values.get('return_to')
@@ -246,7 +246,7 @@ def login(return_to=None):
 		# Generate a random nonce so we can verify that the user who comes back is the same user we sent away
 		flask.session['login_nonce'] = uuid.uuid4().hex
 
-		return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(scope), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=load_session(include_url=False))
+		return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(scope), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=await load_session(include_url=False))
 	else:
 		try:
 			# Check that we're expecting the user to be logging in...
@@ -300,7 +300,7 @@ def login(return_to=None):
 				if any(i not in granted_scopes for i in SPECIAL_USERS[user_name]):
 					server.app.logger.error("User %s has not granted us the required permissions" % user_name)
 					flask.session['login_nonce'] = uuid.uuid4().hex
-					return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(SPECIAL_USERS[user_name]), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=load_session(include_url=False), special_user=user_name, remember_me=remember_me)
+					return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(SPECIAL_USERS[user_name]), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=await load_session(include_url=False), special_user=user_name, remember_me=remember_me)
 
 			# Store the user to the database
 			user = twitch.get_user(user_name)
@@ -314,16 +314,16 @@ def login(return_to=None):
 			flask.session.permanent = remember_me
 
 			return_to = flask.session.pop('login_return_to', None)
-			return flask.render_template("login_response.html", success=True, return_to=return_to, session=load_session(include_url=False))
+			return flask.render_template("login_response.html", success=True, return_to=return_to, session=await load_session(include_url=False))
 		except utils.PASSTHROUGH_EXCEPTIONS:
 			raise
 		except Exception:
 			server.app.logger.exception("Exception in login")
-			return flask.render_template("login_response.html", success=False, session=load_session(include_url=False))
+			return flask.render_template("login_response.html", success=False, session=await load_session(include_url=False))
 
 @server.app.route('/logout')
-def logout():
+async def logout():
 	if 'id' in flask.session:
 		del flask.session['id']
-	session = load_session(include_url=False)
+	session = await load_session(include_url=False)
 	return flask.render_template("logout.html", return_to=flask.request.values.get('return_to'), session=session)
