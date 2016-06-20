@@ -2,9 +2,9 @@ import flask
 import flask.json
 
 import common.url
+import common.rpc
 from www import server
 from www import login
-from www import botinteract
 from www import history
 import re
 import datetime
@@ -14,9 +14,10 @@ import sqlalchemy
 
 @server.app.route('/spam')
 @login.require_mod
-def spam(session):
+async def spam(session):
 	link_spam = "link_spam" in flask.request.values
-	data = botinteract.get_data('link_spam_rules' if link_spam else 'spam_rules')
+	await common.rpc.bot.connect()
+	data = await common.rpc.bot.get_data('link_spam_rules' if link_spam else 'spam_rules')
 	return flask.render_template("spam.html", rules=data, link_spam=link_spam, session=session)
 
 def verify_rules(rules):
@@ -39,7 +40,7 @@ def verify_rules(rules):
 
 @server.app.route('/spam/submit', methods=['POST'])
 @login.require_mod
-def spam_submit(session):
+async def spam_submit(session):
 	link_spam = "link_spam" in flask.request.values
 	data = flask.json.loads(flask.request.values['data'])
 
@@ -48,10 +49,11 @@ def spam_submit(session):
 	if error:
 		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
 
+	await common.rpc.bot.connect()
 	if link_spam:
-		botinteract.modify_link_spam_rules(data)
+		await common.rpc.bot.link_spam.modify_link_spam_rules(data)
 	else:
-		botinteract.modify_spam_rules(data)
+		await common.rpc.bot.spam.modify_spam_rules(data)
 	history.store("link_spam" if link_spam else "spam", session['user']['id'], data)
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
 
@@ -63,16 +65,15 @@ def do_check(line, rules):
 			return rule['message'] % groups
 	return None
 
-@asyncio.coroutine
-def do_check_links(message, rules):
-	re_url = yield from common.url.url_regex()
+async def do_check_links(message, rules):
+	re_url = await common.url.url_regex()
 	urls = []
 	for match in re_url.finditer(message):
 		for url in match.groups():
 			if url is not None:
 				urls.append(url)
 				break
-	canonical_urls = yield from asyncio.gather(*map(common.url.canonical_url, urls))
+	canonical_urls = await asyncio.gather(*map(common.url.canonical_url, urls))
 	for url_chain in canonical_urls:
 		for url in url_chain:
 			for rule in rules:
@@ -82,15 +83,13 @@ def do_check_links(message, rules):
 
 @server.app.route('/spam/redirects')
 @login.require_mod
-@asyncio.coroutine
-def spam_redirects(session):
-	redirects = yield from common.url.canonical_url(flask.request.values["url"].strip())
+async def spam_redirects(session):
+	redirects = await common.url.canonical_url(flask.request.values["url"].strip())
 	return flask.json.jsonify(redirects=redirects, csrf_token=server.app.csrf_token())
 
 @server.app.route('/spam/test', methods=['POST'])
 @login.require_mod
-@asyncio.coroutine
-def spam_test(session):
+async def spam_test(session):
 	link_spam = "link_spam" in flask.request.values
 	rules = flask.json.loads(flask.request.values['data'])
 	message = flask.request.values['message']
@@ -111,7 +110,7 @@ def spam_test(session):
 	re_irc = re.compile("<[^<>]*>\s*(.*)$")
 	lines = message.split('\n')
 	for line in lines:
-		res = yield from check(line, rules)
+		res = await check(line, rules)
 		if res is None:
 			match = re_twitchchat.search(line)
 			if match:
@@ -135,8 +134,9 @@ def spam_test(session):
 
 @server.app.route('/spam/find')
 @login.require_mod
-def spam_find(session):
-	rules = botinteract.get_data('spam_rules')
+async def spam_find(session):
+	await common.rpc.bot.connect()
+	rules = await common.rpc.bot.get_data('spam_rules')
 	for rule in rules:
 		rule['re'] = re.compile(rule['re'])
 

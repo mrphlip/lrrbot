@@ -1,3 +1,4 @@
+import aiomas
 import asyncio
 import re
 import logging
@@ -10,6 +11,8 @@ import irc.client
 log = logging.getLogger('linkspam')
 
 class LinkSpam:
+	router = aiomas.rpc.Service()
+
 	def __init__(self, lrrbot, loop):
 		self.loop = loop
 		self.lrrbot = lrrbot
@@ -22,10 +25,11 @@ class LinkSpam:
 			}
 			for rule in storage.data.get("link_spam_rules", [])
 		]
-		self.lrrbot.rpc_server.add("modify_link_spam_rules", self.modify_link_spam_rules)
+		self.lrrbot.rpc_server.link_spam = self
 		self.lrrbot.reactor.add_global_handler("pubmsg", self.check_link_spam, 21)
 
-	def modify_link_spam_rules(self, lrrbot, user, data):
+	@aiomas.expose
+	def modify_link_spam_rules(self, data):
 		storage.data['link_spam_rules'] = data
 		storage.save()
 		self.rules = [

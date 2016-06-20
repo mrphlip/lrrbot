@@ -14,6 +14,7 @@ from common.config import config, from_apipass
 from common import utils
 from common import twitch
 from common import game_data
+import common.rpc
 
 with server.db.engine.begin() as conn:
 	users = server.db.metadata.tables["users"]
@@ -40,7 +41,6 @@ SPECIAL_USERS = {
 REDIRECT_URI = 'https://lrrbot.mrphlip.com/login'
 #REDIRECT_URI = 'http://localhost:5000/login'
 
-@utils.coro_decorator
 def with_session(func):
 	"""
 	Pass the current login session information to the function
@@ -52,13 +52,11 @@ def with_session(func):
 		...
 	"""
 	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(*args, **kwargs):
-		kwargs['session'] = load_session()
-		return (yield from func(*args, **kwargs))
+	async def wrapper(*args, **kwargs):
+		kwargs['session'] = await load_session()
+		return await asyncio.coroutine(func)(*args, **kwargs)
 	return wrapper
 
-@utils.coro_decorator
 def with_minimal_session(func):
 	"""
 	Pass the current login session information to the function
@@ -74,30 +72,26 @@ def with_minimal_session(func):
 		...
 	"""
 	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(*args, **kwargs):
-		kwargs['session'] = load_session(include_url=False, include_header=False)
-		return (yield from func(*args, **kwargs))
+	async def wrapper(*args, **kwargs):
+		kwargs['session'] = await load_session(include_url=False, include_header=False)
+		return await asyncio.coroutine(func)(*args, **kwargs)
 	return wrapper
 
-@utils.coro_decorator
 def require_login(func):
 	"""
 	Like with_session, but if the user isn't logged in,
 	send them via the login screen.
 	"""
 	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(*args, **kwargs):
-		session = load_session()
+	async def wrapper(*args, **kwargs):
+		session = await load_session()
 		if session['user']['id'] is not None:
 			kwargs['session'] = session
-			return (yield from func(*args, **kwargs))
+			return await asyncio.coroutine(func)(*args, **kwargs)
 		else:
 			return login(session['url'])
 	return wrapper
 
-@utils.coro_decorator
 def require_mod(func):
 	"""
 	Like with_session, but if the user isn't logged in,
@@ -105,26 +99,24 @@ def require_mod(func):
 	a moderator, kick them out.
 	"""
 	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(*args, **kwargs):
-		session = load_session()
+	async def wrapper(*args, **kwargs):
+		session = await load_session()
 		if session['user']['id'] is not None:
 			kwargs['session'] = session
 			if session['user']['is_mod']:
-				return (yield from func(*args, **kwargs))
+				return await asyncio.coroutine(func)(*args, **kwargs)
 			else:
 				return flask.render_template('require_mod.html', session=session)
 		else:
 			return login(session['url'])
 	return wrapper
 
-def load_session(include_url=True, include_header=True):
+async def load_session(include_url=True, include_header=True):
 	"""
 	Get the login session information from the cookies.
 
 	Includes all the information needed by the master.html template.
 	"""
-	from www import botinteract
 	user_id = flask.session.get('id')
 	user_name = flask.session.get('user')
 	if user_id is None and user_name is not None:
@@ -148,7 +140,8 @@ def load_session(include_url=True, include_header=True):
 	else:
 		session['url'] = None
 	if include_header:
-		session['header'] = botinteract.get_header_info()
+		await common.rpc.bot.connect()
+		session['header'] = await common.rpc.bot.get_header_info()
 		if 'current_game' in session['header']:
 			games = server.db.metadata.tables["games"]
 			shows = server.db.metadata.tables["shows"]
@@ -207,12 +200,13 @@ def load_session(include_url=True, include_header=True):
 
 	if user_id is not None:
 		users = server.db.metadata.tables["users"]
+		patreon_users = server.db.metadata.tables["patreon_users"]
 		with server.db.engine.begin() as conn:
 			query = sqlalchemy.select([
 				users.c.name, sqlalchemy.func.coalesce(users.c.display_name, users.c.name), users.c.twitch_oauth,
-				users.c.is_sub, users.c.is_mod, users.c.autostatus,
+				users.c.is_sub, users.c.is_mod, users.c.autostatus, users.c.patreon_user
 			]).where(users.c.id == user_id)
-			name, display_name, token, is_sub, is_mod, autostatus = conn.execute(query).first()
+			name, display_name, token, is_sub, is_mod, autostatus, patreon_user = conn.execute(query).first()
 			session['user'] = {
 				"id": user_id,
 				"name": name,
@@ -221,6 +215,7 @@ def load_session(include_url=True, include_header=True):
 				"is_sub": is_sub,
 				"is_mod": is_mod,
 				"autostatus": autostatus,
+				"patreon_user": patreon_user,
 			}
 	else:
 		session['user'] = {

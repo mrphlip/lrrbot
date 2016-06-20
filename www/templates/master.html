@@ -60,6 +60,7 @@
 	<li><a href="{{url_for('archive')|e}}">Past Broadcasts</a></li>
 	<li><a href="{{url_for('archive')|e}}?highlights=true">Highlights</a></li>
 	<li><a href="{{url_for('quotes')|e}}">Quotes</a></li>
+	<li><a href="{{url_for('patreon_index')|e}}">Patreon</a></li>
 	{%if session['user']['is_mod']%}
 	<li><a href="{{url_for('commands')|e}}">Responses</a></li>
 	<li><a href="{{url_for('commands')|e}}?mode=explanations">Explanations</a></li>
@@ -69,8 +70,13 @@
 </ul>
 </div>
 <div class="body-content">
-{%block content%}
-{%endblock%}
+	{% with messages = get_flashed_messages(with_categories=true) %}
+		{% for category, message in  messages %}
+			<p class="flash flash-{{ category }}">{{ message }}</p>
+		{% endfor %}
+	{% endwith %}
+	{%block content%}
+	{%endblock%}
 </div>
 <div class="footer">
 <p>If you have issues, contact:</p>

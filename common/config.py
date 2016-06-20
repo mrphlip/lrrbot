@@ -12,7 +12,7 @@ config = configparser.ConfigParser()
 config.read(argv.conf)
 
 apipass = dict(config.items("apipass"))
-from_apipass = {p:u for u,p in apipass.items()}
+from_apipass = {p: u for u, p in apipass.items()}
 
 config = dict(config.items(CONFIG_SECTION))
 
@@ -76,6 +76,11 @@ config.setdefault('socket_filename', 'lrrbot.sock')
 # eventsocket - Filename for the UDS channel that the webserver uses to communicate with SSE clients
 config.setdefault('eventsocket', "/tmp/eventserver.sock")
 
+# socket_port - TCP port to use when Unix domain sockets are not available.
+config['socket_port'] = int(config.get('socket_port', 49601))
+# event_port - TCP port to use when Unix domain sockets are not available.
+config['event_port'] = int(config.get('event_port', 49602))
+
 # google_key - Google API key
 config.setdefault('google_key', '')
 
@@ -87,6 +92,9 @@ config.setdefault('twitch_clientsecret', '')
 
 # session_secret - Secret key for signing session cookies
 config.setdefault('session_secret', '')
+
+# preferred_url_scheme - Flask config key PREFERRED_URL_SCHEME: the URL scheme to use when no scheme is available
+config.setdefault('preferred_url_scheme', 'https')
 
 # whispers - boolean option, whether to connect to group chat server and respond to whispers
 config.setdefault('whispers', False)

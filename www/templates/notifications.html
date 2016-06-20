@@ -3,23 +3,61 @@
 {%block header%}Twitch Notifications{%endblock%}
 {%block headextra%}
 <script type="text/javascript" src="{{url_for('static', filename='notifications.js')|e}}"></script>
+<script>
+	window.last_event_id = {{ last_event_id | tojson }};
+	window.EVENTSERVER_ROOT = {{ eventserver_root | tojson }};
+	window.PATREON_CREATOR_NAME = {{ patreon_creator_name | tojson }};
+</script>
 {%endblock%}
 {%block content%}
-<ol id="notificationlist" data-maxkey="{{maxkey}}">
-{%for row in row_data%}
-	<li {%if row['time']%}data-timestamp="{{row['time'].timestamp()}}"{%endif%} class="{{loop.cycle('even', 'odd')}}">
-	{%if row['duration']%}<div class="duration">{{row['duration']|e}}</div>{%endif%}
-	{%if row['channel']%}<div class="channel">{{row['channel']|e}}</div>{%endif%}
-	{%if row['user']%}
-		<div class="user">
-		{%if row['avatar']%}<a href="https://www.twitch.tv/{{row['user']|e}}"><img class="avatar" src="{{row['avatar']|https|e}}"></a>{%endif%}
-		<a href="https://www.twitch.tv/{{row['user']|e}}">{{row['user']|e}}</a> just subscribed!
-		{%if row['monthcount']%}{{row['monthcount']|e}} month{%if row['monthcount'] != 1%}s{%endif%} in a row!{%endif%}
-		</div>
-	{%else%}
-		<div class="message">{{row['message']|e}}</div>
-	{%endif%}
-	</li>
-{%endfor%}
+<ol id="notificationlist" data-last-event-id="{{ last_event_id }}">
+	{% for event in events %}
+		<li data-timestamp="{{ event['data']['time'].isoformat() }}" class="{{ loop.cycle('even', 'odd') }}">
+			<div class="duration">{{ event['duration'] }}</div>
+			<div class="container">
+				{% if event['event'] == 'twitch-subscription' %}
+					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
+						{% if event['data']['avatar'] %}
+							<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">
+								<img class="avatar" src="{{ event['data']['avatar'] | https }}">
+							</a>
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message"><a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a> just subscribed!</p>
+						</div>
+					</div>
+				{% elif event['event'] == 'twitch-resubscription' %}
+					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
+						{% if event['data']['avatar'] %}
+							<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">
+								<img class="avatar" src="{{ event['data']['avatar'] | https }}">
+							</a>
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message">
+								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a> subscribed for
+								{{ event['data']['monthcount'] }} month{% if event['data']['monthcount'] != 1%}s{% endif %} in a row!
+							</p>
+							{% if event['data']['message'] %}
+								<p class="message"><q>{{ event['data']['message'] }}</q></p>
+							{% endif %}
+						</div>
+					</div>
+				{% elif event['event'] == 'twitch-message' %}
+					<div class="message">{{ event['data']['message'] }}</div>
+				{% elif event['event'] == 'patreon-pledge' %}
+				<div class="user{% if event['data']['patreon']['avatar'] %} with-avatar{% endif %}">
+					{% if event['data']['patreon']['avatar'] %}
+						<a href="{{ event['data']['patreon']['url'] }}" rel="noopener nofollow">
+							<img class="avatar" src="{{ event['data']['patreon']['avatar'] | https }}">
+						</a>
+					{% endif %}
+					<a href="{{ event['data']['patreon']['url'] }}" rel="noopener nofollow">{{ event['data']['twitch']['name'] or event['data']['patreon']['full_name'] }}</a> just subscribed!
+				</div>
+				{% endif %}
+				<div class="clear"></div>
+			</div>
+		</li>
+	{%endfor%}
 </ol>
 {%endblock%}

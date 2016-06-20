@@ -1,3 +1,4 @@
+import aiomas
 import random
 import irc.client
 
@@ -46,8 +47,12 @@ def explain_response(lrrbot, conn, event, respond_to, command):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response)
 
-@bot.rpc_server.function()
-def modify_explanations(lrrbot, user, commands):
-	log.info("Setting explanations (%s) to %r" % (user, commands))
-	storage.data["explanations"] = {k.lower(): v for k,v in commands.items()}
+@aiomas.expose
+def modify_explanations(commands):
+	log.info("Setting explanations to %r" % commands)
+	storage.data["explanations"] = {k.lower(): v for k, v in commands.items()}
 	storage.save()
+
+bot.rpc_server.explain = aiomas.rpc.ServiceDict({
+	'modify_explanations': modify_explanations,
+})

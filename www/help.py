@@ -1,7 +1,7 @@
 import flask
 from www import server
 from www import login
-from www import botinteract
+import common.rpc
 import html
 from collections import OrderedDict
 
@@ -22,8 +22,9 @@ def command_format(cmd):
 
 @server.app.route('/help')
 @login.with_session
-def help(session):
-	commandlist = sorted(map(command_format, botinteract.get_commands()), key=lambda c: c["raw-aliases"])
+async def help(session):
+	await common.rpc.bot.connect()
+	commandlist = sorted(map(command_format, await common.rpc.bot.get_commands()), key=lambda c: c["raw-aliases"])
 	commands = {}
 	for command in commandlist:
 		section = command['section']

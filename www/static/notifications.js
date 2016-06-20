@@ -1,172 +1,232 @@
-window.MAXIMUM_AGE = 2*24*60*60*1000;
+window.addEventListener('DOMContentLoaded', function (event) {
+	window.original_title = document.title;
 
-window.rowToggle = false;
+	var events = document.querySelectorAll('#notificationlist li');
+	for (var i = 0; i < events.length; i++) {
+		var event = events[i];
+		event.querySelector(".duration").setAttribute('title', new Date(event.dataset.timestamp).toLocaleString());
+	}
 
-function init()
-{
-	window.originalTitle = document.title;
+	if (window.EventSource) {
+		var stream = new EventSource(window.EVENTSERVER_ROOT + "/notifications/events?last-event-id=" + window.last_event_id);
+		stream.addEventListener("twitch-subscription", function (event) {
+			twitch_subscription(JSON.parse(event.data));
+			update_title();
+		});
+		stream.addEventListener("twitch-resubscription", function (event) {
+			twitch_resubscription(JSON.parse(event.data));
+			update_title();
+		});
+		stream.addEventListener("twitch-message", function (event) {
+			twitch_message(JSON.parse(event.data));
+			update_title();
+		});
+		stream.addEventListener("patreon-pledge", function (event) {
+			patreon_pledge(JSON.parse(event.data));
+			update_title();
+		});
+	} else {
+		window.setInterval(ajax_poll, 60 * 1000);
+	}
+	window.setInterval(update_dates, 10 * 1000);
+})
 
-	// Convert the timestamps to Date objects
-	$("#notificationlist li").each(function()
-	{
-		var li = $(this);
-		var timestamp = new Date(li.data('timestamp') * 1000);
-		li.data('timestamp', timestamp);
-		li.find(".duration").attr('title', timestamp.toLocaleString());
+function ajax_poll() {
+	var req = new XMLHttpRequest();
+	req.addEventListener('load', function (event) {
+		var events = JSON.parse(req.responseText);
+		events.events.forEach(function (event) {
+			switch (event.event) {
+				case 'twitch-subscription':
+					twitch_subscription(event.data);
+					break;
+				case 'twitch-resubscription':
+					twitch_resubscription(event.data);
+					break;
+				case 'twitch-message':
+					twitch_message(event.data);
+					break;
+				case 'patreon-pledge':
+					patreon_pledge(event.data);
+					break;
+			}
+			if (event.id > window.last_event_id) {
+				window.last_event_id = event.id;
+			}
+		});
+		update_title();
+	})
+	req.open("GET", window.EVENTSERVER_ROOT + "/notifications/events?last-event-id=" + window.last_event_id);
+	req.setRequestHeader("Accept", "application/json");
+	req.send();
+}
+
+/* For how long to keep events on the page */
+window.MAXIMUM_AGE = 2 * 24 * 60 * 60;
+
+function update_dates() {
+	var rows = document.querySelectorAll("#notificationlist li");
+	for (var i = 0; i < rows.length; i++) {
+		var row = rows[i];
+		var duration = (Date.now() - Date.parse(row.dataset.timestamp)) / 1000;
+		if (duration > window.MAXIMUM_AGE) {
+			row.parentNode.removeChild(row);
+		} else {
+			row.querySelector(".duration").textContent = niceduration(duration);
+		}
+	}
+
+	update_title();
+}
+
+function update_title() {
+	var count = document.querySelectorAll("#notificationlist .new").length;
+	if (count > 0) {
+		document.title = "(" + count + ") " + window.original_title;
+	} else {
+		document.title = window.original_title;
+	}
+}
+
+/* Next row is even or odd */
+window.even = true;
+
+function createElementWithClass(element, className) {
+	var elem = document.createElement(element);
+	elem.className = className;
+	return elem;
+}
+
+function create_row(data, callback) {
+	var row = document.createElement("li");
+	row.dataset.timestamp = data.time;
+	if (window.even) {
+		row.className = "even new";
+	} else {
+		row.className = "odd new";
+	}
+	row.addEventListener("click", function (event) {
+		this.classList.remove("new");
+		update_title();
+	})
+	window.even = !window.even;
+
+	var list = document.getElementById("notificationlist");
+	list.insertBefore(row, list.firstChild);
+
+	var duration = createElementWithClass("div", "duration");
+	duration.appendChild(document.createTextNode(niceduration((Date.now() - Date.parse(data.time)) / 1000)));
+	row.appendChild(duration);
+
+	var container = createElementWithClass("div", "container");
+	row.appendChild(container);
+
+	callback(container);
+
+	var clear = document.createElement("div");
+	clear.className = "clear";
+	container.appendChild(clear);
+}
+
+function twitch_subscription(data) {
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		var link = document.createElement("a");
+		link.href = "https://www.twitch.tv/" + data.name;
+		link.rel = "noopener nofollow";
+
+		if (data.avatar) {
+			var avatar_link = link.cloneNode();
+			user.appendChild(avatar_link);
+
+			var avatar = document.createElement("img");
+			avatar.src = data.avatar;
+			avatar_link.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		link.appendChild(document.createTextNode(data.name));
+		message.appendChild(link);
+		message.appendChild(document.createTextNode(" just subscribed!"));
+		message_container.appendChild(message);
 	});
-
-	if (window.EventSource)
-		sse_init();
-	else
-		ajax_init();
-}
-$(init);
-
-function newMessage(message)
-{
-	if (message.test)
-		return;
-	// The layout here should resemble what's generated by the HTML template
-	var newRow = $('<li class="new">');
-	if (window.rowToggle)
-		newRow.addClass('even');
-	else
-		newRow.addClass('odd');
-	window.rowToggle = !window.rowToggle;
-	if (message.time)
-	{
-		var timestamp = new Date(message.time * 1000);
-		newRow.data('timestamp', timestamp);
-		$('<div class="duration">').attr('title', timestamp.toLocaleString()).appendTo(newRow);
-	}
-	if (message.channel)
-		$('<div class="channel">').text(message.channel).appendTo(newRow);
-	if (message.user)
-	{
-		var userDiv = $('<div class="user">');
-		var url = "https://www.twitch.tv/" + message.user;
-		if (message.avatar)
-			userDiv.append($('<a>').attr('href', url).append($('<img>').attr('src', message.avatar))).append(' ');
-		$('<a>').attr('href', url).text(message.user).appendTo(userDiv);
-		userDiv.append(" just subscribed!");
-		if (message.monthcount)
-			userDiv.append(" " + message.monthcount + " month" + (message.monthcount == 1 ? "" : "s") + " in a row!");
-		userDiv.appendTo(newRow);
-	}
-	else
-	{
-		$('<div class="message">').text(message.message).appendTo(newRow);
-	}
-	newRow.one("click", function(){$(this).removeClass("new"); updateTitle();});
-	newRow.hide();
-	$("#notificationlist").prepend(newRow);
-	newRow.slideDown();
-	updateTitle();
 }
 
-function updateDates()
-{
-	// Includes removing existing rows older than a couple days
-	// (don't let old notifications stick around forever so that you can
-	// just leave the page open forever without massive memory leaks)
-	var now = new Date();
-	$("#notificationlist li").each(function(){
-		var li = $(this);
-		var timestamp = li.data('timestamp');
-		if (timestamp)
-		{
-			var age = now - timestamp;
-			if (age <= MAXIMUM_AGE)
-				li.find('.duration').text(niceduration(age / 1000));
-			else
-				li.remove();
+function twitch_resubscription(data) {
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		var link = document.createElement("a");
+		link.href = "https://www.twitch.tv/" + data.name;
+		link.rel = "noopener nofollow";
+
+		if (data.avatar) {
+			var avatar_link = link.cloneNode();
+			user.appendChild(avatar_link);
+
+			var avatar = document.createElement("img");
+			avatar.src = data.avatar;
+			avatar_link.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		link.appendChild(document.createTextNode(data.name));
+		message.appendChild(link);
+		message.appendChild(document.createTextNode(" subscribed for " + data.monthcount + " month" + (data.monthcount != 1 ? 's' : '') + " in a row!"));
+		message_container.appendChild(message);
+
+		if (data.message) {
+			var user_message = createElementWithClass("p", "message");
+			message_container.appendChild(user_message);
+			var quote = document.createElement("q");
+			quote.appendChild(document.createTextNode(data.message));
+			user_message.appendChild(quote);
 		}
 	});
 }
 
-function updateTitle()
-{
-	var newcount = $('#notificationlist li.new').length;
-	if (newcount)
-		document.title = "(" + newcount + ") " + window.originalTitle;
-	else
-		document.title = window.originalTitle;
-}
-
-//--------------
-// SSE code
-
-window.UPDATE_DATES_INTERVAL = 10*1000;
-
-function sse_init()
-{
-	var stream = new EventSource("notifications/events");
-	stream.addEventListener("newmessage", sse_message);
-	window.setInterval(updateDates, UPDATE_DATES_INTERVAL);
-}
-
-function sse_message(event)
-{
-	var message = $.parseJSON(event.data);
-	newMessage(message);
-	updateDates();
-}
-
-//--------------
-// AJAX fallback
-
-window.UPDATE_INTERVAL = 60*1000;
-window.HEARTBEAT_INTERVAL = 5*60*1000;
-
-function ajax_init()
-{
-	window.maxkey = $("#notificationlist").data('maxkey');
-	window.timesrun = 1;
-	setInterval(ajax_heartbeat, window.HEARTBEAT_INTERVAL);
-
-	setTimeout(ajax_update, 0);
-}
-
-function ajax_heartbeat()
-{
-	// Make sure the update procedure is being run regularly, in case of network and/or browser glitches
-	if (window.timesrun == 0)
-		setTimeout(ajax_update, 0);
-
-	window.timesrun = 0;
-}
-
-function ajax_update()
-{
-	window.timesrun++;
-
-	$.ajax({
-		'type': 'GET',
-		'url': "notifications/updates",
-		'data': "after=" + encodeURIComponent(window.maxkey),
-		'dataType': 'json',
-		'async': true,
-		'cache': false,
-		'success': ajax_updateSuccess,
-		'error': ajax_updateError
-	})
-}
-
-function ajax_updateSuccess(data)
-{
-	setTimeout(ajax_update, window.UPDATE_INTERVAL);
-	// Add any new rows to the table
-	$(data.notifications).each(function(){
-		newMessage(this);
-
-		if (this.key > window.maxkey)
-			window.maxkey = this.key;
+function twitch_message(data) {
+	create_row(data, function (container) {
+		var message = createElementWithClass("div", "message");
+		message.appendChild(document.createTextNode(data.message));
+		container.appendChild(message);
 	});
-
-	updateDates();
 }
 
-function ajax_updateError(xhr, status, err)
-{
-	setTimeout(ajax_update, window.UPDATE_INTERVAL);
+function patreon_pledge(data) {
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.patreon.avatar ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		var link = document.createElement("a");
+		link.href = data.patreon.url;
+		link.rel = "noopener nofollow";
+
+		if (data.avatar) {
+			var avatar_link = link.cloneNode();
+			user.appendChild(avatar_link);
+
+			var avatar = document.createElement("img");
+			avatar.src = data.patreon.avatar;
+			avatar_link.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		link.appendChild(document.createTextNode(data.twitch ? data.twitch.name : data.patreon.full_name));
+		message.appendChild(link);
+		message.appendChild(document.createTextNode(" is now supporting " + window.PATREON_CREATOR_NAME + " on Patreon!"));
+		message_container.appendChild(message);
+	});
 }

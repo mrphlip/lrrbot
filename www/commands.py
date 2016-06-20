@@ -2,16 +2,17 @@ import flask
 import flask.json
 from www import server
 from www import login
-from www import botinteract
 from www import history
+import common.rpc
 
 @server.app.route('/commands')
 @login.require_mod
-def commands(session):
+async def commands(session):
 	mode = flask.request.values.get('mode', 'responses')
 	assert(mode in ('responses', 'explanations'))
 
-	data = botinteract.get_data(mode)
+	await common.rpc.bot.connect()
+	data = await common.rpc.bot.get_data(mode)
 
 	# Prepare the data, and group equivalent commands together
 	data_reverse = {}
@@ -32,7 +33,7 @@ def commands(session):
 
 @server.app.route('/commands/submit', methods=['POST'])
 @login.require_mod
-def commands_submit(session):
+async def commands_submit(session):
 	mode = flask.request.values.get('mode', 'responses')
 	assert(mode in ('responses', 'explanations'))
 	data = flask.json.loads(flask.request.values['data'])
@@ -59,9 +60,10 @@ def commands_submit(session):
 			response_data['response'] = response_data['response'][0]
 		if response_data['access'] not in ('any', 'sub', 'mod'):
 			raise ValueError("Invalid access level")
+	await common.rpc.bot.connect()
 	if mode == 'responses':
-		botinteract.modify_commands(data)
+		await common.rpc.bot.static.modify_commands(data)
 	elif mode == 'explanations':
-		botinteract.modify_explanations(data)
+		await common.rpc.bot.explain.modify_explanations(data)
 	history.store(mode, session['user']['id'], data)
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())

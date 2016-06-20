@@ -70,7 +70,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.service = lrrbot.systemd.Service(loop)
 
-		# create secondary connection
 		if config['whispers']:
 			self.whisperconn = whisper.TwitchWhisper(self, self.loop)
 		else:
@@ -119,23 +118,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		return asyncreactor.AsyncReactor(self.loop)
 
 	def start(self):
-		# Let us run on windows, without the socket
-		if hasattr(self.loop, 'create_unix_server'):
-			# TODO: To be more robust, the code really should have a way to shut this socket down
-			# when the bot exits... currently, it's assuming that there'll only be one LRRBot
-			# instance, that lasts the life of the program... which is true for now...
-			try:
-				os.unlink(config['socket_filename'])
-			except OSError:
-				if os.path.exists(config['socket_filename']):
-					raise
-			event_server = self.loop.create_unix_server(self.rpc_server, path=config['socket_filename'])
-			self.loop.run_until_complete(event_server)
-		else:
-			event_server = None
+		try:
+			os.unlink(config['socket_filename'])
+		except FileNotFoundError:
+			pass
+		self.loop.run_until_complete(self.rpc_server.start(config['socket_filename'], config['socket_port']))
 
 		# Start background tasks
-		substask = asyncio.async(self.subs.watch_subs(), loop=self.loop)
 		chatlogtask = asyncio.async(chatlog.run_task(), loop=self.loop)
 
 		self._connect()
@@ -148,11 +137,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.loop.run_forever()
 		finally:
 			log.info("Bot shutting down...")
-			if event_server:
-				event_server.close()
-			substask.cancel()
+			self.loop.run_until_complete(self.rpc_server.close())
 			chatlog.stop_task()
-			tasks_waiting = [substask, chatlogtask]
+			tasks_waiting = [chatlogtask]
 			if self.whisperconn:
 				tasks_waiting.append(self.whisperconn.stop_task())
 			self.cardviewer.stop()
@@ -240,9 +227,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return
 		tags["user-id"] = int(tags["user-id"])
 
-		if event.type == "pubmsg":
-			users = self.metadata.tables["users"]
-			with self.engine.begin() as conn:
+		users = self.metadata.tables["users"]
+		patreon_users = self.metadata.tables["patreon_users"]
+		with self.engine.begin() as conn:
+			if event.type == "pubmsg":
 				conn.execute(users.insert(postgresql_on_conflict="update"), {
 					"id": tags["user-id"],
 					"name": nick,
@@ -250,16 +238,18 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					"is_sub": is_sub,
 					"is_mod": is_mod,
 				})
-		else:
-			users = self.metadata.tables['users']
-			with self.engine.begin() as pg_conn:
-				row = pg_conn.execute(sqlalchemy.select([users.c.is_sub, users.c.is_mod])
+			else:
+				row = conn.execute(sqlalchemy.select([users.c.is_sub, users.c.is_mod])
 					.where(users.c.id == event.tags['user-id'])).first()
 				if row is not None:
 					tags['subscriber'], tags['mod'] = row
 				else:
 					tags['subscriber'] = False
 					tags['mod'] = False
+			tags['patron'] = conn.execute(sqlalchemy.select([patreon_users.c.pledge_start.isnot(None)])
+				.select_from(patreon_users.join(users))
+				.where(users.c.id == tags['user-id'])
+			)
 
 		tags["display_name"] = tags.get("display_name", nick)
 
@@ -359,7 +349,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	def is_sub(self, event):
 		"""Check whether the source of the event is a known subscriber to the channel"""
-		return event.tags["subscriber"]
+		return event.tags["subscriber"] or event.tags["patron"]
 
 	@asyncio.coroutine
 	def ban(self, conn, event, reason, bantype):
