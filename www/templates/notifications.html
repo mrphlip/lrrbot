@@ -46,14 +46,16 @@
 				{% elif event['event'] == 'twitch-message' %}
 					<div class="message">{{ event['data']['message'] }}</div>
 				{% elif event['event'] == 'patreon-pledge' %}
-				<div class="user{% if event['data']['patreon']['avatar'] %} with-avatar{% endif %}">
-					{% if event['data']['patreon']['avatar'] %}
-						<a href="{{ event['data']['patreon']['url'] }}" rel="noopener nofollow">
-							<img class="avatar" src="{{ event['data']['patreon']['avatar'] | https }}">
-						</a>
-					{% endif %}
-					<a href="{{ event['data']['patreon']['url'] }}" rel="noopener nofollow">{{ event['data']['twitch']['name'] or event['data']['patreon']['full_name'] }}</a> just subscribed!
-				</div>
+					<div class="user{% if event['data']['patreon']['avatar'] %} with-avatar{% endif %}">
+						{% if event['data']['patreon']['avatar'] %}
+							<a href="{{ event['data']['patreon']['url'] }}" rel="noopener nofollow">
+								<img class="avatar" src="{{ event['data']['patreon']['avatar'] | https }}">
+							</a>
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message"><a href="{{ event['data']['patreon']['url'] }}" rel="noopener nofollow">{{ event['data']['twitch']['name'] or event['data']['patreon']['full_name'] }}</a> is now supporting {{ patreon_creator_name }} on Patreon!</p>
+						</div>
+					</div>
 				{% endif %}
 				<div class="clear"></div>
 			</div>
