@@ -48,7 +48,7 @@ class Server(common.rpc.Server):
 					{'id': id, 'event': event, 'data': dict(data, time=time.isoformat())}
 					for id, event, data, time in conn.execute(sqlalchemy.select([
 						events.c.id, events.c.event, events.c.data, events.c.time
-					]).where(events.c.id > last_event_id).order_by(events.c.time))
+					]).where(events.c.id > last_event_id).order_by(events.c.id))
 				]
 		return []
 

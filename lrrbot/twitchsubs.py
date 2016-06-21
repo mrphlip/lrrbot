@@ -114,8 +114,11 @@ class TwitchSubs:
 					message = event.arguments[0]
 				else:
 					message = None
+				monthcount = tags.get('msg-param-months')
+				if monthcount is not None:
+					monthcount = int(monthcount)
 				source = irc.client.NickMask(event.source)
-				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name', source.nick), datetime.datetime.now(tz=pytz.utc), monthcount=tags.get('msg-param-months'), message=message)).add_done_callback(utils.check_exception)
+				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name', source.nick), datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
 				return "NO MORE"
 
 	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None):
