@@ -11,6 +11,7 @@ import sqlalchemy
 
 import common.http
 import common.time
+import common.storm
 import lrrbot.decorators
 from common import utils
 from common.config import config
@@ -25,7 +26,7 @@ log = logging.getLogger('misc')
 def test(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Test")
 
-@bot.command("storm(?:count)?")
+@bot.command("storm(?:counts?)?")
 @lrrbot.decorators.throttle()
 def stormcount(lrrbot, conn, event, respond_to):
 	"""
@@ -33,16 +34,16 @@ def stormcount(lrrbot, conn, event, respond_to):
 	Command: !stormcount
 	Section: info
 
-	Show the current storm count (the number of viewers who have subscribed today)
+	Show the current storm counts.
 	"""
-	today = datetime.datetime.now(config["timezone"]).date().toordinal()
-	if today != storage.data.get("storm", {}).get("date"):
-		storage.data["storm"] = {
-			"date": today,
-			"count": 0
-		}
-		storage.save()
-	conn.privmsg(respond_to, "Today's storm count: %d" % storage.data["storm"]["count"])
+	twitch_subscription = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-subscription')
+	twitch_resubscription = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-resubscription')
+	patreon_pledge = common.storm.get(lrrbot.engine, lrrbot.metadata, 'patreon-pledge')
+	conn.privmsg(respond_to, "Today's storm count (number of new subscribers): %d, %s count (number of returning subscribers): %d, %s count (number of new patrons): %d" % (
+		twitch_subscription,
+		utils.counter(), twitch_resubscription,
+		utils.counter(), patreon_pledge,
+	))
 
 @bot.command("spam(?:count)?")
 @lrrbot.decorators.throttle()
