@@ -16,7 +16,6 @@ import sqlalchemy
 @login.require_mod
 async def spam(session):
 	link_spam = "link_spam" in flask.request.values
-	await common.rpc.bot.connect()
 	data = await common.rpc.bot.get_data('link_spam_rules' if link_spam else 'spam_rules')
 	return flask.render_template("spam.html", rules=data, link_spam=link_spam, session=session)
 
@@ -49,7 +48,6 @@ async def spam_submit(session):
 	if error:
 		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
 
-	await common.rpc.bot.connect()
 	if link_spam:
 		await common.rpc.bot.link_spam.modify_link_spam_rules(data)
 	else:
@@ -135,7 +133,6 @@ async def spam_test(session):
 @server.app.route('/spam/find')
 @login.require_mod
 async def spam_find(session):
-	await common.rpc.bot.connect()
 	rules = await common.rpc.bot.get_data('spam_rules')
 	for rule in rules:
 		rule['re'] = re.compile(rule['re'])

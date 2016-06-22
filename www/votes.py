@@ -7,7 +7,6 @@ import common.rpc
 @server.app.route('/votes')
 @login.require_login
 async def votes(session):
-	await common.rpc.bot.connect()
 	current_game_id = await common.rpc.bot.get_game_id()
 	current_show_id = await common.rpc.bot.get_show_id()
 

@@ -23,7 +23,6 @@ def command_format(cmd):
 @server.app.route('/help')
 @login.with_session
 async def help(session):
-	await common.rpc.bot.connect()
 	commandlist = sorted(map(command_format, await common.rpc.bot.get_commands()), key=lambda c: c["raw-aliases"])
 	commands = {}
 	for command in commandlist:

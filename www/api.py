@@ -9,7 +9,6 @@ import common.storm
 
 @server.app.route("/api/stats/<stat>")
 async def api_stats(stat):
-	await common.rpc.bot.connect()
 	game_id = await common.rpc.bot.get_game_id()
 	if game_id is None:
 		return "-"
@@ -42,12 +41,10 @@ def stormcount():
 
 @server.app.route("/api/next")
 async def nextstream():
-	await common.rpc.bot.connect()
 	return await common.rpc.bot.nextstream()
 
 @server.app.route("/api/votes")
 async def api_votes():
-	await common.rpc.bot.connect()
 	game_id = await common.rpc.bot.get_game_id()
 	if game_id is None:
 		return "-"
@@ -76,13 +73,11 @@ async def set_show(session, show):
 		return "%s is not a mod" % (session['user']['display_name'])
 	if show == "off":
 		show = ""
-	await common.rpc.bot.connect()
 	await common.rpc.bot.set_show(show)
 	return ""
 
 @server.app.route("/api/game")
 async def get_game():
-	await common.rpc.bot.connect()
 	game_id = await common.rpc.bot.get_game_id()
 	if game_id is None:
 		return "-"
@@ -94,7 +89,6 @@ async def get_game():
 
 @server.app.route("/api/show")
 async def get_show():
-	await common.rpc.bot.connect()
 	show_id = await common.rpc.bot.get_show_id()
 
 	shows = server.db.metadata.tables["shows"]
@@ -107,6 +101,5 @@ async def get_show():
 async def get_tweet(session):
 	tweet = None
 	if session['user']['is_mod']:
-		await common.rpc.bot.connect()
 		tweet = await common.rpc.bot.get_tweet()
 	return tweet or "-"

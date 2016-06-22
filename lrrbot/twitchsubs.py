@@ -70,7 +70,7 @@ class TwitchSubs:
 					log.info("Found new subscriber via Twitch API: %s" % user)
 					sub_start = dateutil.parser.parse(sub_start)
 					eventtime = dateutil.parser.parse(eventtime)
-					monthcount = round((eventtime - sub_start) / datetime.timedelta(days=30)) + 1 
+					monthcount = round((eventtime - sub_start) / datetime.timedelta(days=30)) + 1
 					self.loop.call_later(DELAY_FOR_SUBS_FROM_API, lambda: asyncio.ensure_future(self.on_subscriber(self.lrrbot.connection, "#%s" % config['channel'], user, eventtime, logo, monthcount)).add_done_callback(utils.check_exception))
 		else:
 			log.debug("Got initial subscriber list from Twitch")
@@ -117,8 +117,7 @@ class TwitchSubs:
 				monthcount = tags.get('msg-param-months')
 				if monthcount is not None:
 					monthcount = int(monthcount)
-				source = irc.client.NickMask(event.source)
-				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name', source.nick), datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
+				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name', tags['login']), datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
 				return "NO MORE"
 
 	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None):
@@ -148,6 +147,9 @@ class TwitchSubs:
 		with self.lrrbot.engine.begin() as pg_conn:
 			pg_conn.execute(users.update().where(users.c.name == user), is_sub=True)
 
+		if message is not None:
+			data['message'] = message
+
 		if monthcount is not None and monthcount > 1:
 			event = "twitch-resubscription"
 			data['monthcount'] = monthcount
@@ -159,5 +161,4 @@ class TwitchSubs:
 			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
 			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (data['name'], data['count']))
 
-		await common.rpc.eventserver.connect()
 		await common.rpc.eventserver.event(event, data, eventtime)

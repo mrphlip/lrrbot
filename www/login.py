@@ -140,7 +140,6 @@ async def load_session(include_url=True, include_header=True):
 	else:
 		session['url'] = None
 	if include_header:
-		await common.rpc.bot.connect()
 		session['header'] = await common.rpc.bot.get_header_info()
 		if 'current_game' in session['header']:
 			games = server.db.metadata.tables["games"]
