@@ -117,8 +117,7 @@ class TwitchSubs:
 				monthcount = tags.get('msg-param-months')
 				if monthcount is not None:
 					monthcount = int(monthcount)
-				source = irc.client.NickMask(event.source)
-				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name', source.nick), datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
+				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name', tags['login']), datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
 				return "NO MORE"
 
 	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None):
@@ -147,6 +146,9 @@ class TwitchSubs:
 		users = self.lrrbot.metadata.tables["users"]
 		with self.lrrbot.engine.begin() as pg_conn:
 			pg_conn.execute(users.update().where(users.c.name == user), is_sub=True)
+
+		if message is not None:
+			data['message'] = message
 
 		if monthcount is not None and monthcount > 1:
 			event = "twitch-resubscription"
