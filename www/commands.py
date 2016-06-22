@@ -11,7 +11,6 @@ async def commands(session):
 	mode = flask.request.values.get('mode', 'responses')
 	assert(mode in ('responses', 'explanations'))
 
-	await common.rpc.bot.connect()
 	data = await common.rpc.bot.get_data(mode)
 
 	# Prepare the data, and group equivalent commands together
@@ -60,7 +59,6 @@ async def commands_submit(session):
 			response_data['response'] = response_data['response'][0]
 		if response_data['access'] not in ('any', 'sub', 'mod'):
 			raise ValueError("Invalid access level")
-	await common.rpc.bot.connect()
 	if mode == 'responses':
 		await common.rpc.bot.static.modify_commands(data)
 	elif mode == 'explanations':

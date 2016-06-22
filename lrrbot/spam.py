@@ -25,7 +25,7 @@ class Spam:
 
 	@aiomas.expose
 	def modify_spam_rules(self, data):
-		log.info("Setting spam rules to %r" % data)
+		log.info("Setting spam rules to %r" % (data,))
 		storage.data['spam_rules'] = data
 		storage.save()
 		self.rules = [

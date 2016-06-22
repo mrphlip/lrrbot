@@ -38,32 +38,50 @@ class Server:
 		await self.__server.wait_closed()
 		await asyncio.gather(client.close() for client in self.__clients)
 
+class Proxy:
+	def __init__(self, client, path):
+		self.__client = client
+		self.__path = path
+
+	def __getattr__(self, key):
+		return Proxy(self.__client, self.__path + [key])
+
+	async def __call__(self, *args, **kwargs):
+		for _ in range(3):
+			try:
+				await self.__client.connect()
+				node = self.__client._connection.remote
+				for key in self.__path:
+					node = getattr(node, key)
+				return await node(*args, **kwargs)
+			except ConnectionResetError:
+				await asyncio.sleep(1)
+		raise ConnectionResetError
+
 class Client:
 	def __init__(self, path, port):
-		self.__connection = None
+		self._connection = None
 		self.__path = path
 		self.__port = port
 
 	def __unset_connection(self, exc):
-		self.__connection = None
+		self._connection = None
 
 	async def connect(self):
-		if self.__connection is None:
+		if self._connection is None:
 			service = aiomas.rpc.ServiceDict({})
 			try:
-				self.__connection = await aiomas.rpc.open_connection(self.__path, rpc_service=service, codec=CODEC, extra_serializers=EXTRA_SERIALIZERS)
+				self._connection = await aiomas.rpc.open_connection(self.__path, rpc_service=service, codec=CODEC, extra_serializers=EXTRA_SERIALIZERS)
 			except NotImplementedError:
-				self.__connection = await aiomas.rpc.open_connection(('localhost', self.__port), rpc_service=service, codec=CODEC, extra_serializers=EXTRA_SERIALIZERS)
-			self.__connection.on_connection_reset(self.__unset_connection)
+				self._connection = await aiomas.rpc.open_connection(('localhost', self.__port), rpc_service=service, codec=CODEC, extra_serializers=EXTRA_SERIALIZERS)
+			self._connection.on_connection_reset(self.__unset_connection)
 
 	async def close(self):
-		if self.__connection is not None:
-			await self.__connection.close()
+		if self._connection is not None:
+			await self._connection.close()
 
 	def __getattr__(self, key):
-		if self.__connection is None:
-			raise ConnectionResetError()
-		return getattr(self.__connection.remote, key)
+		return Proxy(self, [key])
 
 bot = Client(config['socket_filename'], config['socket_port'])
 eventserver = Client(config['eventsocket'], config['event_port'])

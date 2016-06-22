@@ -20,4 +20,4 @@ def timestamp(ts):
 	elif ts.tzinfo is None:
 		ts = ts.replace(tzinfo=datetime.timezone.utc)
 	ts = ts.astimezone(config.config['timezone'])
-	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"{}\">{:%A, %-d %B, %Y %H:%M:%S %Z}</span>".format(ts.timestamp(), ts))
+	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"{}\">{:%A, %d %B, %Y %H:%M:%S %Z}</span>".format(ts.timestamp(), ts))
