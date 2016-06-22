@@ -199,6 +199,7 @@ async def patreon_webhooks():
 				},
 				'twitch': twitch_user,
 			}
+		data["name"] = data['twitch']['name'] if data['twitch'] is not None else data['patreon']['full_name']
 		data["count"] = common.storm.increment(server.db.engine, server.db.metadata, 'patreon-pledge')
 		results = await asyncio.gather(common.rpc.bot.patreon_pledge(data), common.rpc.eventserver.event('patreon-pledge', data, datetime.datetime.now(tz=pytz.utc)), return_exceptions=True)
 		for result in results:

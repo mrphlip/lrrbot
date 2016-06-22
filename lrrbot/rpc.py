@@ -192,4 +192,4 @@ class Server(common.rpc.Server):
 			).first()
 		print(name)
 		if name:
-			self.lrrbot.connection.privmsg("#" + config['channel'], "lrrSPOT Thanks for supporting %s on Patreon, %s ! (Today's %s count: %d)" % (name[0], data['twitch']['name'] if data['twitch'] is not None else data['patreon']['full_name'], utils.counter(), data['count']))
+			self.lrrbot.connection.privmsg("#" + config['channel'], "lrrSPOT Thanks for supporting %s on Patreon, %s ! (Today's %s count: %d)" % (name[0], data['name'], utils.counter(), data['count']))
