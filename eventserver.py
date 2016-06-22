@@ -41,15 +41,26 @@ class Server(common.rpc.Server):
 			last_event_id = int(request.headers.get('Last-Event-Id', request.GET.get('last-event-id')))
 		except (ValueError, TypeError):
 			last_event_id = None
+		interval = request.GET.get('interval')
+		if interval is not None and last_event_id is None:
+			last_event_id = 0
 		if last_event_id is not None:
 			events = self.metadata.tables['events']
-			with self.engine.begin() as conn:
-				return [
-					{'id': id, 'event': event, 'data': dict(data, time=time.isoformat())}
-					for id, event, data, time in conn.execute(sqlalchemy.select([
-						events.c.id, events.c.event, events.c.data, events.c.time
-					]).where(events.c.id > last_event_id).order_by(events.c.id))
-				]
+			query = sqlalchemy.select([
+				events.c.id, events.c.event, events.c.data, events.c.time
+			])
+			query = query.where(events.c.id > last_event_id)
+			if interval is not None:
+				query = query.where(events.c.time > sqlalchemy.func.current_timestamp() - sqlalchemy.cast(interval, sqlalchemy.Interval))
+			query = query.order_by(events.c.id)
+			try:
+				with self.engine.begin() as conn:
+					return [
+						{'id': id, 'event': event, 'data': dict(data, time=time.isoformat())}
+						for id, event, data, time in conn.execute(query)
+					]
+			except sqlalchemy.exc.DataError as e:
+				raise aiohttp.web.HTTPBadRequest from e
 		return []
 
 	async def event_stream(self, request):
