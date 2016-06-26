@@ -246,10 +246,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				else:
 					tags['subscriber'] = False
 					tags['mod'] = False
-			tags['patron'] = conn.execute(sqlalchemy.select([patreon_users.c.pledge_start.isnot(None)])
+			is_patron = conn.execute(sqlalchemy.select([patreon_users.c.pledge_start.isnot(None)])
 				.select_from(patreon_users.join(users))
 				.where(users.c.id == tags['user-id'])
-			)
+			).first()
+                        if is_patron is not None:
+                            tags['patron'] = is_patron[0]
+                        else:
+                            tags['patron'] = False
 
 		tags["display_name"] = tags.get("display_name", nick)
 

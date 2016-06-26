@@ -71,7 +71,7 @@ class Server(common.rpc.Server):
 
 		response = aiohttp.web.StreamResponse()
 		response.enable_chunked_encoding()
-		response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+		response.headers['Access-Control-Allow-Origin'] = '*'
 		response.headers['Content-Type'] = 'text/event-stream; charset=utf-8'
 		response.headers['Vary'] = "Accept"
 		await response.prepare(request)
