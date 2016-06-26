@@ -250,10 +250,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				.select_from(patreon_users.join(users))
 				.where(users.c.id == tags['user-id'])
 			).first()
-                        if is_patron is not None:
-                            tags['patron'] = is_patron[0]
-                        else:
-                            tags['patron'] = False
+			if is_patron is not None:
+				tags['patron'] = is_patron[0]
+			else:
+				tags['patron'] = False
 
 		tags["display_name"] = tags.get("display_name", nick)
 
