@@ -121,6 +121,7 @@ class TwitchSubs:
 				return "NO MORE"
 
 	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None):
+		log.info('New subscriber: %r at %r', user, eventtime)
 		if user.lower() in self.last_announced_subs:
 			return
 		data = {
