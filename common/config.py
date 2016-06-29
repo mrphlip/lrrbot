@@ -38,6 +38,8 @@ config.setdefault('postgres', 'postgres:///lrrbot')
 config['reconnecttime'] = int(config.get('reconnecttime', 15))
 # keepalivetime - seconds between sending keep-alive ping messages
 config['keepalivetime'] = int(config.get('keepalivetime', 60))
+# keepalivethreshold - number of keep-alive pings with no response before giving up
+config['keepalivethreshold'] = int(config.get('keepalivethreshold', 5))
 # checksubstime - seconds between checking for new subscribers via Twitch API
 config['checksubstime'] = int(config.get('checksubstime', 60))
 
