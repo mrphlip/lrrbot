@@ -65,7 +65,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# if it triggers while the connection is down, so do this instead
 		self.reactor.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
 		self.reactor.add_global_handler('pong', self.on_pong)
-		self.pong_received = True
+		self.missed_pings = 0
 
 		self.reactor.add_global_handler('reconnect', self.disconnect)
 
@@ -166,17 +166,18 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	@utils.swallow_errors
 	def do_keepalive(self):
 		"""Send a ping to the server, to ensure our connection stays alive, or to detect when it drops out."""
-		if not self.pong_received:
+		if self.missed_pings >= config['keepalivethreshold']:
 			self.disconnect()
+			return
 		try:
 			self.connection.ping("keep-alive")
-			self.pong_received = False
+			self.missed_pings += 1
 		except irc.client.ServerNotConnectedError:
 			# Don't disconnect while disconnected.
-			self.pong_received = True
+			self.missed_pings = 0
 
 	def on_pong(self, conn, event):
-		self.pong_received = True
+		self.missed_pings = 0
 
 	def on_message_action(self, conn, event):
 		# Treat CTCP ACTION messages as the raw "/me does whatever" message that
