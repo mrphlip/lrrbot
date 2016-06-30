@@ -16,7 +16,7 @@ class LinkSpam:
 	def __init__(self, lrrbot, loop):
 		self.loop = loop
 		self.lrrbot = lrrbot
-		self.re_url = loop.run_until_complete(common.url.url_regex())
+		#self.re_url = loop.run_until_complete(common.url.url_regex())
 		self.rules = [
 			{
 				"re": re.compile(rule["re"], re.IGNORECASE),
@@ -26,7 +26,7 @@ class LinkSpam:
 			for rule in storage.data.get("link_spam_rules", [])
 		]
 		self.lrrbot.rpc_server.link_spam = self
-		self.lrrbot.reactor.add_global_handler("pubmsg", self.check_link_spam, 21)
+		#self.lrrbot.reactor.add_global_handler("pubmsg", self.check_link_spam, 21)
 
 	@aiomas.expose
 	def modify_link_spam_rules(self, data):
