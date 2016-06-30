@@ -71,11 +71,15 @@ class TwitchSubs:
 					sub_start = dateutil.parser.parse(sub_start)
 					eventtime = dateutil.parser.parse(eventtime)
 					monthcount = round((eventtime - sub_start) / datetime.timedelta(days=30)) + 1
-					self.loop.call_later(DELAY_FOR_SUBS_FROM_API, lambda: asyncio.ensure_future(self.on_subscriber(self.lrrbot.connection, "#%s" % config['channel'], user, eventtime, logo, monthcount)).add_done_callback(utils.check_exception))
+					self.on_subscriber_from_api(user, eventtime, logo, monthcount)
 		else:
 			log.debug("Got initial subscriber list from Twitch")
 
 		self.last_subs = [i[0].lower() for i in sublist]
+
+	def on_subscriber_from_api(self, user, eventtime, logo, monthcount):
+		self.loop.call_later(DELAY_FOR_SUBS_FROM_API, lambda: asyncio.ensure_future(self.on_subscriber(self.lrrbot.connection, "#%s" % config['channel'], user, eventtime, logo, monthcount)).add_done_callback(utils.check_exception))
+		
 
 	def on_notification(self, conn, event):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
