@@ -121,7 +121,7 @@ class TwitchSubs:
 				monthcount = tags.get('msg-param-months')
 				if monthcount is not None:
 					monthcount = int(monthcount)
-				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name', tags['login']), datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
+				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name') or tags['login'], datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
 				return "NO MORE"
 
 	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None):
