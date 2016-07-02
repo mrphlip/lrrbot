@@ -103,3 +103,12 @@ async def get_tweet(session):
 	if session['user']['is_mod']:
 		tweet = await common.rpc.bot.get_tweet()
 	return tweet or "-"
+
+@server.app.route("/api/disconnect")
+@login.with_minimal_session
+async def disconnect(session):
+	if session['user']['is_mod']:
+		await common.rpc.bot.disconnect_from_chat()
+		return flask.jsonify(status="OK")
+	else:
+		return flask.jsonify(status="ERR")

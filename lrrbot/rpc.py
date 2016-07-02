@@ -193,3 +193,7 @@ class Server(common.rpc.Server):
 		print(name)
 		if name:
 			self.lrrbot.connection.privmsg("#" + config['channel'], "lrrSPOT Thanks for supporting %s on Patreon, %s ! (Today's %s count: %d)" % (name[0], data['name'], utils.counter(), data['count']))
+
+	@aiomas.expose
+	def disconnect_from_chat(self):
+		self.lrrbot.disconnect()
