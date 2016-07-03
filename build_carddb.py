@@ -26,12 +26,13 @@ from common.cardname import clean_text
 URL = 'http://mtgjson.com/json/AllSets.json.zip'
 ZIP_FILENAME = 'AllSets.json.zip'
 SOURCE_FILENAME = 'AllSets.json'
+EXTRAS_FILENAME = 'extracards.json'
 MAXLEN = 450
 
 engine, metadata = common.postgres.new_engine_and_metadata()
 
 def main():
-	if not do_download_file(URL, ZIP_FILENAME):
+	if not do_download_file(URL, ZIP_FILENAME) and not os.access(EXTRAS_FILENAME, os.F_OK):
 		print("No new version of mtgjson data file")
 		return
 
@@ -41,7 +42,7 @@ def main():
 		mtgjson = json.load(fp)
 
 	try:
-		with open("extracards.json") as fp:
+		with open(EXTRAS_FILENAME) as fp:
 			extracards = json.load(fp)
 	except IOError:
 		pass
@@ -250,7 +251,7 @@ def process_card(card, expansion):
 				yield ' (unflip: '
 				yield card['names'][0]
 				yield ')'
-		if card.get('layout') == 'double-faced':
+		elif card.get('layout') == 'double-faced':
 			if card['name'] == card['names'][0]:
 				yield ' (back: '
 				yield card['names'][1]
@@ -258,6 +259,22 @@ def process_card(card, expansion):
 			else:
 				yield ' (front: '
 				yield card['names'][0]
+				yield ')'
+		elif card.get('layout') == 'meld':
+			if card['name'] == card['names'][0]:
+				yield ' (melds with: '
+				yield card['names'][1]
+				yield '; into: '
+				yield card['names'][2]
+				yield ')'
+			elif card['name'] == card['names'][1]:
+				# The names of what this melds with and into are in the card text
+				pass
+			elif card['name'] == card['names'][2]:
+				yield ' (melds from: '
+				yield card['names'][0]
+				yield '; '
+				yield card['names'][1]
 				yield ')'
 		yield ' | '
 		yield card.get('type', '?Type missing?')
@@ -279,7 +296,7 @@ def process_card(card, expansion):
 			yield ']'
 		if 'text' in card:
 			yield ' | '
-			yield re_newlines.sub(' / ', re_remindertext.sub('', card['text']))
+			yield re_newlines.sub(' / ', re_remindertext.sub('', card['text']).strip())
 
 	desc = ''.join(build_description())
 	desc = re_multiplespaces.sub(' ', desc).strip()

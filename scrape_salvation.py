@@ -67,6 +67,13 @@ ICONS = {
 	"mana-snow": "S",
 }
 
+# There doesn't seem to be a good way to detect these, so just hardcode :-/
+MELDS = {i: s for s in [
+	['Midnight Scavengers', 'Graf Rats', 'Chittering Host'],
+	['Hanweir Garrison', 'Hanweir Battlements', 'Hanweir, the Writhing Township'],
+	['Bruna, the Fading Light', 'Gisela, the Broken Blade', 'Brisela, Voice of Nightmares'],
+] for i in s}
+
 def getargs():
 	parser = argparse.ArgumentParser(description="Scrape card spoilers from MTGSalvation")
 	parser.add_argument('mtgsid', type=int, help="MTGSalvation's set ID for the set")
@@ -104,7 +111,14 @@ def getcards(doc):
 	cards.sort(key=lambda c: (int(c['number']), 1 if c.get('manaCost') else 2))
 	lastcard = None
 	for card in cards:
-		if lastcard is not None and card.get('number') == lastcard.get('number'):
+		if card['name'] in MELDS:
+			card['layout'] = 'meld'
+			card['names'] = MELDS[card['name']]
+			if card['name'] == card['names'][0]:
+				card['number'] += "a"
+			elif card['name'] == card['names'][2]:
+				card['number'] += "b"
+		elif lastcard is not None and card.get('number') == lastcard.get('number'):
 			card['layout'] = lastcard['layout'] = 'double-faced'
 			card['names'] = lastcard['names'] = [lastcard['name'], card['name']]
 			lastcard['number'] += "a"
