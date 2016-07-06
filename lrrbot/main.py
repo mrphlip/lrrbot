@@ -149,6 +149,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.cardviewer.stop()
 			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
 
+	def disconnect(self, msg="I'll be back!"):
+		self.missed_pings = 0
+		return super().disconnect(msg)
+
 	def on_connect(self, conn, event):
 		"""On connecting to the server, join our target channel"""
 		log.info("Connected to server")
