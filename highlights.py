@@ -47,7 +47,7 @@ def lookup_video(highlight, videos):
 		last_video = None
 		for video in videos:
 			if video["recorded_at"] <= highlight["time"]:
-				if (highlight["time"] - video["recorded_at"]).total_seconds() <= video["length"]:
+				if not last_video or (highlight["time"] - video["recorded_at"]).total_seconds() <= video["length"]:
 					return video
 				# it's between two videos - figure out which one it's closer to
 				time_before = (highlight["time"] - video["recorded_at"]).total_seconds() - video["length"]
