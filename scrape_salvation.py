@@ -90,7 +90,7 @@ def main(mtgsid, setid):
 		}
 	}
 	with open("extracards.json", "w") as fp:
-		json.dump(carddata, fp, indent=2)
+		json.dump(carddata, fp, indent=2, sort_keys=True)
 
 def getspoiler(mtgsid):
 	try:
