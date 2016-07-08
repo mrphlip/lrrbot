@@ -69,9 +69,9 @@ ICONS = {
 
 # There doesn't seem to be a good way to detect these, so just hardcode :-/
 MELDS = {i: s for s in [
-	['Midnight Scavengers', 'Graf Rats', 'Chittering Host'],
-	['Hanweir Garrison', 'Hanweir Battlements', 'Hanweir, the Writhing Township'],
-	['Bruna, the Fading Light', 'Gisela, the Broken Blade', 'Brisela, Voice of Nightmares'],
+	['Graf Rats', 'Midnight Scavengers', 'Chittering Host'],
+	['Hanweir Battlements', 'Hanweir Garrison', 'Hanweir, the Writhing Township'],
+	['Gisela, the Broken Blade', 'Bruna, the Fading Light', 'Brisela, Voice of Nightmares'],
 ] for i in s}
 
 def getargs():
@@ -114,7 +114,7 @@ def getcards(doc):
 		if card['name'] in MELDS:
 			card['layout'] = 'meld'
 			card['names'] = MELDS[card['name']]
-			if card['name'] == card['names'][0]:
+			if card['name'] == card['names'][1]:
 				card['number'] += "a"
 			elif card['name'] == card['names'][2]:
 				card['number'] += "b"

@@ -262,14 +262,14 @@ def process_card(card, expansion):
 				yield ')'
 		elif card.get('layout') == 'meld':
 			if card['name'] == card['names'][0]:
+				# The names of what this melds with and into are in the card text
+				pass
+			elif card['name'] == card['names'][1]:
 				yield ' (melds with: '
-				yield card['names'][1]
+				yield card['names'][0]
 				yield '; into: '
 				yield card['names'][2]
 				yield ')'
-			elif card['name'] == card['names'][1]:
-				# The names of what this melds with and into are in the card text
-				pass
 			elif card['name'] == card['names'][2]:
 				yield ' (melds from: '
 				yield card['names'][0]
