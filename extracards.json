@@ -126,7 +126,7 @@
         "manaCost": "{1}{W}",
         "name": "Blessed Alliance",
         "number": "13",
-        "text": "Escalate {2} (Pay this cost for each mode chosen beyond the first.)\n\nChoose one or more -\n\n\u2022 Target player gains 4 life.\n\n\u2022 Untap up to two target creatures.\n\n\u2022 Target opponent sacrifices an attacking creature.",
+        "text": "Escalate {2} (Pay this cost for each mode chosen beyond the first.)\n\nChoose one or more \u2014\n\n\u2022 Target player gains 4 life.\n\n\u2022 Untap up to two target creatures.\n\n\u2022 Target opponent sacrifices an attacking creature.",
         "type": "Instant"
       },
       {
@@ -142,8 +142,8 @@
         "manaCost": "{5}{W}{W}",
         "name": "Bruna, the Fading Light",
         "names": [
-          "Gisela, the Broken Blade",
           "Bruna, the Fading Light",
+          "Gisela, the Broken Blade",
           "Brisela, Voice of Nightmares"
         ],
         "number": "15a",
@@ -156,8 +156,8 @@
         "layout": "meld",
         "name": "Brisela, Voice of Nightmares",
         "names": [
-          "Gisela, the Broken Blade",
           "Bruna, the Fading Light",
+          "Gisela, the Broken Blade",
           "Brisela, Voice of Nightmares"
         ],
         "number": "15b",
@@ -179,7 +179,7 @@
         "manaCost": "{1}{W}{W}",
         "name": "Collective Effort",
         "number": "17",
-        "text": "Escalate - Tap an untapped creature you control\n\nChoose one or more -\n\n\u2022 Destroy target creature with power 4 or greater.\n\n\u2022 Destroy target enchantment.\n\n\u2022 Put a +1/+1 counter on each creature target player controls.",
+        "text": "Escalate - Tap an untapped creature you control. (Pay this cost for each mode chosen beyond the first.)\n\nChoose one or more--\n\n\u2022 Destroy target creature with power 4 or greater.\n\n\u2022 Destroy target enchantment.\n\n\u2022 Put a +1/+1 counter on each creature target player controls.",
         "type": "Sorcery"
       },
       {
@@ -296,12 +296,13 @@
         "type": "Creature \u2014 Spirit Cleric"
       },
       {
-        "layout": "double-faced",
+        "layout": "meld",
         "manaCost": "{2}{W}{W}",
         "name": "Gisela, the Broken Blade",
         "names": [
+          "Bruna, the Fading Light",
           "Gisela, the Broken Blade",
-          "Give No Ground"
+          "Brisela, Voice of Nightmares"
         ],
         "number": "28a",
         "power": "4",
@@ -310,14 +311,10 @@
         "type": "Legendary Creature \u2014 Angel Horror"
       },
       {
-        "layout": "double-faced",
+        "layout": "normal",
         "manaCost": "{3}{W}",
         "name": "Give No Ground",
-        "names": [
-          "Gisela, the Broken Blade",
-          "Give No Ground"
-        ],
-        "number": "28b",
+        "number": "29",
         "text": "Target Creature gets +2/+6 and can block any number of creatures this turn.",
         "type": "instant"
       },
@@ -612,7 +609,7 @@
         ],
         "number": "56b",
         "power": "6",
-        "text": "Flying\n\nWizards you control get +2/+1 and have flying.\n\nWhenever you cast an instant or sorcery spell, put a 1/1 blue Human Wizard creature token onto the battlefield.",
+        "text": "Flying\n\nWizards you control get +2/+1 and have Flying.\n\nWhenever you cast an instant or sorcery spell, put a 1/1 blue Human Wizard creature token onto the battlefield.",
         "toughness": "5",
         "type": "Creature \u2014 Eldrazi Insect"
       },
@@ -668,7 +665,7 @@
         "name": "Geist of the Archives",
         "number": "62",
         "power": "0",
-        "text": "Defender\n\nAt the beginning of your upkeep, scry 1.",
+        "text": "Defender\n\nAt the beginning of your upkeep, scry 1",
         "toughness": "4",
         "type": "Creature \u2014 Spirit"
       },
@@ -942,8 +939,8 @@
         "manaCost": "{1}{B}",
         "name": "Graf Rats",
         "names": [
-          "Graf Rats",
           "Midnight Scavengers",
+          "Graf Rats",
           "Chittering Host"
         ],
         "number": "91",
@@ -996,8 +993,8 @@
         "manaCost": "{4}{B}",
         "name": "Midnight Scavengers",
         "names": [
-          "Graf Rats",
           "Midnight Scavengers",
+          "Graf Rats",
           "Chittering Host"
         ],
         "number": "96a",
@@ -1010,8 +1007,8 @@
         "layout": "meld",
         "name": "Chittering Host",
         "names": [
-          "Graf Rats",
           "Midnight Scavengers",
+          "Graf Rats",
           "Chittering Host"
         ],
         "number": "96b",
@@ -1091,26 +1088,18 @@
         "type": "Creature \u2014 Human Cleric"
       },
       {
-        "layout": "double-faced",
+        "layout": "normal",
         "manaCost": "{B}",
         "name": "Strange Augmentation",
-        "names": [
-          "Strange Augmentation",
-          "Stromkirk Condemned"
-        ],
-        "number": "105a",
+        "number": "105",
         "text": "Enchant creature\n\nEnchanted creature gets +1/+1.\n\nDelirium \u2014 Enchanted creature gets an additional +2/+2 as long as there are four or more card types among cards in your graveyard.",
-        "type": "Enchantmen \u2014 Aura"
+        "type": "Enchantment \u2014 Aura"
       },
       {
-        "layout": "double-faced",
+        "layout": "normal",
         "manaCost": "{B}{B}",
         "name": "Stromkirk Condemned",
-        "names": [
-          "Strange Augmentation",
-          "Stromkirk Condemned"
-        ],
-        "number": "105b",
+        "number": "106",
         "power": "2",
         "text": "Discard a card: Vampires you control get +1/+1 until end of turn. Activate this ability only once each turn.",
         "toughness": "2",
@@ -1214,7 +1203,7 @@
         "manaCost": "{2}{R}",
         "name": "Abandon Reason",
         "number": "115",
-        "text": "up to two target creatures each get +1/+0 and gain first strike until end of turn.\n\nMadness {1}{R} If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.",
+        "text": "Up to two target creatures each get +1/+0 and gain first strike until end of turn.\n\nMadness {1}{R} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
         "type": "Instant"
       },
       {
@@ -1286,7 +1275,7 @@
         "manaCost": "{1}{R}{R}",
         "name": "Collective Defiance",
         "number": "123",
-        "text": "Escalate {1}\n\nChoose one or more -\n\n* Target player discards all cards in his or her hand, then draws that many cards.\n\n* Collective Defiance deals 4 damage to target creature.\n\n* Collective Defiance deals 3 damage to target opponent.",
+        "text": "Escalate {1}\n\nChoose one or more \u2014\n\n\u2022 Target player discards all cards in his or her hand, then draws that many cards.\n\n\u2022 Collective Defiance deals 4 damage to target creature.\n\n\u2022 Collective Defiance deals 3 damage to target opponent.",
         "type": "Sorcery"
       },
       {
@@ -1294,8 +1283,8 @@
         "manaCost": "{2}{R}",
         "name": "Conduit of Storms",
         "names": [
-          "Conduit of Storms",
-          "Conduit of Emrakul"
+            "Conduit of Storms",
+            "Conduit of Emrakul"
         ],
         "number": "124a",
         "power": "2",
@@ -1307,8 +1296,8 @@
         "layout": "double-faced",
         "name": "Conduit of Emrakul",
         "names": [
-          "Conduit of Storms",
-          "Conduit of Emrakul"
+            "Conduit of Storms",
+            "Conduit of Emrakul"
         ],
         "number": "124b",
         "power": "5",
@@ -1331,7 +1320,7 @@
         "manaCost": "{1}{R}",
         "name": "Distemper of the Blood",
         "number": "126",
-        "text": "Target creature gets +2/+2 and gains trample until end of turn.",
+        "text": "Target creature gets +2/+2 and gains trample until end of turn.\n\nMadness {R} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
         "type": "Sorcery"
       },
       {
@@ -1358,7 +1347,7 @@
         "manaCost": "{R}",
         "name": "Galvanic Bombardment",
         "number": "129",
-        "text": "Galvanic Bombardment deals X damage to target creature, where x is 2 plus the number of cards named Galvanic Bombardment in your graveyard.",
+        "text": "Galvanic Bombardment deals X damage to target creature, where X is 2 plus the number of cards named Galvanic Bombardment in your graveyard.",
         "type": "Instant"
       },
       {
@@ -1627,7 +1616,7 @@
         "manaCost": "{G}",
         "name": "Crop Sigil",
         "number": "153",
-        "text": "At the beginning of your upkeep you may put the top card of your library into your graveyard.\n\nDelerium -- {2}{G} Sacrifice Crop Sigil: You may return up to one creature card and one land card from your graveyard to your hand. Activate this ability only if there are four or more card types in your graveyard.",
+        "text": "At the beginning of your upkeep, you may put the top card of your library into your graveyard.\n\nDelirium \u2014 {2}{G}, Sacrifice Crop Sigil: Return up to one creature card and up to one target land card from your graveyard to your hand. Activate this ability only if there are four or more card types in your graveyard.",
         "type": "Enchantment"
       },
       {
@@ -1682,7 +1671,7 @@
         "name": "Gnarlwood Dryad",
         "number": "159",
         "power": "1",
-        "text": "Deathtouch\n\nDelirium - Gnarlwood Dryad gets +2/+2 as long as there are four or more card types in your graveyard.",
+        "text": "Deathtouch\n\nDelirium \u2014 Gnarlwood Dryad gets +2/+2 as long as there are four or more card types in your graveyard.",
         "toughness": "1",
         "type": "Creature \u2014 Dryad Horror"
       },
@@ -1749,7 +1738,7 @@
         "power": "2",
         "text": "Reach\n\nDiscard a card: Noose Constrictor. gets +1/+1 until end of turn.",
         "toughness": "2",
-        "type": "Creature \u2014 snake"
+        "type": "Creature \u2014 Snake"
       },
       {
         "layout": "normal",
@@ -1757,7 +1746,7 @@
         "name": "Permeating Mass",
         "number": "165",
         "power": "1",
-        "text": "Whenever Permeating Mass deals combat Damage to a creature, that creature becomes a copy of Permeating Mass",
+        "text": "Whenever Permeating Mass deals combat damage to a creature, that creature becomes a copy of Permeating Mass",
         "toughness": "3",
         "type": "Creature \u2014 Spirit"
       },
@@ -1784,8 +1773,8 @@
         "manaCost": "{2}{G}",
         "name": "Shrill Howler",
         "names": [
-          "Shrill Howler",
-          "Howling Chorus"
+            "Shrill Howler",
+            "Howling Chorus"
         ],
         "number": "168a",
         "power": "3",
@@ -1797,8 +1786,8 @@
         "layout": "double-faced",
         "name": "Howling Chorus",
         "names": [
-          "Shrill Howler",
-          "Howling Chorus"
+            "Shrill Howler",
+            "Howling Chorus"
         ],
         "number": "168b",
         "power": "3",
@@ -1822,7 +1811,7 @@
         "name": "Spirit of the Hunt",
         "number": "170",
         "power": "3",
-        "text": "Flash\n\nWhen Spirit of the Hunt enters the battlefield, each other creature you control that's a wolf or werewolf gets +0/+3 until end of turn.",
+        "text": "Flash\n\nWhen Spirit of the Hunt enters the battlefield, each other creature you control that's a Wolf or Werewolf gets +0/+3 until end of turn.",
         "toughness": "3",
         "type": "Creature \u2014 Wolf Spirit"
       },
@@ -1857,8 +1846,8 @@
         "manaCost": "{2}{G}{G}",
         "name": "Tangleclaw Werewolf",
         "names": [
-          "Tangleclaw Werewolf",
-          "Fibrous Entangler"
+            "Tangleclaw Werewolf",
+            "Fibrous Entangler"
         ],
         "number": "174a",
         "power": "2",
@@ -1870,8 +1859,8 @@
         "layout": "double-faced",
         "name": "Fibrous Entangler",
         "names": [
-          "Tangleclaw Werewolf",
-          "Fibrous Entangler"
+            "Tangleclaw Werewolf",
+            "Fibrous Entangler"
         ],
         "number": "174b",
         "power": "4",
@@ -1984,7 +1973,7 @@
         "name": "Grim Flayer",
         "number": "184",
         "power": "2",
-        "text": "Trample\n\nWhenever Grim Flayer deals combat damage to a player, look at the top three cards of your library. Put any number of them into your graveyard and the rest back on top of your library in any order.\n\nDelirium - Grim Flayers gets +2/+2 as long as there are four or more card types among cards in your graveyard.",
+        "text": "Trample\n\nWhenever Grim Flayer deals combat damage to a player, look at the top three cards of your library. Put any number of them into your graveyard and the rest back on top of your library in any order.\n\nDelirium \u2014 Grim Flayer gets +2/+2 as long as there are four or more card types among cards in your graveyard.",
         "toughness": "2",
         "type": "Creature \u2014 Human Warrior"
       },
@@ -2014,7 +2003,7 @@
         "name": "Mournwillow",
         "number": "187",
         "power": "3",
-        "text": "Haste\n\nDelirium - When Mournwillow enters the battlefield, if there are four or more card types among cards in your graveyard, creatures with power 2 or less can't block this turn.",
+        "text": "Haste\n\nDelirium \u2014 When Mournwillow enters the battlefield, if there are four or more card types among cards in your graveyard, creatures with power 2 or less can't block this turn.",
         "toughness": "2",
         "type": "Creature \u2014 Plant Skeleton"
       },
@@ -2023,7 +2012,7 @@
         "manaCost": "{R}{W}",
         "name": "Ride Down",
         "number": "188",
-        "text": "Destroy target blkocking creature. Creatures that were blocked by that creature this combat gain trample until end of turn.",
+        "text": "Destroy target blocking creature. Creatures that were blocked by that creature this combat gain trample until end of turn.",
         "type": "Instant"
       },
       {
