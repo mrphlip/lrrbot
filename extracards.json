@@ -315,7 +315,7 @@
         "manaCost": "{3}{W}",
         "name": "Give No Ground",
         "number": "29",
-        "text": "Target Creature gets +2/+6 until end of turn and can block any number of creatures this turn.",
+        "text": "Target creature gets +2/+6 until end of turn and can block any number of creatures this turn.",
         "type": "Instant"
       },
       {
@@ -1320,7 +1320,7 @@
         "manaCost": "{1}{R}",
         "name": "Distemper of the Blood",
         "number": "126",
-        "text": "Target creature gets +2/+2 and gains trample until end of turn.\n\nMadness {R}",
+        "text": "Target creature gets +2/+2 and gains trample until end of turn.\n\nMadness {R} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
         "type": "Sorcery"
       },
       {
@@ -1616,7 +1616,7 @@
         "manaCost": "{G}",
         "name": "Crop Sigil",
         "number": "153",
-        "text": "At the beginning of your upkeep you may put the top card of your library into your graveyard.\n\nDelirium \u2014 {2}{G} Sacrifice Crop Sigil: You may return up to one creature card and up to one land card from your graveyard to your hand. Activate this ability only if there are four or more card types in your graveyard.",
+        "text": "At the beginning of your upkeep, you may put the top card of your library into your graveyard.\n\nDelirium \u2014 {2}{G}, Sacrifice Crop Sigil: Return up to one creature card and up to one target land card from your graveyard to your hand. Activate this ability only if there are four or more card types among cards in your graveyard.",
         "type": "Enchantment"
       },
       {
@@ -1811,7 +1811,7 @@
         "name": "Spirit of the Hunt",
         "number": "170",
         "power": "3",
-        "text": "Flash\n\nWhen Spirit of the Hunt enters the battlefield, each other creature you control that's a wolf or werewolf gets +0/+3 until end of turn.",
+        "text": "Flash\n\nWhen Spirit of the Hunt enters the battlefield, each other creature you control that's a Wolf or Werewolf gets +0/+3 until end of turn.",
         "toughness": "3",
         "type": "Creature \u2014 Wolf Spirit"
       },
@@ -1973,7 +1973,7 @@
         "name": "Grim Flayer",
         "number": "184",
         "power": "2",
-        "text": "Trample\n\nWhenever Grim Flayer deals combat damage to a player, look at the top three cards of your library. Put any number of them into your graveyard and the rest back on top of your library in any order.\n\nDelirium \u2014 Grim Flayers gets +2/+2 as long as there are four or more card types among cards in your graveyard.",
+        "text": "Trample\n\nWhenever Grim Flayer deals combat damage to a player, look at the top three cards of your library. Put any number of them into your graveyard and the rest back on top of your library in any order.\n\nDelirium \u2014 Grim Flayer gets +2/+2 as long as there are four or more card types among cards in your graveyard.",
         "toughness": "2",
         "type": "Creature \u2014 Human Warrior"
       },
