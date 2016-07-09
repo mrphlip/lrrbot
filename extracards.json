@@ -135,7 +135,7 @@
         "name": "Borrowed Grace",
         "number": "14",
         "text": "Escalate {1}{W}\n\nChoose one or both \u2014\n\n\u2022 Creatures you control get +2/+0\n\n\u2022 Creatures you control get +0/+2",
-        "type": "instant"
+        "type": "Instant"
       },
       {
         "layout": "meld",
@@ -172,7 +172,7 @@
         "name": "Choking Restraints",
         "number": "16",
         "text": "Enchant Creature\n\nEnchanted Creature can't attack or block.\n\n{3}{W}{W}, Sacrifice Choking Restraints: Exile enchanted creature",
-        "type": "Enchantment \u2014 aura"
+        "type": "Enchantment \u2014 Aura"
       },
       {
         "layout": "normal",
@@ -316,7 +316,7 @@
         "name": "Give No Ground",
         "number": "29",
         "text": "Target Creature gets +2/+6 and can block any number of creatures this turn.",
-        "type": "instant"
+        "type": "Instant"
       },
       {
         "layout": "normal",
@@ -411,7 +411,7 @@
         "name": "Repel the Abominable",
         "number": "38",
         "text": "Prevent all damage that would be dealt this turn by non-Human sources.",
-        "type": "instant"
+        "type": "Instant"
       },
       {
         "layout": "normal",
@@ -836,7 +836,7 @@
         "name": "Unsubstantiate",
         "number": "79",
         "text": "Return target spell or creature to its opponent's hand",
-        "type": "instant"
+        "type": "Instant"
       },
       {
         "layout": "normal",
@@ -1738,7 +1738,7 @@
         "power": "2",
         "text": "Reach\n\nDiscard a card: Noose Constrictor. gets +1/+1 until end of turn.",
         "toughness": "2",
-        "type": "Creature \u2014 snake"
+        "type": "Creature \u2014 Snake"
       },
       {
         "layout": "normal",
