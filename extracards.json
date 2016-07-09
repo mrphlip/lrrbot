@@ -126,7 +126,7 @@
         "manaCost": "{1}{W}",
         "name": "Blessed Alliance",
         "number": "13",
-        "text": "Escalate {2} (Pay this cost for each mode chosen beyond the first.)\n\nChoose one or more -\n\n\u2022 Target player gains 4 life.\n\n\u2022 Untap up to two target creatures.\n\n\u2022 Target opponent sacrifices an attacking creature.",
+        "text": "Escalate {2} (Pay this cost for each mode chosen beyond the first.)\n\nChoose one or more \u2014\n\n\u2022 Target player gains 4 life.\n\n\u2022 Untap up to two target creatures.\n\n\u2022 Target opponent sacrifices an attacking creature.",
         "type": "Instant"
       },
       {
@@ -134,7 +134,7 @@
         "manaCost": "{2}{W}",
         "name": "Borrowed Grace",
         "number": "14",
-        "text": "Escalate {1}{W}\n\nChoose one or both--\n\n-Creatures you control get +2/+0\n\n-Creatures you control get +0/+2",
+        "text": "Escalate {1}{W}\n\nChoose one or both \u2014\n\n\u2022 Creatures you control get +2/+0\n\n\u2022 Creatures you control get +0/+2",
         "type": "instant"
       },
       {
@@ -179,7 +179,7 @@
         "manaCost": "{1}{W}{W}",
         "name": "Collective Effort",
         "number": "17",
-        "text": "Escalate - Tap an untapped creature you control\n\nChoose one or more -\n\n\u2022 Destroy target creature with power 4 or greater.\n\n\u2022 Destroy target enchantment.\n\n\u2022 Put a +1/+1 counter on each creature target player controls.",
+        "text": "Escalate\u2014Tap an untapped creature you control\n\nChoose one or more \u2014\n\n\u2022 Destroy target creature with power 4 or greater.\n\n\u2022 Destroy target enchantment.\n\n\u2022 Put a +1/+1 counter on each creature target player controls.",
         "type": "Sorcery"
       },
       {
@@ -216,7 +216,7 @@
         "name": "Desperate Sentry",
         "number": "21",
         "power": "1",
-        "text": "When Desperate Sentry dies, put a 3/2 colorless Eldrazi Horror creature token onto the battlefield\n\nDelerium- Desperate Sentry gets +3/+0 as long as there are four or more card types in your graveyard.",
+        "text": "When Desperate Sentry dies, put a 3/2 colorless Eldrazi Horror creature token onto the battlefield\n\nDelirium \u2014 Desperate Sentry gets +3/+0 as long as there are four or more card types in your graveyard.",
         "toughness": "2",
         "type": "Creature \u2014 Human Soldier"
       },
@@ -240,7 +240,7 @@
         ],
         "number": "23a",
         "power": "0",
-        "text": "When Extricator of Sin enters the battlefield, you may sacrifice another permanent. If you do, put a 3/2 colorless Eldrazi Horror creature token onto the battlefield.\n\nDelirium-- At the beginning of your upkeep if there are four or more card types among cards in your graveyard, transform Extricator of Sin.",
+        "text": "When Extricator of Sin enters the battlefield, you may sacrifice another permanent. If you do, put a 3/2 colorless Eldrazi Horror creature token onto the battlefield.\n\nDelirium \u2014 At the beginning of your upkeep if there are four or more card types among cards in your graveyard, transform Extricator of Sin.",
         "toughness": "3",
         "type": "Creature \u2014 Human Cleric"
       },
@@ -291,7 +291,7 @@
         "name": "Geist of the Lonely Vgil",
         "number": "27",
         "power": "2",
-        "text": "Defender, flying\n\nDelirium-- Geist of th Lonely Vigil can attack as though it didn't have defender as long as there are four or more card types among cards in your graveyard.",
+        "text": "Defender, flying\n\nDelirium \u2014 Geist of th Lonely Vigil can attack as though it didn't have defender as long as there are four or more card types among cards in your graveyard.",
         "toughness": "3",
         "type": "Creature \u2014 Spirit Cleric"
       },
@@ -723,7 +723,7 @@
         "name": "Ingenious Skaab",
         "number": "66",
         "power": "2",
-        "text": "Prowess\n\n{U}: Ingenious Skaab gets +1/-1 until end of turn.",
+        "text": "Prowess\n\n{U}: Ingenious Skaab gets +1/\u22121 until end of turn.",
         "toughness": "3",
         "type": "Creature \u2014 Zombie Horror"
       },
@@ -788,7 +788,7 @@
         "manaCost": "{4}{U}{U}",
         "name": "Scour the Laboratory",
         "number": "73",
-        "text": "Delirium</i.>-- Scour the Laboratory costs {2} less to cast if there are four or more card types among cards in your graveyard.",
+        "text": "Delirium \u2014 Scour the Laboratory costs {2} less to cast if there are four or more card types among cards in your graveyard.",
         "type": "Instant"
       },
       {
@@ -796,7 +796,7 @@
         "manaCost": "{U}",
         "name": "Spontaenous Mutation",
         "number": "74",
-        "text": "Flash\n\nEnchant creature\n\nEnchanted creature gets -X/-0, where X is the number of cards in your graveyard.",
+        "text": "Flash\n\nEnchant creature\n\nEnchanted creature gets -X/\u22120, where X is the number of cards in your graveyard.",
         "type": "Enchantment \u2014 Aura"
       },
       {
@@ -856,7 +856,7 @@
         "manaCost": "{2}{B}",
         "name": "Boon of Emrakul",
         "number": "81",
-        "text": "Enchant creature\n\nEnchanted creature gets +3/-3.",
+        "text": "Enchant creature\n\nEnchanted creature gets +3/\u22123.",
         "type": "Enchantment \u2014 Aura"
       },
       {
@@ -864,7 +864,7 @@
         "manaCost": "{B}",
         "name": "Borrowed Malevolence",
         "number": "82",
-        "text": "Escalate {2} (Pay this cost for each mode beyond the first.)\n\nChoose one or both-\n\n-Target creature gets +1/+1 until end of turn.\n\n-Target creature gets -1/-1 until end of turn.",
+        "text": "Escalate {2} (Pay this cost for each mode beyond the first.)\n\nChoose one or both \u2014\n\n\u2022 Target creature gets +1/+1 until end of turn.\n\n\u2022 Target creature gets \u22121/\u22121 until end of turn.",
         "type": "Instant"
       },
       {
@@ -888,7 +888,7 @@
         "manaCost": "{1}{B}",
         "name": "Collective Brutality",
         "number": "85",
-        "text": "Escalate - Discard a card\n\nChoose one or more -\n\n- Target opponent reveals his or her hand. You choose an instant or sorcery card from it. That player discards that card.\n\n- Target creature gets -2/-2 until end of turn.\n\n- Target opponent loses 2 life and you gain 2 life.",
+        "text": "Escalate\u2014Discard a card\n\nChoose one or more \u2014\n\n\u2022 Target opponent reveals his or her hand. You choose an instant or sorcery card from it. That player discards that card.\n\n\u2022 Target creature gets \u22122/\u22122 until end of turn.\n\n\u2022 Target opponent loses 2 life and you gain 2 life.",
         "type": "Sorcery"
       },
       {
@@ -906,7 +906,7 @@
         "manaCost": "{X}{X}{B}",
         "name": "Dark Salvation",
         "number": "87",
-        "text": "Target player puts X 2/2 black Zombie creature tokens onto the battlefield, then up to one target creature gets -1/-1 until end of turn for each zombie that player controls.",
+        "text": "Target player puts X 2/2 black Zombie creature tokens onto the battlefield, then up to one target creature gets \u22121/\u22121 until end of turn for each zombie that player controls.",
         "type": "Sorcery"
       },
       {
@@ -968,7 +968,7 @@
         "manaCost": "{1}{B}{B}",
         "name": "Liliana, the Last Hope",
         "number": "93",
-        "text": "+1: Up to one target creature gets -2/-1 until your next turn\n\n-2: Put the top two cards of your library into your graveyard, then you may return a creature card from your graveyard to your hand.\n\n-7: You get an emblem with \"At the beginning of your end step, put X 2/2 black zombie creature tokens onto the battlefield, where X is two plus the number of zombies you control.\"",
+        "text": "+1: Up to one target creature gets \u22122/\u22121 until your next turn\n\n\u22122: Put the top two cards of your library into your graveyard, then you may return a creature card from your graveyard to your hand.\n\n\u22127: You get an emblem with \"At the beginning of your end step, put X 2/2 black zombie creature tokens onto the battlefield, where X is two plus the number of zombies you control.\"",
         "type": "Planeswalker \u2014 Liliana"
       },
       {
@@ -1077,7 +1077,7 @@
         "manaCost": "{4}{B}",
         "name": "Ruthless Disposal",
         "number": "103",
-        "text": "As an additional cost to cast Ruthless Disposal, discard a card and sacrifice a creature.\n\nTwo target creatures each get -13/-13 until end of turn.",
+        "text": "As an additional cost to cast Ruthless Disposal, discard a card and sacrifice a creature.\n\nTwo target creatures each get \u221213/\u221213 until end of turn.",
         "type": "Sorcery"
       },
       {
@@ -1206,7 +1206,7 @@
         "manaCost": "{1}{B}",
         "name": "Whispers of Emrakul",
         "number": "114",
-        "text": "Target opponent discards a card at random.\n\nDelirium If there are four or more card types in your graveyard, that player discards to cards instead.",
+        "text": "Target opponent discards a card at random.\n\nDelirium \u2014 If there are four or more card types in your graveyard, that player discards to cards instead.",
         "type": "Sorcery"
       },
       {
@@ -1286,7 +1286,7 @@
         "manaCost": "{1}{R}{R}",
         "name": "Collective Defiance",
         "number": "123",
-        "text": "Escalate {1}\n\nChoose one or more -\n\n* Target player discards all cards in his or her hand, then draws that many cards.\n\n* Collective Defiance deals 4 damage to target creature.\n\n* Collective Defiance deals 3 damage to target opponent.",
+        "text": "Escalate {1}\n\nChoose one or more \u2014\n\n\u2022 Target player discards all cards in his or her hand, then draws that many cards.\n\n\u2022 Collective Defiance deals 4 damage to target creature.\n\n\u2022 Collective Defiance deals 3 damage to target opponent.",
         "type": "Sorcery"
       },
       {
@@ -1567,7 +1567,7 @@
         ],
         "number": "148a",
         "power": "4",
-        "text": "Trample\n\n{R}: Vidlin-Pack Outcast gets +1/-1 until end of turn.\n\n{5}{R}{R}: Transform Vidlin-Pack Outcast.",
+        "text": "Trample\n\n{R}: Vidlin-Pack Outcast gets +1/\u22121 until end of turn.\n\n{5}{R}{R}: Transform Vidlin-Pack Outcast.",
         "toughness": "4",
         "type": "Creature \u2014 Werewolf Horror"
       },
@@ -1627,7 +1627,7 @@
         "manaCost": "{G}",
         "name": "Crop Sigil",
         "number": "153",
-        "text": "At the beginning of your upkeep you may put the top card of your library into your graveyard.\n\nDelerium -- {2}{G} Sacrifice Crop Sigil: You may return up to one creature card and one land card from your graveyard to your hand. Activate this ability only if there are four or more card types in your graveyard.",
+        "text": "At the beginning of your upkeep you may put the top card of your library into your graveyard.\n\nDelirium \u2014 {2}{G} Sacrifice Crop Sigil: You may return up to one creature card and one land card from your graveyard to your hand. Activate this ability only if there are four or more card types in your graveyard.",
         "type": "Enchantment"
       },
       {
@@ -1682,7 +1682,7 @@
         "name": "Gnarlwood Dryad",
         "number": "159",
         "power": "1",
-        "text": "Deathtouch\n\nDelirium - Gnarlwood Dryad gets +2/+2 as long as there are four or more card types in your graveyard.",
+        "text": "Deathtouch\n\nDelirium \u2014 Gnarlwood Dryad gets +2/+2 as long as there are four or more card types in your graveyard.",
         "toughness": "1",
         "type": "Creature \u2014 Dryad Horror"
       },
@@ -1710,7 +1710,7 @@
         "name": "Ishkanah, Grafwidow",
         "number": "162",
         "power": "3",
-        "text": "Reach\n\nDelirium - When Ishkanah Grafwidow enters the battlefield, if there are four or more card types among cards in your graveyard, put three 1/2 green Spider creature tokens with reach onto the battlefield.\n\n{6}{B}: Target opponent loses 1 life for each Spider you control.",
+        "text": "Reach\n\nDelirium \u2014 When Ishkanah Grafwidow enters the battlefield, if there are four or more card types among cards in your graveyard, put three 1/2 green Spider creature tokens with reach onto the battlefield.\n\n{6}{B}: Target opponent loses 1 life for each Spider you control.",
         "toughness": "5",
         "type": "Legendary Creature \u2014 Spider"
       },
@@ -1984,7 +1984,7 @@
         "name": "Grim Flayer",
         "number": "184",
         "power": "2",
-        "text": "Trample\n\nWhenever Grim Flayer deals combat damage to a player, look at the top three cards of your library. Put any number of them into your graveyard and the rest back on top of your library in any order.\n\nDelirium - Grim Flayers gets +2/+2 as long as there are four or more card types among cards in your graveyard.",
+        "text": "Trample\n\nWhenever Grim Flayer deals combat damage to a player, look at the top three cards of your library. Put any number of them into your graveyard and the rest back on top of your library in any order.\n\nDelirium \u2014 Grim Flayers gets +2/+2 as long as there are four or more card types among cards in your graveyard.",
         "toughness": "2",
         "type": "Creature \u2014 Human Warrior"
       },
@@ -2014,7 +2014,7 @@
         "name": "Mournwillow",
         "number": "187",
         "power": "3",
-        "text": "Haste\n\nDelirium - When Mournwillow enters the battlefield, if there are four or more card types among cards in your graveyard, creatures with power 2 or less can't block this turn.",
+        "text": "Haste\n\nDelirium \u2014 When Mournwillow enters the battlefield, if there are four or more card types among cards in your graveyard, creatures with power 2 or less can't block this turn.",
         "toughness": "2",
         "type": "Creature \u2014 Plant Skeleton"
       },
@@ -2042,7 +2042,7 @@
         "manaCost": "{1}{G}{W}{U}",
         "name": "Tamiyo, Field Researcher",
         "number": "190",
-        "text": "+1: Choose up to two target creatures. Until your next turn, whenever either of those creatures deals combat damage, you draw a card.\n\n-2: Tap up to two target nonland permanents. They don't untap during their controller's next untap step.\n\n-7: Draw three cards. You get an emblem with \"You may cast nonland cards from your hand without paying their mana costs.\"",
+        "text": "+1: Choose up to two target creatures. Until your next turn, whenever either of those creatures deals combat damage, you draw a card.\n\n\u22122: Tap up to two target nonland permanents. They don't untap during their controller's next untap step.\n\n\u22127: Draw three cards. You get an emblem with \"You may cast nonland cards from your hand without paying their mana costs.\"",
         "type": "Planeswalker \u2014 Tamiyo"
       },
       {
