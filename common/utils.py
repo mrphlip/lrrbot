@@ -335,8 +335,6 @@ def pick_weighted_random_elements(iterable, k):
 	return [elem for r, elem in queue]
 
 COUNTER_RANGES = [
-	(0x0300, 0x036F), # Combining Diacritical Marks
-	(0x20D0, 0x20F0), # Combining Diacritical Marks for Symbols
 	(0x2190, 0x21FF), # Arrows
 	(0x2200, 0x22FF), # Mathematical Operators
 	(0x2300, 0x23FA), # Miscellaneous Technical
