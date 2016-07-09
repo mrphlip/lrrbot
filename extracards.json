@@ -296,28 +296,25 @@
         "type": "Creature \u2014 Spirit Cleric"
       },
       {
-        "layout": "double-faced",
+        "layout": "meld",
         "manaCost": "{2}{W}{W}",
         "name": "Gisela, the Broken Blade",
         "names": [
           "Gisela, the Broken Blade",
-          "Give No Ground"
+          "Bruna, the Fading Light",
+          "Brisela, Voice of Nightmares"
         ],
-        "number": "28a",
+        "number": "28",
         "power": "4",
         "text": "Flying, first strike, lifelink\n\nAt the beginning of your end step, if you both own and control Gisela, the Broken Blade and a creature named Bruna, the Fading Light, exile them, then meld them into Brisela, Voice of Nightmares.",
         "toughness": "3",
         "type": "Legendary Creature \u2014 Angel Horror"
       },
       {
-        "layout": "double-faced",
+        "layout": "normal",
         "manaCost": "{3}{W}",
         "name": "Give No Ground",
-        "names": [
-          "Gisela, the Broken Blade",
-          "Give No Ground"
-        ],
-        "number": "28b",
+        "number": "29",
         "text": "Target Creature gets +2/+6 and can block any number of creatures this turn.",
         "type": "instant"
       },
@@ -1091,26 +1088,18 @@
         "type": "Creature \u2014 Human Cleric"
       },
       {
-        "layout": "double-faced",
+        "layout": "normal",
         "manaCost": "{B}",
         "name": "Strange Augmentation",
-        "names": [
-          "Strange Augmentation",
-          "Stromkirk Condemned"
-        ],
-        "number": "105a",
+        "number": "105",
         "text": "Enchant creature\n\nEnchanted creature gets +1/+1.\n\nDelirium \u2014 Enchanted creature gets an additional +2/+2 as long as there are four or more card types among cards in your graveyard.",
         "type": "Enchantmen \u2014 Aura"
       },
       {
-        "layout": "double-faced",
+        "layout": "normal",
         "manaCost": "{B}{B}",
         "name": "Stromkirk Condemned",
-        "names": [
-          "Strange Augmentation",
-          "Stromkirk Condemned"
-        ],
-        "number": "105b",
+        "number": "106",
         "power": "2",
         "text": "Discard a card: Vampires you control get +1/+1 until end of turn. Activate this ability only once each turn.",
         "toughness": "2",
