@@ -47,7 +47,7 @@
         "name": "Elder Deep-Fiend",
         "number": "5",
         "power": "5",
-        "text": "Flash\n\nEmerge {5}{U}{U} (You may cast this spell by sacrificing a creature and paying the emerge cost reduced by that creature's converted mana cost.)\n\nWhen you cast Elder Deep-Fiend, tap up to four target permanents",
+        "text": "Flash\n\nEmerge {5}{U}{U} (You may cast this spell by sacrificing a creature and paying the emerge cost reduced by that creature's converted mana cost.)\n\nWhen you cast Elder Deep-Fiend, tap up to four target permanents.",
         "toughness": "6",
         "type": "Creature \u2014 Eldrazi Octopus"
       },
@@ -77,7 +77,7 @@
         "name": "It of the Horrid Swarm",
         "number": "8",
         "power": "4",
-        "text": "Emerge {6}{G} You may cast this spell by sacrificing a creature and paying the emerge cost reduced by that creature's converted mana cost.)\n\nWhen you cast It of the Horrid Swarm, put two 1/1 green Insect creature tokens onto the battlefield.",
+        "text": "Emerge {6}{G} (You may cast this spell by sacrificing a creature and paying the emerge cost reduced by that creature's converted mana cost.)\n\nWhen you cast It of the Horrid Swarm, put two 1/1 green Insect creature tokens onto the battlefield.",
         "toughness": "4",
         "type": "Creature \u2014 Eldrazi Insect"
       },
@@ -97,7 +97,7 @@
         "name": "Mockery of Nature",
         "number": "10",
         "power": "6",
-        "text": "Emerge {7}{G} You may cast this spell by sacrificing a creature and paying the emerge cost reduced by that creature's converted mana cost.)\n\nWhen you cast Mockery of Nature, you may destroy target artifact or enchantment.",
+        "text": "Emerge {7}{G} (You may cast this spell by sacrificing a creature and paying the emerge cost reduced by that creature's converted mana cost.)\n\nWhen you cast Mockery of Nature, you may destroy target artifact or enchantment.",
         "toughness": "5",
         "type": "Creature \u2014 Eldrazi Beast"
       },
@@ -107,7 +107,7 @@
         "name": "Vexing Scuttler",
         "number": "11",
         "power": "4",
-        "text": "Emerge {6}{U} You may cast this spell by sacrificing a creature and paying the emerge cost reduced by that creature's converted mana cost.)\n\nWhen you cast Vexing Scuttler, you may return target instant or sorcery card from your graveyard to your hand.",
+        "text": "Emerge {6}{U} (You may cast this spell by sacrificing a creature and paying the emerge cost reduced by that creature's converted mana cost.)\n\nWhen you cast Vexing Scuttler, you may return target instant or sorcery card from your graveyard to your hand.",
         "toughness": "5",
         "type": "Creature \u2014 Eldrazi Crab"
       },
@@ -134,7 +134,7 @@
         "manaCost": "{2}{W}",
         "name": "Borrowed Grace",
         "number": "14",
-        "text": "Escalate {1}{W}\n\nChoose one or both \u2014\n\n\u2022 Creatures you control get +2/+0\n\n\u2022 Creatures you control get +0/+2",
+        "text": "Escalate {1}{W}\n\nChoose one or both \u2014\n\n\u2022 Creatures you control get +2/+0 until end of turn.\n\n\u2022 Creatures you control get +0/+2 until end of turn.",
         "type": "Instant"
       },
       {
@@ -171,7 +171,7 @@
         "manaCost": "{2}{W}",
         "name": "Choking Restraints",
         "number": "16",
-        "text": "Enchant Creature\n\nEnchanted Creature can't attack or block.\n\n{3}{W}{W}, Sacrifice Choking Restraints: Exile enchanted creature",
+        "text": "Enchant creature\n\nEnchanted creature can't attack or block.\n\n{3}{W}{W}, Sacrifice Choking Restraints: Exile enchanted creature.",
         "type": "Enchantment \u2014 Aura"
       },
       {
@@ -179,7 +179,7 @@
         "manaCost": "{1}{W}{W}",
         "name": "Collective Effort",
         "number": "17",
-        "text": "Escalate\u2014Tap an untapped creature you control\n\nChoose one or more \u2014\n\n\u2022 Destroy target creature with power 4 or greater.\n\n\u2022 Destroy target enchantment.\n\n\u2022 Put a +1/+1 counter on each creature target player controls.",
+        "text": "Escalate\u2014Tap an untapped creature you control.\n\nChoose one or more \u2014\n\n\u2022 Destroy target creature with power 4 or greater.\n\n\u2022 Destroy target enchantment.\n\n\u2022 Put a +1/+1 counter on each creature target player controls.",
         "type": "Sorcery"
       },
       {
@@ -188,7 +188,7 @@
         "name": "Courageous Outrider",
         "number": "18",
         "power": "3",
-        "text": "When Courageous Outrider enters the battlefield, look at the top four cards of your library. You may reveal a Human card from among them and put it into your hand. Put the rest on the bottom of your library in any order",
+        "text": "When Courageous Outrider enters the battlefield, look at the top four cards of your library. You may reveal a Human card from among them and put it into your hand. Put the rest on the bottom of your library in any order.",
         "toughness": "4",
         "type": "Creature \u2014 Human Scout"
       },
@@ -216,7 +216,7 @@
         "name": "Desperate Sentry",
         "number": "21",
         "power": "1",
-        "text": "When Desperate Sentry dies, put a 3/2 colorless Eldrazi Horror creature token onto the battlefield\n\nDelirium \u2014 Desperate Sentry gets +3/+0 as long as there are four or more card types in your graveyard.",
+        "text": "When Desperate Sentry dies, put a 3/2 colorless Eldrazi Horror creature token onto the battlefield.\n\nDelirium \u2014 Desperate Sentry gets +3/+0 as long as there are four or more card types in your graveyard.",
         "toughness": "2",
         "type": "Creature \u2014 Human Soldier"
       },
@@ -226,7 +226,7 @@
         "name": "Drogskol Shieldmate",
         "number": "22",
         "power": "2",
-        "text": "Flash\n\nWhen Drogskol Shieldmate enters the battlefield, other creatures you control gat +0/+1 until end of turn.",
+        "text": "Flash\n\nWhen Drogskol Shieldmate enters the battlefield, other creatures you control get +0/+1 until end of turn.",
         "toughness": "3",
         "type": "Creature \u2014 Spirit Soldier"
       },
@@ -240,7 +240,7 @@
         ],
         "number": "23a",
         "power": "0",
-        "text": "When Extricator of Sin enters the battlefield, you may sacrifice another permanent. If you do, put a 3/2 colorless Eldrazi Horror creature token onto the battlefield.\n\nDelirium \u2014 At the beginning of your upkeep if there are four or more card types among cards in your graveyard, transform Extricator of Sin.",
+        "text": "When Extricator of Sin enters the battlefield, you may sacrifice another permanent. If you do, put a 3/2 colorless Eldrazi Horror creature token onto the battlefield.\n\nDelirium \u2014 At the beginning of your upkeep, if there are four or more card types among cards in your graveyard, transform Extricator of Sin.",
         "toughness": "3",
         "type": "Creature \u2014 Human Cleric"
       },
@@ -253,7 +253,7 @@
         ],
         "number": "23b",
         "power": "3",
-        "text": "Eldrazi you control have vigilance.\n\n{2}, {T}, Sacrifice a non-Eldrazi Horror creature token onto the battlefield.",
+        "text": "Eldrazi you control have vigilance.\n\n{2}, {T}, Sacrifice a non-Eldrazi creature: Put a 3/2 colorless Eldrazi Horror creature token onto the battlefield.",
         "toughness": "5",
         "type": "Creature \u2014 Eldrazi Horror"
       },
@@ -262,7 +262,7 @@
         "manaCost": "{3}{W}",
         "name": "Faith Unbroken",
         "number": "24",
-        "text": "Enchant creature you control.\n\nWhen Faith Unbroken enters the battlefield, exile target creature an opponent controls until Faith Unbroken leaves the battlefield.\n\nEnchanted creature gets +2+2",
+        "text": "Enchant creature you control.\n\nWhen Faith Unbroken enters the battlefield, exile target creature an opponent controls until Faith Unbroken leaves the battlefield.\n\nEnchanted creature gets +2/+2.",
         "type": "Enchantment \u2014 Aura"
       },
       {
@@ -273,7 +273,7 @@
         "power": "3",
         "text": "Lifelink",
         "toughness": "4",
-        "type": "Creature \u2014 Human Soldier"
+        "type": "Creature \u2014 Human Knight"
       },
       {
         "layout": "normal",
@@ -288,10 +288,10 @@
       {
         "layout": "normal",
         "manaCost": "{1}{W}",
-        "name": "Geist of the Lonely Vgil",
+        "name": "Geist of the Lonely Vigil",
         "number": "27",
         "power": "2",
-        "text": "Defender, flying\n\nDelirium \u2014 Geist of th Lonely Vigil can attack as though it didn't have defender as long as there are four or more card types among cards in your graveyard.",
+        "text": "Defender, flying\n\nDelirium \u2014 Geist of the Lonely Vigil can attack as though it didn't have defender as long as there are four or more card types among cards in your graveyard.",
         "toughness": "3",
         "type": "Creature \u2014 Spirit Cleric"
       },
@@ -315,7 +315,7 @@
         "manaCost": "{3}{W}",
         "name": "Give No Ground",
         "number": "29",
-        "text": "Target Creature gets +2/+6 and can block any number of creatures this turn.",
+        "text": "Target Creature gets +2/+6 until end of turn and can block any number of creatures this turn.",
         "type": "Instant"
       },
       {
@@ -386,7 +386,7 @@
         "manaCost": "{1}{W}",
         "name": "Lunarch Mantle",
         "number": "35",
-        "text": "Enchant Creature\n\nEnchanted creature gets +2/+2 and has \"{1}, Sacrifice a permanent: This creature gains flying until end of turn.\"",
+        "text": "Enchant creature\n\nEnchanted creature gets +2/+2 and has \"{1}, Sacrifice a permanent: This creature gains flying until end of turn.\"",
         "type": "Enchantment \u2014 Aura"
       },
       {
@@ -447,7 +447,7 @@
         "name": "Sigardian Priest",
         "number": "42",
         "power": "1",
-        "text": "{1}. {T}: Taptarget non-Human creature.",
+        "text": "{1}. {T}: Tap target non-Human creature.",
         "toughness": "2",
         "type": "Creature \u2014 Human Cleric"
       },
@@ -456,7 +456,7 @@
         "manaCost": "{3}{W}",
         "name": "Spectral Reserves",
         "number": "43",
-        "text": "Put two 1/1 white Spirit creature tokens with flying onto the battlefield. You gain 2 life",
+        "text": "Put two 1/1 white Spirit creature tokens with flying onto the battlefield. You gain 2 life.",
         "type": "Sorcery"
       },
       {
@@ -538,9 +538,9 @@
       {
         "layout": "normal",
         "manaCost": "{1}{U}",
-        "name": "Contigencey Plan",
+        "name": "Contingency Plan",
         "number": "52",
-        "text": "Look at the top five cards in your library. Put any number of them into the graveyard and the rest back on top of your library in any order.",
+        "text": "Look at the top five cards of your library. Put any number of them into the graveyard and the rest back on top of your library in any order.",
         "type": "Sorcery"
       },
       {
@@ -548,7 +548,7 @@
         "manaCost": "{2}{U}",
         "name": "Convolute",
         "number": "53",
-        "text": "Counter target spell unless it's controller pays {4}.",
+        "text": "Counter target spell unless its controller pays {4}.",
         "type": "Instant"
       },
       {
@@ -574,7 +574,7 @@
         ],
         "number": "54b",
         "power": "3",
-        "text": "Prowess\n\nInstant and Sorcery spells you cast cost {1} less to cast.",
+        "text": "Prowess\n\nInstant and sorcery spells you cast cost {1} less to cast.",
         "toughness": "4",
         "type": "Creature \u2014 Eldrazi Homunculus"
       },
@@ -596,7 +596,7 @@
         ],
         "number": "56a",
         "power": "5",
-        "text": "Flying\n\nWhenever you cast an instant or sorcery spell, put a 1/1 blue Human Wizard creature token onto the battlefield. Then, if you control three or more wizards, transform Docent of Perfection.",
+        "text": "Flying\n\nWhenever you cast an instant or sorcery spell, put a 1/1 blue Human Wizard creature token onto the battlefield. Then if you control three or more wizards, transform Docent of Perfection.",
         "toughness": "4",
         "type": "Creature \u2014 Insect Horror"
       },
@@ -647,7 +647,7 @@
         "name": "Fogwalker",
         "number": "60",
         "power": "1",
-        "text": "Skulk\n\nWhen Fogwalker enters the battlefield, target creature an opponent controls doesn't untap during it's controller's next untap step.",
+        "text": "Skulk\n\nWhen Fogwalker enters the battlefield, target creature an opponent controls doesn't untap during its controller's next untap step.",
         "toughness": "3",
         "type": "Creature \u2014 Spirit"
       },
@@ -679,7 +679,7 @@
         ],
         "number": "63a",
         "power": "2",
-        "text": "{T}:Put the top two cards of your library into your graveyard. Then if there is a colorless creature card in your graveyard, transform Grizzled Angler.",
+        "text": "{T}: Put the top two cards of your library into your graveyard. Then if there is a colorless creature card in your graveyard, transform Grizzled Angler.",
         "toughness": "3",
         "type": "Creature \u2014 Human"
       },
@@ -702,7 +702,7 @@
         "name": "Identity Thief",
         "number": "64",
         "power": "0",
-        "text": "Whenever Identity Thief attacks, you may exile another target nontoken creature. If you do, Identity Supplanter becomes a copy of that creature until the end of turn. Return the exiled card to to the battlefield under its owner's control at the beginning of the next end step",
+        "text": "Whenever Identity Thief attacks, you may exile another target nontoken creature. If you do, Identity Thief becomes a copy of that creature until the end of turn. Return the exiled card to to the battlefield under its owner's control at the beginning of the next end step.",
         "toughness": "3",
         "type": "Creature \u2014 Shapeshifter"
       },
@@ -711,7 +711,7 @@
         "manaCost": "{2}{U}",
         "name": "Imprisoned in the Moon",
         "number": "65",
-        "text": "Enchant Creature, Land, or planeswalker.\n\nEnchanted permanent is a colorless land with \"{T}: add {C} to your mana pool\" and loses all other card types and abilities.",
+        "text": "Enchant creature, land, or planeswalker\n\nEnchanted permanent is a colorless land with \"{T}: Add {C} to your mana pool\" and loses all other card types and abilities.",
         "type": "Enchantment \u2014 Aura"
       },
       {
@@ -739,7 +739,7 @@
         "manaCost": "{2}{U}",
         "name": "Lunar Force",
         "number": "68",
-        "text": "Whenever an opponent casts a spell, sacrifice Lunar Force and counter that spell.",
+        "text": "When an opponent casts a spell, sacrifice Lunar Force and counter that spell.",
         "type": "Enchantment"
       },
       {
@@ -757,7 +757,7 @@
         "manaCost": "{5}{U}{U}",
         "name": "Mind's Dilation",
         "number": "70",
-        "text": "Whenever an opponent casts his or her first spell each turn, that player exiles the top card of his or her library. If it's a non land card, you may cast it without paying it's mana cost.",
+        "text": "Whenever an opponent casts his or her first spell each turn, that player exiles the top card of his or her library. If it's a nonland card, you may cast it without paying its mana cost.",
         "type": "Enchantment"
       },
       {
@@ -766,7 +766,7 @@
         "name": "Nebegast Herald",
         "number": "71",
         "power": "2",
-        "text": "Flash\n\nFlying\n\nWhenever Nebelgast herald or another Spirit enters the battlefield under your control, tap target creature an opponent controls.",
+        "text": "Flash\n\nFlying\n\nWhenever Nebelgast Herald or another Spirit enters the battlefield under your control, tap target creature an opponent controls.",
         "toughness": "1",
         "type": "Creature \u2014 Spirit"
       },
@@ -785,7 +785,7 @@
         "manaCost": "{4}{U}{U}",
         "name": "Scour the Laboratory",
         "number": "73",
-        "text": "Delirium \u2014 Scour the Laboratory costs {2} less to cast if there are four or more card types among cards in your graveyard.",
+        "text": "Delirium \u2014 Scour the Laboratory costs {2} less to cast if there are four or more card types among cards in your graveyard.\n\nDraw three cards.",
         "type": "Instant"
       },
       {
@@ -835,7 +835,7 @@
         "manaCost": "{1}{U}",
         "name": "Unsubstantiate",
         "number": "79",
-        "text": "Return target spell or creature to its opponent's hand",
+        "text": "Return target spell or creature to its owner's hand.",
         "type": "Instant"
       },
       {
@@ -869,7 +869,7 @@
         "manaCost": "{1}{B}",
         "name": "Cemetery Recruitment",
         "number": "83",
-        "text": "Return target creature from your graveyard to your hand. If it is a Zombie card,draw a card.",
+        "text": "Return target creature from your graveyard to your hand. If it is a Zombie card, draw a card.",
         "type": "Sorcery"
       },
       {
@@ -885,7 +885,7 @@
         "manaCost": "{1}{B}",
         "name": "Collective Brutality",
         "number": "85",
-        "text": "Escalate\u2014Discard a card\n\nChoose one or more \u2014\n\n\u2022 Target opponent reveals his or her hand. You choose an instant or sorcery card from it. That player discards that card.\n\n\u2022 Target creature gets \u22122/\u22122 until end of turn.\n\n\u2022 Target opponent loses 2 life and you gain 2 life.",
+        "text": "Escalate\u2014Discard a card.\n\nChoose one or more \u2014\n\n\u2022 Target opponent reveals his or her hand. You choose an instant or sorcery card from it. That player discards that card.\n\n\u2022 Target creature gets \u22122/\u22122 until end of turn.\n\n\u2022 Target opponent loses 2 life and you gain 2 life.",
         "type": "Sorcery"
       },
       {
@@ -955,7 +955,7 @@
         "name": "Haunted Dead",
         "number": "92",
         "power": "2",
-        "text": "When Haunted Dead enters the battlefield, put a 1/1 white Spirit creature token with flying into play.\n\n{1}{B}, discard two cards: Return Haunted Dead from your graveyard to the battlefield tapped.",
+        "text": "When Haunted Dead enters the battlefield, put a 1/1 white Spirit creature token with flying onto the battlefield.\n\n{1}{B}, discard two cards: Return Haunted Dead from your graveyard to the battlefield tapped.",
         "toughness": "2",
         "type": "Creature \u2014 Zombie"
       },
@@ -965,7 +965,7 @@
         "manaCost": "{1}{B}{B}",
         "name": "Liliana, the Last Hope",
         "number": "93",
-        "text": "+1: Up to one target creature gets \u22122/\u22121 until your next turn\n\n\u22122: Put the top two cards of your library into your graveyard, then you may return a creature card from your graveyard to your hand.\n\n\u22127: You get an emblem with \"At the beginning of your end step, put X 2/2 black zombie creature tokens onto the battlefield, where X is two plus the number of zombies you control.\"",
+        "text": "+1: Up to one target creature gets \u22122/\u22121 until your next turn.\n\n\u22122: Put the top two cards of your library into your graveyard, then you may return a creature card from your graveyard to your hand.\n\n\u22127: You get an emblem with \"At the beginning of your end step, put X 2/2 black Zombie creature tokens onto the battlefield, where X is two plus the number of Zombies you control.\"",
         "type": "Planeswalker \u2014 Liliana"
       },
       {
@@ -1013,7 +1013,7 @@
         ],
         "number": "96b",
         "power": "5",
-        "text": "Haste\n\nMenace This creature can't be blocked except by two or more creatures\n\nWhen Chittering Host enters the battlefield, other creatures you control get +1/+0 and menace until end of turn",
+        "text": "Haste\n\nMenace (This creature can't be blocked except by two or more creatures)\n\nWhen Chittering Host enters the battlefield, other creatures you control get +1/+0 and menace until end of turn.",
         "toughness": "6",
         "type": "Creature \u2014 Eldrazi Horror"
       },
@@ -1022,7 +1022,7 @@
         "manaCost": "{1}{B}{B}",
         "name": "Murder",
         "number": "97",
-        "text": "Destroy Target Creature",
+        "text": "Destroy target creature.",
         "type": "Instant"
       },
       {
@@ -1093,7 +1093,7 @@
         "name": "Strange Augmentation",
         "number": "105",
         "text": "Enchant creature\n\nEnchanted creature gets +1/+1.\n\nDelirium \u2014 Enchanted creature gets an additional +2/+2 as long as there are four or more card types among cards in your graveyard.",
-        "type": "Enchantmen \u2014 Aura"
+        "type": "Enchantment \u2014 Aura"
       },
       {
         "layout": "normal",
@@ -1166,7 +1166,7 @@
         ],
         "number": "111b",
         "power": "6",
-        "text": "Flying\n\nWhen this creature transforms into Abolisher of Bloodlines, target opponent sacrifices three creatures",
+        "text": "Flying\n\nWhen this creature transforms into Abolisher of Bloodlines, target opponent sacrifices three creatures.",
         "toughness": "5",
         "type": "Creature \u2014 Eldrazi Vampire"
       },
@@ -1195,7 +1195,7 @@
         "manaCost": "{1}{B}",
         "name": "Whispers of Emrakul",
         "number": "114",
-        "text": "Target opponent discards a card at random.\n\nDelirium \u2014 If there are four or more card types in your graveyard, that player discards to cards instead.",
+        "text": "Target opponent discards a card at random.\n\nDelirium \u2014 If there are four or more card types among cards in your graveyard, that player discards two cards instead.",
         "type": "Sorcery"
       },
       {
@@ -1203,7 +1203,7 @@
         "manaCost": "{2}{R}",
         "name": "Abandon Reason",
         "number": "115",
-        "text": "up to two target creatures each get +1/+0 and gain first strike until end of turn.\n\nMadness {1}{R} If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.",
+        "text": "Up to two target creatures each get +1/+0 and gain first strike until end of turn.\n\nMadness {1}{R} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
         "type": "Instant"
       },
       {
@@ -1211,7 +1211,7 @@
         "manaCost": "{4}{R}",
         "name": "Alchemist's Greeting",
         "number": "116",
-        "text": "Alchemist's Greeting deals 4 damage to target creature.\n\nMadness {1}{R} If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.",
+        "text": "Alchemist's Greeting deals 4 damage to target creature.\n\nMadness {1}{R} (If you discard this card, discard it into exile. When you do, cast it for its madness cost or put it into your graveyard.)",
         "type": "Sorcery"
       },
       {
@@ -1320,7 +1320,7 @@
         "manaCost": "{1}{R}",
         "name": "Distemper of the Blood",
         "number": "126",
-        "text": "Target creature gets +2/+2 and gains trample until end of turn.",
+        "text": "Target creature gets +2/+2 and gains trample until end of turn.\n\nMadness {R}",
         "type": "Sorcery"
       },
       {
@@ -1347,7 +1347,7 @@
         "manaCost": "{R}",
         "name": "Galvanic Bombardment",
         "number": "129",
-        "text": "Galvanic Bombardment deals X damage to target creature, where x is 2 plus the number of cards named Galvanic Bombardment in your graveyard.",
+        "text": "Galvanic Bombardment deals X damage to target creature, where X is 2 plus the number of cards named Galvanic Bombardment in your graveyard.",
         "type": "Instant"
       },
       {
@@ -1420,7 +1420,7 @@
         "manaCost": "{2}{R}",
         "name": "Make Mischief",
         "number": "135",
-        "text": "Make Mischief deals 1 damage to target creature or player. Put a 1/1 red Devil creature token pnto the battlefield. It has \"When this creature dies, it deals 1 damage to target creature or player.\"",
+        "text": "Make Mischief deals 1 damage to target creature or player. Put a 1/1 red Devil creature token onto the battlefield. It has \"When this creature dies, it deals 1 damage to target creature or player.\"",
         "type": "Sorcery"
       },
       {
@@ -1429,7 +1429,7 @@
         "name": "Mirrorwing Dragon",
         "number": "136",
         "power": "4",
-        "text": "Flying\n\nWhenever a player casts an instant or sorcery spell that targets only Mirrorwing Dragon, that player copies that spell for each other creature he or she controls that the spell could target. Each copy targets a different one of those creatures",
+        "text": "Flying\n\nWhenever a player casts an instant or sorcery spell that targets only Mirrorwing Dragon, that player copies that spell for each other creature he or she controls that the spell could target. Each copy targets a different one of those creatures.",
         "toughness": "5",
         "type": "Creature \u2014 Dragon"
       },
@@ -1438,7 +1438,7 @@
         "manaCost": "{2}{R}",
         "name": "Nahiri's Wrath",
         "number": "137",
-        "text": "As an additional cost to cast Nahiri's Wrath, discard X cards.\n\nNahiri's Wrath deals damage equal to the total converted mana cost of the discarded cards to up to each of up to X target creatures and/or planeswalkers",
+        "text": "As an additional cost to cast Nahiri's Wrath, discard X cards.\n\nNahiri's Wrath deals damage equal to the total converted mana cost of the discarded cards to up to each of up to X target creatures and/or planeswalkers.",
         "type": "Sorcery"
       },
       {
@@ -1454,7 +1454,7 @@
         "manaCost": "{R}",
         "name": "Prophetic Ravings",
         "number": "139",
-        "text": "Enchant Creature\n\nEnchanted creature has haste and \"{T}, Discard a card: Draw a card.\"",
+        "text": "Enchant creature\n\nEnchanted creature has haste and \"{T}, Discard a card: Draw a card.\"",
         "type": "Enchantment \u2014 Aura"
       },
       {
@@ -1532,7 +1532,7 @@
         "name": "Stromkirk Occultist",
         "number": "146",
         "power": "3",
-        "text": "Trample\n\nWhen Stromkirk Occultist deals combat damage to an opponent exile the top card of your library. Until end of turn you may cast that card.\n\nMadness {1}{R}",
+        "text": "Trample\n\nWhenever Stromkirk Occultist deals combat damage to a player, exile the top card of your library. Until end of turn, you may play that card.\n\nMadness {1}{R}",
         "toughness": "2",
         "type": "Creature \u2014 Vampire Horror"
       },
@@ -1542,7 +1542,7 @@
         "name": "Thermo-Alchemist",
         "number": "147",
         "power": "0",
-        "text": "Defender\n\n{T}: Thermo-Alchemist deals 1 damage to each opponent.\n\nWhenever you cast an instant or sorcery spell, untap Thermo-Alchemist",
+        "text": "Defender\n\n{T}: Thermo-Alchemist deals 1 damage to each opponent.\n\nWhenever you cast an instant or sorcery spell, untap Thermo-Alchemist.",
         "toughness": "3",
         "type": "Creature \u2014 Human Shaman"
       },
@@ -1616,7 +1616,7 @@
         "manaCost": "{G}",
         "name": "Crop Sigil",
         "number": "153",
-        "text": "At the beginning of your upkeep you may put the top card of your library into your graveyard.\n\nDelirium \u2014 {2}{G} Sacrifice Crop Sigil: You may return up to one creature card and one land card from your graveyard to your hand. Activate this ability only if there are four or more card types in your graveyard.",
+        "text": "At the beginning of your upkeep you may put the top card of your library into your graveyard.\n\nDelirium \u2014 {2}{G} Sacrifice Crop Sigil: You may return up to one creature card and up to one land card from your graveyard to your hand. Activate this ability only if there are four or more card types in your graveyard.",
         "type": "Enchantment"
       },
       {
@@ -1671,7 +1671,7 @@
         "name": "Gnarlwood Dryad",
         "number": "159",
         "power": "1",
-        "text": "Deathtouch\n\nDelirium \u2014 Gnarlwood Dryad gets +2/+2 as long as there are four or more card types in your graveyard.",
+        "text": "Deathtouch\n\nDelirium \u2014 Gnarlwood Dryad gets +2/+2 as long as there are four or more card types among cards in your graveyard.",
         "toughness": "1",
         "type": "Creature \u2014 Dryad Horror"
       },
@@ -1736,7 +1736,7 @@
         "name": "Noose Constrictor",
         "number": "164",
         "power": "2",
-        "text": "Reach\n\nDiscard a card: Noose Constrictor. gets +1/+1 until end of turn.",
+        "text": "Reach\n\nDiscard a card: Noose Constrictor gets +1/+1 until end of turn.",
         "toughness": "2",
         "type": "Creature \u2014 Snake"
       },
@@ -1746,7 +1746,7 @@
         "name": "Permeating Mass",
         "number": "165",
         "power": "1",
-        "text": "Whenever Permeating Mass deals combat Damage to a creature, that creature becomes a copy of Permeating Mass",
+        "text": "Whenever Permeating Mass deals combat damage to a creature, that creature becomes a copy of Permeating Mass.",
         "toughness": "3",
         "type": "Creature \u2014 Spirit"
       },
@@ -1755,7 +1755,7 @@
         "manaCost": "{G}",
         "name": "Prey Upon",
         "number": "166",
-        "text": "Target creature you control fights target creature you don't control",
+        "text": "Target creature you control fights target creature you don't control.",
         "type": "Sorcery"
       },
       {
@@ -1820,7 +1820,7 @@
         "manaCost": "{3}{G}",
         "name": "Splendid Reclamation",
         "number": "171",
-        "text": "Return all land cards from your graveyard to the battlefield tapped",
+        "text": "Return all land cards from your graveyard to the battlefield tapped.",
         "type": "Sorcery"
       },
       {
@@ -2012,7 +2012,7 @@
         "manaCost": "{R}{W}",
         "name": "Ride Down",
         "number": "188",
-        "text": "Destroy target blkocking creature. Creatures that were blocked by that creature this combat gain trample until end of turn.",
+        "text": "Destroy target blocking creature. Creatures that were blocked by that creature this combat gain trample until end of turn.",
         "type": "Instant"
       },
       {
@@ -2078,7 +2078,7 @@
           "Aurora of Emrakul"
         ],
         "number": "193a",
-        "text": "Cryptolith Fragment comes into the battlefield tapped.\n\n{T}: add one mana of any color to your mana pool. Each player loses one life.\n\nAt the beginning of your upkeep, if each player has ten or less life, transform Cryptolith Fragment.",
+        "text": "Cryptolith Fragment comes into the battlefield tapped.\n\n{T}: Add one mana of any color to your mana pool. Each player loses one life.\n\nAt the beginning of your upkeep, if each player has ten or less life, transform Cryptolith Fragment.",
         "type": "Artifact"
       },
       {
@@ -2090,7 +2090,7 @@
         ],
         "number": "193b",
         "power": "1",
-        "text": "Flying, Deathtouch.\n\nWhenever Aurora of Emrakul attacks, each opponent loses 3 life.",
+        "text": "Flying, deathtouch\n\nWhenever Aurora of Emrakul attacks, each opponent loses 3 life.",
         "toughness": "4",
         "type": "Creature \u2014 Eldrazi Reflection"
       },
@@ -2194,7 +2194,7 @@
         "layout": "normal",
         "name": "Nephalia Acadamy",
         "number": "205",
-        "text": "If a spell or ability an opponent controls causes you to discard a card, you may reveal that card and put it on top of your library instead of putting it anywhere else.\n\n{T}:Add {C} to your mana pool",
+        "text": "If a spell or ability an opponent controls causes you to discard a card, you may reveal that card and put it on top of your library instead of putting it anywhere else.\n\n{T}: Add {C} to your mana pool.",
         "type": "Land"
       }
     ],
