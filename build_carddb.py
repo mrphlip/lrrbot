@@ -261,20 +261,43 @@ def process_card(card, expansion):
 				yield card['names'][0]
 				yield ')'
 		elif card.get('layout') == 'meld':
-			if card['name'] == card['names'][0]:
+			# Only the melded card in MTGJSON has all three cards in the 'names' field
+			# The front-face cards only have [me, back]
+			melded_card = [i for i in expansion['cards'] if i['name'] == card['names'][-1]]
+			if not melded_card:
+				print("Can't find melded card: %s" % card['names'][-1])
+				sys.exit(1)
+			melded_card = melded_card[0]
+			# MTGJSON doesn't have this field in a consistent order...
+			# some cards have [top, bottom, back] some have [bottom, top, back]
+			part_cards = [i for i in expansion['cards'] if i['name'] in melded_card['names'][:-1]]
+			if len(part_cards) != 2:
+				print("Can't find part-cards for melded card: %s" % melded_card['name'])
+				sys.exit(1)
+			if melded_card['number'][-1] != 'b':
+				print("Melded card's number doesn't end in 'b': %s" % melded_card['name'])
+				sys.exit(1)
+			if part_cards[0]['number'] == melded_card['number'][:-1] + 'a':
+				bottom_card, top_card = part_cards
+			elif part_cards[1]['number'] == melded_card['number'][:-1] + 'a':
+				top_card, bottom_card = part_cards
+			else:
+				print("Couldn't figure out which card was top and bottom for: %s" % melded_card['name'])
+				sys.exit(1)
+			if card['name'] == top_card['name']:
 				# The names of what this melds with and into are in the card text
 				pass
-			elif card['name'] == card['names'][1]:
+			elif card['name'] == bottom_card['name']:
 				yield ' (melds with: '
-				yield card['names'][0]
+				yield top_card['name']
 				yield '; into: '
-				yield card['names'][2]
+				yield melded_card['name']
 				yield ')'
-			elif card['name'] == card['names'][2]:
+			elif card['name'] == melded_card['name']:
 				yield ' (melds from: '
-				yield card['names'][0]
+				yield top_card['name']
 				yield '; '
-				yield card['names'][1]
+				yield bottom_card['name']
 				yield ')'
 		yield ' | '
 		yield card.get('type', '?Type missing?')
