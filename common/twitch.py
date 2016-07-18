@@ -2,6 +2,7 @@ import json
 import random
 import asyncio
 import socket
+import dateutil.parser
 
 import common.http
 from common import utils
@@ -169,3 +170,33 @@ def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
 
 def get_user(user):
 	return json.loads(common.http.request("https://api.twitch.tv/kraken/users/%s" % user))
+
+class get_followers:
+	def __init__(self, channel, limit=25, direction='desc'):
+		self.next_url = "https://api.twitch.tv/kraken/channels/%s/follows" % channel
+		self.params = {
+			'limit': limit,
+			'direction': direction,
+		}
+		self.headers = {
+			'Client-ID': config['twitch_clientid'],
+		}
+		self.follows = []
+
+	async def __aiter__(self):
+		return self
+
+	async def __anext__(self):
+		while True:
+			if self.follows:
+				return self.follows.pop(0)
+
+			if self.next_url is None:
+				raise StopAsyncIteration
+
+			data = json.loads(await common.http.request_coro(self.next_url, data=self.params, headers=self.headers))
+			self.params = {}
+			self.next_url = data['_links'].get('next') if data.get('_cursor') else None
+			for follow in data['follows']:
+				follow['created_at'] = dateutil.parser.parse(follow['created_at'])
+				self.follows.append(follow)
