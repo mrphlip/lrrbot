@@ -160,7 +160,7 @@ class TwitchSubs:
 			data['monthcount'] = monthcount
 			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
 
-			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's delirium count: %d)" % (data['name'], data['count']))
+			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's combo count: %d)" % (data['name'], data['count']))
 		else:
 			event = "twitch-subscription"
 			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
