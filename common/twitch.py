@@ -26,7 +26,10 @@ def get_info_uncached(username=None, use_fallback=True):
 
 	# Attempt to get the channel data from /streams/channelname
 	# If this succeeds, it means the channel is currently live
-	res = common.http.request("https://api.twitch.tv/kraken/streams/%s" % username)
+	headers = {
+		'Client-ID': config['twitch_clientid'],
+	}
+	res = common.http.request("https://api.twitch.tv/kraken/streams/%s" % username, headers=headers)
 	data = json.loads(res)
 	channel_data = data.get('stream') and data['stream'].get('channel')
 	if channel_data:
@@ -40,7 +43,7 @@ def get_info_uncached(username=None, use_fallback=True):
 
 	# If that failed, it means the channel is offline
 	# Ge the channel data from here instead
-	res = common.http.request("https://api.twitch.tv/kraken/channels/%s" % username)
+	res = common.http.request("https://api.twitch.tv/kraken/channels/%s" % username, headers=headers)
 	channel_data = json.loads(res)
 	channel_data['live'] = False
 	return channel_data
@@ -64,7 +67,10 @@ def get_game(name, all=False):
 		'type': 'suggest',
 		'live': 'false',
 	}
-	res = common.http.request("https://api.twitch.tv/kraken/search/games", search_opts)
+	headers = {
+		'Client-ID': config['twitch_clientid'],
+	}
+	res = common.http.request("https://api.twitch.tv/kraken/search/games", search_opts, headers=headers)
 	res = json.loads(res)
 	if all:
 		return res['games']
@@ -96,6 +102,7 @@ def is_stream_live(username=None):
 def get_subscribers(channel, token, count=5, offset=None, latest=True):
 	headers = {
 		"Authorization": "OAuth %s" % token,
+		"Client-ID": config['twitch_clientid'],
 	}
 	data = {
 		"limit": count,
@@ -114,11 +121,14 @@ def get_subscribers(channel, token, count=5, offset=None, latest=True):
 def get_follows_channels(username=None):
 	if username is None:
 		username = config["username"]
+	headers = {
+		"Client-ID": config['twitch_clientid'],
+	}
 	url = "https://api.twitch.tv/kraken/users/%s/follows/channels" % username
 	follows = []
 	total = 1
 	while len(follows) < total:
-		data = yield from common.http.request_coro(url)
+		data = yield from common.http.request_coro(url, headers=headers)
 		data = json.loads(data)
 		total = data["_total"]
 		follows += data["follows"]
@@ -130,6 +140,7 @@ def get_streams_followed(token):
 	url = "https://api.twitch.tv/kraken/streams/followed"
 	headers = {
 		"Authorization": "OAuth %s" % token,
+		"Client-ID": config['twitch_clientid'],
 	}
 	streams = []
 	total = 1
@@ -145,6 +156,7 @@ def get_streams_followed(token):
 def follow_channel(target, token):
 	headers = {
 		"Authorization": "OAuth %s" % token,
+		"Client-ID": config['twitch_clientid'],
 	}
 	yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
 										data={"notifications": "false"}, method="PUT", headers=headers)
@@ -153,6 +165,7 @@ def follow_channel(target, token):
 def unfollow_channel(target, token):
 	headers = {
 		"Authorization": "OAuth %s" % token,
+		"Client-ID": config['twitch_clientid'],
 	}
 	yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
 										method="DELETE", headers=headers)
@@ -160,7 +173,10 @@ def unfollow_channel(target, token):
 @asyncio.coroutine
 def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
 	channel = channel or config["channel"]
-	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/videos" % channel, data={
+	headers = {
+		"Client-ID": config['twitch_clientid'],
+	}
+	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/videos" % channel, headers=headers, data={
 		"offset": offset,
 		"limit": limit,
 		"broadcasts": "true" if broadcasts else "false",
@@ -169,7 +185,10 @@ def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
 	return json.loads(data)["videos"]
 
 def get_user(user):
-	return json.loads(common.http.request("https://api.twitch.tv/kraken/users/%s" % user))
+	headers = {
+		"Client-ID": config['twitch_clientid'],
+	}
+	return json.loads(common.http.request("https://api.twitch.tv/kraken/users/%s" % user, headers=headers))
 
 class get_followers:
 	def __init__(self, channel, limit=25, direction='desc'):
