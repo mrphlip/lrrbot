@@ -283,6 +283,7 @@ async def login(return_to=None):
 			# Use that access token to get basic information about the user
 			req = urllib.request.Request("https://api.twitch.tv/kraken/")
 			req.add_header("Authorization", "OAuth %s" % access_token)
+			req.add_header("Client-ID", config['twitch_clientid'])
 			res_json = urllib.request.urlopen(req).read().decode()
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('token', {}).get('valid'):

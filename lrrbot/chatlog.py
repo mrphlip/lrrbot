@@ -257,7 +257,10 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 @asyncio.coroutine
 def get_display_name(nick):
 	try:
-		data = yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s" % nick)
+		headers = {
+			"Client-ID": config['twitch_clientid'],
+		}
+		data = yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s" % nick, headers=headers)
 		data = json.loads(data)
 		return data['display_name']
 	except utils.PASSTHROUGH_EXCEPTIONS:
@@ -267,8 +270,11 @@ def get_display_name(nick):
 
 re_just_words = re.compile("^\w+$")
 @asyncio.coroutine
-def get_twitch_emotes_official():
-	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticons")
+def get_twitch_emoticons():
+	headers = {
+		"Client-ID": config['twitch_clientid'],
+	}
+	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticons", headers=headers)
 	data = json.loads(data)['emoticons']
 	emotesets = {}
 	for emote in data:
@@ -291,9 +297,11 @@ def get_twitch_emotes_official():
 	return emotesets
 
 @asyncio.coroutine
-def get_twitch_emotes_undocumented():
-	# This endpoint is not documented, however `/chat/emoticons` might be deprecated soon.
-	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticon_images")
+def get_twitch_emoticon_images():
+	headers = {
+		"Client-ID": config['twitch_clientid'],
+	}
+	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticon_images", headers=headers)
 	data = json.loads(data)["emoticons"]
 	emotesets = {}
 	for emote in data:
@@ -313,11 +321,11 @@ def get_twitch_emotes_undocumented():
 @asyncio.coroutine
 def get_twitch_emotes():
 	try:
-		return (yield from get_twitch_emotes_official())
+		return (yield from get_twitch_emoticons())
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
 	except Exception:
-		return (yield from get_twitch_emotes_undocumented())
+		return (yield from get_twitch_emoticon_images())
 
 @asyncio.coroutine
 def get_filtered_emotes(setids):

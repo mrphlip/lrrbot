@@ -24,6 +24,7 @@ def upgrade():
 	)
 
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
+	clientid = alembic.context.config.get_section_option("lrrbot", "twitch_clientid")
 	with open(datafile) as f:
 		data = json.load(f)
 
@@ -37,7 +38,7 @@ def upgrade():
 		for i, nick in enumerate(names):
 			log.info("Fetching %d/%d: %r", i + 1, len(names), nick)
 			try:
-				req = session.get("https://api.twitch.tv/kraken/users/%s" % urllib.parse.quote(nick))
+				req = session.get("https://api.twitch.tv/kraken/users/%s" % urllib.parse.quote(nick), headers={'Client-ID': clientid})
 				req.raise_for_status()
 				user = req.json()
 				users.append({
