@@ -13,6 +13,7 @@ import sqlalchemy
 import common.time
 import common.url
 from common import utils
+from common.config import config
 from www import server
 from www import login
 
