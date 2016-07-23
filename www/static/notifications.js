@@ -89,7 +89,7 @@ function update_title() {
 }
 
 /* Next row is even or odd */
-window.even = true;
+window.even = false;
 
 function createElementWithClass(element, className) {
 	var elem = document.createElement(element);
