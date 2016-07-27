@@ -204,13 +204,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			'display-name': event.tags.get('display-name') or source.nick,
 			'specialuser': set(),
 		}
-		if event.tags['subscriber']:
+		if event.tags.get('subscriber'):
 			metadata['specialuser'].add('subscriber')
 		if int(event.tags.get('turbo', 0)):
 			metadata['specialuser'].add('turbo')
 		if event.tags.get('user-type'):
 			metadata['specialuser'].add(event.tags.get('user-type'))
-		if event.tags['mod']:
+		if event.tags.get('mod'):
 			metadata['specialuser'].add('mod')
 		log.debug("Message metadata: %r", metadata)
 		chatlog.log_chat(event, metadata)
