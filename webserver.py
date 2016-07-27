@@ -32,8 +32,7 @@ app.jinja_env.globals["max"] = max
 
 __all__ = ['app']
 
+utils.init_logging("webserver")
+
 if __name__ == '__main__':
 	app.run(debug=True, use_reloader=False)
-else:
-	import logging
-	app.logger.addHandler(logging.StreamHandler())

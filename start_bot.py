@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import logging, logging.config
-from common.config import config
+import logging
+from common import utils
 
-logging.config.fileConfig("logging.conf")
+utils.init_logging("lrrbot")
 
 from lrrbot.main import bot, log
 import lrrbot.commands

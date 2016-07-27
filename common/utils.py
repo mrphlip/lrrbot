@@ -10,6 +10,8 @@ import socket
 import textwrap
 import time
 import heapq
+import logging.config
+import configparser
 
 import werkzeug.datastructures
 
@@ -348,3 +350,29 @@ def counter(n=6):
 	for _ in range(n):
 		s += chr(random.randint(*random.choice(COUNTER_RANGES)))
 	return s
+
+def merge_config_section(configs, prefix):
+	"""
+	Merge prefixed sections into the real sections, so that different values can
+	be set to apply to different modes.
+
+	eg:
+	merge_config_section(configs, "debug")
+	will merge [debug_xyz] sections into [xyz] sections
+	"""
+	prefix = prefix + "_"
+	for section in configs.sections():
+		if section[:len(prefix)] == prefix:
+			if not configs.has_section(section[len(prefix):]):
+				configs.add_section(section[len(prefix):])
+			for option, value in configs.items(section):
+				configs.set(section[len(prefix):], option, value)
+
+def init_logging(mode=None):
+	logging_conf = configparser.ConfigParser()
+	logging_conf.read("logging.conf")
+	if config.config['debug']:
+		merge_config_section(logging_conf, "debug")
+	if mode:
+		merge_config_section(logging_conf, mode)
+	logging.config.fileConfig(logging_conf)
