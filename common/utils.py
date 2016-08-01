@@ -369,6 +369,7 @@ def merge_config_section(configs, prefix):
 				configs.set(section[len(prefix):], option, value)
 
 def init_logging(mode=None):
+	logging.Formatter.converter = time.gmtime
 	logging_conf = configparser.ConfigParser()
 	logging_conf.read("logging.conf")
 	if config.config['debug']:
