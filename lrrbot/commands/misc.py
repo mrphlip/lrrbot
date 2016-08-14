@@ -67,8 +67,8 @@ def spamcount(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Today's spam counts: %d hits, %d repeat offenders, %d bannings" % tuple(
 		storage.data["spam"]["count"]))
 
-DESERTBUS_START = datetime.datetime(2015, 11, 14, 10, 0, tzinfo=config["timezone"])
-DESERTBUS_PRESTART = datetime.datetime(2015, 11, 12, 14, 0, tzinfo=config["timezone"])  # during the last stream before DB
+DESERTBUS_START = datetime.datetime(2016, 11, 12, 10, 0, tzinfo=config["timezone"])
+DESERTBUS_PRESTART = datetime.datetime(2016, 11, 10, 14, 0, tzinfo=config["timezone"])
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
 @bot.command("next( .*)?")
