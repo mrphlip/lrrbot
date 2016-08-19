@@ -40,7 +40,7 @@ def stormcount(lrrbot, conn, event, respond_to):
 	twitch_resubscription = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-resubscription')
 	twitch_follow = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-follow')
 	patreon_pledge = common.storm.get(lrrbot.engine, lrrbot.metadata, 'patreon-pledge')
-	conn.privmsg(respond_to, "Today's storm count (number of new subscribers): %d, combo count (number of returning subscribers): %d, %s count (number of new patrons): %d, %s count (number of new followers): %d" % (
+	conn.privmsg(respond_to, "Today's storm count (number of new subscribers): %d, combo count (number of returning subscribers): %d, power-up count (number of new patrons): %d, %s count (number of new followers): %d" % (
 		twitch_subscription,
 		twitch_resubscription,
 		utils.counter(), patreon_pledge,
