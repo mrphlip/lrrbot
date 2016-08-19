@@ -43,7 +43,7 @@ def stormcount(lrrbot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Today's storm count (number of new subscribers): %d, combo count (number of returning subscribers): %d, power-up count (number of new patrons): %d, %s count (number of new followers): %d" % (
 		twitch_subscription,
 		twitch_resubscription,
-		utils.counter(), patreon_pledge,
+		patreon_pledge,
 		utils.counter(), twitch_follow,
 	))
 

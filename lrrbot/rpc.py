@@ -190,7 +190,6 @@ class Server(common.rpc.Server):
 				.select_from(users.join(patreon_users))
 				.where(users.c.name == config['channel'])
 			).first()
-		print(name)
 		if name:
 			self.lrrbot.connection.privmsg("#" + config['channel'], "lrrSPOT Thanks for supporting %s on Patreon, %s! (Today's power-up count: %d)" % (name[0], data['name'], data['count']))
 
