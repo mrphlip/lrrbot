@@ -29,7 +29,6 @@ queue = asyncio.Queue()
 space.monkey_patch_urlize()
 
 re_cheer = re.compile(r"(?:^|(?<=\s))(cheer0*)([1-9][0-9]*)(?:$|(?=\s))", re.IGNORECASE)
-cheer_colors = [(0, 'gray'), (100, 'purple'), (1000, 'green'), (5000, 'blue'), (10000, 'red')]
 
 def urlize(text):
 	return real_urlize(text).replace('<a ', '<a target="_blank" rel="noopener nofollow" ')
@@ -211,9 +210,9 @@ def format_message_cheer(message, size="1", cheer=False):
 			bits.append(urlize(splits[i]))
 			if i + 1 < len(splits):
 				count = int(splits[i + 2])
-				col = [col for cutoff, col in cheer_colors if cutoff <= count][-1]
-				url = escape("https://static-cdn.jtvnw.net/bits/light/static/%s/%s" % (col, size))
-				bits.append('<span class="cheer %s"><img src="%s" alt="%s" title="cheer %d">%d</span>' % (escape(col), url, escape(splits[i + 1]), count, count))
+				level = lrrbot.twitchcheer.TwitchCheer.get_level(count)
+				url = escape("https://static-cdn.jtvnw.net/bits/light/static/%s/%s" % (level, size))
+				bits.append('<span class="cheer %s"><img src="%s" alt="%s" title="cheer %d">%d</span>' % (escape(level), url, escape(splits[i + 1]), count, count))
 		return ''.join(bits)
 
 @asyncio.coroutine

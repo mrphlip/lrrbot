@@ -26,6 +26,7 @@ from lrrbot import command_parser
 from lrrbot import rpc
 from lrrbot import join_filter
 from lrrbot import twitchfollows
+from lrrbot import twitchcheer
 
 log = logging.getLogger('lrrbot')
 
@@ -119,6 +120,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.subs = twitchsubs.TwitchSubs(self, loop)
 		self.join_filter = join_filter.JoinFilter(self, loop)
 		self.twitchfollows = twitchfollows.TwitchFollows(self, loop)
+		self.twitchcheer = twitchcheer.TwitchCheer(self, loop)
 
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)

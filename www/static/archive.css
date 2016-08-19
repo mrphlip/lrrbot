@@ -90,31 +90,6 @@ img
 	display: none;
 }
 
-.cheer
-{
-	font-weight: bold;
-}
-.cheer.gray
-{
-	color: #979797;
-}
-.cheer.purple
-{
-	color: #9c3ee8;
-}
-.cheer.green
-{
-	color: #1db2a5;
-}
-.cheer.blue
-{
-	color: #0099fe;
-}
-.cheer.red
-{
-	color: #f43021;
-}
-
 #resetscroll
 {
 	position: fixed;

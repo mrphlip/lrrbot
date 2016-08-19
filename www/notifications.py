@@ -17,7 +17,7 @@ def get_events():
 	recent_events = []
 	query = sqlalchemy.select([events.c.id, events.c.event, events.c.data, events.c.time, sqlalchemy.func.current_timestamp() - events.c.time]) \
 		.where(events.c.time > sqlalchemy.func.current_timestamp() - datetime.timedelta(days=2)) \
-		.where(events.c.event.in_({'twitch-subscription', 'twitch-resubscription', 'twitch-message', 'patreon-pledge'})) \
+		.where(events.c.event.in_({'twitch-subscription', 'twitch-resubscription', 'twitch-message', 'twitch-cheer', 'patreon-pledge'})) \
 		.order_by(events.c.time.desc())
 	with server.db.engine.begin() as conn:
 		for id, event, data, time, duration in conn.execute(query):
