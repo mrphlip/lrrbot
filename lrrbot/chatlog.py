@@ -28,6 +28,9 @@ queue = asyncio.Queue()
 
 space.monkey_patch_urlize()
 
+re_cheer = re.compile(r"(?:^|(?<=\s))(cheer0*)([1-9][0-9]*)(?:$|(?=\s))", re.IGNORECASE)
+cheer_colors = [(0, 'gray'), (100, 'purple'), (1000, 'green'), (5000, 'blue'), (10000, 'red')]
+
 def urlize(text):
 	return real_urlize(text).replace('<a ', '<a target="_blank" rel="noopener nofollow" ')
 
@@ -149,7 +152,7 @@ def do_rebuild_all():
 		conn_select.close()
 		conn_update.close()
 
-def format_message(message, emotes):
+def format_message(message, emotes, cheer=False):
 	ret = ""
 	stack = [(message, "")]
 	while len(stack) != 0:
@@ -161,12 +164,12 @@ def format_message(message, emotes):
 				stack.append((parts[0], Markup(emote["html"].format(escape(parts[1])))))
 				break
 		else:
-			ret += Markup(urlize(prefix)) + suffix
+			ret += Markup(format_message_cheer(prefix, cheer=cheer)) + suffix
 	return ret
 
-def format_message_explicit_emotes(message, emotes, size="1.0"):
+def format_message_explicit_emotes(message, emotes, size="1", cheer=False):
 	if not emotes:
-		return Markup(urlize(message))
+		return Markup(format_message_cheer(message, size=size, cheer=cheer))
 
 	# emotes format is
 	# <emoteid>:<start>-<end>[,<start>-<end>,...][/<emoteid>:<start>-<end>,.../...]
@@ -189,14 +192,29 @@ def format_message_explicit_emotes(message, emotes, size="1.0"):
 	prev = 0
 	for start, end, emoteid in parsed_emotes:
 		if prev < start:
-			bits.append(urlize(message[prev:start]))
-		url = escape("https://static-cdn.jtvnw.net/emoticons/v1/%d/%s" % (emoteid, size))
+			bits.append(format_message_cheer(message[prev:start], size=size, cheer=cheer))
+		url = escape("https://static-cdn.jtvnw.net/emoticons/v1/%d/%s.0" % (emoteid, size))
 		command = escape(message[start:end])
 		bits.append('<img src="%s" alt="%s" title="%s">' % (url, command, command))
 		prev = end
 	if prev < len(message):
-		bits.append(urlize(message[prev:]))
+		bits.append(format_message_cheer(message[prev:], size=size, cheer=cheer))
 	return Markup(''.join(bits))
+
+def format_message_cheer(message, size="1", cheer=False):
+	if not cheer:
+		return urlize(message)
+	else:
+		bits = []
+		splits = re_cheer.split(message)
+		for i in range(0, len(splits), 3):
+			bits.append(urlize(splits[i]))
+			if i + 1 < len(splits):
+				count = int(splits[i + 2])
+				col = [col for cutoff, col in cheer_colors if cutoff <= count][-1]
+				url = escape("https://static-cdn.jtvnw.net/bits/light/static/%s/%s" % (col, size))
+				bits.append('<span class="cheer %s"><img src="%s" alt="%s" title="cheer %d">%d</span>' % (escape(col), url, escape(splits[i + 1]), count, count))
+		return ''.join(bits)
 
 @asyncio.coroutine
 def build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname):
@@ -242,10 +260,10 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 		# either for users to accidentally click, or for Google to see
 		ret.append('<span class="message cleared">%s</span>' % escape(message))
 	elif emotes is not None:
-		messagehtml = format_message_explicit_emotes(message, emotes)
+		messagehtml = format_message_explicit_emotes(message, emotes, cheer='cheer' in specialuser)
 		ret.append('<span class="message">%s</span>' % messagehtml)
 	else:
-		messagehtml = format_message(message, (yield from get_filtered_emotes(emoteset)))
+		messagehtml = format_message(message, (yield from get_filtered_emotes(emoteset)), cheer='cheer' in specialuser)
 		ret.append('<span class="message">%s</span>' % messagehtml)
 
 	if is_action:

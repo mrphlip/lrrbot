@@ -212,6 +212,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			metadata['specialuser'].add(event.tags.get('user-type'))
 		if event.tags['mod']:
 			metadata['specialuser'].add('mod')
+		if event.tags.get('bits'):
+			metadata['specialuser'].add('cheer')
 		log.debug("Message metadata: %r", metadata)
 		chatlog.log_chat(event, metadata)
 
@@ -239,6 +241,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		is_mod = is_mod or tags.get('user-type', '') in {'mod', 'global_mod', 'admin', 'staff'}
 		#  * is broadcaster
 		tags["mod"] = is_mod = is_mod or nick.lower() == config['channel']
+
+		if 'bits' in tags:
+			tags['bits'] = int(tags['bits'])
 
 		if "user-id" not in tags:
 			tags["display_name"] = tags.get("display_name", nick)
