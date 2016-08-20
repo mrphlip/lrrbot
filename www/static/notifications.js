@@ -17,6 +17,10 @@ window.addEventListener('DOMContentLoaded', function (event) {
 			twitch_resubscription(JSON.parse(event.data));
 			update_title();
 		});
+		stream.addEventListener("twitch-cheer", function (event) {
+			twitch_cheer(JSON.parse(event.data));
+			update_title();
+		});
 		stream.addEventListener("twitch-message", function (event) {
 			twitch_message(JSON.parse(event.data));
 			update_title();
@@ -182,6 +186,42 @@ function twitch_resubscription(data) {
 		link.appendChild(document.createTextNode(data.name));
 		message.appendChild(link);
 		message.appendChild(document.createTextNode(" subscribed for " + data.monthcount + " month" + (data.monthcount != 1 ? 's' : '') + " in a row!"));
+		message_container.appendChild(message);
+
+		if (data.message) {
+			var user_message = createElementWithClass("p", "message");
+			message_container.appendChild(user_message);
+			var quote = document.createElement("q");
+			quote.appendChild(document.createTextNode(data.message));
+			user_message.appendChild(quote);
+		}
+	});
+}
+
+function twitch_cheer(data) {
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user with-avatar");
+		container.appendChild(user);
+
+		var link = document.createElement("a");
+		link.href = "https://www.twitch.tv/" + data.name;
+		link.rel = "noopener nofollow";
+
+		var avatar = document.createElement("img");
+		avatar.src = "https://static-cdn.jtvnw.net/bits/light/static/" + data.level + "/3";
+		user.appendChild(avatar);
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		link.appendChild(document.createTextNode(data.name));
+		message.appendChild(link);
+		message.appendChild(document.createTextNode(" has cheered with "));
+		var bits = createElementWithClass("span", "cheer " + data.level);
+		bits.appendChild(document.createTextNode(data.bits));
+		message.appendChild(bits);
+		message.appendChild(document.createTextNode(" bits!"));
 		message_container.appendChild(message);
 
 		if (data.message) {

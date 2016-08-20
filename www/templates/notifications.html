@@ -43,6 +43,19 @@
 							{% endif %}
 						</div>
 					</div>
+				{% elif event['event'] == 'twitch-cheer' %}
+					<div class="user with-avatar">
+						<img class="avatar" src="https://static-cdn.jtvnw.net/bits/light/static/{{ event['data']['level'] }}/3">
+						<div class="message-container">
+							<p class="system-message">
+								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a> has cheered with
+									<span class="cheer {{ event['data']['level'] }}">{{ event['data']['bits'] }}</span> bits!
+							</p>
+							{% if event['data']['message'] %}
+								<p class="message"><q>{{ event['data']['message'] }}</q></p>
+							{% endif %}
+						</div>
+					</div>
 				{% elif event['event'] == 'twitch-message' %}
 					<div class="message">{{ event['data']['message'] }}</div>
 				{% elif event['event'] == 'patreon-pledge' %}
