@@ -36,6 +36,7 @@ def stormcount():
 		'twitch-subscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-subscription'),
 		'twitch-resubscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-resubscription'),
 		'twitch-follow': common.storm.get(server.db.engine, server.db.metadata, 'twitch-follow'),
+		'twitch-cheer': common.storm.get(server.db.engine, server.db.metadata, 'twitch-cheer'),
 		'patreon-pledge': common.storm.get(server.db.engine, server.db.metadata, 'patreon-pledge'),
 	})
 
