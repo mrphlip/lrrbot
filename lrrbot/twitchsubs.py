@@ -121,7 +121,27 @@ class TwitchSubs:
 				monthcount = tags.get('msg-param-months')
 				if monthcount is not None:
 					monthcount = int(monthcount)
+				systemmsg = tags.get('system-msg')
+				if not systemmsg:
+					systemmsg = "%s has subscribed for %s months!" % (tags.get('display-name') or tags['login'], monthcount)
 				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name') or tags['login'], datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
+				# Make fake chat messages for this resub in the chat log
+				# This makes the resub message just show up as a normal message, which is close enough
+				self.lrrbot.log_chat(conn, irc.client.Event(
+					"pubmsg",
+					"%s!%s@tmi.twitch.tv" % (config['notifyuser'], config['notifyuser']),
+					event.target,
+					[systemmsg],
+					{},
+				))
+				if message:
+					self.lrrbot.log_chat(conn, irc.client.Event(
+						"pubmsg",
+						event.source,
+						event.target,
+						[message],
+						event.tags,
+					))
 				return "NO MORE"
 
 	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None):
