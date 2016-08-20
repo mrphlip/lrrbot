@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
 
 import logging
-from common.config import config
+from common import utils
 
-logging.basicConfig(level=config['loglevel'], format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")
-if config['logfile'] is not None:
-	fileHandler = logging.FileHandler(config['logfile'], 'a', 'utf-8')
-	fileHandler.formatter = logging.root.handlers[0].formatter
-	logging.root.addHandler(fileHandler)
-logging.getLogger("requests").setLevel(logging.ERROR)
+utils.init_logging("lrrbot")
 
 from lrrbot.main import bot, log
 import lrrbot.commands

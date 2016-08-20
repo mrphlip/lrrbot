@@ -1,5 +1,6 @@
-*.conf
+lrrbot.conf
 *.log
+*.log.*
 *.pyc
 __pycache__
 *~
