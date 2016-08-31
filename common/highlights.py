@@ -2,7 +2,11 @@ import common.time
 
 SPREADSHEET = "1yrf6d7dPyTiWksFkhISqEc-JR71dxZMkUoYrX4BR40Y"
 
-def format_row(title, description, url, timestamp, nick):
+def format_row(title, description, video, timestamp, nick):
+	if '_id' in video:
+		url = "https://www.twitch.tv/loadingreadyrun/manager/%s/highlight" % video['_id']
+	else:
+		url = video['url']
 	return [
 		("SHOW", title),
 		("QUOTE or MOMENT", description),

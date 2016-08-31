@@ -76,7 +76,7 @@ def main():
 		highlight["video"] = yield from lookup_video(highlight, videos)
 
 	yield from gdata.add_rows_to_spreadsheet(SPREADSHEET, [
-		format_row(highlight["title"], highlight["description"], highlight["video"]["url"],
+		format_row(highlight["title"], highlight["description"], highlight["video"],
 			 highlight["time"] - highlight["video"]["recorded_at"], highlight["nick"])
 		for highlight in highlights
 	])

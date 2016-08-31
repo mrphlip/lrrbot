@@ -41,7 +41,7 @@ def highlight(lrrbot, conn, event, respond_to, description):
 		return
 
 	yield from gdata.add_rows_to_spreadsheet(SPREADSHEET, [
-		format_row(stream_info["status"], description, video["url"], uptime, irc.client.NickMask(event.source).nick)
+		format_row(stream_info["status"], description, video, uptime, irc.client.NickMask(event.source).nick)
 	])
 
 	conn.privmsg(respond_to, "Highlight added.")
