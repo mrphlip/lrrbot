@@ -63,6 +63,7 @@ def get_upcoming_events(calendar, after=None):
 			"start": dateutil.parser.parse(item['start']['dateTime']),
 			"end": dateutil.parser.parse(item['end']['dateTime']),
 			"location": item.get('location'),
+			"description": item.get('description'),
 		})
 	return formatted_items
 
@@ -129,16 +130,20 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 	if not events:
 		return "There don't seem to be any upcoming scheduled streams"
 
-	strs = []
+	concise_strs = []
+	verbose_strs = []
 	for i, ev in enumerate(events):
+		title = ev['title']
 		if ev['location'] is not None:
-			title = "%(title)s (%(location)s%(space)s)" % {
-				"title": ev["title"],
+			title += " (%(location)s%(space)s)" % {
 				"location": ev["location"],
 				"space": space.SPACE,
 			}
-		else:
-			title = ev['title']
+		concise_title = title
+		if ev['description'] is not None:
+			title += " (%(description)s)" % {
+				"description": utils.shorten(ev['description'], 200),
+			}
 		# If several events are at the same time, just show the time once after all of them
 		if i == len(events) - 1 or ev['start'] != events[i+1]['start']:
 			if verbose:
@@ -146,17 +151,25 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 					nice_duration = common.time.nice_duration(after - ev['start'], 1) + " ago"
 				else:
 					nice_duration = common.time.nice_duration(ev['start'] - after, 1) + " from now"
-				strs.append("%s at %s (%s)" % (title, ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT), nice_duration))
+				start = ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT)
+				concise_strs.append("%s at %s (%s)" % (concise_title, start, nice_duration))
+				verbose_strs.append("%s at %s (%s)" % (title, start, nice_duration))
 			else:
-				strs.append("%s at %s" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT)))
+				concise_strs.append("%s at %s" % (ev['title'], ev['start'].astimezone(tz).strftime(DISPLAY_FORMAT)))
 		else:
-			strs.append(title if verbose else ev['title'])
-	response = ', '.join(strs)
+			concise_strs.append(concise_title if verbose else ev['title'])
+			verbose_strs.append(title)
 
 	if verbose:
-		if calendar == CALENDAR_LRL:
-			response = "Next scheduled stream: %s." % response
-		elif calendar == CALENDAR_FAN:
-			response = "Next scheduled fan stream: %s." % response
+		for strs in [verbose_strs, concise_strs]:
+			if calendar == CALENDAR_LRL:
+				response = "Next scheduled stream: %s." % ", ".join(strs)
+			elif calendar == CALENDAR_FAN:
+				response = "Next scheduled fan stream: %s." % ", ".join(strs)
+
+			if len(response) <= 450:
+				break
+	else:
+		response = ", ".join(concise_strs)
 
 	return utils.shorten(response, 450) # For safety
