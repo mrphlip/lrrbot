@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+from common import utils
+
+utils.init_logging("webserver")
+
 import common.time
 import common.url
 import www.utils
-from common import utils
 from common.config import config
 from www.server import app
 import www.index
@@ -31,8 +34,6 @@ app.jinja_env.globals["min"] = min
 app.jinja_env.globals["max"] = max
 
 __all__ = ['app']
-
-utils.init_logging("webserver")
 
 if __name__ == '__main__':
 	app.run(debug=True, use_reloader=False)

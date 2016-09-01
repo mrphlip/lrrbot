@@ -17,7 +17,8 @@ import werkzeug.datastructures
 
 from common import config
 
-log = logging.getLogger('utils')
+# Need to delay creation of our "log" until init_logging is called
+log = None
 
 # We usually don't want to catch these... so whenever we have an "except everything"
 # clause, we want to explicitly catch and re-raise these.
@@ -377,3 +378,5 @@ def init_logging(mode=None):
 	if mode:
 		merge_config_section(logging_conf, mode)
 	logging.config.fileConfig(logging_conf)
+	global log
+	log = logging.getLogger('utils')
