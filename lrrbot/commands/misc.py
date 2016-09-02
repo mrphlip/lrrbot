@@ -109,7 +109,7 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 	if now < DESERTBUS_START:
 		nice_duration = common.time.nice_duration(DESERTBUS_START - now, 1) + " from now"
 		conn.privmsg(respond_to, "Desert Bus for Hope will begin at %s (%s)" % (DESERTBUS_START.astimezone(timezone).strftime(
-			googlecalendar.DISPLAY_FORMAT), nice_duration))
+			googlecalendar.DISPLAY_FORMAT_WITH_DATE), nice_duration))
 	elif now < DESERTBUS_END:
 		conn.privmsg(respond_to, "Desert Bus for Hope is currently live! Go watch it now at https://desertbus.org/ or https://twitch.tv/desertbus")
 	else:

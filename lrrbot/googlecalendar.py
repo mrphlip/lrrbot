@@ -20,6 +20,7 @@ EVENT_COUNT = 10
 EVENTS_URL = "https://www.googleapis.com/calendar/v3/calendars/%s/events"
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 DISPLAY_FORMAT = "%a %I:%M %p %Z"
+DISPLAY_FORMAT_WITH_DATE = "%a %e %b %I:%M %p %Z"
 
 HISTORY_PERIOD = datetime.timedelta(hours=1) # How long ago can an event have started to count as "recent"?
 LOOKAHEAD_PERIOD = datetime.timedelta(hours=1) # How close together to events have to be to count as "the same time"?
