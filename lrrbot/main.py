@@ -228,8 +228,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			tags = event.tags = dict((i['key'], i['value']) for i in event.tags)
 		else:
 			tags = event.tags
-		source = irc.client.NickMask(event.source)
-		nick = source.nick.lower()
+		if 'login' in tags:
+			event.source = nick = tags['login'].lower()
+		else:
+			source = irc.client.NickMask(event.source)
+			nick = source.nick.lower()
 
 		if tags.get("display-name") == '':
 			del tags["display-name"]

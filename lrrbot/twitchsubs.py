@@ -79,7 +79,6 @@ class TwitchSubs:
 
 	def on_subscriber_from_api(self, user, eventtime, logo, monthcount):
 		self.loop.call_later(DELAY_FOR_SUBS_FROM_API, lambda: asyncio.ensure_future(self.on_subscriber(self.lrrbot.connection, "#%s" % config['channel'], user, eventtime, logo, monthcount)).add_done_callback(utils.check_exception))
-		
 
 	def on_notification(self, conn, event):
 		"""Handle notification messages from Twitch, sending the message up to the web"""
@@ -112,19 +111,19 @@ class TwitchSubs:
 		return "NO MORE"
 
 	def on_usernotice(self, conn, event):
-		tags = {tag['key']: tag['value'] for tag in event.tags}
-		if tags.get('msg-id') == 'resub':
+		self.lrrbot.check_message_tags(conn, event)
+		if event.tags.get('msg-id') == 'resub':
 				if len(event.arguments) > 0:
 					message = event.arguments[0]
 				else:
 					message = None
-				monthcount = tags.get('msg-param-months')
+				monthcount = event.tags.get('msg-param-months')
 				if monthcount is not None:
 					monthcount = int(monthcount)
-				systemmsg = tags.get('system-msg')
+				systemmsg = event.tags.get('system-msg')
 				if not systemmsg:
-					systemmsg = "%s has subscribed for %s months!" % (tags.get('display-name') or tags['login'], monthcount)
-				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], tags.get('display-name') or tags['login'], datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
+					systemmsg = "%s has subscribed for %s months!" % (event.tags.get('display-name') or event.tags['login'], monthcount)
+				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], event.tags.get('display-name') or event.tags['login'], datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
 				# Make fake chat messages for this resub in the chat log
 				# This makes the resub message just show up as a normal message, which is close enough
 				self.lrrbot.log_chat(conn, irc.client.Event(
