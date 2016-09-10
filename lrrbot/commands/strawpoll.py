@@ -19,7 +19,7 @@ def check_polls(lrrbot, conn):
 	now = time.time()
 	for end, title, poll_id, respond_to in lrrbot.polls:
 		if end < now:
-			url = "https://strawpoll.me/api/v2/polls/%s" % poll_id
+			url = "https://www.strawpoll.me/api/v2/polls/%s" % poll_id
 			data = json.loads(common.http.request(url))
 			options = sorted(zip(data["options"], data["votes"]), key=lambda e: (e[1], random.random()), reverse=True)
 			options = "; ".join(map(strawpoll_format, enumerate(options)))
@@ -42,14 +42,14 @@ def polls(lrrbot, conn, event, respond_to):
 	now = time.time()
 	messages = []
 	for end, title, poll_id, respond_to in lrrbot.polls:
-		messages += ["%s (https://strawpoll.me/%s%s): %s from now" % (title, poll_id, space.SPACE, common.time.nice_duration(end - now, 1))]
+		messages += ["%s (https://www.strawpoll.me/%s%s): %s from now" % (title, poll_id, space.SPACE, common.time.nice_duration(end - now, 1))]
 	conn.privmsg(respond_to, utils.shorten("Active polls: "+"; ".join(messages), 450))
 
 @bot.command("(multi)?poll (?:(\d+) )?(?:(?:https?://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/r?)?|(?:([^:]+) ?: ?)?(.*))")
 @lrrbot.decorators.mod_only
 def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, options):
 	"""
-	Command: !poll N https://strawpoll.me/ID
+	Command: !poll N https://www.strawpoll.me/ID
 	Command: !poll N TITLE: OPTION1; OPTION2
 	Command: !multipoll N TITLE: OPTION1; OPTION2
 	Section: misc
@@ -58,7 +58,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	same time.
 	"""
 	if poll_id is not None:
-		url = "https://strawpoll.me/api/v2/polls/%s" % poll_id
+		url = "https://www.strawpoll.me/api/v2/polls/%s" % poll_id
 		data = json.loads(common.http.request(url))
 		title = data["title"]
 	else:
@@ -71,7 +71,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 		else:
 			options = options.split()
 		data = json.dumps({"options": options, "title": title, "multi": multi is not None})
-		response = common.http.request("https://strawpoll.me/api/v2/polls", data, "POST", headers = {"Content-Type": "application/json"})
+		response = common.http.request("https://www.strawpoll.me/api/v2/polls", data, "POST", headers = {"Content-Type": "application/json"})
 		poll_id = json.loads(response)["id"]
 	if timeout is not None:
 		timeout = int(timeout)
@@ -79,7 +79,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 		timeout = DEFAULT_TIMEOUT
 	end = time.time() + int(timeout)
 	lrrbot.polls += [(end, title, poll_id, respond_to)]
-	conn.privmsg(respond_to, "New poll: %s (https://strawpoll.me/%s%s): %s from now" % (title, poll_id, space.SPACE, common.time.nice_duration(timeout, 1)))
+	conn.privmsg(respond_to, "New poll: %s (https://www.strawpoll.me/%s%s): %s from now" % (title, poll_id, space.SPACE, common.time.nice_duration(timeout, 1)))
 
 @bot.command("pollsclear")
 @lrrbot.decorators.mod_only
