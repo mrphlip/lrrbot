@@ -180,11 +180,10 @@ class TwitchSubs:
 			event = "twitch-resubscription"
 			data['monthcount'] = monthcount
 			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
-
-			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's combo count: %d)" % (data['name'], data['count']))
 		else:
 			event = "twitch-subscription"
 			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
-			conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (data['name'], data['count']))
+		storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
+		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (data['name'], storm_count))
 
 		await common.rpc.eventserver.event(event, data, eventtime)

@@ -191,7 +191,8 @@ class Server(common.rpc.Server):
 				.where(users.c.name == config['channel'])
 			).first()
 		if name:
-			self.lrrbot.connection.privmsg("#" + config['channel'], "lrrSPOT Thanks for supporting %s on Patreon, %s! (Today's power-up count: %d)" % (name[0], data['name'], data['count']))
+			storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
+			self.lrrbot.connection.privmsg("#" + config['channel'], "lrrSPOT Thanks for supporting %s on Patreon, %s! (Today's storm count: %d)" % (name[0], data['name'], storm_count))
 
 	@aiomas.expose
 	def disconnect_from_chat(self):

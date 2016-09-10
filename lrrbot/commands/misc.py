@@ -41,12 +41,14 @@ def stormcount(lrrbot, conn, event, respond_to):
 	twitch_follow = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-follow')
 	twitch_cheer = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-cheer')
 	patreon_pledge = common.storm.get(lrrbot.engine, lrrbot.metadata, 'patreon-pledge')
-	conn.privmsg(respond_to, "Today's storm count (number of new subscribers): %d, combo count (number of returning subscribers): %d, power-up count (number of new patrons): %d, %s count (number of new followers): %d, bits cheered: %d" % (
+	storm_count = common.storm.get_combined(lrrbot.engine, lrrbot.metadata)
+	conn.privmsg(respond_to, "Today's storm count: %d (new subscribers: %d, returning subscribers: %d, new patrons: %d), bits cheered: %d, new followers: %d" % (
+		storm_count,
 		twitch_subscription,
 		twitch_resubscription,
 		patreon_pledge,
-		utils.counter(), twitch_follow,
 		twitch_cheer,
+		twitch_follow,
 	))
 
 @bot.command("spam(?:count)?")

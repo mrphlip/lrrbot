@@ -337,21 +337,6 @@ def pick_weighted_random_elements(iterable, k):
 			heapq.heapreplace(queue, (r, elem))
 	return [elem for r, elem in queue]
 
-COUNTER_RANGES = [
-	(0x2190, 0x21FF), # Arrows
-	(0x2200, 0x22FF), # Mathematical Operators
-	(0x2300, 0x23FA), # Miscellaneous Technical
-	(0x2600, 0x26FF), # Miscellaneous Symbols
-	(0x2700, 0x27BF), # Dingbats
-	(0xFF71, 0xFF9D), # Halfwidth katakana
-]
-
-def counter(n=6):
-	s = ""
-	for _ in range(n):
-		s += chr(random.randint(*random.choice(COUNTER_RANGES)))
-	return s
-
 def merge_config_section(configs, prefix):
 	"""
 	Merge prefixed sections into the real sections, so that different values can

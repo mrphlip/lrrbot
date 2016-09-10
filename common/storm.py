@@ -24,3 +24,16 @@ def get(engine, metadata, counter):
 	if row is not None:
 		return row[0]
 	return 0
+
+COMBINED_COUNTERS = ['twitch-subscription', 'twitch-resubscription', 'patreon-pledge']
+def get_combined(engine, metadata):
+	combined_count = 0
+	storm = metadata.tables['storm']
+	with engine.begin() as conn:
+		for counter in COMBINED_COUNTERS:
+			row = conn.execute(sqlalchemy.select([storm.c[counter]])
+				.where(storm.c.date == datetime.datetime.now(config['timezone']).date())) \
+				.first()
+			if row is not None:
+				combined_count += row[0]
+	return combined_count
