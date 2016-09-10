@@ -3,6 +3,7 @@ import common.rpc
 import common.storm
 from common import twitch
 from common import utils
+from lrrbot import chatlog
 
 import irc.client
 
@@ -28,6 +29,7 @@ class TwitchCheer:
 		data = {
 			'name': event.tags['display_name'],
 			'message': event.arguments[0],
+			'messagehtml': await chatlog.format_message(event.arguments[0], event.tags.get('emotes'), event.tags.get('emoteset', []), cheer=True),
 			'bits': event.tags['bits'],
 			'count': common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, eventname, event.tags['bits']),
 			'level': self.get_level(event.tags['bits']),

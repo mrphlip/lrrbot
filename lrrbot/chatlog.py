@@ -151,7 +151,14 @@ def do_rebuild_all():
 		conn_select.close()
 		conn_update.close()
 
-def format_message(message, emotes, cheer=False):
+@asyncio.coroutine
+def format_message(message, emotes, emoteset, size="1", cheer=False):
+	if emotes is not None:
+		return format_message_explicit_emotes(message, emotes, size=size, cheer=cheer)
+	else:
+		return format_message_emoteset(message, (yield from get_filtered_emotes(emoteset)), cheer=cheer)
+
+def format_message_emoteset(message, emotes, size="1", cheer=False):
 	ret = ""
 	stack = [(message, "")]
 	while len(stack) != 0:
@@ -163,7 +170,7 @@ def format_message(message, emotes, cheer=False):
 				stack.append((parts[0], Markup(emote["html"].format(escape(parts[1])))))
 				break
 		else:
-			ret += Markup(format_message_cheer(prefix, cheer=cheer)) + suffix
+			ret += Markup(format_message_cheer(prefix, size=size, cheer=cheer)) + suffix
 	return ret
 
 def format_message_explicit_emotes(message, emotes, size="1", cheer=False):
@@ -258,11 +265,8 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 		# Use escape() rather than urlize() so as not to have live spam links
 		# either for users to accidentally click, or for Google to see
 		ret.append('<span class="message cleared">%s</span>' % escape(message))
-	elif emotes is not None:
-		messagehtml = format_message_explicit_emotes(message, emotes, cheer='cheer' in specialuser)
-		ret.append('<span class="message">%s</span>' % messagehtml)
 	else:
-		messagehtml = format_message(message, (yield from get_filtered_emotes(emoteset)), cheer='cheer' in specialuser)
+		messagehtml = yield from format_message(message, emotes, emoteset, cheer='cheer' in specialuser)
 		ret.append('<span class="message">%s</span>' % messagehtml)
 
 	if is_action:

@@ -13,6 +13,7 @@ from common.config import config
 from common import twitch
 from common import http
 from lrrbot import storage
+from lrrbot import chatlog
 import common.rpc
 import common.storm
 
@@ -123,7 +124,7 @@ class TwitchSubs:
 				systemmsg = event.tags.get('system-msg')
 				if not systemmsg:
 					systemmsg = "%s has subscribed for %s months!" % (event.tags.get('display-name') or event.tags['login'], monthcount)
-				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], event.tags.get('display-name') or event.tags['login'], datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message)).add_done_callback(utils.check_exception)
+				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], event.tags.get('display-name') or event.tags['login'], datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message, emotes=event.tags.get('emotes'))).add_done_callback(utils.check_exception)
 				# Make fake chat messages for this resub in the chat log
 				# This makes the resub message just show up as a normal message, which is close enough
 				self.lrrbot.log_chat(conn, irc.client.Event(
@@ -143,7 +144,7 @@ class TwitchSubs:
 					))
 				return "NO MORE"
 
-	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None):
+	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None, emotes=None):
 		log.info('New subscriber: %r at %r', user, eventtime)
 		if user.lower() in self.last_announced_subs:
 			return
@@ -173,6 +174,7 @@ class TwitchSubs:
 
 		if message is not None:
 			data['message'] = message
+			data['messagehtml'] = await chatlog.format_message(message, emotes, [], cheer=False)
 
 		if monthcount is not None and monthcount > 1:
 			event = "twitch-resubscription"

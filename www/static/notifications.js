@@ -145,7 +145,7 @@ function twitch_subscription(data) {
 			var avatar_link = link.cloneNode();
 			user.appendChild(avatar_link);
 
-			var avatar = document.createElement("img");
+			var avatar = createElementWithClass("img", "avatar");
 			avatar.src = data.avatar;
 			avatar_link.appendChild(avatar);
 		}
@@ -174,7 +174,7 @@ function twitch_resubscription(data) {
 			var avatar_link = link.cloneNode();
 			user.appendChild(avatar_link);
 
-			var avatar = document.createElement("img");
+			var avatar = createElementWithClass("img", "avatar");
 			avatar.src = data.avatar;
 			avatar_link.appendChild(avatar);
 		}
@@ -192,7 +192,11 @@ function twitch_resubscription(data) {
 			var user_message = createElementWithClass("p", "message");
 			message_container.appendChild(user_message);
 			var quote = document.createElement("q");
-			quote.appendChild(document.createTextNode(data.message));
+			if (data.messagehtml) {
+				quote.innerHTML = data.messagehtml;
+			} else {
+				quote.appendChild(document.createTextNode(data.message));
+			}
 			user_message.appendChild(quote);
 		}
 	});
@@ -207,7 +211,7 @@ function twitch_cheer(data) {
 		link.href = "https://www.twitch.tv/" + data.name;
 		link.rel = "noopener nofollow";
 
-		var avatar = document.createElement("img");
+		var avatar = createElementWithClass("img", "avatar");
 		avatar.src = "https://static-cdn.jtvnw.net/bits/light/static/" + data.level + "/3";
 		user.appendChild(avatar);
 
@@ -228,7 +232,11 @@ function twitch_cheer(data) {
 			var user_message = createElementWithClass("p", "message");
 			message_container.appendChild(user_message);
 			var quote = document.createElement("q");
-			quote.appendChild(document.createTextNode(data.message));
+			if (data.messagehtml) {
+				quote.innerHTML = data.messagehtml;
+			} else {
+				quote.appendChild(document.createTextNode(data.message));
+			}
 			user_message.appendChild(quote);
 		}
 	});
@@ -255,7 +263,7 @@ function patreon_pledge(data) {
 			var avatar_link = link.cloneNode();
 			user.appendChild(avatar_link);
 
-			var avatar = document.createElement("img");
+			var avatar = createElementWithClass("img", "avatar");
 			avatar.src = data.patreon.avatar;
 			avatar_link.appendChild(avatar);
 		}

@@ -278,7 +278,7 @@ ul.pagination li :visited {
 	font-weight: bold;
 	text-decoration: none;
 }
-#notificationlist .user img {
+#notificationlist .user .avatar {
 	height: 64px;
 	width: 64px;
 	float: left;
@@ -286,6 +286,9 @@ ul.pagination li :visited {
 
 #notificationlist .user .message {
 	font-style: italic;
+}
+#notificationlist .user .message img {
+	vertical-align: middle;
 }
 
 table.nicetable, table.nicetable tr, table.nicetable td, table.nicetable th {

@@ -38,7 +38,9 @@
 								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a> subscribed for
 								{{ event['data']['monthcount'] }} month{% if event['data']['monthcount'] != 1%}s{% endif %} in a row!
 							</p>
-							{% if event['data']['message'] %}
+							{% if event['data']['messagehtml'] %}
+								<p class="message"><q>{{ event['data']['messagehtml'] | safe }}</q></p>
+							{% elif event['data']['message'] %}
 								<p class="message"><q>{{ event['data']['message'] }}</q></p>
 							{% endif %}
 						</div>
@@ -51,7 +53,9 @@
 								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a> has cheered with
 									<span class="cheer {{ event['data']['level'] }}">{{ event['data']['bits'] }}</span> bits!
 							</p>
-							{% if event['data']['message'] %}
+							{% if event['data']['messagehtml'] %}
+								<p class="message"><q>{{ event['data']['messagehtml'] | safe }}</q></p>
+							{% elif event['data']['message'] %}
 								<p class="message"><q>{{ event['data']['message'] }}</q></p>
 							{% endif %}
 						</div>
