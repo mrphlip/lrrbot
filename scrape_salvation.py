@@ -65,6 +65,7 @@ ICONS = {
 	"mana-t": "T",  # tap
 	"mana-q": "Q",  # untap
 	"mana-snow": "S",
+	"mana-energy": "E",
 }
 
 # There doesn't seem to be a good way to detect these, so just hardcode :-/
