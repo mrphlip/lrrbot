@@ -120,7 +120,10 @@ def chat_data(starttime, endtime, target="#loadingreadyrun"):
 @utils.cache(CACHE_TIMEOUT, params=[0])
 def get_video_data(videoid):
 	try:
-		with contextlib.closing(urllib.request.urlopen("https://api.twitch.tv/kraken/videos/%s" % videoid)) as fp:
+		url = "https://api.twitch.tv/kraken/videos/%s" % (videoid, )
+		req = urllib.request.Request(url)
+		req.add_header('Client-ID', config['twitch_clientid'])
+		with contextlib.closing(urllib.request.urlopen(req)) as fp:
 			video = flask.json.load(fp)
 		start = dateutil.parser.parse(video["recorded_at"])
 		return {
