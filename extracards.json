@@ -1,0 +1,2449 @@
+{
+  "KLD": {
+    "cards": [
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}",
+        "name": "Acrobatic Maneuver",
+        "number": "1",
+        "text": "Exile target creature you control, then return that card to the battlefield under its owner's control.\n\nDraw a card.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}{W}",
+        "name": "Aerial Responder",
+        "number": "2",
+        "power": "2",
+        "text": "Flying, vigilance, lifelink",
+        "toughness": "3",
+        "type": "Creature \u2014 Dwarf Soldier"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}{W}",
+        "name": "Aetherstorm Roc",
+        "number": "3",
+        "power": "3",
+        "text": "Flying\n\nWhenever Aetherstorm Roc or another creature enters the battlefield under your control, you get {E} (an energy counter).\n\nWhenever Aetherstorm Roc attacks, you may pay {E}{E}. If you do, put a +1/+1 creature on it and tap up to one target creature defending player controls.",
+        "toughness": "3",
+        "type": "Creature \u2014 Bird"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}{W}",
+        "name": "Angel of Invention",
+        "number": "4",
+        "power": "2",
+        "text": "Flying, vigilance, lifelink\n\nFabricate 2 (When this creature enters, the battlefield, put two +1/+1 on it or create two 1/1 colorless Servo artifact creature tokens.)\n\nOther creatures you control get +/1+1.",
+        "toughness": "1",
+        "type": "Creature \u2014 Angel"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{W}",
+        "name": "Authority of the Consuls",
+        "number": "5",
+        "text": "Creatures your opponents control enter the battlefield tapped.\n\nWhenever a creature enters the battlefield under an opponent's control, you gain 1 life.",
+        "type": "Enchantment"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}",
+        "name": "Aviary Mechanic",
+        "number": "6",
+        "power": "2",
+        "text": "When Aviary Mechanic enters the battlefield, you may return another permanent you control to its owner's hand.",
+        "toughness": "2",
+        "type": "Creature \u2014 Dwarf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{W}",
+        "name": "Built to Last",
+        "number": "7",
+        "text": "Target creature gets +2/+2 until end of turn. If its an artifact creature, it gains indestructible until end of turn.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}",
+        "name": "Captured by the Consulate",
+        "number": "8",
+        "text": "Enchant creature you don't control\n\nEnchanted creature can't attack.\n\nWhenever an opponent casts a spell, if it has a single target, change the target to enchanted creature if able.",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}{W}",
+        "name": "Cataclysmic Gearhulk",
+        "number": "9",
+        "power": "4",
+        "text": "Vigilance\n\nWhen Cataclysmic Gearhulk enters the battlefield, each player chooses an artifact, a creature, an enchantment, and a planeswalker from among the nonland permanents he or she controls, then sacrifices the rest.",
+        "toughness": "5",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}",
+        "name": "Consulate Surveillance",
+        "number": "10",
+        "text": "When Consulate Surveillance enters the battlefield, you get {E}{E}{E}{E} (four energy counters).\n\nPay {E}{E}: Prevent all damage that would be dealt to you this turn by a source of your choice.",
+        "type": "Enchantment"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}",
+        "name": "Consul's Shieldguard",
+        "number": "11",
+        "power": "3",
+        "text": "When Consul's Shieldguard enters the battlefield, you get {E}{E}.\n\nWhenever Consul's Shiedguard attack, you may pay {E}. If you do, another target attacking creature gets indestructible until end of turn.",
+        "toughness": "4",
+        "type": "Creature \u2014 Dwarf Soldier"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}",
+        "name": "Eddytrail Hawk",
+        "number": "12",
+        "power": "1",
+        "text": "Flying\n\nWhen Eddytail Hawk enters the battlefield, you get {E}{E}.\n\nWhen Eddytail Hawk attacks you pay {E}. If you do, another target attacking creature gains flying until end of turn.",
+        "toughness": "2",
+        "type": "Creature \u2014 Bird"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}",
+        "name": "Fairgrounds Warden",
+        "number": "13",
+        "power": "1",
+        "text": "When Fairgrounds Warden enters the battlefield, exile target creature an opponent controls until Fairgrounds Warden leaves the battlefield.",
+        "toughness": "3",
+        "type": "Creature \u2014 Dwarf Soldier"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{W}",
+        "name": "Fragmentize",
+        "number": "14",
+        "text": "Destroy target artifact or enchantment with converted mana cost 4 or less.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}{W}",
+        "name": "Fumigate",
+        "number": "15",
+        "text": "Destroy all creatures. You gain 1 life for each creature destroyed this way.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}",
+        "name": "Gearshift Ace",
+        "number": "16",
+        "power": "2",
+        "text": "First Strike\n\nWhenever Gearshift Ace crews a Vehicle, that Vehicle gains first strike until the end of turn.",
+        "toughness": "1",
+        "type": "Creature \u2014 Dwarf Pilot"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}",
+        "name": "Glint-Sleeve Artisan",
+        "number": "17",
+        "power": "2",
+        "text": "Fabricate 1 (When this creature enters the battlefield, put a +1/+1 counter on it or create a 1/1 colorless Servo artifact creature token.)",
+        "toughness": "2",
+        "type": "Creature \u2014 Dwarf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}",
+        "name": "Herald of the Fair",
+        "number": "18",
+        "power": "3",
+        "text": "When Herald of the Fair enters the battlefield, target creature you control gets +1/+1 until end of turn.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}",
+        "name": "Impeccable Timing",
+        "number": "19",
+        "text": "Impeccable Timing deals 3 damage to target attacking or blocking creature.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}{W}",
+        "name": "Inspired Charge",
+        "number": "20",
+        "text": "Creatures you control get +2/+1 until end of turn.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}",
+        "name": "Master Trinketeer",
+        "number": "21",
+        "power": "3",
+        "text": "Servo and Thopter creatures you control get +1/+1.\n\n{3}{W}: Create a 1/1 colorless Servo artifact creature token.",
+        "toughness": "2",
+        "type": "Creature \u2014 Dwarf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}",
+        "name": "Ninth Bridge Patrol",
+        "number": "22",
+        "power": "1",
+        "text": "Whenever another creature you control leaves the battlefield, put a +1/+1 counter on Ninth Bridge Patrol.",
+        "toughness": "1",
+        "type": "Creature \u2014 Dwarf soldier"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}",
+        "name": "Pressure Point",
+        "number": "23",
+        "text": "Tap target creature.\n\nDraw a card.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}",
+        "name": "Propeller Pioneer",
+        "number": "24",
+        "power": "2",
+        "text": "Flying\n\nFabricate 1 (When this creature enters the battlefield, put a +1/+1 counter on it or create a 1/1 colorless Servo artifact creature token.)",
+        "toughness": "1",
+        "type": "Creature \u2014 Human Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}",
+        "name": "Refurbish",
+        "number": "25",
+        "text": "Return target artifact card from your graveyard to the battlefield.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}",
+        "name": "Revoke Privilege",
+        "number": "?",
+        "text": "Enchant creature.\n\nEnchanted creature can't attack, block, or crew Vehicles.",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}",
+        "name": "Servo Exhibition",
+        "number": "27",
+        "text": "Create two 1/1 colorless Servo artifact creature tokens.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{W}",
+        "name": "Skyswirl Harrier",
+        "number": "28",
+        "power": "3",
+        "text": "Flying",
+        "toughness": "4",
+        "type": "Creature \u2014 Bird"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}",
+        "name": "Skywhaler's Shot",
+        "number": "29",
+        "text": "Destroy target creature with power three or greater. Scry 1.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{W}",
+        "name": "Tasseled Dromedary",
+        "number": "30",
+        "power": "0",
+        "toughness": "4",
+        "type": "Creature \u2014 Camel"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}",
+        "name": "Thriving Ibex",
+        "number": "31",
+        "power": "2",
+        "text": "When Thriving Ibex Enters the battlefield, you get {E}{E} (two energy counters).\n\nWhenever Thriving Ibex attacks, you may pay {E}{E}. If you do, put a +1/+1 counter on it.",
+        "toughness": "4",
+        "type": "Creature \u2014 Goat"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{W}",
+        "name": "Toolcraft Exemplar",
+        "number": "32",
+        "power": "1",
+        "text": "At the beginning of combat on your turn, if you control an artifact, Toolcraft Exemplar gets +2/+1 until end of turn. If you control three or more artifacts, it also gains first strike until end of turn.",
+        "toughness": "1",
+        "type": "Creature \u2014 Dwarf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}",
+        "name": "Trusty Companion",
+        "number": "33",
+        "power": "3",
+        "text": "Vigilance\n\nTrusty Companion can't attack alone.",
+        "toughness": "2",
+        "type": "Creature \u2014 Hyena"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}{W}",
+        "name": "Visionary Augmenter",
+        "number": "34",
+        "power": "2",
+        "text": "Fabricate 2 (When this creature enters the battlefield, put two +1/+1 counters on it or create two 1/1 colorless Servo artifact creature tokens.)",
+        "toughness": "1",
+        "type": "Creature \u2014 Dwarf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{W}{W}",
+        "name": "Wispweaver Angel",
+        "number": "35",
+        "power": "4",
+        "text": "Flying\n\nWhen Wispweaver Angel enters the battlefield, you may exile another target creature you control, then return that card to the battlefield under its owner's control.",
+        "toughness": "4",
+        "type": "Creature \u2014 Angel"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}",
+        "name": "Aether Meltdown",
+        "number": "36",
+        "text": "Flash\n\nEnchant creature or vehicle.\n\nWhen Aether Meltdown enters the battlefield, you get {E}{E}.\n\nEnchanted permanent gets -4/-0.",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}",
+        "name": "Aether Theorist",
+        "number": "37",
+        "power": "1",
+        "text": "When Aether Theorist enters the battlefield, you get {E}{E}{E}.\n\nTap, Pay {E}: Scry 1.",
+        "toughness": "3",
+        "type": "Creature \u2014 Vedelkan Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{U}",
+        "name": "Aether Tradewinds",
+        "number": "38",
+        "text": "Return target permanent you control and target permanent you don't control to their owners' hands.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{5}{U}{U}",
+        "name": "Aethersquall Ancient",
+        "number": "39",
+        "power": "6",
+        "text": "Flying\n\nAt the beginning of your upkeep, you get {E}{E}{E} (three energy counters).\n\nPay {E}{E}{E}{E}{E}{E}{E}{E}: Return all other creatures to their owners' hands. Activate this ability only any time you could cast a sorcery.",
+        "toughness": "6",
+        "type": "Creature \u2014 Leviathan"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{U}",
+        "name": "Ceremonious Rejection",
+        "number": "40",
+        "text": "Counter target colorless spell.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}{U}",
+        "name": "Confiscation Coup",
+        "number": "41",
+        "text": "Choose target creature or artifact. You get {E}{E}{E}{E}, then you may pay an amount of {E} equal to that permanent's converted mana cost. If you do, gain control of it.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}",
+        "name": "Curio Vendor",
+        "number": "42",
+        "power": "2",
+        "toughness": "1",
+        "type": "Creature \u2014 Vedalken"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}{U}",
+        "name": "Disappearing Act",
+        "number": "43",
+        "text": "As an additional cost to cast Disappearing Act, return a permanent you control to its owner's hand.\n\nCounter target spell.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}",
+        "name": "Dramatic Reversal",
+        "number": "44",
+        "text": "Untap all nonland permanents you control.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}",
+        "name": "Era of Innovation",
+        "number": "45",
+        "text": "Whenever an artifact or Artificer enters the battlefield under your control, you may pay {1}. If you do, you get {E}{E} (two energy counters).\n\nPay {E}{E}{E}{E}{E}{E}, sacrifice Era of Innovation: Draw three cards.",
+        "type": "Enchantment"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}{U}",
+        "name": "Experimental Aviator",
+        "number": "46",
+        "power": "0",
+        "text": "Flying\n\nWhen Experimental Aviator enters the battlefield, create two 1/1 colorless Thopter artifact creature tokens with flying.",
+        "toughness": "3",
+        "type": "Creature \u2014 Human Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{U}{U}",
+        "name": "Failed Inspection",
+        "number": "47",
+        "text": "Costner target spell. Draw a card, then discard a card.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{5}{U}{U}",
+        "name": "Gearseeker Serpent",
+        "number": "48",
+        "power": "5",
+        "text": "Gearseeker Serpent costs one less man to cast for each artifact you control\n\n5U: Gearseeker Serpent can't be blocked this turn.",
+        "toughness": "6",
+        "type": "Creature \u2014 Serpent"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}",
+        "name": "Glimmer of Genius",
+        "number": "49",
+        "text": "Scry 2, then draw two card. you get {E}{E}.",
+        "type": "instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}",
+        "name": "Glint-Nest Crane",
+        "number": "50",
+        "power": "1",
+        "text": "Flying\n\nWhen Glint-Nest Crane enters the battlefield, look at the top four cards of your library. You may reveal an artifact card from among them and put it into your hand. Put the rest on the bottom of your library in any order.",
+        "toughness": "3",
+        "type": "Creature \u2014 Bird"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{U}",
+        "name": "Hightide Hermit",
+        "number": "51",
+        "power": "4",
+        "text": "Defender\n\nWhen Hightide Hermit enters the battlefield, you get {E}{E}{E}{E}.\n\nPay {E}{E}: Hightide Hermit can attack as though it didn't have defender.",
+        "toughness": "4",
+        "type": "Creature \u2014 Crab"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{U}{U}",
+        "name": "Insidious Will",
+        "number": "52",
+        "text": "Choose one\u2014\n\n\u2022 Counter target spell.\n\n\u2022 You may choose new targets for target spell.\n\n\u2022 Copy target instant or sorcery spell. You may choose new targets for the copy.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{U}",
+        "name": "Janjeet Sentry",
+        "number": "53",
+        "power": "2",
+        "text": "When Janjeet Sentry enters the battlefield, you get {E}{E}.\n\nTap, Pay {E}: Tap or untap target artifact or creature.",
+        "toughness": "3",
+        "type": "Creature \u2014 Vedalken Soldier"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{U}{U}",
+        "name": "Long-Finned Skywhale",
+        "number": "54",
+        "power": "4",
+        "text": "Flying\n\nLong-Finned Skywhale can only block creatures with flying.",
+        "toughness": "3",
+        "type": "Creature \u2014 Whale"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}",
+        "name": "Malfunction",
+        "number": "55",
+        "text": "Enchant artifact or creature.\n\nWhen Malfunction enters the battlefield, tap enchanted permanent.\n\nEnchanted permanent doesn't untap during its controller's untap step.",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}{U}",
+        "name": "Metallurgic Summonings",
+        "number": "56",
+        "text": "Whenever you cast an instant or sorcery spell, create an X/X colorless Construct artifact creature token, where X is that spell's converted mana cost.\n\n{3}{U}{U}, Exile Metallurgic Summonings: Return all instant and sorcery cards from your graveyard to your hand. Activate this ability only if you control six or more artifacts.",
+        "type": "Enchantment"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{U}",
+        "name": "Minister of Inquiries",
+        "number": "57",
+        "power": "1",
+        "text": "When Minister of Inquiries enters the the battlefield, you get {E}{E}.\n\nTa[. Pay {E}: Target player puts three cards of his or her library into his or her graveyard.",
+        "toughness": "2",
+        "type": "Creature \u2014 Vedalken Advisor"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}",
+        "name": "Nimble Innovator",
+        "number": "58",
+        "power": "2",
+        "text": "When Nimble Innovator enters the battlefield, draw a card.",
+        "toughness": "2",
+        "type": "Creature \u2014 Veldaken Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}",
+        "name": "Padeem, Consul of Innovation",
+        "number": "59",
+        "power": "1",
+        "text": "Artifacts you control have hexproof.\n\nAt the beginning of your upkeep, if you control the artifact with the highest converted mana cost or tied for the highest converted mana cost, draw a card.",
+        "toughness": "4",
+        "type": "Lengendary Creature \u2014 Veldalken Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}",
+        "name": "Paradoxical Outcome",
+        "number": "60",
+        "text": "Return any number of target nonland, nontoken permanents you control to their owners' hands. Draw a card for each card returned to your hand this way.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}",
+        "name": "Revolutionary Rebuff",
+        "number": "61",
+        "text": "Counter target nonartifact spell unless its controller pays 2.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{U}{U}",
+        "name": "Saheeli's Artistry",
+        "number": "62",
+        "text": "Choose one or both \u2014\n\n\u2022 Create a token that's a copy of target artifact.\n\n\u2022 Create a token that's a copy of target creature, except that it's an artifact in addition to its other types.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}",
+        "name": "Select for Inspection",
+        "number": "63",
+        "text": "Return target tapped creature to its owner's hand. Scry 1.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{U}",
+        "name": "Shrewd Negotiation",
+        "number": "64",
+        "text": "Exchange control of target artifact you control and target artifact or creature you don't control.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}{U}",
+        "name": "Tezzeret's Ambition",
+        "number": "65",
+        "text": "Draw three cards. If you control no artifacts, discard a card.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{U}",
+        "name": "Thriving Turtle",
+        "number": "66",
+        "power": "0",
+        "text": "When Thriving Turtle enters the battlefield, you get {E}{E} (two energy counters).\n\nWhenever Thriving Turtle attacks, you may pay {E}{E}. If you do, put a +1/+1 counter on it.",
+        "toughness": "3",
+        "type": "Creature \u2014 Turtle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{U}{U}",
+        "name": "Torrential Gearhulk",
+        "number": "67",
+        "power": "5",
+        "text": "Flash\n\nWhen Torrential Gearhulk enters the battlefield, you may cast target instant card from your graveyard without paying its mana cost. If that card would be put into your graveyard this turn, exile it instead.",
+        "toughness": "6",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{U}",
+        "name": "Vedalken Blademaster",
+        "number": "68",
+        "power": "2",
+        "text": "Prowess",
+        "toughness": "3",
+        "type": "Creature \u2014 Vedaklen Solider"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{U}",
+        "name": "Weldfast Wingsmith",
+        "number": "69",
+        "power": "3",
+        "text": "Whenever an artifact enters the battlefield under your control, Weldfast Wingsmith gains flying until end of turn.",
+        "toughness": "3",
+        "type": "Creature \u2014 Human Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{U}",
+        "name": "Wind Drake",
+        "number": "70",
+        "power": "2",
+        "text": "Flying",
+        "toughness": "2",
+        "type": "Creature \u2014 Drake"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{B}",
+        "name": "Aetherborn Marauder",
+        "number": "71",
+        "power": "2",
+        "text": "Flying, lifelink\n\nWhen Aetherborn Marauder enters the battlefield, move any number of +1/+1 counters from other permanents you control onto Aetherborn Marauder.",
+        "toughness": "2",
+        "type": "Creature \u2014 Aetherborn Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{B}",
+        "name": "Ambitious Aetherborn",
+        "number": "72",
+        "power": "4",
+        "text": "Fabricate 1 (When this creature enters the battlefield, put a +1/+1 counter on it or create a 1/1 colorless Servo artifact creature token.)",
+        "toughness": "3",
+        "type": "Creature \u2014 Aetherborn Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{B}{B}{B}",
+        "name": "Demon of Dark Schemes",
+        "number": "73",
+        "power": "5",
+        "text": "Flying\n\nWhen Demon of Dark Schemes enters the battlefield, all other creatures get -2/-2 until end of turn.\n\nWhenever another creature dies, you get {E} (an energy counter).\n\n{2}{B}, Pay {E}{E}{E}{E}: Put target creature card from a graveyard onto the battlefield under your control tapped.",
+        "toughness": "5",
+        "type": "Creature \u2014 Demon"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}",
+        "name": "Dhund Operative",
+        "number": "74",
+        "power": "2",
+        "text": "As long as you control an artifact, Dhund Operative gets +1/+0 and has deathtouch.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}{B}",
+        "name": "Diabolic Tutor",
+        "number": "75",
+        "text": "Search your library for a card and put that card into your hand. Then shuffle your library.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}",
+        "name": "Die Young",
+        "number": "76",
+        "text": "Choose target creature. You get {E}{E} (two energy counters), then you may pay any amount of {E}. The creature gets -1/-1 until end of turn for each {E} paid this way.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{5}{B}",
+        "name": "Dukhara Scavenger",
+        "number": "77",
+        "power": "4",
+        "text": "When Dukhara Scavenger enters the battlefield, you may put target artifact or creature card from your graveyard on top of your library.",
+        "toughness": "6",
+        "type": "Creature \u2014 Crocodile"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{B}",
+        "name": "Eliminate the Competition",
+        "number": "78",
+        "text": "As an additional cost to cast Eliminate the Competition, sacrifice X creatures.\n\nDestroy X target creatures.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}",
+        "name": "Embraal Bruiser",
+        "number": "79",
+        "power": "3",
+        "text": "Embraal Bruiser enters the battlefield tapped.\n\nEmbraal Bruiser has menace as long as you control an artifact.",
+        "toughness": "1",
+        "type": "Creature \u2014 Human Warrior"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}{B}",
+        "name": "Essence Extraction",
+        "number": "80",
+        "text": "Essence Extraction deals 3 damage to target creature and you gain 3 life.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}",
+        "name": "Fortuitous Find",
+        "number": "81",
+        "text": "Choose one or both \u2014\n\n\u2022 Return target artifact card from your graveyard to your hand.\n\n\u2022 Return target creature card from your graveyard to your hand.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}",
+        "name": "Foundry Screecher",
+        "number": "82",
+        "power": "2",
+        "text": "Flying\n\nFoundry Screecher gets +1/+0 as long as you control an artifact.",
+        "toughness": "1",
+        "type": "Creature \u2014 Bat"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}",
+        "name": "Fretwork Colony",
+        "number": "83",
+        "power": "1",
+        "text": "Fretwork Colony can't block.\n\nAt the beginning of your upkeep, put a +1/+1 counter on Fretwork Colony and you lose 1 life.",
+        "toughness": "1",
+        "type": "Creature \u2014 Insect"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}{B}",
+        "name": "Gonti, Lord of Luxury",
+        "number": "84",
+        "power": "2",
+        "text": "Deathtouch\n\nWhen Gonti, Lord of Luxury enters the battlefield, look at the top four cards of target opponent's library, exile one of them face down, then put the rest on the bottom of that library in a random order. For as long as that card remains exiled, you may look at it, you may cast it, and you may spend mana as though it were mana of any type to cast it.",
+        "toughness": "3",
+        "type": "Legendary Creature \u2014 Aetherborn Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{B}",
+        "name": "Harsh Scrutiny",
+        "number": "85",
+        "text": "Target opponent reveals his or her hand. You choose a creature card from it. That player discards that card. Scry 1.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}",
+        "name": "Lawless Broker",
+        "number": "86",
+        "power": "3",
+        "text": "When Lawless Broker dies, put a +1/+1 counter on target creature you control.",
+        "toughness": "2",
+        "type": "Creature \u2014 Aetherborn Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}",
+        "name": "Live Fast",
+        "number": "87",
+        "text": "You draw two cards, lose 2 life, and get {E}{E} (two energy counters).",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}{B}",
+        "name": "Lost Legacy",
+        "number": "88",
+        "text": "Name a nonartifact, nonland card. Search target player's graveyard, hand and library for any number of cards with that name and exile them. That player shuffles his or her library, then draws a card for each card exiled from hand this way.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}",
+        "name": "Make Obsolete",
+        "number": "89",
+        "text": "Creatures your opponents control get -1/-1 until end of turn.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{B}{B}",
+        "name": "Marionette Master",
+        "number": "90",
+        "power": "1",
+        "text": "Fabricate 3 (When this creature enters the battlefield, put three +1/+1 on it or create three 1/1 colorless Servo artifact creature tokens.)\n\nWhenever an artifact you control is put into a graveyard from the battlefield, target opponent loses life equal to Marionette Master's power.",
+        "toughness": "3",
+        "type": "Creature \u2014 Human Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{B}",
+        "name": "Maulfist Squad",
+        "number": "91",
+        "power": "3",
+        "text": "Menace\n\nFabricate 1 (When this creature enters the battlefield, put a +1/+1 counter on it or create a 1/1 colorless Servo artifact creature token.)",
+        "toughness": "1",
+        "type": "Creature \u2014 Human Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}{B}",
+        "name": "Midnight Oil",
+        "number": "92",
+        "text": "Midnight Oil enters the battlefield with seven hour counters on it.\n\nAt the beginning of your draw step, draw an additional card and remove two hour counters from Midnight Oil.\n\nYour maximum hand size is equal to the number of hour counters on Midnight Oil.\n\nWhenever you discard a card, you lose 1 life.",
+        "type": "Enchantment"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}",
+        "name": "Mind Rot",
+        "number": "93",
+        "text": "Target player discards two cards.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}{B}",
+        "name": "Morbid Curiosity",
+        "number": "94",
+        "text": "As an additional cast to cost Morbid Curiosity, sacrifice an artifact or creature.\n\nDraw cards equal to the converted mana cost of the sacrificed permanent.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{B}",
+        "name": "Night Market Lookout",
+        "number": "95",
+        "power": "1",
+        "text": "Whenever Night Market Lookout becomes tapped, each opponent loses 1 life and you gain 1 life.",
+        "toughness": "1",
+        "type": "Creature \u2014 Human Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{B}{B}",
+        "name": "Noxious Gearhulk",
+        "number": "96",
+        "power": "5",
+        "text": "Menace\n\nWhen Noxious Gearhulk enters the battlefield, you may destroy another target creature. If a creature is destroyed this way, you gain life equal to its toughness.",
+        "toughness": "4",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{B}",
+        "name": "Ovalchase Daredevil",
+        "number": "97",
+        "power": "4",
+        "text": "Whenever an artifact enters the battlefield under your control, you may return Ovalchase Daredevil from your graveyard to your hand.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human Pilot"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{B}",
+        "name": "Prakhata Club Secruity",
+        "number": "98",
+        "power": "3",
+        "toughness": "4",
+        "type": "Creature \u2014 Aetherborn Warrior"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}",
+        "name": "Rush of Vitality",
+        "number": "99",
+        "text": "Target creature gets +1/+0 and gains lifelink and indestructible until end of turn.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}",
+        "name": "Subtle Strike",
+        "number": "100",
+        "text": "Choose one or both \u2014\n\n\u2022 Target creature gets -1/-1 until end of turn.\n\n\u2022 Put a +1/+1 counter on target creature.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}",
+        "name": "Syndicate Trafficker",
+        "number": "101",
+        "power": "3",
+        "text": "{1}, Sacrifice an artifact: Put a +1/+1 counter on Syndicate Trafficker. It gains indestructible until end of turn.",
+        "toughness": "1",
+        "type": "Crature \u2014 Aetherborn Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}",
+        "name": "Thriving Rats",
+        "number": "102",
+        "power": "1",
+        "text": "When Thriving Rats enters the battlefield, you get {E}{E} (two energy counters).\n\nWhenever Thriving Rats attacks, you may pay {E}{E}. If you do, put a +1/+1 counter on it.",
+        "toughness": "2",
+        "type": "Creature \u2014 Rat"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{B}{B}",
+        "name": "Tidy Conclusion",
+        "number": "103",
+        "text": "Destroy target creature. You gain 1 life for each artifact you control.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}",
+        "name": "Underhanded Designs",
+        "number": "104",
+        "text": "Whenever an artifact enters the battlefield under your control, you may pay {1}. If you do, each opponent loses 1 life and you gain 1 life.\n\n{1}{B}, Sacrifice Underhanded Designs: Destroy target creature. Activate this ability only if you control two or more artifacts.",
+        "type": "Enchantment"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}",
+        "name": "Weaponcraft Enthusiast",
+        "number": "105",
+        "power": "0",
+        "text": "Fabricate 2 (When this creature enters the battlefield, put two +1/+1 counters on it or create two colorless Servo artifact creature tokens.)",
+        "toughness": "1",
+        "type": "Creature \u2014 Aetherborn Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}",
+        "name": "Aethertorch Renegade",
+        "number": "106",
+        "power": "1",
+        "text": "When Aethertorch Renegade enters the battlefield, you get {E}{E}{E}{E} (four energy counters)\n\n{T}, Pay {E}{E} Aethertorch Renegade deals 1 damage to target creature.\n\n{T}, Pay {E}{E}{E}{E}{E}{E}{E}{E}: Aethertorch Renegade deals 6 damage to target player.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}{R}",
+        "name": "Brazen Scourge",
+        "number": "107",
+        "power": "3",
+        "text": "Haste",
+        "toughness": "3",
+        "type": "Creature \u2014 Gremlin"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{R}",
+        "name": "Built to Smash",
+        "number": "108",
+        "text": "Target attacking creature gets +3/+3 until end of turn/ If it's an artifact creature, it gains trample until end of turn.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}",
+        "name": "Cathartic Reunion",
+        "number": "109",
+        "text": "As an additional cost to cast Cathartic Reunion, discard two cards.\n\nDraw three cards.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "loyalty": "4",
+        "manaCost": "{2}{R}{R}",
+        "name": "Chandra, Torch of Defiance",
+        "number": "110",
+        "text": "+1: Exile the top card of your library. You may cast that card. If you don't, Chandra, Torch of Defiance deals 2 damage to each opponent.\n\n+1: Add {R}{R} to your mana pool.\n\n-3: Chandra, Torch of Defiance deals 4 damage to target creature.\n\n-7: You get an emblem with \"Whenever you cast a spell, this emblem deals 5 damage to target creature or player.\"",
+        "type": "Planeswalker \u2014 Chandra"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}",
+        "name": "Chandra's Pyrohelix",
+        "number": "111",
+        "text": "Chandra's Pyrohelix deals 2 damage divided as you choose among one or two target creatures and/or players.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{R}{R}",
+        "name": "Combustible Gearhulk",
+        "number": "112",
+        "power": "6",
+        "text": "First strike\n\nWhen Combustible Gearhulk enters the battlefield, target opponent may have you draw three cards. If the player doesn't, put the top three cards of your library into the graveyard, then Combustible Gearhulk deals damage to that player equal to the total converted mana cost of those cards.",
+        "toughness": "6",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{R}",
+        "name": "Demolish",
+        "number": "113",
+        "text": "Destroy target artifact or land.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}{R}",
+        "name": "Fateful Showdown",
+        "number": "114",
+        "text": "Fateful Showdown deals damage to target creature or player equal to the number of cards in your hand. Discard all the cards in your hand, then draw that many cards.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{R}",
+        "name": "Furious Reprisal",
+        "number": "115",
+        "text": "Furious Reprisal deals 2 damage to each of two target creatures and/or players.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}",
+        "name": "Giant Spectacle",
+        "number": "116",
+        "text": "Enchant Creature\n\nEnchanted creature gets +2/+1 and has menace",
+        "type": "Enchantment \u2014 Aura"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}",
+        "name": "Harnessed Lightning",
+        "number": "117",
+        "text": "Choose target creature. You get {E}{E}{E} (three energy counters), then you may pay any amount of {E}. Harnessed Lightning deals that much damage to that creature.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}{R}",
+        "name": "Hijack",
+        "number": "118",
+        "text": "Gain control of target artifact or creature until end of turn. Untap it gains haste until end of turn.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}{R}",
+        "name": "Incendiary Sabotage",
+        "number": "119",
+        "text": "As an additional cost to cast Incendiary Sabotage, sacrifice an artifact.\n\nIncendiary Sabotage deals 3 damage to each creature.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{R}",
+        "name": "Inventor's Apprentice",
+        "number": "120",
+        "power": "1",
+        "text": "Inventor's Apprentice gets +1/+1 as long as you control an artifact.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}",
+        "name": "Lathnu Hellion",
+        "number": "121",
+        "power": "4",
+        "text": "Haste\n\nWhen Lathnu Hellion enters the battlefield, you get {E}{E} (two energy counters).\n\nAt the beginning of your end step, sacrifice Lathnu Hellion unless you pay {E}{E}.",
+        "toughness": "4",
+        "type": "Creature \u2014 Hellion"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{R}",
+        "name": "Madcap Experiment",
+        "number": "122",
+        "text": "Reveal cards from the top of your library until you reveal an artifact card. Put that card onto the battlefield and the rest on the bottom of your library in a random order. Madcap Experiment deals damage to you equal to the number of cards revealed this way.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{R}",
+        "name": "Maulfist Doorbuster",
+        "number": "123",
+        "power": "4",
+        "text": "When Maulfist Doorbuster enters the battlefield, you get {E}{E} (two energy counters).\n\nWhenever Maulfist Doorbuster attacks, you may pay {E}. If you do, target creature can't block this turn.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human Warrior"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}",
+        "name": "Pia Nalaar",
+        "number": "124",
+        "power": "2",
+        "text": "When Pia Nalaar enters the battlefield, create a 1/1 colorless Thopter artifact creature token with flying.\n\n{1}{R}: Target artifact creature gets +1/+0 until end of turn.\n\n{1}, Sacrifice an artifact: Target creature can't block this turn.",
+        "toughness": "2",
+        "type": "Legendary Creature \u2014 Human Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}",
+        "name": "Quicksmith Genius",
+        "number": "125",
+        "power": "3",
+        "text": "Whenever an artifact enters the battlefield under your control, you may discard a card. If you do, draw a card.",
+        "toughness": "2",
+        "type": "Creature \u2014 Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}",
+        "name": "Reckless Fireweaver",
+        "number": "126",
+        "power": "1",
+        "text": "Whenever an artifact enters the battlefield under your control, Reckless Fireweaver does 1 damage to each opponent.",
+        "toughness": "3",
+        "type": "Creature \u2014 Human Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{R}",
+        "name": "Renegade Tactics",
+        "number": "127",
+        "text": "Target Creature can't block this turn.\n\nDraw a card.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{R}",
+        "name": "Ruinous Gremlin",
+        "number": "128",
+        "power": "1",
+        "text": "{2}{R}, Sacrifice Ruinous Gremlin: Destroy target artifact.",
+        "toughness": "1",
+        "type": "Creature \u2014 Gremlin"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}",
+        "name": "Salivating Gremlins",
+        "number": "129",
+        "power": "2",
+        "text": "Whenever an artifact enters the battlefield under your control, Salivating Gremlins gets+2/+0 and gains trample until end of turn.",
+        "toughness": "3",
+        "type": "Creature \u2014 Gremlin"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}{R}",
+        "name": "Skyship Stalker",
+        "number": "130",
+        "power": "3",
+        "text": "Flying\n\n{R}: Skyship Stalker gains +1/+0 until end of turn.\n\n{R}: Skyship Stalker gains first strike until end of turn.\n\n{R}: Skyship Stalker gains haste until end of turn.",
+        "toughness": "3",
+        "type": "Creature \u2014 Dragon"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{R}",
+        "name": "Spark of Creativity",
+        "number": "131",
+        "text": "Choose target creature. Exile the top card of your library. You may have Spark of Creativity deal damage to that creature equal to exiled card's converted mana cost. If you don't, you may play that card until end of turn.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}",
+        "name": "Speedway Fanatic",
+        "number": "132",
+        "power": "2",
+        "text": "Haste\n\nWhenever Speedway Fanatic crews a Vehicle, that Vehicle gains haste until end of turn.",
+        "toughness": "1",
+        "type": "Creature \u2014 Human Pilot"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}",
+        "name": "Spireside Infiltrator",
+        "number": "133",
+        "power": "3",
+        "text": "Whenever Spireside Infiltrator becomes tapped, it deals one damage to each opponent.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{R}",
+        "name": "Spontaneous Artist",
+        "number": "134",
+        "power": "3",
+        "text": "When Spontaneous Artist enters the battlefield, you get {E} (an energy counter).\n\nPay {E}: Target creature gains haste until end of turn.",
+        "toughness": "3",
+        "type": "Creature \u2014 Human Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{R}",
+        "name": "Start Your Engines",
+        "number": "135",
+        "text": "Vehicles you control becomes artifact creatures until end of turn. Creatures you control get +2/+0 until end of turn.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{R}",
+        "name": "Territorial Gorger",
+        "number": "136",
+        "power": "2",
+        "text": "Trample\n\nWhenever you get one or more {E} (energy counters), Territorial Gorger gets +2/+2 until end of turn.",
+        "toughness": "2",
+        "type": "Creature \u2014 Gremlin"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{R}",
+        "name": "Terror of the Fairgrounds",
+        "number": "137",
+        "power": "5",
+        "toughness": "2",
+        "type": "Creature \u2014 Gremlin"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}",
+        "name": "Thriving Grubs",
+        "number": "138",
+        "power": "2",
+        "text": "When Thriving Grubs enters the battlefield, you get {E}{E} (two energy counters).\n\nWhenever Thriving Grubs attacks, you may pay {E}{E}. If you do, put a +1/+1 counter on it.",
+        "toughness": "1",
+        "type": "Creature \u2014 Gremlin"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{R}",
+        "name": "Wayward Giant",
+        "number": "139",
+        "power": "4",
+        "text": "Menace",
+        "toughness": "5",
+        "type": "Creature \u2014 Giant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}",
+        "name": "Welding Sparks",
+        "number": "140",
+        "text": "Welding Sparks deals X damage to target creature, where X is 3 plus the number of artifacts you control.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}",
+        "name": "Appetite for the Unnatural",
+        "number": "141",
+        "text": "Destroy target artifact or enchantment. You gain 2 life.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}{G}",
+        "name": "Arborback Stomper",
+        "number": "142",
+        "power": "5",
+        "text": "Trample\n\nWhen Arborback Stomper enters the battlefield, you gain 5 life.",
+        "toughness": "4",
+        "type": "Creature \u2014 Beast"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}",
+        "name": "Architect of the Untamed",
+        "number": "143",
+        "power": "2",
+        "text": "Whenever a land enters the battlefiend under your control, you get {E} (an energy counter).\n\nPay {E}{E}{E}{E}{E}{E}{E}{E}: Create a 6/6 colorless Beast artifact creature token.",
+        "toughness": "3",
+        "type": "Creature \u2014 Elf Artificer Druid"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}",
+        "name": "Armorcraft Judge",
+        "number": "144",
+        "power": "3",
+        "text": "When Armorcraft Judge enters the battlefield, draw a card for each creature you control with a +1/+1 counter on it.",
+        "toughness": "3",
+        "type": "Creature \u2014 Elf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{G}",
+        "name": "Attune with Aether",
+        "number": "145",
+        "text": "Search your library for a basic land card, reveal it, put it into your hand, then shuffle your library. You get {E}{E} (two energy counters).",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{G}",
+        "name": "Blossoming Defense",
+        "number": "146",
+        "text": "Target creature you control gets +2/+2 and hexproof until end of turn.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}{G}",
+        "name": "Bristling Hydra",
+        "number": "147",
+        "power": "4",
+        "text": "When Bristling Hydra enters the battlefield, you gain {E}{E}{E} (three energy counters).\n\nPay {E}{E}{E}: Put a +1/+1 counter on Bristling Hydra. It gains hexproof until end of turn.",
+        "toughness": "3",
+        "type": "Creature \u2014 Hydra"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}",
+        "name": "Commencement of Festivities",
+        "number": "148",
+        "text": "Prevent all combat damage that would be dealt to players this turn.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{G}{G}",
+        "name": "Cowl Prowler",
+        "number": "149",
+        "power": "6",
+        "toughness": "6",
+        "type": "Creature \u2014 Wurm"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}{G}",
+        "name": "Creeping Mold",
+        "number": "150",
+        "text": "Destroy target artifact, enchantment, or land.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}{G}",
+        "name": "Cultivator of Blades",
+        "number": "151",
+        "power": "1",
+        "text": "Fabricate 2 (When this creature enters the battlefield, put two +1/+1 counters on it or create two 1/1 colorless Servo artifact creature tokens.)\n\nWhenever Cultivator of Blades attacks, you may have other attacking creatures get +X/+X until end of turn, where X is Cultivator of Blades's power.",
+        "toughness": "1",
+        "type": "Creature \u2014 Elf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}",
+        "name": "Dubious Challenge",
+        "number": "152",
+        "text": "Look at the top ten cards of your library. Exile up to two creatures cards from among them, then shuffle your library. Target opponent may choose one of the exiled cards and put into the battlefield under his or her control. Put the rest onto the battlefield under your control.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}",
+        "name": "Durable Handicraft",
+        "number": "153",
+        "text": "Whenever a creature enters the battlefield under your control, you may pay {1}. If you do, put a +1/+1 counter on that creature.\n\n{5}{G}, Sacrifice Durable Handicraft: Put a +1/+1 counter on each creature you control.",
+        "type": "Enchantment"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{G}{G}",
+        "name": "Elegant Edgecrafters",
+        "number": "154",
+        "power": "3",
+        "text": "Elegant Edgecrafters can't be blocked by creatures with power 2 or less.\n\nFabricate 2 (When this creature enters the battlefield, put two +1/+1 coutners on it or create two 1/1 colorless Servo artifact creature tokens.)",
+        "toughness": "4",
+        "type": "Creature \u2014 Elf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}",
+        "name": "Fairgrounds Trumpeter",
+        "number": "155",
+        "power": "2",
+        "text": "At the beginning of each end step, if a +1/+1 counter was placed on a permanent under your control this turn, put a +1/+1 counter on Fairgrounds Trumpeter.",
+        "toughness": "2",
+        "type": "Creature \u2014 Elephant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}",
+        "name": "Ghirapur Guide",
+        "number": "156",
+        "power": "3",
+        "text": "{2}{G}: Target creature you control can't be blocked by creatures with power 2 or less this turn.",
+        "toughness": "2",
+        "type": "Creature \u2014 Elf Scout"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}",
+        "name": "Highspire Artisan",
+        "number": "157",
+        "power": "0",
+        "text": "Reach (This creature can block creatures with flying.)\n\nFabricate 1 (When this creature enters the battlefield, put a +1/+1 counter on it or create a 1/1 colorless Servo artifact creature token.)",
+        "toughness": "3",
+        "type": "Creature \u2014 Elf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}",
+        "name": "Hunt the Weak",
+        "number": "158",
+        "text": "Put a +1/+1 counter on target creature you control. Then that creature fights target creature you don't control. (Each deals damage equal to its power to the other.)",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}",
+        "name": "Kujar Seedsculptor",
+        "number": "159",
+        "power": "1",
+        "text": "When Kujar Seedsculptor enters the battlefield, put a +1/+1 counter on target creature you control.",
+        "toughness": "2",
+        "type": "Creature \u2014 Elf Druid"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}",
+        "name": "Larger than Life",
+        "number": "160",
+        "text": "Target creature gets +4/+4 and gains trample until end of turn.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}",
+        "name": "Longtusk Cub",
+        "number": "161",
+        "power": "2",
+        "text": "Whenever Longtusk Cub deals combat damage to a player, you get {E}{E} (two energy counters).\n\nPay {E}{E}: Put a +1/+1 counter on Longtusk Cub.",
+        "toughness": "2",
+        "type": "Creature \u2014 Cat"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}",
+        "name": "Nature's Way",
+        "number": "162",
+        "text": "Target creature you control gains vigilance and trample until end of turn. It deals damage equal to its power to target creature you don't control.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "loyalty": "5",
+        "manaCost": "{3}{G}{G}",
+        "name": "Nissa, Vital Force",
+        "number": "163",
+        "text": "+1: Untap target land you control. Until your next turn, it becomes a 5/5 Elemental creature with haste. It's still a land.\n\n-3: Return target permanent card from your graveyard to your hand.\n\n-6: You get an emblem with \"Whenever a land enters the battlefield under your control, you may draw a card.\"",
+        "type": "Planeswalker \u2014 Nissa"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{G}",
+        "name": "Ornamental Courage",
+        "number": "164",
+        "text": "Untap target creature. It gets +1/+3 until end of turn.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{G}",
+        "name": "Oviya Pashiri, Sage Lifecrafter",
+        "number": "165",
+        "power": "1",
+        "text": "{2}{G}, {T}: Create a 1/1 colorless Servo artifact creature token.\n\n{4}{G}, {T}: Create an X/X colorless Construct artifact creature token, where X is the number of creatures you control.",
+        "toughness": "2",
+        "type": "Legendary Creature \u2014 Human Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}{G}",
+        "name": "Peema Outrider",
+        "number": "166",
+        "power": "3",
+        "text": "Trample\n\nFabricate 1 (When this creature enters the battlefield, put a +1/+1 counter on it or create a 1/1 colorless Servo artifact creature token.)",
+        "toughness": "3",
+        "type": "Creature \u2014 Elf Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}{G}",
+        "name": "Riparian Tiger",
+        "number": "167",
+        "power": "4",
+        "text": "Trample\n\nWhen Riparian Tiger enters the battlefield, you get {E}{E} (two energy counters).\n\nWhenever Riparian Tiger attacks, you may pay {E}{E}. If you do, it gets +2/+2 until end of turn.",
+        "toughness": "4",
+        "type": "Creature \u2014 Cat"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}",
+        "name": "Sage of Shalia's Claim",
+        "number": "168",
+        "power": "2",
+        "text": "When Sage of Shalia's Claim enters the battlefield, you get {E}{E}{E} (three energy counters).",
+        "toughness": "1",
+        "type": "Creature \u2014 Elf Druid"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}",
+        "name": "Servant of the Conduit",
+        "number": "169",
+        "power": "2",
+        "text": "When Servant of the Conduit enters teh battlefield, you get {E}{E} (two energy counters).\n\n{T}, Pay {E}: Add one mana of any color to your mana pool.",
+        "toughness": "2",
+        "type": "Creature \u2014 Elf Druid"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{G}",
+        "name": "Take Down",
+        "number": "170",
+        "text": "Choose one \u2014\n\n\u2022 Take Down deals 4 damage to target creature with flying.\n\n\u2022 Take DOwn deals 1 damage to each creature with flying",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}",
+        "name": "Thriving Rhino",
+        "number": "171",
+        "power": "2",
+        "text": "When Thriving Rhino enters the battlefield, you get {E}{E} (two energy counters).\n\nWhenever Thriving Rhino attacks, you may pay {E}{E}. If you do, put a +1/+1 counter on it.",
+        "toughness": "3",
+        "type": "Creature \u2014 Rhino"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}{G}",
+        "name": "Verdurous Gearhulk",
+        "number": "172",
+        "power": "4",
+        "text": "Trample\n\nWhen Verdurous Gearhulk enters the battlefield, distribute four +1/+1 counters among any number of target creatures you control.",
+        "toughness": "4",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}",
+        "name": "Wild Wanderer",
+        "number": "173",
+        "power": "3",
+        "text": "When Wild Wanderer enters the battlefield, you may search your library for a basic land card, put it onto the battlefield tapped, then shuffle your library.",
+        "toughness": "2",
+        "type": "Creature \u2014 Elf Druid"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{X}{X}{G}",
+        "name": "Wildest Dreams",
+        "number": "174",
+        "text": "Return X target cards from your graveyard to your hand. Exile Wildest Dreams.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{G}",
+        "name": "Wily Bandar",
+        "number": "175",
+        "power": "1",
+        "text": "{2}{G}: Wily Bandar gains indestructible until end of turn. (Damage and effects that say \"destroy\" don't destroy it.)",
+        "toughness": "1",
+        "type": "Creature \u2014 Cat Monkey"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{W}{U}",
+        "name": "Cloudblazer",
+        "number": "176",
+        "power": "2",
+        "text": "Flying\n\nWhen Cloudblazer enters the battlefield, you gain 2 life and draw two cards.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human Scout"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{U}{B}",
+        "name": "Contraband Kingpin",
+        "number": "177",
+        "power": "1",
+        "text": "Lifelink\n\nWhenever an artifact enters the battlefield under your control, scry 1.",
+        "toughness": "4",
+        "type": "Creature \u2014 Aetherborn Rogue"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{R}{W}",
+        "name": "Depala, Pilot Exemplar",
+        "number": "178",
+        "power": "3",
+        "text": "Other Dwarves you control get +1/+1.\n\nEach Vehicle you control gets +1/+1 as long as it's a creature.\n\nWhenever Depala, Pilot Exemplar becomes tapped, you may pay {X}. If you do, reveal the top X cards of your library, put all Dwarf and Vehicle cards from among them into your hand, then put the rest on the bottom of your library in a random order.",
+        "toughness": "3",
+        "type": "Legendary Creature \u2014 Dwarf Pilot"
+      },
+      {
+        "layout": "normal",
+        "loyalty": "3",
+        "manaCost": "{2}{W}{U}",
+        "name": "Dovin Baan",
+        "number": "179",
+        "text": "+1: Until your next turn, up to one target creature gets -3/-0 and its activated abilities can't be activated.\n\n-1: You gain 2 life and draw a card.\n\n-7: You get an emblem with \"Your opponents can't untap more than two permanents during their untap steps.\"",
+        "type": "Planeswalker \u2014 Dovin"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}{U}",
+        "name": "Empyreal Voyager",
+        "number": "180",
+        "power": "2",
+        "text": "Flying, trample\n\nWhenever Empyreal Voyager deals combat damage to a player you get that many {E} (energy counters.)",
+        "toughness": "3",
+        "type": "Creature \u2014 Vedalken Scout"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}{W}",
+        "name": "Engineered Might",
+        "number": "181",
+        "text": "Choose one-\n\n\u2022 Target creature gets +5/+5 and gains trample until end of turn\n\n\u2022 Creatures you control get +2/+2 and gain vigilance until end of turn",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{B}{G}",
+        "name": "Hazardous Conditions",
+        "number": "182",
+        "text": "Creatures with no counters on them get -2/-2 until end of turn",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{W}{B}",
+        "name": "Kambal, Consul of Allocation",
+        "number": "183",
+        "power": "2",
+        "text": "Whenever an opponent casts a noncreature spell, that player loses 2 life and you gain 2 life.",
+        "toughness": "3",
+        "type": "Legendary Creature \u2014 Human Advisor"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{G}{U}",
+        "name": "Rashmi, Eternities Crafter",
+        "number": "184",
+        "power": "2",
+        "text": "Whenever you cast your first spell each turn, reveal the top card of your library. If it's a nonland card with converted mana cost less than that spell's, you may cast it without paying its mana cost. If you don't cast the revealed card, put it into your hand.",
+        "toughness": "3",
+        "type": "Legendary Creature \u2014 Elf Druid"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{W}{B}",
+        "name": "Restoration Gearsmith",
+        "number": "185",
+        "power": "3",
+        "text": "When Restoration Gearsmith enters the battlefield, return target artifact or creature card from your graveyard to your hand.",
+        "toughness": "3",
+        "type": "Creature \u2014 Human Artifcier"
+      },
+      {
+        "layout": "normal",
+        "loyalty": "3",
+        "manaCost": "{1}{U}{R}",
+        "name": "Saheeli Rai",
+        "number": "186",
+        "text": "+1: Scry 1. Saheeli Rai deals 1 damage to each opponent.\n\n-2: Create a token that's a copy of target artifact or creature you control, except it's an artifact in addition to its other types. That token gains haste. Exile it at the beginning of the next end step.\n\n-7: Search your library for up to three artifact cards with different names, put them onto the battlefield, then shuffle your library.",
+        "type": "Planeswalker \u2014 Saheeli"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{B}{R}",
+        "name": "Unlicensed Disintegration",
+        "number": "187",
+        "text": "Destroy target creature. If you control an artifact, Unlicensed Disintegration deals 3 damage to that creature's controller.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{R}{W}",
+        "name": "Veteran Motorist",
+        "number": "188",
+        "power": "3",
+        "text": "When Veteran Motorist enters the battlefield, scry 2.\n\nWhenever Veteran Motorist crews a Vehicle, that Vehicle gets +1/+1 until end of turn.",
+        "toughness": "1",
+        "type": "Creature \u2014 Dwarf Pilot"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{R}{G}",
+        "name": "Voltaic Brawler",
+        "number": "189",
+        "power": "3",
+        "text": "When Voltaic Brawler enters the battlefield, you get {E}{E} (two energy counters).\n\nWhenever Voltaic Brawler attacks, you may pay {E}. If you do, it gets +1/+1 and gains trample until end of turn.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human Warrior"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{U}{R}",
+        "name": "Whirler Virtuoso",
+        "number": "190",
+        "power": "2",
+        "text": "When Whirler Virtuoso enters the battlefield, you get {E}{E}{E} (three energy counters).\n\nPay {E}{E}{E}: Create a 1/1 colorless Thopter artifact creature token with flying.",
+        "toughness": "3",
+        "type": "Creature \u2014 Vedalken Artificer"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}{W}",
+        "name": "Engineered Might",
+        "number": "191",
+        "text": "Choose one -\n\n\u2022 Target creature gets +5/+5 and gains trample until end of turn.\n\n\u2022 Creatures you control get +2/+2 and gain vigilance until end of turn.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{7}",
+        "name": "Accomplished Automaton",
+        "number": "191",
+        "power": "5",
+        "text": "Fabricate 1 When this creature enters the battlefield, put a +1/+1 counter on it or create a 1/1 colorless Servo artifact creature token.)",
+        "toughness": "7",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Aetherflux Reservoir",
+        "number": "192",
+        "text": "Whenever you cast a spell, you gain 1 life for each spell you've cast this turn.\n\nPay 50 life: Aetherflux Reservoir deals 50 damage to target creature or player.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Aetherworks Marvel",
+        "number": "193",
+        "text": "Whenever a permanent you control is put into a graveyard, you get {E} (an energy counter).\n\n{T}, Pay {E}{E}{E}{E}{E}{E}: Look at the top six cards of your library. You may cast a card from among them without paying its mana cost. Put the rest on the bottom of your library in a random order.",
+        "type": "Legendary Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}",
+        "name": "Animation Module",
+        "number": "194",
+        "text": "Whenever one or more +1/+1 counters are placed on a permanent you control, you may pay {1}. If you do you create a 1/1 colorless Servo artifact creature token.\n\n{3}, {T}: Choose a counter on target permanent or player. Give that permanent or player another counter of that kind.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{5}",
+        "name": "Aradara Express",
+        "number": "195",
+        "power": "8",
+        "text": "Menace\n\nCrew 4 (Tap any number of creatures you control with total power 2 or more: This Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "6",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{5}",
+        "name": "Ballista Charger",
+        "number": "196",
+        "power": "6",
+        "text": "Whenever Ballista Charger attacks, it deals 1 damage to target creature or player.\n\nCrew 3 (Tap any number of creatures you control with total power 3 or more: This Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "6",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{5}",
+        "name": "Bastion Mastodon",
+        "number": "197",
+        "power": "4",
+        "text": "{W}: Bastion Mastodon gets vigilance until end of turn.",
+        "toughness": "5",
+        "type": "Artifact Creature \u2014 Elephant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Bomat Bazaar Barge",
+        "number": "198",
+        "power": "5",
+        "text": "When Bomat Bazaar Barge enters the battlefield, draw a card.\n\nCrew 3 (Tap any number of creatures you control with total power 3 or more: This Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "5",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}",
+        "name": "Bomat Courier",
+        "number": "199",
+        "power": "1",
+        "text": "Haste\n\nWhenever Bomat Courier attacks, exile the top card of your library face down. (You can't look at it.)\n\n{R}, Discard your hand, Sacrifice Bomat Courier: Put all cards exiled with Bomat Courier into their owners' hands.",
+        "toughness": "1",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Chief of the Foundry",
+        "number": "200",
+        "power": "2",
+        "text": "Other artifact creatures you control get +1/+1.",
+        "toughness": "3",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Cogworker's Puzzleknot",
+        "number": "201",
+        "text": "When Cogworker's Puzzleknot enters the battlefield, create a 1/1 colorless Servo artifact creature token.\n\n{1}{W}, Sacrifice Cogworker's Puzzleknot: Create a 1/1 colorless Servo artifact creature token.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Consulate Skygate",
+        "number": "202",
+        "power": "0",
+        "text": "Defender\n\nReach",
+        "toughness": "4",
+        "type": "Artifact Creature \u2014 Wall"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Cultivator's Caravan",
+        "number": "203",
+        "power": "5",
+        "text": "{T}: Add one mana of any color to your mana pool.\n\nCrew 3 (Tap any number of creatures you control with total power 3 or more: This vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "5",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Deadlock Trap",
+        "number": "204",
+        "text": "Deadlock Trap enters the battlefield tapped.\n\nWhen Deadlock Trap enters the battlefield, you get {E}{E} (two energy counters)\n\n{T}, Pay {E}: Tap target creature or planeswalker. It's activated abilities can't be activated this turn.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Decoction Module",
+        "number": "205",
+        "text": "Whenever a creature enters the battlefield under your control, you get {E} (an energy counter).\n\n{4}, {T}: Return target creature you control to its owner's hand.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{6}",
+        "name": "Demolition Stomper",
+        "number": "206",
+        "power": "10",
+        "text": "Demolition Stomper can't be blocked by creatures with power 2 or less.\n\nCrew 5 (Tap any number of creatures you control with total power 5 or more: This Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "7",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Dukhara Peafowl",
+        "number": "207",
+        "power": "2",
+        "text": "{U}: Dukhara Peafowl gains flying until end of turn.",
+        "toughness": "4",
+        "type": "Artifact Creature \u2014 Bird"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Dynavolt Tower",
+        "number": "208",
+        "text": "Whenever you cast an instant or sorcery spell, you get {E}{E} (two energy counters).\n\n{T}, Pay {E}{E}{E}{E}{E}: Dynavolt Tower deals 3 damage to target creature or player.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Eager Construct",
+        "number": "209",
+        "power": "2",
+        "text": "When Eager Construct enters the battlefield, each player may scry 1.",
+        "toughness": "2",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Electrostatic Pummeler",
+        "number": "210",
+        "power": "1",
+        "text": "When Electrostatic Pummeler enters the battlefield, you get {E}{E}{E} (three energy counters).\n\nPay {E}{E}{E}: Electrostatic Pummeler gets +X/+X until end of turn, where X is its power.",
+        "toughness": "1",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Fabrication Module",
+        "number": "211",
+        "text": "Whenever you get one or more {E} (energy counters), put a +1/+1 counter on target creature you control.\n\n{4}, {T}: You get {E}.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Filigree Familiar",
+        "number": "212",
+        "power": "2",
+        "text": "When Filigree Familiar enters the battlefield, you gain 2 life.\n\nWhen Filigree Familiar dies, draw a card.",
+        "toughness": "2",
+        "type": "Artifact Creature \u2014 Fox"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Fireforger's Puzzleknot",
+        "number": "213",
+        "text": "When Fireforger's Puzzleknot enters the battlefield, it deals 1 damage to target creature or player.\n\n{2}{R}, Sacrifice Fireforger's Puzzleknot: It deals 1 damage to target creature or player.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Fleetwheel Cruiser",
+        "number": "214",
+        "power": "5",
+        "text": "Trample, Haste\n\nWhen Fleetwheel Cruiser enters the battlefield, it becomes an artifact creature until the end of turn.\n\nCrew 2 (Tap any number of creatures you control with total power 2 or more: This Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "3",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Foundry Inspector",
+        "number": "215",
+        "power": "3",
+        "text": "Artifact spells you cast cost {1} less to cast.",
+        "toughness": "2",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Ghirapur Orrery",
+        "number": "216",
+        "text": "Each player may play an additional land on each of his or her turns.\n\nAt the beginning of each player's upkeep, if that player has no cards in hand, that player draws three cards.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Glassblower's Puzzleknot",
+        "number": "217",
+        "text": "When Glassblower's Puzzleknot enters the battlefield, scry 2, then you get {E}{E}. (You get two energy counters. To scry 2, look at the top two cards of your library, then put any number of them on the bottom of your library and the rest on top in any order.)\n\n{2}{U}, Sacrifice Glassblower's Puzzleknot: Scry 2, then you get {E}{E}.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}",
+        "name": "Inventor's Goggles",
+        "number": "218",
+        "text": "Equipped creature gets +1/+2.\n\nWhenever an Artificer enters the battlefield under your control, you may attach Inventor's Goggles to it.\n\nEquip {2} ({2}: Attach to target creature you control. Equip only as a sorcery.)",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Iron League Steed",
+        "number": "219",
+        "power": "2",
+        "text": "Haste\n\nFabricate 1 When this creature enters the battlefield, put a +1/+1 counter on it or create a 1/1 colorless Servo artifact creature token.)",
+        "toughness": "2",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Key to the City",
+        "number": "220",
+        "text": "{T}, Discard a card: Up to one target creature can't be blocked this turn.\n\nWhenever Key to the City becomes untapped, you may pay {2}. If you do, draw a card.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Metalspinner's Puzzleknot",
+        "number": "221",
+        "text": "When Metalspinner's Puzzleknot enters the battlefield, you draw a card and you lose 1 life.\n\n{2}{B}, Sacrifice Metalspinner's Puzzleknot: You draw a card and you lose 1 life.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{11}",
+        "name": "Metalwork Colossus",
+        "number": "222",
+        "power": "10",
+        "text": "Metalwork Colossus costs {X} less to cast, where X is the total converted mana cost of noncreature artifacts you control.\n\nSacrifice two artifacts: Return Metalwork Colossus from your graveyard to your hand.",
+        "toughness": "10",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{5}",
+        "name": "Multiform Wonder",
+        "number": "223",
+        "power": "3",
+        "text": "When Multiform Wonder enters the battlefield, you get {E}{E}{E} (three energy counters).\n\nPay {E}: Multiform Wonder gains your choice of flying, vigilance, or lifelink until end of turn.\n\nPay {E}: Multiform Wonder gets +2/-2 or -2/+2 until end of turn.",
+        "toughness": "3",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Narnam Cobra",
+        "number": "224",
+        "power": "2",
+        "text": "{G}: Narnam Cobra gains deathtouch until end of turn.",
+        "toughness": "1",
+        "type": "Artifact Creature \u2014 snake"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Ovalchase Dragster",
+        "number": "225",
+        "power": "6",
+        "text": "Trample, haste\n\nCrew 1 (Tap any number of creatures you control with total power 1 or more: This Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "1",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Panharmonicon",
+        "number": "226",
+        "text": "If an artifact or creature entering the battlefield causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Perpetual Timepiece",
+        "number": "227",
+        "text": "{T}: Put the top two cards of your library into your graveyard.\n\n{2}, Exile Perpetual Timepiece: Shuffle any number of target cards from your graveyard into your library.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Prakhata Pillar-Bug",
+        "number": "228",
+        "power": "2",
+        "text": "{B}: Prakhata Pillar-Bug gains lifelink until end of turn.",
+        "toughness": "3",
+        "type": "Artifact Creature \u2014 Insect"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Prophetic Prism",
+        "number": "229",
+        "text": "When Prophetic Prism enters the battlefield, draw a card.\n\n{1}, {T}: Add one mana of any color to your mana pool.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Renegade Freighter",
+        "number": "230",
+        "power": "4",
+        "text": "Whenever Renegade Freighter attacks, it gets +1/+1 and gains trample until end of turn.\n\nCrew 2 (Tap any number of creatures you control with total power 2 or more: The Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "3",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Scrapheap Scrounger",
+        "number": "231",
+        "power": "3",
+        "text": "Scrapheap Scrounger can't block.\n\n{1}{B}, Exile another creature card from your graveyard: Return Scrapheap Scrounger from your graveyard to the battlefield.",
+        "toughness": "2",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{5}",
+        "name": "Self-Assembler",
+        "number": "232",
+        "power": "4",
+        "text": "When Self-Assembler enters the battlefield, you may search your library for an Assembly-Worker creature card, reveal it, put it into your hand, then shuffle your library.",
+        "toughness": "4",
+        "type": "Artifact Creature \u2014 Assembly-Worker"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Sky Skiff",
+        "number": "233",
+        "power": "2",
+        "text": "Flying\n\nCrew 1 (Tap any number of creatures you control with total power 1 or more: This Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "3",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{5}",
+        "name": "Skysovereign, Consul Flagship",
+        "number": "234",
+        "power": "6",
+        "text": "Flying\n\nWhenever Skysovereign, Consul Flagship enters the battlefield or attacks, it deals 3 damage to target creature or planeswalker an opponent controls.\n\nCrew 3 (Tap any number of creatures you control with total power 3 or more: This Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "5",
+        "type": "Legendary Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Smuggler's Copter",
+        "number": "235",
+        "power": "3",
+        "text": "Flying\n\nWhenever Smuggler's Copter attacks or blocks, you may draw a card. If you do, discard a card.\n\nCrew 1 (Tap any number of creatures you control with total power 1 or more: This Vehicle becomes an artifact creature until end of turn.)",
+        "toughness": "3",
+        "type": "Artifact \u2014 Vehicle"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}",
+        "name": "Snare Thopter",
+        "number": "236",
+        "power": "3",
+        "text": "Flying, Haste",
+        "toughness": "2",
+        "type": "Artifact Creature \u2014 Thopter"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Torch Gauntlet",
+        "number": "237",
+        "text": "Equipped creature gets +2/+0.\n\nEquip {2} ({2}: Attach to target creature you control. Equip only as a sorcery.)",
+        "type": "Artifact \u2014 Equipment"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Weldfast Monitor",
+        "number": "238",
+        "power": "3",
+        "text": "{R}: Weldfast Monitor gains menace until end of turn",
+        "toughness": "2",
+        "type": "Artifact Creature \u2014 Lizard"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Whirlermaker",
+        "number": "239",
+        "text": "{4}, {T}: Create a 1/1 colorless Thopter artifact creature token with flying.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}",
+        "name": "Woodweaver's Puzzleknot",
+        "number": "240",
+        "text": "When Woodweaver's Puzzleknot enters the battlefield, you gain 3 life and get {E}{E}{E} (three energy counters).\n\n{2}{G}, Sacrifice Woodweaver's Puzzleknot: You gain 3 life and get {E}{E}{E}.",
+        "type": "Artifact"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}",
+        "name": "Workshop Assistant",
+        "number": "241",
+        "power": "1",
+        "text": "When Workshop Assistant dies, return another target artifact card from your graveyard to your hand.",
+        "toughness": "2",
+        "type": "Artifact Creature \u2014 Construct"
+      },
+      {
+        "layout": "normal",
+        "name": "Aether Hub",
+        "number": "242",
+        "text": "When Aether Hub enters the battlefield, you get {E} (an energy counter).\n\n{T}: Add {C} to your mana pool.\n\n{T}, Pay {E}: Add one mana of any color to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "layout": "normal",
+        "name": "Blooming Marsh",
+        "number": "243",
+        "text": "Blooming Marsh enters the battlefield tapped unless you control two or fewer other lands.\n\n{T}: Add {B} or {G} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "layout": "normal",
+        "name": "Botanical Sanctum",
+        "number": "244",
+        "text": "Botanical Sanctum enters the battlefield tapped unless you control two or fewer other lands.\n\n{T}: Add {G} or {U} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "layout": "normal",
+        "name": "Concealed Courtyard",
+        "number": "245",
+        "text": "Concealed Courtyard enters the battlefield tapped unless you control two or fewer other lands.\n\n{T}: Add {W} or {B} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "layout": "normal",
+        "name": "Inspiring Vantage",
+        "number": "246",
+        "text": "Inspiring Vantage enters the battlefield tapped unless you control two or fewer other lands.\n\n{T}: Add {R} or {W} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "layout": "normal",
+        "name": "Inventors' Fair",
+        "number": "247",
+        "text": "At the beginning of your upkeep, if you control three or more artifacts, you gain 1 life.\n\n{T}: Add {C} to your mana pool.\n\n{4}, Sacrifice Inventors' Fair: Search your library for an artifact card, reveal it, put it into your hand, then shuffle your library. Activate this ability only if you control threeor more artifacts.",
+        "type": "Legendary Land"
+      },
+      {
+        "layout": "normal",
+        "name": "Sequestered Stash",
+        "number": "248",
+        "text": "{T}: Add {C} to your mana pool.\n\n{4}, {T}, Sacrifice Sequestered Stash: Put the top five cards of your library into your graveyard. Then you may put an artifact card from your graveyard on top of your library.",
+        "type": "Land"
+      },
+      {
+        "layout": "normal",
+        "name": "Spirebluff Canal",
+        "number": "249",
+        "text": "Spirebluff Canal enters the battlefield tapped unless you control two or fewer other lands.\n\n{T}: Add {U} or {R} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "layout": "normal",
+        "name": "Plains",
+        "number": "250",
+        "type": "Basic Land \u2014 Plains"
+      },
+      {
+        "layout": "normal",
+        "name": "Plains",
+        "number": "251",
+        "type": "Basic Land \u2014 Plains"
+      },
+      {
+        "layout": "normal",
+        "name": "Plains",
+        "number": "252",
+        "type": "Basic Land \u2014 Plains"
+      },
+      {
+        "layout": "normal",
+        "name": "Island",
+        "number": "253",
+        "type": "Basic Land \u2014 Island"
+      },
+      {
+        "layout": "normal",
+        "name": "Island",
+        "number": "254",
+        "type": "Basic Land \u2014 Island"
+      },
+      {
+        "layout": "normal",
+        "name": "Island",
+        "number": "255",
+        "type": "Basic Land \u2014 Island"
+      },
+      {
+        "layout": "normal",
+        "name": "Swamp",
+        "number": "256",
+        "type": "Basic Land \u2014 Swamp"
+      },
+      {
+        "layout": "normal",
+        "name": "Swamp",
+        "number": "257",
+        "type": "Basic Land \u2014 Swamp"
+      },
+      {
+        "layout": "normal",
+        "name": "Swamp",
+        "number": "258",
+        "type": "Basic Land \u2014 Swamp"
+      },
+      {
+        "layout": "normal",
+        "name": "Mountain",
+        "number": "259",
+        "type": "Basic Land \u2014 Mountain"
+      },
+      {
+        "layout": "normal",
+        "name": "Mountain",
+        "number": "260",
+        "type": "Basic Land \u2014 Mountain"
+      },
+      {
+        "layout": "normal",
+        "name": "Mountain",
+        "number": "261",
+        "type": "Basic Land \u2014 Mountain"
+      },
+      {
+        "layout": "normal",
+        "name": "Forest",
+        "number": "262",
+        "type": "Basic Land \u2014 Forest"
+      },
+      {
+        "layout": "normal",
+        "name": "Forest",
+        "number": "263",
+        "type": "Basic Land \u2014 Forest"
+      },
+      {
+        "layout": "normal",
+        "name": "Forest",
+        "number": "264",
+        "type": "Basic Land \u2014 Forest"
+      },
+      {
+        "layout": "normal",
+        "loyalty": "5",
+        "manaCost": "{4}{R}{R}",
+        "name": "Chandra, Pyrogenius",
+        "number": "265",
+        "text": "+2: Chandra, Pyrogenius deals 2 damage to each opponent.\n\n-3: Chandra, Pyrogenius deals 4 damage to target creature.\n\n-10: Chandra, Pyrogenius deals 6 damage to target player and each creature he or she controls.",
+        "type": "Planeswalker \u2014 Chandra"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{R}",
+        "name": "Flame Lash",
+        "number": "266",
+        "text": "Flame Lash deals 4 damage to target creature or player.",
+        "type": "Instant"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{4}{R}",
+        "name": "Liberating Combustion",
+        "number": "267",
+        "text": "Liberating Combustion deals 6 damage to target creature. You may search your library and/or graveyard for a card named Chandra, Pyrogenius, reveal it, and put it into your hand. If you search your library this way, shuffle it.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{2}{R}",
+        "name": "Renegade Firebrand",
+        "number": "268",
+        "power": "3",
+        "text": "As long as you control a Chandra planeswalker, Renegade Firebrand gets +1/+0 and has first strike.",
+        "toughness": "2",
+        "type": "Creature \u2014 Human Warrior"
+      },
+      {
+        "layout": "normal",
+        "name": "Stone Quarry",
+        "number": "269",
+        "text": "Stone Quarry enters the battlefield tapped.\n\n{T}: Add {R} or {W} to your mana pool.",
+        "type": "Land"
+      },
+      {
+        "layout": "normal",
+        "loyalty": "5",
+        "manaCost": "{4}{G}{G}",
+        "name": "Nissa, Nature's Artisan",
+        "number": "270",
+        "text": "+3: You gain 3 life.\n\n-4: Reveal the top two cards of your library. Put all land cards from among them onto the battlefield and the rest into your hand.\n\n-12: Creatures you control get +5/+5 and gain trample until end of turn.",
+        "type": "Planeswalker \u2014 Nissa"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}",
+        "name": "Guardian of the Great Conduit",
+        "number": "271",
+        "power": "2",
+        "text": "Reach (This creature can block creatures with flying.)\n\nAs long as you control a Nissa planeswalker, Guardian of the Great Conduit gets +2/+0 and has vigilance. (Attacking doesn't cause it to tap.)",
+        "toughness": "4",
+        "type": "Creature \u2014 Elemental"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{1}{G}",
+        "name": "Terrain Elemental",
+        "number": "272",
+        "power": "3",
+        "toughness": "2",
+        "type": "Creature \u2014 Elemental"
+      },
+      {
+        "layout": "normal",
+        "manaCost": "{3}{G}",
+        "name": "Verdant Crescendo",
+        "number": "273",
+        "text": "Search your library for a basic land card and put it onto the battlefield tapped. Search your library and graveyard for a card named Nissa, Nature's Artisan, reveal it, and put it into your hand. Then shuffle your library.",
+        "type": "Sorcery"
+      },
+      {
+        "layout": "normal",
+        "name": "Woodland Stream",
+        "number": "274",
+        "text": "Woodland Stream enters the battlefield tapped.\n\n{T}: Add {G} or {U} to your mana pool.",
+        "type": "Land"
+      }
+    ],
+    "releaseDate": "1970-01-01T00:00:00Z"
+  }
+}
