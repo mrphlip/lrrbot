@@ -30,7 +30,7 @@ class TwitchSubs:
 		users = self.lrrbot.metadata.tables['users']
 
 		# Precompile regular expressions
-		self.re_subscription = re.compile(r"^(.*) just subscribed!$", re.IGNORECASE)
+		self.re_subscription = re.compile(r"^(.*) just subscribed(?: with Twitch Prime)?!$", re.IGNORECASE)
 		self.re_resubscription = re.compile(r"^(.*) subscribed for (\d+) months? in a row!$", re.IGNORECASE)
 
 		self.lrrbot.reactor.add_global_handler('privmsg', self.on_notification, 90)
