@@ -20,13 +20,14 @@ import common.storm
 log = logging.getLogger('twitchsubs')
 
 DELAY_FOR_SUBS_FROM_API = 60
+DEBOUNCE_INTERVAL = 600
 
 class TwitchSubs:
 	def __init__(self, lrrbot, loop):
 		self.lrrbot = lrrbot
 		self.loop = loop
 		self.last_subs = None
-		self.last_announced_subs = []
+		self.recent_announced_subs = {}
 		users = self.lrrbot.metadata.tables['users']
 
 		# Precompile regular expressions
@@ -94,16 +95,13 @@ class TwitchSubs:
 
 		subscribe_match = self.re_subscription.match(event.arguments[0])
 		if subscribe_match and irc.client.is_channel(event.target):
-			# Don't highlight the same sub via both the chat and the API
-			if subscribe_match.group(1).lower() not in self.last_announced_subs:
-				asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime)).add_done_callback(utils.check_exception)
+			asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime)).add_done_callback(utils.check_exception)
 			# Halt message processing
 			return "NO MORE"
 
 		subscribe_match = self.re_resubscription.match(event.arguments[0])
 		if subscribe_match and irc.client.is_channel(event.target):
-			if subscribe_match.group(1).lower() not in self.last_announced_subs:
-				asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime, monthcount=int(subscribe_match.group(2)))).add_done_callback(utils.check_exception)
+			asyncio.ensure_future(self.on_subscriber(conn, event.target, subscribe_match.group(1), eventtime, monthcount=int(subscribe_match.group(2)))).add_done_callback(utils.check_exception)
 			# Halt message processing
 			return "NO MORE"
 		asyncio.ensure_future(common.rpc.eventserver.event('twitch-message', {'message': event.arguments[0], 'count': common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, 'twitch-message')}, eventtime)).add_done_callback(utils.check_exception)
@@ -146,12 +144,18 @@ class TwitchSubs:
 
 	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None, emotes=None):
 		log.info('New subscriber: %r at %r', user, eventtime)
-		if user.lower() in self.last_announced_subs:
+
+		now = time.time()
+		for k in [k for k, v in self.recent_announced_subs.items() if v < now - DEBOUNCE_INTERVAL]:
+			del self.recent_announced_subs[k]
+		if user.lower() in self.recent_announced_subs:
+			log.info('Debouncing subscriber %r', user)
 			return
+		self.recent_announced_subs[user.lower()] = now
+
 		data = {
 			'name': user,
 		}
-
 		if logo is None:
 			try:
 				channel_info = twitch.get_info_uncached(user)
@@ -164,9 +168,6 @@ class TwitchSubs:
 					data['avatar'] = channel_info['logo']
 		else:
 			data['avatar'] = logo
-
-		self.last_announced_subs.append(user.lower())
-		self.last_announced_subs = self.last_announced_subs[-10:]
 
 		users = self.lrrbot.metadata.tables["users"]
 		with self.lrrbot.engine.begin() as pg_conn:
