@@ -38,8 +38,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		users = self.metadata.tables["users"]
 		if config['password'] == "oauth":
 			with self.engine.begin() as conn:
-				password, = conn.execute(sqlalchemy.select([users.c.twitch_oauth])
+				row = conn.execute(sqlalchemy.select([users.c.twitch_oauth])
 					.where(users.c.name == config['username'])).first()
+				if row is not None:
+					password, = row
+				else:
+					password = ""
 			password = "oauth:" + password
 		else:
 			password = config['password']
