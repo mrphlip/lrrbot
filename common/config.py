@@ -16,9 +16,9 @@ from_apipass = {p: u for u, p in apipass.items()}
 config = dict(config.items(CONFIG_SECTION))
 
 # hostname - server to connect to (default Twitch)
-config.setdefault('hostname', 'irc.twitch.tv')
+config.setdefault('hostname', 'irc.chat.twitch.tv')
 # secure - whether to use TLS to connect to the server
-config.setdefault('secure', False)
+config.setdefault('secure', True)
 config['secure'] = str(config['secure']).lower() != 'false'
 # port - portname to connect on (default 6667, or 6697 for secure)
 config['port'] = int(config.get('port', 6697 if config['secure'] else 6667))

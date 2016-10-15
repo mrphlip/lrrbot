@@ -32,14 +32,9 @@ with server.db.engine.begin() as conn:
 # We don't actually need, or want, any at present
 REQUEST_SCOPES = []
 
-SPECIAL_USERS = {
-	config["username"]: ['chat_login', 'user_read', 'user_follows_edit'],
-	config["channel"]: ['channel_subscriptions'],
-}
-
-# Needs to be the URI of this script, and also the registered URI for the app
-REDIRECT_URI = 'https://lrrbot.mrphlip.com/login'
-#REDIRECT_URI = 'http://localhost:5000/login'
+SPECIAL_USERS = {}
+SPECIAL_USERS.setdefault(config["username"], []).extend(['chat_login', 'user_read', 'user_follows_edit'])
+SPECIAL_USERS.setdefault(config["channel"], []).extend(['channel_subscriptions'])
 
 def with_session(func):
 	"""
@@ -245,7 +240,8 @@ async def login(return_to=None):
 		# Generate a random nonce so we can verify that the user who comes back is the same user we sent away
 		flask.session['login_nonce'] = uuid.uuid4().hex
 
-		return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(scope), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=await load_session(include_url=False))
+		return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(scope),
+			redirect_uri=flask.url_for(".login", _external=True), nonce=flask.session['login_nonce'], session=await load_session(include_url=False))
 	else:
 		try:
 			# Check that we're expecting the user to be logging in...
@@ -270,7 +266,7 @@ async def login(return_to=None):
 				'client_id': config["twitch_clientid"],
 				'client_secret': config["twitch_clientsecret"],
 				'grant_type': 'authorization_code',
-				'redirect_uri': REDIRECT_URI,
+				'redirect_uri': flask.url_for(".login", _external=True),
 				'code': flask.request.values['code'],
 			}
 			res_json = urllib.request.urlopen("https://api.twitch.tv/kraken/oauth2/token", urllib.parse.urlencode(oauth_params).encode()).read().decode()
@@ -300,7 +296,9 @@ async def login(return_to=None):
 				if any(i not in granted_scopes for i in SPECIAL_USERS[user_name]):
 					server.app.logger.error("User %s has not granted us the required permissions" % user_name)
 					flask.session['login_nonce'] = uuid.uuid4().hex
-					return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(SPECIAL_USERS[user_name]), redirect_uri=REDIRECT_URI, nonce=flask.session['login_nonce'], session=await load_session(include_url=False), special_user=user_name, remember_me=remember_me)
+					return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(SPECIAL_USERS[user_name]),
+						redirect_uri=flask.url_for(".login", _external=True), nonce=flask.session['login_nonce'], session=await load_session(include_url=False),
+						special_user=user_name, remember_me=remember_me)
 
 			# Store the user to the database
 			user = twitch.get_user(user_name)
