@@ -101,6 +101,8 @@ def do_clear_chat_log(time, nick):
 			log.c.usercolor, log.c.emoteset, log.c.emotes, log.c.displayname
 		]).where((log.c.source == nick) & (log.c.time >= time - PURGE_PERIOD))
 		rows = conn.execute(query).fetchall()
+	if len(rows) == 0:
+		return
 	new_rows = []
 	for key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname in rows:
 		specialuser = set(specialuser) if specialuser else set()
