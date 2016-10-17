@@ -19,6 +19,7 @@ from common.config import config
 from common import twitch
 from common import slack
 from common import game_data
+from common.pubsub import PubSub
 from common.sqlalchemy_pg95_upsert import DoUpdate
 from lrrbot import chatlog, storage, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
 from lrrbot import spam
@@ -27,6 +28,7 @@ from lrrbot import rpc
 from lrrbot import join_filter
 from lrrbot import twitchfollows
 from lrrbot import twitchcheer
+from lrrbot import moderator_actions
 
 log = logging.getLogger('lrrbot')
 
@@ -119,12 +121,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.commands = command_parser.CommandParser(self, loop)
 		self.command = self.commands.decorator
 
+		self.pubsub = PubSub(self.engine, self.metadata)
+
 		self.link_spam = linkspam.LinkSpam(self, loop)
 		self.spam = spam.Spam(self, loop)
 		self.subs = twitchsubs.TwitchSubs(self, loop)
 		self.join_filter = join_filter.JoinFilter(self, loop)
 		self.twitchfollows = twitchfollows.TwitchFollows(self, loop)
 		self.twitchcheer = twitchcheer.TwitchCheer(self, loop)
+		self.moderator_actions = moderator_actions.ModeratorActions(self, loop)
 
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)
@@ -149,6 +154,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.loop.run_forever()
 		finally:
 			log.info("Bot shutting down...")
+			self.pubsub.close()
 			self.loop.run_until_complete(self.rpc_server.close())
 			chatlog.stop_task()
 			tasks_waiting = [chatlogtask]
@@ -398,19 +404,16 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			level = self.spammers[source.nick.lower()]
 			if level <= 1:
 				log.info("First offence, flickering %s" % display_name)
-				conn.privmsg(event.target, ".timeout %s 1" % source.nick)
+				conn.privmsg(event.target, ".timeout %s 1 %s" % (source.nick, reason))
 				conn.privmsg(source.nick, "Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
-				yield from slack.send_message("%s flickered for auto-detected spam (%s)" % (display_name, reason))
 			elif level <= 2:
 				log.info("Second offence, timing out %s" % display_name)
-				conn.privmsg(event.target, ".timeout %s" % source.nick)
+				conn.privmsg(event.target, ".timeout %s 600 %s" % (source.nick, reason))
 				conn.privmsg(source.nick, "Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
-				yield from slack.send_message("%s timed out for auto-detected spam (%s)" % (display_name, reason))
 			else:
 				log.info("Third offence, banning %s" % display_name)
-				conn.privmsg(event.target, ".ban %s" % source.nick)
+				conn.privmsg(event.target, ".ban %s %s" % (source.nick, reason))
 				conn.privmsg(source.nick, "Banned for persistent spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
-				yield from slack.send_message("%s banned for auto-detected spam (%s)" % (display_name, reason))
 				level = 3
 			today = datetime.datetime.now(config['timezone']).date().toordinal()
 			if today != storage.data.get("spam", {}).get("date"):
@@ -423,9 +426,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		elif bantype == "censor":
 			# Only purges, no escalation
 			log.info("Censor hit, flickering %s" % display_name)
-			conn.privmsg(event.target, ".timeout %s 1" % source.nick)
+			conn.privmsg(event.target, ".timeout %s 1 %s" % (source.nick, reason))
 			conn.privmsg(source.nick, "Your message was automatically deleted (%s). You have not been banned or timed out, and are welcome to continue participating in the chat. Please contact mrphlip or any other channel moderator if you feel this is incorrect." % reason)
-			yield from slack.send_message(text="%s censored (%s)" % (display_name, reason))
 
 	@utils.swallow_errors
 	def check_polls(self):
