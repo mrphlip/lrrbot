@@ -51,13 +51,16 @@ class ModeratorActions:
 		
 		attachments = []
 		if include_chat_log:
+			now = datetime.datetime.now(config["timezone"])
+
 			log = self.lrrbot.metadata.tables["log"]
 			with self.lrrbot.engine.begin() as conn:
 				rows = conn.execute(sqlalchemy.select([log.c.time, log.c.message])
 					.where(log.c.source == user.lower())
+					.where(log.c.time > now - datetime.timedelta(days=1))
 					.limit(3)
 					.order_by(log.c.time.desc())).fetchall()
-			now = datetime.datetime.now(config["timezone"])
+
 			for timestamp, message in rows[::-1]:
 				timestamp = timestamp.astimezone(config["timezone"])
 				attachments.append({
