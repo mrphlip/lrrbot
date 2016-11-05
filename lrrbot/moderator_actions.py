@@ -13,6 +13,8 @@ class ModeratorActions:
 		self.lrrbot = lrrbot
 		self.loop = loop
 
+		self.last_ban = None
+
 		users = self.lrrbot.metadata.tables["users"]
 		with self.lrrbot.engine.begin() as conn:
 			channel_id, = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == config['channel'])).first()
@@ -30,41 +32,52 @@ class ModeratorActions:
 			user = args[0]
 			length = int(args[1])
 			reason = args[2] if len(args) >= 3 else None
-			include_chat_log = True
+			logid, attachments = self.get_chat_log(user)
+			same_user = (self.last_ban == (user.lower(), logid))
+			if same_user:
+				attachments = []
+			self.last_ban = (user.lower(), logid)
 
-			text = "%s was timed out for %s by %s." % (slack.escape(user), slack.escape(time.nice_duration(length, 0)), slack.escape(mod))
+			text = "%s was%s timed out for %s by %s." % (slack.escape(user), " also" if same_user else "", slack.escape(time.nice_duration(length, 0)), slack.escape(mod))
 			if reason is not None:
 				text += " Reason: %s" % slack.escape(reason)
 		elif action == 'ban':
 			user = args[0]
 			reason = args[1] if len(args) >= 2 else None
-			include_chat_log = True
+			logid, attachments = self.get_chat_log(user)
+			same_user = (self.last_ban == (user.lower(), logid))
+			if same_user:
+				attachments = []
+			self.last_ban = (user.lower(), logid)
 
-			text = "%s was banned by %s." % (slack.escape(user), slack.escape(mod))
+			text = "%s was%s banned by %s." % (slack.escape(user), " also" if same_user else "", slack.escape(mod))
 			if reason is not None:
 				text += " Reason: %s" % slack.escape(reason)
 		elif action == 'unban':
 			user = args[0]
-			include_chat_log = False
+			attachments = []
+			self.last_ban = None
 
 			text = "%s was unbanned by %s." % (slack.escape(user), slack.escape(mod))
-		
-		attachments = []
-		if include_chat_log:
-			now = datetime.datetime.now(config["timezone"])
-
-			log = self.lrrbot.metadata.tables["log"]
-			with self.lrrbot.engine.begin() as conn:
-				rows = conn.execute(sqlalchemy.select([log.c.time, log.c.message])
-					.where(log.c.source == user.lower())
-					.where(log.c.time > now - datetime.timedelta(days=1))
-					.limit(3)
-					.order_by(log.c.time.desc())).fetchall()
-
-			for timestamp, message in rows[::-1]:
-				timestamp = timestamp.astimezone(config["timezone"])
-				attachments.append({
-					'text': slack.escape("%s (%s ago): %s" % (timestamp.strftime("%H:%M"), time.nice_duration(now - timestamp), message))
-				})
 
 		asyncio.async(slack.send_message(text, attachments=attachments), loop=self.loop).add_done_callback(utils.check_exception)
+
+	def get_chat_log(self, user):
+		attachments = []
+		now = datetime.datetime.now(config["timezone"])
+
+		log = self.lrrbot.metadata.tables["log"]
+		with self.lrrbot.engine.begin() as conn:
+			rows = conn.execute(sqlalchemy.select([log.c.id, log.c.time, log.c.message])
+				.where(log.c.source == user.lower())
+				.where(log.c.time > now - datetime.timedelta(days=1))
+				.limit(3)
+				.order_by(log.c.time.asc())).fetchall()
+
+		for logid, timestamp, message in rows:
+			timestamp = timestamp.astimezone(config["timezone"])
+			attachments.append({
+				'text': slack.escape("%s (%s ago): %s" % (timestamp.strftime("%H:%M"), time.nice_duration(now - timestamp), message))
+			})
+
+		return logid, attachments
