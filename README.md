@@ -18,7 +18,7 @@ Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon
 
  1. These commands assume Ubuntu 16.10 and that you're using Bash as your shell. Adapt as needed.  
     ```
-    sudo apt-get install git postgresql-9.5 postgresql-server-dev-9.5 python3.5-dev virtualenv
+    sudo apt-get install git postgresql-9.5 postgresql-server-dev-9.5 python3.5-dev virtualenv build-essential
     git clone git@github.com:mrphlip/lrrbot
     cd lrrbot
     virtualenv -p python3.5 venv
