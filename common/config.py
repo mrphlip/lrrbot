@@ -45,6 +45,9 @@ config['checksubstime'] = int(config.get('checksubstime', 60))
 # debug - boolean option
 config.setdefault('debug', False)
 config['debug'] = str(config['debug']).lower() != 'false'
+# debugsql - boolean option, enables debugging mode for sqlalchemy
+config.setdefault('debugsql', config['debug'])
+config['debugsql'] = str(config['debugsql']).lower() != 'false'
 
 # notifyuser - user to watch for notifications
 config['notifyuser'] = config.get('notifyuser', 'twitchnotify').lower()

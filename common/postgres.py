@@ -11,7 +11,7 @@ def new_engine_and_metadata():
 
 	NOTE: Every process should have AT MOST one engine.
 	"""
-	engine = sqlalchemy.create_engine(config["postgres"], echo=config["debug"], execution_options={"autocommit": False})
+	engine = sqlalchemy.create_engine(config["postgres"], echo=config["debugsql"], execution_options={"autocommit": False})
 	metadata = sqlalchemy.MetaData(bind=engine)
 	with warnings.catch_warnings():
 		# Yes, I know you can't understand FTS indexes.
