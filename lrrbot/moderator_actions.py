@@ -61,6 +61,18 @@ class ModeratorActions:
 			self.last_ban = None
 
 			text = "%s was unbanned by %s." % (slack.escape(user), slack.escape(mod))
+		elif action == 'untimeout':
+			user = args[0]
+			attachments = []
+			self.last_ban = None
+
+			text = "%s was untimed-out by %s." % (slack.escape(user), slack.escape(mod))
+		else:
+			log.info("Got unrecognised message: %r", message['data'])
+			attachments = []
+			self.last_ban = None
+
+			text = "%s did a %s: %s" % (slack.escape(mod), slack.escape(action), slack.escape(repr(args)))
 
 		asyncio.async(slack.send_message(text, attachments=attachments), loop=self.loop).add_done_callback(utils.check_exception)
 
