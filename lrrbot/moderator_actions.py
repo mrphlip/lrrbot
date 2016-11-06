@@ -7,6 +7,9 @@ from common import utils
 from common import time
 from common import slack
 from common.config import config
+import logging
+
+log = logging.getLog("moderator_actions")
 
 class ModeratorActions:
 	def __init__(self, lrrbot, loop):
