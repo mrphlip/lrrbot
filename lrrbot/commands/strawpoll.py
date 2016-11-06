@@ -1,6 +1,7 @@
 import time
 import json
 import random
+import html
 
 import common.http
 import common.time
@@ -13,7 +14,7 @@ DEFAULT_TIMEOUT = 180
 
 def strawpoll_format(data):
 	i, (name, count) = data
-	return "%s: %s (%d vote%s)" % (i+1, name, count, '' if count == 1 else 's')
+	return "%s: %s (%d vote%s)" % (i+1, html.unescape(name), count, '' if count == 1 else 's')
 
 def check_polls(lrrbot, conn):
 	now = time.time()
@@ -23,7 +24,7 @@ def check_polls(lrrbot, conn):
 			data = json.loads(common.http.request(url))
 			options = sorted(zip(data["options"], data["votes"]), key=lambda e: (e[1], random.random()), reverse=True)
 			options = "; ".join(map(strawpoll_format, enumerate(options)))
-			response = "Poll complete: %s: %s" % (data["title"], options)
+			response = "Poll complete: %s: %s" % (html.unescape(data["title"]), options)
 			response = utils.shorten(response, 450)
 			conn.privmsg(respond_to, response)
 	lrrbot.polls = list(filter(lambda e: e[0] >= now, lrrbot.polls))
@@ -60,7 +61,7 @@ def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, title, op
 	if poll_id is not None:
 		url = "https://www.strawpoll.me/api/v2/polls/%s" % poll_id
 		data = json.loads(common.http.request(url))
-		title = data["title"]
+		title = html.unescape(data["title"])
 	else:
 		if title is None:
 			title = "LoadingReadyLive poll"
