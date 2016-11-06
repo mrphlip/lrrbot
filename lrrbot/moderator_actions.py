@@ -17,11 +17,13 @@ class ModeratorActions:
 
 		users = self.lrrbot.metadata.tables["users"]
 		with self.lrrbot.engine.begin() as conn:
-			channel_id, = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == config['channel'])).first()
+			row = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == config['channel'])).first()
+		if row is not None:
+			channel_id, = row
 
-		self.lrrbot.pubsub.subscribe(["chat_moderator_actions.%s" % channel_id], config['channel'])
+			self.lrrbot.pubsub.subscribe(["chat_moderator_actions.%s" % channel_id], config['channel'])
 
-		pubsub.signals.signal("chat_moderator_actions.%s" % channel_id) .connect(self.on_message)
+			pubsub.signals.signal("chat_moderator_actions.%s" % channel_id) .connect(self.on_message)
 
 	def on_message(self, sender, message):
 		action = message['data']['moderation_action']
