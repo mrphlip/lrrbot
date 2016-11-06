@@ -19,7 +19,7 @@ import common.rpc
 
 with server.db.engine.begin() as conn:
 	users = server.db.metadata.tables["users"]
-	for key, name in from_apipass:
+	for key, name in from_apipass.items():
 		query = insert(users) \
 			.values(id=sqlalchemy.bindparam("_id")) \
 			.returning(users.c.id)
