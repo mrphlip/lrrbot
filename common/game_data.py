@@ -1,5 +1,6 @@
 import contextlib
 import sqlalchemy
+from sqlalchemy.dialects.postgresql import insert
 
 TABLES = [
 	"game_per_show_data",
@@ -28,12 +29,19 @@ def merge_games(conn, metadata, old_id, new_id, result_id):
 	})
 
 	game_stats = metadata.tables["game_stats"]
-	conn.execute(game_stats.insert(postgresql_on_conflict="update")
+	query = insert(game_stats) \
 		.from_select(["game_id", "show_id", "stat_id", "count"],
 			sqlalchemy.select([result_id, game_stats.c.show_id, game_stats.c.stat_id, sqlalchemy.func.sum(game_stats.c.count)])
 				.where((game_stats.c.game_id == old_id) | (game_stats.c.game_id == new_id))
 				.group_by(game_stats.c.show_id, game_stats.c.stat_id)
-		), {
+		)
+	query = query.on_conflict_do_update(
+		index_elements=[game_stats.c.game_id, game_stats.c.show_id, game_stats.c.stat_id],
+		set_={
+			'count': query.excluded.count,
+		}
+	)
+	conn.execute(query, {
 		"result_id": result_id,
 		"old_id": old_id,
 		"new_id": new_id,

@@ -1,5 +1,6 @@
 import flask
 import sqlalchemy
+from sqlalchemy.dialects.postgresql import insert
 from www import server
 from www import login
 import common.rpc
@@ -76,7 +77,14 @@ async def votes(session):
 def vote_submit(session):
 	game_votes = server.db.metadata.tables["game_votes"]
 	with server.db.engine.begin() as conn:
-		conn.execute(game_votes.insert(postgresql_on_conflict="update"), {
+		query = insert(game_votes)
+		query = query.on_conflict_do_update(
+			index_elements=[game_votes.c.game_id, game_votes.c.show_id, game_votes.c.user_id],
+			set_={
+				'vote': query.excluded.vote,
+			}
+		)
+		conn.execute(query, {
 			"game_id": int(flask.request.values['id']),
 			"show_id": int(flask.request.values['show']),
 			"user_id": session["user"]["id"],

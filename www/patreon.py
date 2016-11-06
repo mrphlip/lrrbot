@@ -8,12 +8,12 @@ from flaskext.csrf import csrf_exempt
 import hmac
 import os
 import sqlalchemy
+from sqlalchemy.dialects.postgresql import insert
 import urllib.parse
 from www import server
 from www import login
 from common.config import config
 from common import patreon
-from common import sqlalchemy_pg95_upsert
 from common import utils
 import common.rpc
 
@@ -116,11 +116,18 @@ def patreon_login(session):
 			continue
 		break
 	with server.db.engine.begin() as conn:
-		do_update = sqlalchemy_pg95_upsert.DoUpdate(patreon_users.c.patreon_id)
-		do_update.set_with_excluded('full_name', 'access_token', 'refresh_token', 'token_expires', 'pledge_start')
-		patreon_user, = conn.execute(
-			patreon_users.insert(postgresql_on_conflict=do_update)
-				.returning(patreon_users.c.id),
+		query = insert(patreon_users).returning(patreon_users.c.id)
+		query = query.on_conflict_do_update(
+			index_elements=[patreon_users.c.patreon_id],
+			set_={
+				'full_name': query.excluded.full_name,
+				'access_token': query.excluded.access_token,
+				'refresh_token': query.excluded.refresh_token,
+				'token_expires': query.excluded.token_expires,
+				'pledge_start': query.excluded.pledge_start,
+			}
+		)
+		patreon_user, = conn.execute(query,
 			patreon_id=user['data']['id'],
 			full_name=user['data']['attributes']['full_name'],
 			access_token=access_token,
@@ -177,11 +184,15 @@ async def patreon_webhooks():
 	event = flask.request.headers['X-Patreon-Event']
 	if event == 'pledges:create':
 		with server.db.engine.begin() as conn:
-			do_update = sqlalchemy_pg95_upsert.DoUpdate(patreon_users.c.patreon_id)
-			do_update.set_with_excluded('full_name', 'pledge_start')
-			patron_id, = conn.execute(
-				patreon_users.insert(postgresql_on_conflict=do_update)
-						.returning(patreon_users.c.id),
+			query = insert(patreon_users).returning(patreon_users.c.id)
+			query = query.on_conflict_do_update(
+				index_elements=[patreon_users.c.patreon_id],
+				set_={
+					'full_name': query.excluded.full_name,
+					'pledge_start': query.excluded.pledge_start,
+				}
+			)
+			patron_id, = conn.execute(query,
 					patreon_id=patron['id'],
 					full_name=patron['attributes']['full_name'],
 					pledge_start=pledge_start,
@@ -207,23 +218,33 @@ async def patreon_webhooks():
 				raise result
 	elif event == 'pledges:update':
 		with server.db.engine.begin() as conn:
-			do_update = sqlalchemy_pg95_upsert.DoUpdate(patreon_users.c.patreon_id)
-			do_update.set_with_excluded('full_name', 'pledge_start')
-			conn.execute(
-				patreon_users.insert(postgresql_on_conflict=do_update),
-					patreon_id=patron['id'],
-					full_name=patron['attributes']['full_name'],
-					pledge_start=pledge_start,
+			query = insert(patreon_users).returning(patreon_users.c.id)
+			query = query.on_conflict_do_update(
+				index_elements=[patreon_users.c.patreon_id],
+				set_={
+					'full_name': query.excluded.full_name,
+					'pledge_start': query.excluded.pledge_start,
+				}
+			)
+			conn.execute(query,
+				patreon_id=patron['id'],
+				full_name=patron['attributes']['full_name'],
+				pledge_start=pledge_start,
 			)
 	elif event == 'pledges:delete':
 		with server.db.engine.begin() as conn:
-			do_update = sqlalchemy_pg95_upsert.DoUpdate(patreon_users.c.patreon_id)
-			do_update.set_with_excluded('full_name', 'pledge_start')
-			conn.execute(
-				patreon_users.insert(postgresql_on_conflict=do_update),
-					patreon_id=patron['id'],
-					full_name=patron['attributes']['full_name'],
-					pledge_start=None,
+			query = insert(patreon_users).returning(patreon_users.c.id)
+			query = query.on_conflict_do_update(
+				index_elements=[patreon_users.c.patreon_id],
+				set_={
+					'full_name': query.excluded.full_name,
+					'pledge_start': query.excluded.pledge_start,
+				}
+			)
+			conn.execute(query,
+				patreon_id=patron['id'],
+				full_name=patron['attributes']['full_name'],
+				pledge_start=None,
 			)
 	else:
 		raise NotImplementedError(event)
