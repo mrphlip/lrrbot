@@ -7,6 +7,7 @@ import uuid
 import flask
 import flask.json
 import sqlalchemy
+from sqlalchemy.dialects.postgresql import insert
 
 import www.utils
 from www import server
@@ -18,15 +19,18 @@ import common.rpc
 
 with server.db.engine.begin() as conn:
 	users = server.db.metadata.tables["users"]
-	from_apipass = {
-		key: conn.execute(
-				users.insert(postgresql_on_conflict="update")
-					.values(id=sqlalchemy.bindparam("_id"))
-					.returning(users.c.id),
-			twitch.get_user(name)
-		).first()[0]
-		for key, name in from_apipass.items()
-	}
+	for key, name in from_apipass:
+		query = insert(users) \
+			.values(id=sqlalchemy.bindparam("_id")) \
+			.returning(users.c.id)
+		query = query.on_conflict_do_update(
+			index_elements=[users.c.id],
+			set_={
+				'name': query.excluded.name,
+				'display_name': query.excluded.display_name,
+			},
+		)
+		from_apipass[name], = conn.execute(query, twitch.get_user(name)).first()
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
@@ -117,12 +121,17 @@ async def load_session(include_url=True, include_header=True):
 	if user_id is None and user_name is not None:
 		# Upgrade old session
 		with server.db.engine.begin() as conn:
-			user_id, = conn.execute(
-				users.insert(postgresql_on_conflict="update")
-					.values(id=sqlalchemy.bindparam("_id"))
-					.returning(users.c.id),
-				twitch.get_user(user_name)
-			).first()
+			query = insert(users) \
+				.values(id=sqlalchemy.bindparam("_id")) \
+				.returning(users.c.id)
+			query = query.on_conflict_do_update(
+				index_elements=[users.c.id],
+				set_={
+					'name': query.excluded.name,
+					'display_name': query.excluded.display_name,
+				},
+			)
+			user_id, = conn.execute(query, twitch.get_user(user_name)).first()
 		flask.session["id"] = user_id
 	if 'user' in flask.session:
 		del flask.session["user"]
@@ -305,7 +314,15 @@ async def login(return_to=None):
 			user["id"] = user["_id"]
 			user["twitch_oauth"] = access_token
 			with server.db.engine.begin() as conn:
-				conn.execute(users.insert(postgresql_on_conflict="update"), user)
+				query = insert(users)
+				query = query.on_conflict_do_update(
+					index_elements=[users.c.id],
+					set_={
+						'name': query.excluded.name,
+						'display_name': query.excluded.display_name,
+					},
+				)
+				conn.execute(query, user)
 
 			# Store the user ID into the session
 			flask.session['id'] = user["_id"]

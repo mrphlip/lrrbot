@@ -1,15 +1,20 @@
 import datetime
 import sqlalchemy
+from sqlalchemy.dialects.postgresql import insert
 
 from common.config import config
-from common.sqlalchemy_pg95_upsert import DoUpdate
 
 def increment(engine, metadata, counter, by=1):
 	storm = metadata.tables['storm']
-	excluded = sqlalchemy.table('excluded', sqlalchemy.column(counter))
 	with engine.begin() as conn:
-		do_update = DoUpdate([storm.c.date]).set(**{counter: storm.c[counter] + excluded.c[counter]})
-		count, = conn.execute(storm.insert(postgresql_on_conflict=do_update).returning(storm.c[counter]), {
+		query = insert(storm).returning(storm.c[counter])
+		query = query.on_conflict_do_update(
+			index_elements=[storm.c.date],
+			set_={
+				counter: storm.c[counter] + query.excluded[counter],
+			}
+		)
+		count, = conn.execute(query, {
 			'date': datetime.datetime.now(config['timezone']).date(),
 			counter: by,
 		}).first()

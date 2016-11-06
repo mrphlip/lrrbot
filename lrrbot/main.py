@@ -10,6 +10,7 @@ import irc.bot
 import irc.client
 import irc.connection
 import sqlalchemy
+from sqlalchemy.dialects.postgresql import insert
 
 import common.postgres
 import lrrbot.decorators
@@ -20,7 +21,6 @@ from common import twitch
 from common import slack
 from common import game_data
 from common.pubsub import PubSub
-from common.sqlalchemy_pg95_upsert import DoUpdate
 from lrrbot import chatlog, storage, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
 from lrrbot import spam
 from lrrbot import command_parser
@@ -269,7 +269,17 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		patreon_users = self.metadata.tables["patreon_users"]
 		with self.engine.begin() as conn:
 			if event.type == "pubmsg":
-				conn.execute(users.insert(postgresql_on_conflict="update"), {
+				query = insert(users)
+				query = query.on_conflict_do_update(
+					index_elements=[users.c.id],
+					set_={
+						'name': query.excluded.name,
+						'display_name': query.excluded.display_name,
+						'is_sub': query.excluded.is_sub,
+						'is_mod': query.excluded.is_mod,
+					},
+				)
+				conn.execute(query, {
 					"id": tags["user-id"],
 					"name": nick,
 					"display_name": tags.get("display-name"),
@@ -321,7 +331,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					})
 				else:
 					old_id, = old_id
-					conn.execute(games.insert(postgresql_on_conflict="nothing"), {
+					conn.execute(insert(games).on_conflict_do_nothing(index_elements=[games.c.id]), {
 						"id": game_id,
 						"name": "__LRRBOT_TEMP_GAME_%s__" % game_name,
 					})
@@ -343,10 +353,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			games = self.metadata.tables["games"]
 			with self.engine.begin() as conn:
+				query = insert(games).returning(games.c.id)
 				# need to update to get the `id`
-				self.game_override, = conn.execute(
-					games.insert(postgresql_on_conflict=DoUpdate([games.c.name]).set_with_excluded(games.c.name))
-						.returning(games.c.id), {
+				query = query.on_conflict_do_update(
+					index_elements=[games.c.name],
+					set_={
+						'name': query.excluded.name,
+					}
+				)
+				self.game_override, = conn.execute(query, {
 					"name": name,
 				}).first()
 		self.get_game_id.reset_throttle()
@@ -363,8 +378,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		shows = self.metadata.tables["shows"]
 		with self.engine.begin() as conn:
 			# need to update to get the `id`
-			self.show_id, = conn.execute(shows.insert(postgresql_on_conflict=DoUpdate([shows.c.string_id])
-					.set_with_excluded(shows.c.string_id)).returning(shows.c.id), {
+			query = insert(shows).returning(shows.c.id)
+			query = query.on_conflict_do_update(
+				index_elements=[shows.c.string_id],
+				set_={
+					'string_id': query.excluded.string_id,
+				},
+			)
+			self.show_id, = conn.execute(query, {
 				"name": string_id,
 				"string_id": string_id,
 			}).first()

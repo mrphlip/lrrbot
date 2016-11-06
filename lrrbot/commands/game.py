@@ -1,5 +1,7 @@
 import irc
 import sqlalchemy
+from sqlalchemy.dialects.postgresql import insert
+
 
 import lrrbot.decorators
 from common import utils
@@ -69,7 +71,14 @@ def vote(lrrbot, conn, event, respond_to, vote_good, vote_bad):
 	show_id = lrrbot.get_show_id()
 	game_votes = lrrbot.metadata.tables["game_votes"]
 	with lrrbot.engine.begin() as pg_conn:
-		pg_conn.execute(game_votes.insert(postgresql_on_conflict="update"), {
+		query = insert(game_votes)
+		query = query.on_conflict_do_update(
+			index_elements=[game_votes.c.game_id, game_votes.c.show_id, game_votes.c.user_id],
+			set_= {
+				'vote': query.excluded.vote,
+			}
+		)
+		pg_conn.execute(query, {
 			"game_id": game_id,
 			"show_id": show_id,
 			"user_id": event.tags["user-id"],
@@ -132,12 +141,21 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 	games = lrrbot.metadata.tables["games"]
 	game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
 	with lrrbot.engine.begin() as pg_conn:
-		real_name, = pg_conn.execute(sqlalchemy.select([games.c.name]).where(games.c.id == game_id)).first()
-		pg_conn.execute(game_per_show_data.insert(postgresql_on_conflict="update"), {
+		name_query = sqlalchemy.select([games.c.name]).where(games.c.id == game_id)
+		# NULLIF: https://www.postgresql.org/docs/9.6/static/functions-conditional.html#FUNCTIONS-NULLIF
+		query = insert(game_per_show_data).values({
 			"game_id": game_id,
 			"show_id": show_id,
-			"display_name": name if real_name != name else None,
+			'display_name': sqlalchemy.func.nullif(name, name_query),
 		})
+		query = query.on_conflict_do_update(
+			index_elements=[game_per_show_data.c.game_id, game_per_show_data.c.show_id],
+			set_={
+				'display_name': query.excluded.display_name,
+			}
+		)
+		pg_conn.execute(query)
+		real_name, = pg_conn.execute(name_query).first()
 
 		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (real_name, name))
 

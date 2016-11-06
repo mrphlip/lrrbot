@@ -1,5 +1,3 @@
-import common.sqlalchemy_pg95_upsert
-
 from flask import Flask
 from flaskext.csrf import csrf
 import flaskext.csrf
@@ -11,7 +9,6 @@ import functools
 
 from common.config import config
 from common import space
-from common import sqlalchemy_pg95_upsert
 
 class Application(Flask):
 	def __init__(self, *args, **kwargs):

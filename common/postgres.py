@@ -1,5 +1,3 @@
-import common.sqlalchemy_pg95_upsert
-
 import functools
 import warnings
 

@@ -1,9 +1,9 @@
 import irc.client
 import sqlalchemy
+from sqlalchemy.dialects.postgresql import insert
 
 from common import game_data
 
-from common.sqlalchemy_pg95_upsert import DoUpdate
 import lrrbot.decorators
 from lrrbot import storage
 from lrrbot.main import bot
@@ -14,9 +14,14 @@ with bot.engine.begin() as conn:
 
 def stat_increment(lrrbot, conn, game_id, show_id, stat_id, n):
 	game_stats = lrrbot.metadata.tables["game_stats"]
-	do_update = DoUpdate([game_stats.c.game_id, game_stats.c.show_id, game_stats.c.stat_id]) \
-		.set(count=game_stats.c.count + sqlalchemy.literal_column("EXCLUDED.count"))
-	conn.execute(game_stats.insert(postgresql_on_conflict=do_update), {
+	query = insert(game_stats)
+	query = query.on_conflict_do_update(
+		index_elements=[game_stats.c.game_id, game_stats.c.show_id, game_stats.c.stat_id],
+		set_={
+			'count': game_stats.c.count + query.excluded.count,
+		}
+	)
+	conn.execute(query, {
 		"game_id": game_id,
 		"show_id": show_id,
 		"stat_id": stat_id,
@@ -25,7 +30,14 @@ def stat_increment(lrrbot, conn, game_id, show_id, stat_id, n):
 
 def stat_set(lrrbot, conn, game_id, show_id, stat_id, n):
 	game_stats = lrrbot.metadata.tables["game_stats"]
-	conn.execute(game_stats.insert(postgresql_on_conflict="update"), {
+	query = insert(game_stats)
+	query = query.on_conflict_do_update(
+		index_elements=[game_stats.c.game_id, game_stats.c.show_id, game_stats.c.stat_id],
+		set_={
+			'count': query.excluded.count,
+		}
+	)
+	conn.execute(query, {
 		"game_id": game_id,
 		"show_id": show_id,
 		"stat_id": stat_id,
