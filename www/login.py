@@ -30,7 +30,7 @@ with server.db.engine.begin() as conn:
 				'display_name': query.excluded.display_name,
 			},
 		)
-		from_apipass[name], = conn.execute(query, twitch.get_user(name)).first()
+		from_apipass[key], = conn.execute(query, twitch.get_user(name)).first()
 
 # See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
 # We don't actually need, or want, any at present
