@@ -105,11 +105,11 @@ def get_subscribers(channel, token, count=5, offset=None, latest=True):
 		"Client-ID": config['twitch_clientid'],
 	}
 	data = {
-		"limit": count,
+		"limit": str(count),
 		"direction": "desc" if latest else "asc",
 	}
 	if offset is not None:
-		data['offset'] = offset
+		data['offset'] = str(offset)
 	res = yield from common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
 	subscriber_data = json.loads(res)
 	return [
@@ -177,10 +177,10 @@ def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
 		"Client-ID": config['twitch_clientid'],
 	}
 	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/videos" % channel, headers=headers, data={
-		"offset": offset,
-		"limit": limit,
+		"offset": str(offset),
+		"limit": str(limit),
 		"broadcasts": "true" if broadcasts else "false",
-		"hls": hls,
+		"hls": "true" if hls else "false",
 	})
 	return json.loads(data)["videos"]
 
@@ -194,7 +194,7 @@ class get_followers:
 	def __init__(self, channel, limit=25, direction='desc'):
 		self.next_url = "https://api.twitch.tv/kraken/channels/%s/follows" % channel
 		self.params = {
-			'limit': limit,
+			'limit': str(limit),
 			'direction': direction,
 		}
 		self.headers = {
