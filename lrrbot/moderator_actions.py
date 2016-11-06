@@ -9,7 +9,7 @@ from common import slack
 from common.config import config
 import logging
 
-log = logging.getLog("moderator_actions")
+log = logging.getLogger("moderator_actions")
 
 class ModeratorActions:
 	def __init__(self, lrrbot, loop):
