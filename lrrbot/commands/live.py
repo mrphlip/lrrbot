@@ -18,7 +18,7 @@ import sqlalchemy
 def extract_new_channels(loop, token):
 	data = yield from common.http.request_coro(googlecalendar.EVENTS_URL % urllib.parse.quote(googlecalendar.CALENDAR_FAN), {
 		"key": config["google_key"],
-		"maxResults": 25000,
+		"maxResults": "25000",
 	})
 	data = json.loads(data)
 
