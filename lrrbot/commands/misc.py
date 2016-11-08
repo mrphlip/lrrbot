@@ -72,7 +72,7 @@ def spamcount(lrrbot, conn, event, respond_to):
 		storage.data["spam"]["count"]))
 
 DESERTBUS_START = config["timezone"].localize(datetime.datetime(2016, 11, 12, 10, 0))
-DESERTBUS_PRESTART = config["timezone"].localize(datetime.datetime(2016, 11, 10, 14, 0))
+DESERTBUS_PRESTART = config["timezone"].localize(datetime.datetime(2016, 11, 8, 0, 0))
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
 @bot.command("next( .*)?")
