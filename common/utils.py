@@ -319,7 +319,7 @@ def pick_random_elements(iterable, k):
 		ret[i] = elem
 
 	for i, elem in iterable:
-		j = random.randrange(i)
+		j = random.randrange(i+1)
 		if j < k:
 			ret[j] = elem
 
