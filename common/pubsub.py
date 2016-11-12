@@ -17,8 +17,8 @@ signals = blinker.Namespace()
 log = logging.getLogger('common.pubsub')
 
 class Topic:
-	def __init__(self, user):
-		self.user = user
+	def __init__(self, as_user):
+		self.as_user = as_user
 		self.refcount = 1
 
 class PubSub:
@@ -81,7 +81,7 @@ class PubSub:
 		if len(new_topics) > 0:
 			if self.stream is not None:
 				self._listen(new_topics, as_user)
-			else:
+			elif self.task is None:
 				self.task = asyncio.ensure_future(self.message_pump())
 
 	def unsubscribe(self, topics):
@@ -138,7 +138,7 @@ class PubSub:
 					# TODO: coalesce topics
 					for_user = {}
 					for topic, data in self.topics.items():
-						for_user.setdefault(data.user, []).append(topic)
+						for_user.setdefault(data.as_user, []).append(topic)
 					for user, topics in for_user.items():
 						self._listen(topics, user)
 

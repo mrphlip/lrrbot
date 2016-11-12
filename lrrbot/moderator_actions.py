@@ -20,13 +20,15 @@ class ModeratorActions:
 
 		users = self.lrrbot.metadata.tables["users"]
 		with self.lrrbot.engine.begin() as conn:
-			row = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == config['channel'])).first()
-		if row is not None:
-			channel_id, = row
+			selfrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == config['username'])).first()
+			targetrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == config['channel'])).first()
+		if selfrow is not None and targetrow is not None:
+			self_channel_id, = selfrow
+			target_channel_id, = targetrow
+			topic = "chat_moderator_actions.%s.%s" % (self_channel_id, target_channel_id)
 
-			self.lrrbot.pubsub.subscribe(["chat_moderator_actions.%s" % channel_id], config['channel'])
-
-			pubsub.signals.signal("chat_moderator_actions.%s" % channel_id) .connect(self.on_message)
+			self.lrrbot.pubsub.subscribe([topic])
+			pubsub.signals.signal(topic).connect(self.on_message)
 
 	def on_message(self, sender, message):
 		action = message['data']['moderation_action']
@@ -91,6 +93,7 @@ class ModeratorActions:
 				.limit(3)
 				.order_by(log.c.time.asc())).fetchall()
 
+		logid = -1
 		for logid, timestamp, message in rows:
 			timestamp = timestamp.astimezone(config["timezone"])
 			attachments.append({
