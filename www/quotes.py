@@ -56,7 +56,9 @@ def quote_search(session):
 		.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == quotes.c.game_id) & (game_per_show_data.c.show_id == quotes.c.show_id))
 	).where(~quotes.c.deleted).order_by(quotes.c.id.desc())
 	if mode == 'text':
-		fts_column = sqlalchemy.func.to_tsvector('english', quotes.c.quote)
+		fts_column = sqlalchemy.func.to_tsvector(
+			'english', quotes.c.quote + ' ' + sqlalchemy.func.coalesce(quotes.c.context, '')
+		)
 		sql = sql.where(fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', query)))
 	elif mode == 'name':
 		sql = sql.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(query.lower()) + "%"))
