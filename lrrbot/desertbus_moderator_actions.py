@@ -91,6 +91,7 @@ class ModeratorActions:
 			("What was the cause of the enforcement action?", reason),
 			("Last Line", last),
 		]
+		log.debug("Add row: %r", data)
 		asyncio.async(gdata.add_rows_to_spreadsheet(SPREADSHEET, [data]), loop=self.loop).add_done_callback(utils.check_exception)
 
 	def nice_time(self, s):
@@ -120,4 +121,4 @@ class ModeratorActions:
 			del self.last_chat[i]
 
 	def on_connect(self, conn, event):
-		self.conn.join("#" + WATCHCHANNEL)
+		conn.join("#" + WATCHCHANNEL)
