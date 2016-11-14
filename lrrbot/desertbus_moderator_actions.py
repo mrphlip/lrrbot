@@ -11,10 +11,12 @@ import sqlalchemy
 
 from common import pubsub
 from common import utils
-from common import time
+from common import time as ctime
 from common import gdata
 from common.config import config
 import logging
+import time
+import irc.client
 
 log = logging.getLogger("desertbus_moderator_actions")
 
@@ -28,6 +30,13 @@ class ModeratorActions:
 		self.lrrbot = lrrbot
 		self.loop = loop
 
+		self.last_chat = {}
+
+		self.lrrbot.reactor.add_global_handler("pubmsg", self.record_db_chat, -2)
+		self.lrrbot.reactor.add_global_handler("all_events", self.drop_db_events, -1)
+		self.lrrbot.reactor.add_global_handler("welcome", self.on_connect, 2)
+		self.lrrbot.reactor.execute_every(period=60, function=self.clear_chat)
+
 		users = self.lrrbot.metadata.tables["users"]
 		with self.lrrbot.engine.begin() as conn:
 			selfrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == WATCHAS)).first()
@@ -40,6 +49,7 @@ class ModeratorActions:
 			self.lrrbot.pubsub.subscribe([topic], WATCHAS)
 			pubsub.signals.signal(topic).connect(self.on_message)
 
+	@utils.swallow_errors
 	def on_message(self, sender, message):
 		action = message['data']['moderation_action']
 		args = message['data']['args']
@@ -47,23 +57,28 @@ class ModeratorActions:
 
 		if action == 'timeout':
 			user = args[0]
-			action = "Timeout: %s" % time.nice_duration(int(args[1]))
+			action = "Timeout: %s" % ctime.nice_duration(int(args[1]))
 			reason = args[2] if len(args) >= 3 else ''
+			last = self.last_chat.get(user.lower(), [''])[0]
 		elif action == 'ban':
 			user = args[0]
 			action = "Ban"
 			reason = args[1] if len(args) >= 2 else ''
+			last = self.last_chat.get(user.lower(), [''])[0]
 		elif action == 'unban':
 			user = args[0]
 			action = "Unban"
 			reason = ''
+			last = ''
 		elif action == 'untimeout':
 			user = args[0]
 			action = "Untimeout"
 			reason = ''
+			last = ''
 		else:
 			user = ''
 			reason = repr(args)
+			last = ''
 
 		now = datetime.datetime.now(config["timezone"])
 
@@ -74,6 +89,7 @@ class ModeratorActions:
 			("Moderator", mod),
 			("Enforcement option/length", action),
 			("What was the cause of the enforcement action?", reason),
+			("Last Line", last),
 		]
 		asyncio.async(gdata.add_rows_to_spreadsheet(SPREADSHEET, [data]), loop=self.loop).add_done_callback(utils.check_exception)
 
@@ -83,3 +99,25 @@ class ModeratorActions:
 		if s < 0:
 			return "-" + self.nice_time(-s)
 		return "%d:%02d:%02d" % (s // 3600, (s // 60) % 60, s % 60)
+
+	@utils.swallow_errors
+	def record_db_chat(self, conn, event):
+		if event.target == "#" + WATCHCHANNEL:
+			source = irc.client.NickMask(event.source)
+			self.last_chat[source.nick.lower()] = (event.arguments[0], time.time())
+			return "NO MORE"
+
+	@utils.swallow_errors
+	def drop_db_events(self, conn, event):
+		if event.target == "#" + WATCHCHANNEL and event.type != "action":
+			return "NO MORE"
+
+	@utils.swallow_errors
+	def clear_chat(self):
+		cutoff = time.time() - 10*60
+		to_remove = [k for k, v in self.last_chat.items() if v[1] < cutoff]
+		for i in to_remove:
+			del self.last_chat[i]
+
+	def on_connect(self, conn, event):
+		self.conn.join("#" + WATCHCHANNEL)
