@@ -91,10 +91,10 @@ class ModeratorActions:
 				.where(log.c.source == user.lower())
 				.where(log.c.time > now - datetime.timedelta(days=1))
 				.limit(3)
-				.order_by(log.c.time.asc())).fetchall()
+				.order_by(log.c.time.desc())).fetchall()
 
 		logid = -1
-		for logid, timestamp, message in rows:
+		for logid, timestamp, message in rows[::-1]:
 			timestamp = timestamp.astimezone(config["timezone"])
 			attachments.append({
 				'text': slack.escape("%s (%s ago): %s" % (timestamp.strftime("%H:%M"), time.nice_duration(now - timestamp), message))
