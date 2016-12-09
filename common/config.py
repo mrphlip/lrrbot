@@ -40,7 +40,8 @@ config['keepalivetime'] = int(config.get('keepalivetime', 60))
 # keepalivethreshold - number of keep-alive pings with no response before giving up
 config['keepalivethreshold'] = int(config.get('keepalivethreshold', 5))
 # checksubstime - seconds between checking for new subscribers via Twitch API
-config['checksubstime'] = int(config.get('checksubstime', 60))
+# Can be 0 to disable API sub checking
+config['checksubstime'] = int(config.get('checksubstime', 0))
 
 # debug - boolean option
 config.setdefault('debug', False)

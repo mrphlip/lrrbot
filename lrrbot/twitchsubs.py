@@ -38,7 +38,8 @@ class TwitchSubs:
 		self.lrrbot.reactor.add_global_handler('pubmsg', self.on_notification, 90)
 		self.lrrbot.reactor.add_global_handler('usernotice', self.on_usernotice, 90)
 
-		self.watch_subs()
+		if config['checksubstime']:
+			self.watch_subs()
 
 	def watch_subs(self):
 		asyncio.ensure_future(self.do_check()).add_done_callback(utils.check_exception)
