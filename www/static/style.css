@@ -291,6 +291,45 @@ ul.pagination li :visited {
 	vertical-align: middle;
 }
 
+#milestones {
+	width: 1.25em;
+	height: 1.25em;
+	position: relative;
+	margin: 0 0 0.25em auto;
+}
+#milestoneshow {
+	border: 1px solid #333;
+	background: #AAA;
+	color: #000;
+	font-weight: bold;
+	text-align: center;
+	line-height: 1.25em;
+	cursor: pointer;
+}
+#milestonetable {
+	position: absolute;
+	right: 0;
+	top: 1.25em;
+	background: white;
+	white-space: nowrap;
+	display: none;
+}
+#milestonetable table {
+	margin: 0;
+}
+#milestonetable .name {
+	border-right: none;
+}
+#milestonetable .months {
+	text-align: right;
+	font-weight: bold;
+	border-left: none;
+}
+#milestonetable .date {
+	font-size: 80%;
+	color: #666;
+}
+
 table.nicetable, table.nicetable tr, table.nicetable td, table.nicetable th {
 	border: 1px solid black;
 	border-collapse: collapse;

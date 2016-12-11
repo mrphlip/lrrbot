@@ -12,6 +12,15 @@ from common.config import config
 from www import server
 from www import login
 
+MILESTONES = [
+	("LoadingReadyRun launch", config["timezone"].localize(datetime.datetime(2003, 10, 24))),
+	("First Twitch stream", config["timezone"].localize(datetime.datetime(2012, 1, 14, 21, 0))),
+	("Twitch partnership", config["timezone"].localize(datetime.datetime(2013, 8, 31, 10, 0))),
+	("YRR of LRR launch", config["timezone"].localize(datetime.datetime(2014, 1, 7))),
+	("YRR of LRR finale", config["timezone"].localize(datetime.datetime(2014, 12, 29, 18, 30))),
+	("LoadingReadyLive Premiere", config["timezone"].localize(datetime.datetime(2016, 5, 14, 17, 0))),
+]
+
 def get_events():
 	events = server.db.metadata.tables['events']
 	recent_events = []
@@ -31,6 +40,14 @@ def get_events():
 		last_event_id = conn.execute(sqlalchemy.select([sqlalchemy.func.max(events.c.id)])).first()
 		last_event_id = last_event_id[0] if last_event_id is not None else 0
 	return last_event_id, recent_events
+
+def get_milestones():
+	now = datetime.datetime.now(config['timezone'])
+	for name, dt in MILESTONES:
+		months = (now.year - dt.year) * 12 + now.month - dt.month
+		if (now.day, now.hour, now.minute, now.second) > (dt.day, dt.hour, dt.minute, dt.second):
+			months += 1
+		yield name, dt.strftime("%Y-%m-%d"), months
 
 @server.app.route('/notifications')
 @login.with_session
@@ -52,4 +69,4 @@ def notifications(session):
 	if name:
 		name = name[0]
 
-	return flask.render_template('notifications.html', events=events, last_event_id=last_event_id, eventserver_root=eventserver_root, session=session, patreon_creator_name=name)
+	return flask.render_template('notifications.html', events=events, last_event_id=last_event_id, eventserver_root=eventserver_root, session=session, patreon_creator_name=name, milestones=get_milestones())

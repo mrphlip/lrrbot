@@ -10,6 +10,22 @@
 </script>
 {%endblock%}
 {%block content%}
+<div id="milestones">
+	<div id="milestoneshow">?</div>
+	<div id="milestonetable"><table class="nicetable">
+		<thead><tr>
+			<th colspan="2">If someone subscribed for</th>
+		</tr></thead>
+		<tbody>
+			{% for name, dt, months in milestones %}
+				<tr>
+					<td class="name">{{ name | e }}<div class="date">{{ dt | e }}</div></td>
+					<td class="months">{{ months | e }}</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table></div>
+</div>
 <ol id="notificationlist" data-last-event-id="{{ last_event_id }}">
 	{% for event in events %}
 		<li data-timestamp="{{ event['data']['time'].isoformat() }}" class="{{ loop.cycle('even', 'odd') }}">

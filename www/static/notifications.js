@@ -33,6 +33,14 @@ window.addEventListener('DOMContentLoaded', function (event) {
 		window.setInterval(ajax_poll, 60 * 1000);
 	}
 	window.setInterval(update_dates, 10 * 1000);
+
+	document.getElementById("milestoneshow").addEventListener("click", function (event) {
+		var table = document.getElementById("milestonetable");
+		if (table.style.display === "block")
+			table.style.display = "none";
+		else
+			table.style.display = "block";
+	})
 })
 
 function ajax_poll() {
