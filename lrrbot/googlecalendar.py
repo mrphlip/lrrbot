@@ -60,7 +60,6 @@ def get_upcoming_events(calendar, after=None):
 			"id": item['id'],
 			"url": item['htmlLink'],
 			"title": item['summary'],
-			"creator": item['creator']['displayName'],
 			"start": dateutil.parser.parse(item['start']['dateTime']),
 			"end": dateutil.parser.parse(item['end']['dateTime']),
 			"location": item.get('location'),
