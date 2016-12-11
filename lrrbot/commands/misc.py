@@ -274,9 +274,9 @@ def autostatus_check(lrrbot, conn, event, respond_to):
 	source = irc.client.NickMask(event.source)
 	users = lrrbot.metadata.tables["users"]
 	with lrrbot.engine.begin() as pg_conn:
-		enabled, = pg_conn.execute(sqlalchemy.select([users.c.autostatus])
+		res = pg_conn.execute(sqlalchemy.select([users.c.autostatus])
 			.where(users.c.id == int(event.tags["user-id"]))).first()
-	if enabled:
+	if res and res[0]:
 		conn.privmsg(source.nick, "Auto-status is enabled. Disable it with: !autostatus off")
 	else:
 		conn.privmsg(source.nick, "Auto-status is disabled. Enable it with: !autostatus on")
