@@ -200,7 +200,7 @@ re_check = re.compile(r"^[a-z0-9_]+$")
 re_mana = re.compile(r"\{(.)\}")
 re_newlines = re.compile(r"[\r\n]+")
 re_multiplespaces = re.compile(r"\s{2,}")
-re_remindertext = re.compile(r"\([^()]*\)")
+re_remindertext = re.compile(r"(\s*)\([^()]*\)(\s*)")
 def process_card(card, expansion):
 	if card.get('layout') == 'split':
 		# Return split cards as a single card... for all the other pieces, return nothing
@@ -319,7 +319,7 @@ def process_card(card, expansion):
 			yield ']'
 		if 'text' in card:
 			yield ' | '
-			yield re_newlines.sub(' / ', re_remindertext.sub('', card['text']).strip())
+			yield re_newlines.sub(' / ', re_remindertext.sub(lambda match: ' ' if match.group(1) and match.group(2) else '', card['text']).strip())
 
 	desc = ''.join(build_description())
 	desc = re_multiplespaces.sub(' ', desc).strip()
