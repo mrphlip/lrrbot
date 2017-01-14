@@ -112,11 +112,11 @@ async def spam_test(session):
 		if res is None:
 			match = re_twitchchat.search(line)
 			if match:
-				res = check(match.group(1), rules)
+				res = await check(match.group(1), rules)
 		if res is None:
 			match = re_irc.search(line)
 			if match:
-				res = check(match.group(1), rules)
+				res = await check(match.group(1), rules)
 		if res is not None:
 			result.append({
 				'line': line,
