@@ -31,52 +31,85 @@ class ModeratorActions:
 			pubsub.signals.signal(topic).connect(self.on_message)
 
 	def on_message(self, sender, message):
+		log.info("Got message: %r", message['data'])
+
 		action = message['data']['moderation_action']
 		args = message['data']['args']
 		mod = message['data']['created_by']
 
-		if action == 'timeout':
+		if action in ('timeout', 'ban'):
 			user = args[0]
-			length = int(args[1])
-			reason = args[2] if len(args) >= 3 else None
 			logid, attachments = self.get_chat_log(user)
 			same_user = (self.last_ban == (user.lower(), logid))
 			if same_user:
 				attachments = []
 			self.last_ban = (user.lower(), logid)
+		else:
+			attachments = []
+			self.last_ban = None
 
+		if action == 'timeout':
+			user = args[0]
+			length = int(args[1])
+			reason = args[2] if len(args) >= 3 else None
 			text = "%s was%s timed out for %s by %s." % (slack.escape(user), " also" if same_user else "", slack.escape(time.nice_duration(length, 0)), slack.escape(mod))
 			if reason is not None:
 				text += " Reason: %s" % slack.escape(reason)
 		elif action == 'ban':
 			user = args[0]
 			reason = args[1] if len(args) >= 2 else None
-			logid, attachments = self.get_chat_log(user)
-			same_user = (self.last_ban == (user.lower(), logid))
-			if same_user:
-				attachments = []
-			self.last_ban = (user.lower(), logid)
-
 			text = "%s was%s banned by %s." % (slack.escape(user), " also" if same_user else "", slack.escape(mod))
 			if reason is not None:
 				text += " Reason: %s" % slack.escape(reason)
 		elif action == 'unban':
 			user = args[0]
-			attachments = []
-			self.last_ban = None
-
 			text = "%s was unbanned by %s." % (slack.escape(user), slack.escape(mod))
 		elif action == 'untimeout':
 			user = args[0]
-			attachments = []
-			self.last_ban = None
-
 			text = "%s was untimed-out by %s." % (slack.escape(user), slack.escape(mod))
-		else:
-			log.info("Got unrecognised message: %r", message['data'])
-			attachments = []
-			self.last_ban = None
 
+		elif action == 'twitchbot_rejected':
+			user = args[0]
+			message = args[1]
+			# mod is always "twitchbot", but still...
+			text = "%s's message was rejected by %s." % (slack.escape(user), slack.escape(mod))
+			attachments.append({
+				'text': slack.escape(message)
+			})
+		elif action == 'approved_twitchbot_message':
+			user = args[0]
+			text = "%s approved %s's message." % (slack.escape(mod), slack.escape(user))
+		elif action == 'denied_twitchbot_message':
+			user = args[0]
+			text = "%s denied %s's message." % (slack.escape(mod), slack.escape(user))
+
+		elif action == 'slow':
+			duration = int(args[0])
+			text = "%s has enabled slow mode: delay %s." % (slack.escape(mod), slack.escape(time.nice_duration(duration, 0)))
+		elif action == 'slowoff':
+			text = "%s has disabled slow mode." % (slack.escape(mod), )
+		elif action == 'followers':
+			duration = int(args[0])
+			text = "%s has enabled follower-only mode: minimum age %s." % (slack.escape(mod), slack.escape(time.nice_duration(duration, 0)))
+		elif action == 'followersoff':
+			text = "%s has disabled follower-only mode." % (slack.escape(mod), )
+
+		elif action == 'host':
+			target = args[0]
+			text = "%s has enabled hosting of %s." % (slack.escape(mod), slack.escape(target))
+		elif action == 'unhost':
+			text = "%s has disabled hosting." % (slack.escape(mod), )
+
+		elif action == 'mod':
+			target = args[0]
+			text = "%s has made %s a moderator." % (slack.escape(mod), slack.escape(target))
+		elif action == 'clear':
+			text = "%s cleared the chat." % (slack.escape(mod), )
+		elif action == 'recent_cheer_dismissal':
+			cheerer = args[0]
+			text = "%s has cleared %s's recent-cheer notice." % (slack.escape(mod), slack.escape(cheerer))
+
+		else:
 			text = "%s did a %s: %s" % (slack.escape(mod), slack.escape(action), slack.escape(repr(args)))
 
 		asyncio.async(slack.send_message(text, attachments=attachments), loop=self.loop).add_done_callback(utils.check_exception)
