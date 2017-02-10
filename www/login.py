@@ -15,6 +15,7 @@ from common.config import config, from_apipass
 from common import utils
 from common import twitch
 from common import game_data
+from common import googlecalendar
 import common.rpc
 
 with server.db.engine.begin() as conn:
@@ -200,6 +201,9 @@ async def load_session(include_url=True, include_header=True):
 					}
 					for count, type in conn.execute(stats_query)
 				]
+
+		if not session['header']['is_live']:
+			session['header']['nextstream'] = googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
 
 	if user_id is not None:
 		users = server.db.metadata.tables["users"]

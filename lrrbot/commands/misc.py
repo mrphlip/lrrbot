@@ -13,10 +13,11 @@ import common.http
 import common.time
 import common.storm
 import lrrbot.decorators
+from common import googlecalendar
 from common import utils
 from common.config import config
 from common import twitch
-from lrrbot import googlecalendar, storage
+from lrrbot import storage
 from lrrbot.main import bot
 
 log = logging.getLogger('misc')
