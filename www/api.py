@@ -6,6 +6,7 @@ import common.rpc
 import datetime
 import flask
 import common.storm
+from common import googlecalendar
 
 @server.app.route("/api/stats/<stat>")
 async def api_stats(stat):
@@ -42,7 +43,7 @@ def stormcount():
 
 @server.app.route("/api/next")
 async def nextstream():
-	return await common.rpc.bot.nextstream()
+	return await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
 
 @server.app.route("/api/votes")
 async def api_votes():

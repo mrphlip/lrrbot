@@ -1,7 +1,7 @@
 import common.http
 import lrrbot.decorators
 from lrrbot.main import bot
-from lrrbot import googlecalendar
+from common import googlecalendar
 from common import space
 from common import twitch
 from common import utils

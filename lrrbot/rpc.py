@@ -15,7 +15,7 @@ from common import utils
 from common.config import config
 from common import game_data
 from common import twitch
-from lrrbot import googlecalendar, storage
+from lrrbot import storage
 import lrrbot.docstring
 
 log = logging.getLogger('serverevents')
@@ -103,17 +103,11 @@ class Server(common.rpc.Server):
 				"id": self.lrrbot.get_show_id(),
 				"is_override": self.lrrbot.show_override is not None,
 			}
-		elif not live:
-			data['nextstream'] = googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
 
 		if 'advice' in storage.data['responses']:
 			data['advice'] = random.choice(storage.data['responses']['advice']['response'])
 
 		return data
-
-	@aiomas.expose
-	def nextstream(self):
-		return googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
 
 	@aiomas.expose
 	def set_show(self, show):
