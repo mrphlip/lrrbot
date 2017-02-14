@@ -3,7 +3,7 @@
 {%block header%}Patreon{%endblock%}
 {%block content%}
 
-{% if session['user']['patreon_user'] is none %}
+{% if session['user']['patreon_user_id'] is none %}
 <p>You haven't yet linked your Patreon account. Patrons with linked Patreon accounts can use
 	subscriber-only commands even when they're not subscribers. There also might be other
 	effects.</p>

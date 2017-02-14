@@ -40,7 +40,7 @@ def get_token(engine, metadata, user):
 			patreon_users.c.token_expires,
 		])
 		query = filter_by_user(query, user)
-		row = conn.execute(query.select_from(users.join(patreon_users, users.c.patreon_user == patreon_users.c.id))).first()
+		row = conn.execute(query.select_from(users.join(patreon_users, users.c.patreon_user_id == patreon_users.c.id))).first()
 		if row is None:
 			raise Exception("User not logged in")
 		patreon_id, access_token, refresh_token, expiry = row

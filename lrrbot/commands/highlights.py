@@ -36,7 +36,7 @@ def highlight(lrrbot, conn, event, respond_to, description):
 	else:
 		with lrrbot.engine.begin() as pg_conn:
 			pg_conn.execute(lrrbot.metadata.tables["highlights"].insert(),
-				title=stream_info["status"], description=description, time=now, user=event.tags["user-id"])
+				title=stream_info["status"], description=description, time=now, user_id=event.tags["user-id"])
 		conn.privmsg(respond_to, "Highlight added.")
 		return
 

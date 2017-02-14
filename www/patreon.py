@@ -36,7 +36,7 @@ def patreon_index(session):
 			.select_from(users.join(patreon_users))
 			.where(users.c.name == config['channel'])).first()
 
-	if session['user']['patreon_user'] is None:
+	if session['user']['patreon_user_id'] is None:
 		state = base64.urlsafe_b64encode(os.urandom(18)).decode('ascii')
 		flask.session['patreon_state'] = state
 		pledge_url = None
@@ -197,7 +197,7 @@ async def patreon_webhooks():
 					full_name=patron['attributes']['full_name'],
 					pledge_start=pledge_start,
 			).first()
-			twitch_user = conn.execute(sqlalchemy.select([users.c.name]).where(users.c.patreon_user == patron_id)).first()
+			twitch_user = conn.execute(sqlalchemy.select([users.c.name]).where(users.c.patreon_user_id == patron_id)).first()
 			if twitch_user is not None:
 				twitch_user = {
 					'name': twitch_user[0]
