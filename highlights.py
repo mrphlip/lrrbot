@@ -22,7 +22,7 @@ def get_staged_highlights():
 			"nick": highlight[4],
 		} for highlight in conn.execute(sqlalchemy.select([
 			highlights.c.id, highlights.c.title, highlights.c.description, highlights.c.time, users.c.display_name
-		]).select_from(highlights.join(users, highlights.c.user == users.c.id)))]
+		]).select_from(highlights.join(users, highlights.c.user_id == users.c.id)))]
 
 def delete_staged_highlights(highlights):
 	if len(highlights) == 0:
