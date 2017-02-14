@@ -127,7 +127,7 @@ def patreon_login(session):
 				'pledge_start': query.excluded.pledge_start,
 			}
 		)
-		patreon_user, = conn.execute(query,
+		patreon_user_id, = conn.execute(query,
 			patreon_id=user['data']['id'],
 			full_name=user['data']['attributes']['full_name'],
 			access_token=access_token,
@@ -135,7 +135,7 @@ def patreon_login(session):
 			token_expires=expiry,
 			pledge_start=pledge_start,
 		).first()
-		conn.execute(users.update().where(users.c.id == session['user']['id']), patreon_user=patreon_user)
+		conn.execute(users.update().where(users.c.id == session['user']['id']), patreon_user_id=patreon_user_id)
 
 	flask.flash('Patreon account linked.', 'success')
 
