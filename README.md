@@ -54,7 +54,7 @@ Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon
     * `username`: The Twitch username of the bot. You can use your personal account, you don't need to create a new one for the bot.
     * `channel`: The channel the bot will join. Can be the same as `username`.
     * `session_secret`: A random string. You can generate one with the command `head -c 18 /dev/urandom | base64`
-    * `google_key`: OAuth key to Google's services. Create a project on [Google Developer Console](https://console.developers.google.com/),
+    * `google_key`: API key to Google's services. Create a project on [Google Developer Console](https://console.developers.google.com/),
         enable Google Calendar API, and generate an API key under Credentials.
     * `twitch_clientid` and `twitch_clientsecret`: In your Twitch settings, under [Connections](https://www.twitch.tv/settings/connections)
         [register a new application](https://www.twitch.tv/kraken/oauth2/clients/new). Set the redirect URI to `http://localhost:5000/login`. 
