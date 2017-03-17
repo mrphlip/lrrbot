@@ -6,6 +6,8 @@ from common.config import config
 from common import postgres
 from common import utils
 from eris.autotopic import Autotopic
+from eris.command_parser import CommandParser
+from eris.commands import register as register_commands
 
 utils.init_logging("eris")
 log = logging.getLogger("eris")
@@ -20,6 +22,7 @@ signals = blinker.Namespace()
 
 @eris.event
 async def on_ready():
+	log.info("Connected to the server.")
 	signals.signal('ready').send(eris)
 
 @eris.event
@@ -147,5 +150,7 @@ async def on_group_remove(channel, user):
 	signals.signal('group_remove').send(eris, channel=channel, user=user)
 
 autotopic = Autotopic(eris, signals, engine, metadata)
+command_parser = CommandParser(eris, signals, engine, metadata)
+register_commands(command_parser)
 
 eris.run(config['discord_botsecret'])
