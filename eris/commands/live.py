@@ -3,6 +3,15 @@ import sqlalchemy
 from common.config import config
 from common import twitch
 
+def markdown_escape(text):
+	def escape_char(c):
+		if c == '_' or c == '*' or c == '<' or c == '`':
+			return '\\' + c
+		elif c == '#':
+			return c + '\u200B'
+		return c
+	return "".join(escape_char(c) for c in text)
+
 def register(bot):
 	@bot.command("live")
 	async def live(bot, command):
@@ -21,10 +30,10 @@ def register(bot):
 
 		message = tag + ", ".join([
 			"%s (<%s>)%s%s" % (
-				data["channel"]["display_name"],
+				markdown_escape(data["channel"]["display_name"]),
 				data["channel"]["url"],
-				" is playing %s" % data["game"] if data.get("game") is not None else "",
-				" (%s)" % data["channel"]["status"] if data["channel"].get("status") not in [None, ""] else ""
+				" is playing %s" % markdown_escape(data["game"]) if data.get("game") is not None else "",
+				" (%s)" % markdown_escape(data["channel"]["status"]) if data["channel"].get("status") not in [None, ""] else ""
 			) for data in streams
 		])
 
