@@ -69,11 +69,11 @@ class Autotopic:
 					show = None
 
 			if game and show:
-				messages.append("Currently playing %s on %s." % (game, show))
+				messages.append("Stream currently live: playing %s on %s." % (game, show))
 			elif game:
-				messages.append("Currently playing %s." % game)
+				messages.append("Stream currently live: playing %s." % game)
 			elif show:
-				messages.append("Currently showing %s." % show)
+				messages.append("Stream currently live: showing %s." % show)
 			messages.append(self.uptime_msg())
 		else:
 			messages.append(googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL))
