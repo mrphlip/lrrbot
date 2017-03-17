@@ -1,0 +1,15 @@
+[Unit]
+Description=LoadingReadyLive chatbot: Discord bot
+
+[Service]
+Type=notify
+KillSignal=SIGINT
+TimeoutStartSec=15s
+WatchdogSec=120s
+Restart=always
+NotifyAccess=main
+WorkingDirectory=%h/lrrbot
+ExecStart=/usr/bin/env python3 %h/lrrbot/start_eris.py
+
+[Install]
+WantedBy=default.target

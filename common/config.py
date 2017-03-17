@@ -110,3 +110,16 @@ config.setdefault('patreon_clientid', '')
 
 # patreon_clientsecret - Patreon API secret key
 config.setdefault('patreon_clientsecret', '')
+
+# Discord:
+# discord_clientid - Discord API client ID
+config.setdefault('discord_clientid', '')
+
+# discord_clientsecret - Discord API secret key
+config.setdefault('discord_clientsecret', '')
+
+# discord_botsecret - Discord bot secret key
+config.setdefault('discord_botsecret', '')
+
+# discord_serverid - ID of the LRR Discord server
+config.setdefault('discord_serverid', '288920509272555520')
