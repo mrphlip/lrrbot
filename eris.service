@@ -2,7 +2,7 @@
 Description=LoadingReadyLive chatbot: Discord bot
 
 [Service]
-Type=notify
+Type=simple
 KillSignal=SIGINT
 TimeoutStartSec=15s
 WatchdogSec=120s
