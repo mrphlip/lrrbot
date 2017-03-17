@@ -7,7 +7,7 @@ def markdown_escape(text):
 	def escape_char(c):
 		if c == '_' or c == '*' or c == '<' or c == '`':
 			return '\\' + c
-		elif c == '#':
+		elif c == '#' or c == '@':
 			return c + '\u200B'
 		return c
 	return "".join(escape_char(c) for c in text)
