@@ -22,7 +22,7 @@ def register(bot):
 
 		streams = await twitch.get_streams_followed(token)
 		if len(streams) == 0:
-			return conn.privmsg(respond_to, "No fanstreamers currently live.")
+			return bot.eris.send_message(command.channel, "No fanstreamers currently live.")
 
 		streams.sort(key=lambda e: e["channel"]["display_name"])
 
