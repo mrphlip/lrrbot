@@ -125,4 +125,4 @@ config.setdefault('discord_botsecret', '')
 config.setdefault('discord_serverid', '288920509272555520')
 
 # discord_temp_channel_prefix - prefix of a temporary channel
-config.setdefault('discord_temp_channel_prefix', '[TEMP] ')
+config.setdefault('discord_temp_channel_prefix', config.get('discord_temp_channel_prefix', '[TEMP]').strip() + ' ')
