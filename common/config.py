@@ -123,3 +123,6 @@ config.setdefault('discord_botsecret', '')
 
 # discord_serverid - ID of the LRR Discord server
 config.setdefault('discord_serverid', '288920509272555520')
+
+# discord_temp_channel_prefix - prefix of a temporary channel
+config.setdefault('discord_temp_channel_prefix', '[TEMP] ')

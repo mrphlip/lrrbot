@@ -6,6 +6,7 @@ from common.config import config
 from common import postgres
 from common import utils
 from eris.autotopic import Autotopic
+from eris.channel_reaper import ChannelReaper
 from eris.command_parser import CommandParser
 from eris.commands import register as register_commands
 
@@ -150,6 +151,7 @@ async def on_group_remove(channel, user):
 	signals.signal('group_remove').send(eris, channel=channel, user=user)
 
 autotopic = Autotopic(eris, signals, engine, metadata)
+channel_reaper = ChannelReaper(eris, signals)
 command_parser = CommandParser(eris, signals, engine, metadata)
 register_commands(command_parser)
 
