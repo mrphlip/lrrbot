@@ -70,7 +70,7 @@ def main():
 				if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
 					continue
 
-				cardname, description, multiverseids, collector = process_card(card, expansion, include_reminder=setid in ('UGL', 'UNH'))
+				cardname, description, multiverseids, collector, hidden = process_card(card, expansion, include_reminder=setid in ('UGL', 'UNH'))
 				if description is None:
 					continue
 
@@ -86,6 +86,7 @@ def main():
 						name=card['name'],
 						text=description,
 						lastprinted=release_date,
+						hidden=hidden,
 					)
 				elif rows[0][1] < release_date:
 					real_cardid = rows[0][0]
@@ -93,6 +94,7 @@ def main():
 						name=card["name"],
 						text=description,
 						lastprinted=release_date,
+						hidden=hidden,
 					)
 				else:
 					real_cardid = rows[0][0]
@@ -205,7 +207,7 @@ def process_card(card, expansion, include_reminder=False):
 	if card.get('layout') == 'split':
 		# Return split cards as a single card... for all the other pieces, return nothing
 		if card['name'] != card['names'][0]:
-			return None, None, None, None
+			return None, None, None, None, None
 		splits = []
 		for splitname in card['names']:
 			candidates = [i for i in expansion['cards'] if i['name'] == splitname]
@@ -217,14 +219,16 @@ def process_card(card, expansion, include_reminder=False):
 		descparts = []
 		allmultiverseids = []
 		numbers = []
+		anyhidden = False
 		for s in splits:
-			name, desc, multiverseids, number = process_single_card(s, expansion, include_reminder)
+			name, desc, multiverseids, number, hidden = process_single_card(s, expansion, include_reminder)
 			nameparts.append(name)
 			descparts.append(desc)
 			allmultiverseids.extend(multiverseids)
 			numbers.append(number)
+			anyhidden = anyhidden or hidden
 
-		return "".join(nameparts), "%s | %s" % (" // ".join(card['names']), " // ".join(descparts)), allmultiverseids, numbers[0]
+		return "".join(nameparts), "%s | %s" % (" // ".join(card['names']), " // ".join(descparts)), allmultiverseids, numbers[0], anyhidden
 	else:
 		return process_single_card(card, expansion, include_reminder)
 
@@ -241,9 +245,9 @@ def process_single_card(card, expansion, include_reminder=False):
 			multiverseids = []
 
 	# sanitise card name
-	name = clean_text(card["name"])
+	name = clean_text(card.get('internalname', card["name"]))
 	if not re_check.match(name):
-		print("Still some junk left in name %s (%s)" % (card['name'], json.dumps(name)))
+		print("Still some junk left in name %s (%s)" % (card.get('internalname', card["name"]), json.dumps(name)))
 		sys.exit(1)
 
 	def build_description():
@@ -340,7 +344,7 @@ def process_single_card(card, expansion, include_reminder=False):
 	if len(desc) > MAXLEN:
 		desc = desc[:MAXLEN-1] + "\u2026"
 
-	return name, desc, multiverseids, card.get('number')
+	return name, desc, multiverseids, card.get('number'), 'internalname' in card
 
 if __name__ == '__main__':
 	main()

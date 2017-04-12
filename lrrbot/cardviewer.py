@@ -26,14 +26,14 @@ class CardViewer:
 			self.pubnub = pubnub.Pubnub(
 				subscribe_key=config['cardsubkey'],
 				publish_key='',
-				ssl_on=True,  # For some reason not the defualt??? Also, the docs say this is "sslOn" but they lie.
+				ssl_on=True,  # For some reason not the default??? Also, the docs say this is "sslOn" but they lie.
 				daemon=True,  # Automatically close the pubnub threads when the bot exists - undocumented, but necessary.
 			)
 		else:
 			self.pubnub = None
 		self.re_local = [
 			re.compile("^/cards/(?P<set>[^-]+)-(?P<name>[^.]+)\.", re.I),
-			re.compile("^/cards/(?P<set>.+)_(?P<name>[^.]+)\.", re.I)
+			re.compile("^/cards/(?P<set>[^_]+)_(?P<name>[^.]+)\.", re.I)
 		]
 
 	def start(self):
@@ -111,7 +111,8 @@ class CardViewer:
 			None,
 			"#" + config['channel'],
 			card_id,
-			noerror=True)
+			noerror=True,
+			includehidden=True)
 
 	def _error(self, message):
 		log.error("Pubnub error: %s", message)

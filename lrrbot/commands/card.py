@@ -30,8 +30,8 @@ def card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	real_card_lookup(lrrbot, conn, event, respond_to, search)
 
-def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False):
-	cards = find_card(lrrbot, search)
+def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, includehidden=False):
+	cards = find_card(lrrbot, search, includehidden)
 
 	if noerror and len(cards) != 1:
 		return
@@ -45,31 +45,42 @@ def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False):
 	else:
 		conn.privmsg(respond_to, "Found %d cards you could be referring to - please enter more of the name" % len(cards))
 
-def find_card(lrrbot, search):
+def find_card(lrrbot, search, includehidden=False):
 	cards = lrrbot.metadata.tables["cards"]
 	card_multiverse = lrrbot.metadata.tables["card_multiverse"]
 	card_collector = lrrbot.metadata.tables["card_collector"]
 
 	if isinstance(search, int):
+		query = (sqlalchemy.select([cards.c.name, cards.c.text])
+						.select_from(card_multiverse.join(cards, cards.c.id == card_multiverse.c.cardid))
+						.where(card_multiverse.c.id == search))
+		if not includehidden:
+			query = query.where(cards.c.hidden == False)
 		with lrrbot.engine.begin() as conn:
-			return conn.execute(sqlalchemy.select([cards.c.name, cards.c.text])
-				.select_from(card_multiverse.join(cards, cards.c.id == card_multiverse.c.cardid))
-				.where(card_multiverse.c.id == search)).fetchall()
+			return conn.execute(query).fetchall()
 
 	if isinstance(search, tuple):
+		query = (sqlalchemy.select([cards.c.name, cards.c.text])
+						.select_from(card_collector.join(cards, cards.c.id == card_collector.c.cardid))
+						.where((card_collector.c.setid == search[0]) & (card_collector.c.collector == search[1])))
+		if not includehidden:
+			query = query.where(cards.c.hidden == False)
 		with lrrbot.engine.begin() as conn:
-			return conn.execute(sqlalchemy.select([cards.c.name, cards.c.text])
-				.select_from(card_collector.join(cards, cards.c.id == card_collector.c.cardid))
-				.where((card_collector.c.setid == search[0]) & (card_collector.c.collector == search[1]))).fetchall()
+			return conn.execute(query).fetchall()
 
 	cleansearch = clean_text(search)
 	with lrrbot.engine.begin() as conn:
-		rows = conn.execute(sqlalchemy.select([cards.c.name, cards.c.text]).where(cards.c.filteredname == cleansearch)).fetchall()
+		query = sqlalchemy.select([cards.c.name, cards.c.text]).where(cards.c.filteredname == cleansearch)
+		if not includehidden:
+			query = query.where(cards.c.hidden == False)
+		rows = conn.execute(query).fetchall()
 		if rows:
 			return rows
 
 		searchwords = search.split()
 		searchwords = [clean_text(i) for i in searchwords]
 		searchlike = "%" + "%".join(common.postgres.escape_like(i) for i in searchwords) + "%"
-		return conn.execute(sqlalchemy.select([cards.c.name, cards.c.text])
-			.where(cards.c.filteredname.like(searchlike))).fetchall()
+		query = sqlalchemy.select([cards.c.name, cards.c.text]).where(cards.c.filteredname.like(searchlike))
+		if not includehidden:
+			query = query.where(cards.c.hidden == False)
+		return conn.execute(query).fetchall()

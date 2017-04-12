@@ -25,6 +25,7 @@ def cleantext(text):
 	text = re_textcost.sub(lambda match:cleancost(match.group(1)), text)
 	return text
 
+re_embalm = regex.compile(r"(?:^|\n|,)\s*Embalm\b", regex.IGNORECASE)
 def getcard(row):
 	typeline = row['Card Type']
 	if row['SuperType']:
@@ -43,7 +44,21 @@ def getcard(row):
 		'loyalty': row['Loyalty'],
 	}
 	card = dict((k, v.strip()) for k, v in card.items() if v is not None and v != "")
-	return card
+	yield card
+
+	# Create tokens for Embalm creatures for AKH preprere
+	if re_embalm.search(card['text']):
+		card = dict(card)
+		card['internalname'] = card['name'] + "_TKN"
+		card['name'] = card['name'] + " token"
+		typeline = row['Card Type']
+		if row['SuperType']:
+			typeline = "%s %s" % (row['SuperType'], typeline)
+		typeline = "%s \u2014 Zombie %s" % (typeline, row['SubType'])
+		card['type'] = typeline
+		del card['manaCost']
+		del card['number']
+		yield card
 
 def getsplitcard(row):
 	# Format:
@@ -65,7 +80,7 @@ def getsplitcard(row):
 	subrow = dict(row)
 	subrow['Card Title'] = names[0]
 	subrow['Rules Text'] = text[0]
-	left = getcard(subrow)
+	left = next(getcard(subrow))
 
 	carddata = text[1].split("\n")
 	if not carddata[0]:
@@ -76,7 +91,7 @@ def getsplitcard(row):
 	subrow['Mana'] = carddata[1]
 	subrow['Card Type'] = carddata[2]
 	subrow['Rules Text'] = "\n".join(carddata[3:])
-	right = getcard(subrow)
+	right = next(getcard(subrow))
 
 	left['layout'] = right['layout'] = "split"
 	left['names'] = right['names'] = names
@@ -87,7 +102,7 @@ def getcards(data):
 		if '///' in row['Card Title']:
 			yield from getsplitcard(row)
 		else:
-			yield getcard(row)
+			yield from getcard(row)
 
 def main(filenames):
 	carddata = {}
