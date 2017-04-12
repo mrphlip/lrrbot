@@ -70,7 +70,7 @@ def main():
 				if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
 					continue
 
-				cardname, description, multiverseids, collector = process_card(card, expansion)
+				cardname, description, multiverseids, collector = process_card(card, expansion, include_reminder=setid in ('UGL', 'UNH'))
 				if description is None:
 					continue
 
@@ -201,7 +201,7 @@ re_mana = re.compile(r"\{(.)\}")
 re_newlines = re.compile(r"[\r\n]+")
 re_multiplespaces = re.compile(r"\s{2,}")
 re_remindertext = re.compile(r"( *)\([^()]*\)( *)")
-def process_card(card, expansion):
+def process_card(card, expansion, include_reminder=False):
 	if card.get('layout') == 'split':
 		# Return split cards as a single card... for all the other pieces, return nothing
 		if card['name'] != card['names'][0]:
@@ -213,13 +213,23 @@ def process_card(card, expansion):
 				print("Can't find split card piece: %s" % splitname)
 				sys.exit(1)
 			splits.append(candidates[0])
-		card = {}
-		card['name'] = ' // '.join(s['name'] for s in splits)
-		card['manaCost'] = ' // '.join(s['manaCost'] for s in splits)
-		card['type'] = splits[0]['type'] # should be the same for all splits
-		card['text'] = ' // '.join(s['text'] for s in splits)
-		multiverseids = [s['multiverseid'] for s in splits if s.get('multiverseid')]
-	elif card.get('layout') == 'flip':
+		nameparts = []
+		descparts = []
+		allmultiverseids = []
+		numbers = []
+		for s in splits:
+			name, desc, multiverseids, number = process_single_card(s, expansion, include_reminder)
+			nameparts.append(name)
+			descparts.append(desc)
+			allmultiverseids.extend(multiverseids)
+			numbers.append(number)
+
+		return "".join(nameparts), "%s | %s" % (" // ".join(card['names']), " // ".join(descparts)), allmultiverseids, numbers[0]
+	else:
+		return process_single_card(card, expansion, include_reminder)
+
+def process_single_card(card, expansion, include_reminder=False):
+	if card.get('layout') == 'flip':
 		if card['name'] == card['names'][0] and card.get('multiverseid'):
 			multiverseids = [card['multiverseid']]
 		else:
@@ -319,7 +329,11 @@ def process_card(card, expansion):
 			yield ']'
 		if 'text' in card:
 			yield ' | '
-			yield re_newlines.sub(' / ', re_remindertext.sub(lambda match: ' ' if match.group(1) and match.group(2) else '', card['text']).strip())
+			text = card['text']
+			# Let UGL and UNH cards keep their reminder text, since there's joeks in there
+			if not include_reminder:
+				text = re_remindertext.sub(lambda match: ' ' if match.group(1) and match.group(2) else '', text)
+			yield re_newlines.sub(' / ', text.strip())
 
 	desc = ''.join(build_description())
 	desc = re_multiplespaces.sub(' ', desc).strip()
