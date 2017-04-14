@@ -8,7 +8,7 @@ def get_data(filename):
 	with open(filename, newline='') as fp:
 		yield from csv.DictReader(fp)
 
-re_cost = regex.compile(r"^(?:o([WUBRG]|\d+|cT))*$")
+re_cost = regex.compile(r"^(?:o([WUBRGTXC]|\d+|cT))*$")
 code_map = {'cT': "T"}
 def cleancost(cost):
 	parts = re_cost.match(cost)
@@ -34,7 +34,7 @@ def getcard(row):
 		typeline = "%s \u2014 %s" % (typeline, row['SubType'])
 	card = {
 		'layout': 'normal',
-		'name': row['Card Title'],
+		'name': row['Card Title'].replace('\u2019', "'"),
 		'manaCost': cleancost(row['Mana']),
 		'text': cleantext(row['Rules Text']),
 		'type': typeline,
@@ -47,7 +47,7 @@ def getcard(row):
 	yield card
 
 	# Create tokens for Embalm creatures for AKH preprere
-	if re_embalm.search(card['text']):
+	if re_embalm.search(card.get('text', '')):
 		card = dict(card)
 		card['internalname'] = card['name'] + "_TKN"
 		card['name'] = card['name'] + " token"

@@ -246,8 +246,11 @@ def process_single_card(card, expansion, include_reminder=False):
 
 	# sanitise card name
 	name = clean_text(card.get('internalname', card["name"]))
-	if not re_check.match(name):
+	if card['name'] == '_____':
+		pass
+	elif not re_check.match(name):
 		print("Still some junk left in name %s (%s)" % (card.get('internalname', card["name"]), json.dumps(name)))
+		print(json.dumps(card))
 		sys.exit(1)
 
 	def build_description():
