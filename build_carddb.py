@@ -204,7 +204,7 @@ re_newlines = re.compile(r"[\r\n]+")
 re_multiplespaces = re.compile(r"\s{2,}")
 re_remindertext = re.compile(r"( *)\([^()]*\)( *)")
 def process_card(card, expansion, include_reminder=False):
-	if card.get('layout') == 'split':
+	if card.get('layout') in ('split', 'aftermath'):
 		# Return split cards as a single card... for all the other pieces, return nothing
 		if card['name'] != card['names'][0]:
 			return None, None, None, None, None
