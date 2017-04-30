@@ -9,7 +9,7 @@ from sqlalchemy.dialects import postgresql
 
 def upgrade():
 	clips = alembic.op.create_table("clips",
-		sqlalchemy.Column("clipid", sqlalchemy.Integer, primary_key=True, autoincrement=True),
+		sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True),
 		sqlalchemy.Column("slug", sqlalchemy.String(255), nullable=False),
 		sqlalchemy.Column("title", sqlalchemy.String(255), nullable=False),
 		sqlalchemy.Column("vodid", sqlalchemy.String(16), nullable=True),

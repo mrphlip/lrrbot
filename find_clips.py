@@ -115,7 +115,7 @@ def fix_null_vodids():
 	that has a vodid, and use that.
 	"""
 	with engine.begin() as conn:
-		badvods = conn.execute(sqlalchemy.select([TBL_CLIPS.c.clipid, TBL_CLIPS.c.time])
+		badvods = conn.execute(sqlalchemy.select([TBL_CLIPS.c.id, TBL_CLIPS.c.time])
 			.where(TBL_CLIPS.c.vodid == None))
 		# Get the updated vodids first, then update them all after, so that we don't
 		# use the vods we're updating as a source for copying to others...
@@ -124,7 +124,7 @@ def fix_null_vodids():
 			vodid = get_closest_vodid(conn, cliptime)
 			updates.append((clipid, vodid))
 		for clipid, vodid in updates:
-			conn.execute(TBL_CLIPS.update().values(vodid=vodid).where(TBL_CLIPS.c.clipid == clipid))
+			conn.execute(TBL_CLIPS.update().values(vodid=vodid).where(TBL_CLIPS.c.id == clipid))
 
 def get_closest_vodid(conn, cliptime):
 	prevclip = conn.execute(sqlalchemy.select([TBL_CLIPS.c.vodid, TBL_CLIPS.c.time])
