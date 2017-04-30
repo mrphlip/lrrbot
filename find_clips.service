@@ -1,0 +1,9 @@
+[Unit]
+Description=Find Twitch clips
+
+[Service]
+WorkingDirectory=%h/lrrbot
+ExecStart=/usr/bin/env python3 %h/lrrbot/find_clips.py
+
+[Install]
+WantedBy=default.target

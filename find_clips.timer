@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer for the find_clips script
+
+[Timer]
+OnCalendar=*-*-* 00/8:00:00
+Persistent=true
+
+[Install]
+WantedBy=default.target
