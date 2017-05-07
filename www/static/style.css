@@ -485,6 +485,18 @@ table.commands div.input {
 	height: 22px;
 	margin-left: 30px;
 }
+table.commands tr.undo {
+	background: #FCC;
+}
+table.commands td.undo {
+	white-space: nowrap;
+}
+table.commands td.undo button {
+	width: auto;
+}
+table.commands td.undo span.close {
+	cursor: pointer;
+}
 
 table.spam {
 	width: 100%;

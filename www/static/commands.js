@@ -5,6 +5,10 @@ function init()
 	$('button.del').click(deleteRow);
 	$('div.button.add').click(addText);
 	$('div.button.remove').click(deleteText);
+	$('button.undo').click(undoDelete);
+	$('span.close').click(hideUndo);
+
+	window.undorow = null;
 
 	fixRows();
 }
@@ -57,16 +61,38 @@ function deleteRow()
 {
 	var row = $(this).closest('tr');
 	var label = row.find('td.command input').eq(0).val();
-	if (!confirm("Remove response for !" + label + "?"))
-		return;
+	var undoRow = $("tr.undo");
+	var mode = jQuery("table.commands").data('mode');
+	if (mode == "explanations")
+		undoRow.find("code").text("!explain " + label);
+	else
+		undoRow.find("code").text("!" + label);
+	undoRow.insertAfter(row).show();
 	row.remove();
+	window.undorow = row;
 	fixRows();
+}
+
+function undoDelete()
+{
+	$("tr.undo").after(window.undorow).hide();
+	window.undorow.find('button.del').click(deleteRow);
+	window.undorow.find('div.button.add').click(addText);
+	window.undorow.find('div.button.remove').click(deleteText);
+	window.undorow = null;
+}
+
+function hideUndo()
+{
+	$("tr.undo").hide();
+	window.undorow = null;
 }
 
 function fixRows()
 {
 	var alternate = false;
 	$('table.commands tbody tr').each(function() {
+		if ($(this).is('.undo')) return;
 		alternate = !alternate;
 		$(this).removeClass("odd even").addClass(alternate ? "odd" : "even");
 	});
