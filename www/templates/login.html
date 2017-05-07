@@ -34,6 +34,6 @@ window.onload = init;
 <input type="hidden" name="redirect_uri" value="{{redirect_uri|e}}">
 <input type="hidden" name="scope" value="{{scope|e}}">
 <input type="hidden" id="state" name="state" value="{{nonce|e}}">
-<input type="image" alt="Login via Twitch" src="{{url_for('static', filename='connect_dark.png')|e}}">
+<input type="image" alt="Login via Twitch" src="{{static_url('connect_dark.png')|e}}">
 </form>
 {%endblock%}

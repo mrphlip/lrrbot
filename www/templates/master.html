@@ -3,19 +3,19 @@
 <head>
 {%block head%}
 <title>{%block title%}{%endblock%} &ndash; LRRbot</title>
-<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='style.css')|e}}">
-<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='jquery-ui-1.11.4-tooltip.css')|e}}">
-<link rel="shortcut icon" href="{{url_for('static', filename='favicon.ico')|e}}">
-<script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='jquery-ui-1.11.4-tooltip.js')|e}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='common.js')|e}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='infobar.js')|e}}"></script>
+<link rel="stylesheet" type="text/css" href="{{static_url('style.css')|e}}">
+<link rel="stylesheet" type="text/css" href="{{static_url('jquery-ui-1.11.4-tooltip.css')|e}}">
+<link rel="shortcut icon" href="{{static_url('favicon.ico')|e}}">
+<script type="text/javascript" src="{{static_url('jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('jquery-ui-1.11.4-tooltip.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('common.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('infobar.js')|e}}"></script>
 {%block headextra%}{%endblock%}
 {%endblock%}
 </head>
 <body>
 <div class="header">
-	<h1><a href="{{url_for('index')|e}}"><img src="{{url_for('static', filename='logo.png')|e}}" alt="LRRbot" width="98" height="100"></a> {%block header%}{%endblock%}</h1>
+	<h1><a href="{{url_for('index')|e}}"><img src="{{static_url('logo.png')|e}}" alt="LRRbot" width="98" height="100"></a> {%block header%}{%endblock%}</h1>
 	<div class="login">
 		{%if session['user']['id'] is not none%}
 			<a href="{{url_for('logout')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log out ({{session['user']['display_name']|e}})</a>

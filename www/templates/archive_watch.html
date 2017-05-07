@@ -2,12 +2,12 @@
 <html>
 <head>
 <title>{{video["title"]|e}}</title>
-<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="jquery.splitter.css")|e}}">
-<link rel="stylesheet" type="text/css" href="{{url_for('static', filename="archive.css")|e}}">
-<script type="text/javascript" src="{{url_for('static', filename='jquery-1.10.2.js')|e}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='jquery.splitter-0.14.0.js')|e}}"></script>
+<link rel="stylesheet" type="text/css" href="{{static_url("jquery.splitter.css")|e}}">
+<link rel="stylesheet" type="text/css" href="{{static_url("archive.css")|e}}">
+<script type="text/javascript" src="{{static_url('jquery-1.10.2.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('jquery.splitter-0.14.0.js')|e}}"></script>
 <script type="text/javascript" src="https://player.twitch.tv/js/embed/v1.js"></script>
-<script type="text/javascript" src="{{url_for('static', filename='archive.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('archive.js')|e}}"></script>
 <script>
 	window.start = {{video["start"].timestamp()|tojson}};
 	window.initial_time = {%if starttime%}{{starttime|tojson}}{%else%}0{%endif%};

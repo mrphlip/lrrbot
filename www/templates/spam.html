@@ -6,7 +6,7 @@
     window.csrf_token = {{csrf_token()|tojson}};
     window.link_spam = {{link_spam|tojson}};
 </script>
-<script type="text/javascript" src="{{url_for('static', filename='spam.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('spam.js')|e}}"></script>
 <script type="text/javascript">
 $(function(){
 	$(".tooltip").tooltip({

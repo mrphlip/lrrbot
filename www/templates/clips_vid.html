@@ -3,7 +3,7 @@
 {%block header%}Clips &ndash; {{video['title']|e}}{%endblock%}
 {%block headextra%}
 <script type="text/javascript">window.csrf_token = {{csrf_token()|tojson}}</script>
-<script type="text/javascript" src="{{url_for('static', filename='clips.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('clips.js')|e}}"></script>
 {%endblock%}
 {%block content%}
 <table class="nicetable clips votes">

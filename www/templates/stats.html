@@ -2,8 +2,8 @@
 {%block title%}Stats{%endblock%}
 {%block header%}Statistics{%endblock%}
 {%block headextra%}
-<script type="text/javascript" src="{{url_for('static', filename='highcharts.js')|e}}"></script>
-<script type="text/javascript" src="{{url_for('static', filename='jquery.dataTables.min.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('highcharts.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('jquery.dataTables.min.js')|e}}"></script>
 {%endblock%}
 {%block content%}
 <ol class="menu">

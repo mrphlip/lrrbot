@@ -3,7 +3,7 @@
 {%block header%}Votes{%endblock%}
 {%block headextra%}
 <script type="text/javascript">window.csrf_token = {{csrf_token()|tojson}}</script>
-<script type="text/javascript" src="{{url_for('static', filename='votes.js')|e}}"></script>
+<script type="text/javascript" src="{{static_url('votes.js')|e}}"></script>
 {%endblock%}
 {%block content%}
 <p style="text-align: center">Vote on whether you feel that each game is entertaining to watch on-stream. The host may heed this or ignore it at their choice. Probably ignore it.</p>

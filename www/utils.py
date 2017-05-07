@@ -1,9 +1,12 @@
+import os
 import datetime
+import subprocess
 
 import flask
 import pytz
 
 from common import config
+from common.utils import cache
 from www import login
 
 def error_page(message):
@@ -21,3 +24,11 @@ def timestamp(ts):
 		ts = ts.replace(tzinfo=datetime.timezone.utc)
 	ts = ts.astimezone(config.config['timezone'])
 	return flask.Markup("<span class=\"timestamp\" data-timestamp=\"{}\">{:%A, %d %B, %Y %H:%M:%S %Z}</span>".format(ts.timestamp(), ts))
+
+@cache(period=None, params=[0])
+def static_url(filename):
+	baseurl = flask.url_for("static", filename=filename)
+	revision = subprocess.check_output([
+		'git', 'log', '-n', '1', '--pretty=format:%h', '--',
+		os.path.join('www', 'static', filename)]).decode()
+	return "{}?_={}".format(baseurl, revision)
