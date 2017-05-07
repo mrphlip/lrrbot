@@ -1,0 +1,29 @@
+{%extends "master.html"%}
+{%block title%}{{video['title']|e}} &ndash; Clips{%endblock%}
+{%block header%}Clips &ndash; {{video['title']|e}}{%endblock%}
+{%block headextra%}
+<script type="text/javascript">window.csrf_token = {{csrf_token()|tojson}}</script>
+<script type="text/javascript" src="{{url_for('static', filename='clips.js')|e}}"></script>
+{%endblock%}
+{%block content%}
+<table class="nicetable clips votes">
+{%for clip in clips%}
+<tr class="{{loop.cycle('even','odd')}} {%if clip['rating'] == None%}incomplete{%else%}complete{%endif%}" data-slug="{{clip['slug']|e}}" data-embed="{{clip['embed_html']|e}}" data-currentrating="{{clip['rating']|tojson}}">
+	<td class="thumbnail"><img src="{{clip['thumbnail']|e}}"></td>
+	<td class="main">
+		<div class="title">{{clip['title']|e}}</div>
+		<div class="details"><span class="curator">{{clip['curator']|e}}</span> &bull; <span class="game">{{clip['game']|e}}</span></div>
+		<div class="timing">Start: <span class="start">{{clip['start']}}</span> &bull; Length: <span class="duration">{{clip['duration']|e}}</span></div>
+	</td>
+	<td class="rating">
+		<div class="votes">
+			<div class="vote down {%if clip['rating'] == False%}active{%else%}inactive{%endif%}"></div>
+			<div class="vote up {%if clip['rating'] == True%}active{%else%}inactive{%endif%}"></div>
+		</div>
+		<div class="loading" style="display: none"></div>
+	</td>
+</tr>
+{%endfor%}
+<tr id="preview" style="display: none"><td colspan="3"></td></tr>
+</table>
+{%endblock%}

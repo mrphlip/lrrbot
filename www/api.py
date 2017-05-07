@@ -4,6 +4,7 @@ from www import login
 from common.config import config
 import common.rpc
 import datetime
+import pytz
 import flask
 import common.storm
 from common import googlecalendar
@@ -114,3 +115,35 @@ async def disconnect(session):
 		return flask.jsonify(status="OK")
 	else:
 		return flask.jsonify(status="ERR")
+
+CLIP_URL = "https://clips.twitch.tv/{}"
+@server.app.route("/api/clips")
+@login.with_minimal_session
+async def get_clips(session):
+	if not session['user']['is_mod']:
+		return flask.jsonify(status="ERR")
+	days = float(flask.request.values.get('days', 14))
+	startdt = datetime.datetime.now(pytz.UTC) - datetime.timedelta(days=days)
+	full = int(flask.request.values.get('full', 0))
+	clips = server.db.metadata.tables["clips"]
+	with server.db.engine.begin() as conn:
+		if full:
+			clipdata = conn.execute(sqlalchemy.select(
+				[clips.c.slug, clips.c.title, clips.c.vodid, clips.c.rating])
+				.where(clips.c.time >= startdt)
+				.order_by(clips.c.time.asc())).fetchall()
+			clipdata = [
+				{
+					'slug': slug, 'title': title, 'vodid': vodid, 'rating': rating,
+					'url': CLIP_URL.format(slug),
+				}
+				for slug, title, vodid, rating in clipdata
+			]
+			return flask.jsonify(clipdata)
+		else:
+			clipdata = conn.execute(sqlalchemy.select([clips.c.slug])
+				.where(clips.c.rating == True)
+				.where(clips.c.time >= startdt)
+				.order_by(clips.c.time.asc())).fetchall()
+			clipdata = "\n".join(CLIP_URL.format(slug) for slug, in clipdata)
+			return flask.wrappers.Response(clipdata, mimetype="text/plain")

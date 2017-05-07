@@ -330,23 +330,23 @@ ul.pagination li :visited {
 	color: #666;
 }
 
-table.nicetable, table.nicetable tr, table.nicetable td, table.nicetable th {
+.nicetable, .nicetable tr, .nicetable td, .nicetable th {
 	border: 1px solid black;
 	border-collapse: collapse;
 }
-table.nicetable {
+.nicetable {
 	margin: 0 auto 1em;
 }
-table.nicetable td, table.nicetable th {
+.nicetable td, .nicetable th {
 	padding: 0.1em 0.25em;
 }
-table.nicetable tr.odd {
+.nicetable tr.odd {
 	background: #EEE;
 }
-table.nicetable tr.even {
+.nicetable tr.even {
 	background: #DDD;
 }
-table.nicetable th {
+.nicetable th {
 	background: #CCC;
 }
 
@@ -411,17 +411,19 @@ table.votes div.votes {
 table.votes div.vote {
 	width: 18px;
 	height: 24px;
-	background: url(thumbs24.png);
+	background-image: url(thumbs24.png);
 	position: absolute;
 }
-table.votes .current div.votes {
+table.votes .current div.votes,
+table.votes.clips div.votes {
 	width: 72px;
 	height: 48px;
 }
-table.votes .current div.vote {
+table.votes .current div.vote,
+table.votes.clips div.vote {
 	width: 36px;
 	height: 48px;
-	background: url(thumbs48.png);
+	background-image: url(thumbs48.png);
 }
 table.votes div.vote.down {
 	top: 0;
@@ -711,4 +713,86 @@ table.quote-search select {
 .cheer.red
 {
 	color: #f43021;
+}
+
+.clips
+{
+	width: 100%;
+}
+.clips tr, .clips td
+{
+	border-left: none;
+	border-right: none;
+}
+.clips tr.incomplete.even
+{
+	background: #DCC;
+}1
+.clips tr.incomplete.odd
+{
+	background: #CBB;
+}
+.clips tr.complete.even
+{
+	background: #DDD;
+}
+.clips tr.complete.odd
+{
+	background: #CCC;
+}
+.clips tr.complete td
+{
+	opacity: 0.5;
+}
+.clips .thumbnail
+{
+	width: 3em;
+	text-align: right;
+}
+.clips .main
+{
+	padding: 0.25em;
+}
+.clips .stat
+{
+	width: 5em;
+	text-align: center;
+}
+.clips .rating
+{
+	width: 80px;
+	text-align: center;
+}
+.clips img
+{
+	height: 3em;
+	width: 5.3333em;
+	vertical-align: middle;
+	margin: 0 0.5em 0 0;
+}
+.clips .details, .clips .timing
+{
+	font-size: 80%;
+	color: #666;
+}
+.clips .stat .icon
+{
+	display: inline-block;
+	vertical-align: middle;
+	width: 36px;
+	height: 48px;
+	margin: 0 0.25em 0 0;
+	background: url(thumbs48icons.png);
+}
+.clips .stat.unrated .icon
+{
+	background-position: top left;
+}
+.clips .stat.unapproved .icon
+{
+	background-position: top center;
+}
+.clips .stat.approved .icon
+{
+	background-position: top right;
 }
