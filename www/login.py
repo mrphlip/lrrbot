@@ -254,7 +254,7 @@ async def login(return_to=None):
 		flask.session['login_nonce'] = uuid.uuid4().hex
 
 		return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(scope),
-			redirect_uri=flask.url_for(".login", _external=True), nonce=flask.session['login_nonce'], session=await load_session(include_url=False))
+			redirect_uri=config['twitch_redirect_uri'], nonce=flask.session['login_nonce'], session=await load_session(include_url=False))
 	else:
 		try:
 			# Check that we're expecting the user to be logging in...
@@ -279,7 +279,7 @@ async def login(return_to=None):
 				'client_id': config["twitch_clientid"],
 				'client_secret': config["twitch_clientsecret"],
 				'grant_type': 'authorization_code',
-				'redirect_uri': flask.url_for(".login", _external=True),
+				'redirect_uri': config['twitch_redirect_uri'],
 				'code': flask.request.values['code'],
 			}
 			res_json = urllib.request.urlopen("https://api.twitch.tv/kraken/oauth2/token", urllib.parse.urlencode(oauth_params).encode()).read().decode()
@@ -310,7 +310,7 @@ async def login(return_to=None):
 					server.app.logger.error("User %s has not granted us the required permissions" % user_name)
 					flask.session['login_nonce'] = uuid.uuid4().hex
 					return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(SPECIAL_USERS[user_name]),
-						redirect_uri=flask.url_for(".login", _external=True), nonce=flask.session['login_nonce'], session=await load_session(include_url=False),
+						redirect_uri=config['twitch_redirect_uri'], nonce=flask.session['login_nonce'], session=await load_session(include_url=False),
 						special_user=user_name, remember_me=remember_me)
 
 			# Store the user to the database

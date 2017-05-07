@@ -84,6 +84,9 @@ config.setdefault('twitch_clientid', '')
 # twitch_clientsecret - Twitch API secret key
 config.setdefault('twitch_clientsecret', '')
 
+# twitch_redirect_uri - Redirect URI set up for Twitch login
+config.setdefault('twitch_redirect_uri', 'https://lrrbot.mrphlip.com/login')
+
 # session_secret - Secret key for signing session cookies
 config.setdefault('session_secret', '')
 
