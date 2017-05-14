@@ -5,6 +5,7 @@ from common import utils, gdata
 from common.highlights import SPREADSHEET, format_row
 from common import twitch
 from lrrbot.main import bot
+import irc.client
 import asyncio
 
 import dateutil.parser
@@ -13,19 +14,12 @@ import datetime
 @bot.command("highlight (.*?)")
 @lrrbot.decorators.public_only
 @lrrbot.decorators.sub_only
-@lrrbot.decorators.throttle(60, notify=lrrbot.decorators.Visibility.PUBLIC, modoverride=False, allowprivate=False)
 @asyncio.coroutine
 def highlight(lrrbot, conn, event, respond_to, description):
-	"""
-	Command: !highlight DESCRIPTION
-	Section: misc
-
-	For use when something particularly awesome happens onstream, adds an entry on the Highlight Reel spreadsheet: https://docs.google.com/spreadsheets/d/1yrf6d7dPyTiWksFkhISqEc-JR71dxZMkUoYrX4BR40Y
-	"""
-
+	source = irc.client.NickMask(event.source)
 	stream_info = twitch.get_info()
 	if not stream_info["live"]:
-		conn.privmsg(respond_to, "Not currently streaming.")
+		conn.privmsg(source.nick, "The highlights command has been discontinued, please use the \"Clip\" button instead.")
 		return
 	now = datetime.datetime.now(datetime.timezone.utc)
 
@@ -37,11 +31,11 @@ def highlight(lrrbot, conn, event, respond_to, description):
 		with lrrbot.engine.begin() as pg_conn:
 			pg_conn.execute(lrrbot.metadata.tables["highlights"].insert(),
 				title=stream_info["status"], description=description, time=now, user_id=event.tags["user-id"])
-		conn.privmsg(respond_to, "Highlight added.")
+		conn.privmsg(source.nick, "The highlights command has been discontinued, please use the \"Clip\" button instead.")
 		return
 
 	yield from gdata.add_rows_to_spreadsheet(SPREADSHEET, [
 		format_row(stream_info["status"], description, video, uptime, irc.client.NickMask(event.source).nick)
 	])
 
-	conn.privmsg(respond_to, "Highlight added.")
+	conn.privmsg(source.nick, "The highlights command has been discontinued, please use the \"Clip\" button instead.")
