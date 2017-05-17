@@ -756,6 +756,14 @@ table.quote-search select {
 {
 	opacity: 0.5;
 }
+.clips tr.nextoverlap, .clips tr.nextoverlap td
+{
+	border-bottom-style: dotted;
+}
+.clips tr.lastoverlap, .clips tr.lastoverlap td
+{
+	border-top-style: dotted;
+}
 .clips .thumbnail
 {
 	width: 3em;

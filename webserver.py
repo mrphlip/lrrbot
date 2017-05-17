@@ -34,6 +34,7 @@ app.csrf_token = app.jinja_env.globals["csrf_token"]
 app.jinja_env.globals["min"] = min
 app.jinja_env.globals["max"] = max
 app.jinja_env.globals["static_url"] = www.utils.static_url
+app.jinja_env.globals["cycler"] = www.utils.CyclerExt
 
 __all__ = ['app']
 

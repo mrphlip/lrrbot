@@ -7,8 +7,17 @@
 {%endblock%}
 {%block content%}
 <table class="nicetable clips votes">
+{%set rowclasses = cycler('even', 'odd')%}
 {%for clip in clips%}
-<tr class="{{loop.cycle('even','odd')}} {%if clip['rating'] == None%}incomplete{%else%}complete{%endif%}" data-slug="{{clip['slug']|e}}" data-embed="{{clip['embed_html']|e}}" data-currentrating="{{clip['rating']|tojson}}">
+	{%if clip['overlap']%}
+		{%set rowclass = rowclasses.last + " lastoverlap"%}
+	{%else%}
+		{%set rowclass = rowclasses.next()%}
+	{%endif%}
+	{%if not loop.last and clips[loop.index0 + 1]['overlap']%}
+		{%set rowclass = rowclass + " nextoverlap"%}
+	{%endif%}
+<tr class="{{rowclass}} {%if clip['rating'] == None%}incomplete{%else%}complete{%endif%}" data-slug="{{clip['slug']|e}}" data-embed="{{clip['embed_html']|e}}" data-currentrating="{{clip['rating']|tojson}}">
 	<td class="thumbnail"><img src="{{clip['thumbnail']|e}}"></td>
 	<td class="main">
 		<div class="title">{{clip['title']|e}}</div>

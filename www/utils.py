@@ -4,6 +4,7 @@ import subprocess
 
 import flask
 import pytz
+import jinja2.utils
 
 from common import config
 from common.utils import cache
@@ -32,3 +33,11 @@ def static_url(filename):
 		'git', 'log', '-n', '1', '--pretty=format:%h', '--',
 		os.path.join('www', 'static', filename)]).decode()
 	return "{}?_={}".format(baseurl, revision)
+
+# Add a "last" to get the previous value returned, to complement the existing
+# "current" prop which gets the upcoming value.
+class CyclerExt(jinja2.utils.Cycler):
+	@property
+	def last(self):
+		# self.pos is always positive or zero, so this will wrap cleanly
+		return self.items[self.pos - 1]

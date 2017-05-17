@@ -7,6 +7,7 @@ from www.archive import archive_feed_data, get_video_data
 import common.rpc
 from common.time import nice_duration
 import dateutil.parser
+import datetime
 
 @server.app.route('/clips')
 @login.require_mod
@@ -45,19 +46,27 @@ async def clips_vid(session, videoid):
 			"slug": clip['slug'],
 			"title": clip['title'],
 			"curator": clip['curator']['display_name'],
+			"starttime": time - video['start'],
+			"endtime": time - video['start'] + datetime.timedelta(seconds=clip['duration']),
 			"start": nice_duration(time - video['start'], 0),
 			"duration": nice_duration(clip['duration'], 0),
 			"embed_html": clip['embed_html'],
 			"game": clip['game'],
 			"thumbnail": clip['thumbnails']['small'],
 			"rating": rating,
+			"overlap": False,
 		}
 		for clipjson, time, rating in clip_data
 		for clip in [flask.json.loads(clipjson)]
 	]
+	lastend = None
+	prevclip = None
+	for clip in clip_data:
+		if lastend is not None and clip['starttime'] <= lastend:
+			clip['overlap'] = True
+		if lastend is None or lastend < clip['endtime']:
+			lastend = clip['endtime']
 
-	#import pprint
-	#clip_data = pprint.pformat(clip_data)
 	return flask.render_template("clips_vid.html", video=video, clips=clip_data, session=session)
 
 @server.app.route('/clips/submit', methods=['POST'])
