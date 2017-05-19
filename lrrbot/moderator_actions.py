@@ -68,18 +68,18 @@ class ModeratorActions:
 			user = args[0]
 			text = "%s was untimed-out by %s." % (slack.escape(user), slack.escape(mod))
 
-		elif action == 'twitchbot_rejected':
+		elif action in ('twitchbot_rejected', 'automod_rejected'):
 			user = args[0]
 			message = args[1]
-			# mod is always "twitchbot", but still...
+			# mod is always "automod", but still...
 			text = "%s's message was rejected by %s." % (slack.escape(user), slack.escape(mod))
 			attachments.append({
 				'text': slack.escape(message)
 			})
-		elif action == 'approved_twitchbot_message':
+		elif action in ('approved_twitchbot_message', 'approved_automod_message'):
 			user = args[0]
 			text = "%s approved %s's message." % (slack.escape(mod), slack.escape(user))
-		elif action == 'denied_twitchbot_message':
+		elif action == ('denied_twitchbot_message', 'denied_automod_message'):
 			user = args[0]
 			text = "%s denied %s's message." % (slack.escape(mod), slack.escape(user))
 
