@@ -79,7 +79,7 @@ class ModeratorActions:
 		elif action in ('approved_twitchbot_message', 'approved_automod_message'):
 			user = args[0]
 			text = "%s approved %s's message." % (slack.escape(mod), slack.escape(user))
-		elif action == ('denied_twitchbot_message', 'denied_automod_message'):
+		elif action in ('denied_twitchbot_message', 'denied_automod_message'):
 			user = args[0]
 			text = "%s denied %s's message." % (slack.escape(mod), slack.escape(user))
 
