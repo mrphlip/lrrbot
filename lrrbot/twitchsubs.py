@@ -112,7 +112,7 @@ class TwitchSubs:
 
 	def on_usernotice(self, conn, event):
 		self.lrrbot.check_message_tags(conn, event)
-		if event.tags.get('msg-id') == 'resub':
+		if event.tags.get('msg-id') in ('sub', 'resub'):
 				if len(event.arguments) > 0:
 					message = event.arguments[0]
 				else:
@@ -122,7 +122,10 @@ class TwitchSubs:
 					monthcount = int(monthcount)
 				systemmsg = event.tags.get('system-msg')
 				if not systemmsg:
-					systemmsg = "%s has subscribed for %s months!" % (event.tags.get('display-name') or event.tags['login'], monthcount)
+					if monthcount is not None:
+						systemmsg = "%s has subscribed for %s months!" % (event.tags.get('display-name') or event.tags['login'], monthcount)
+					else:
+						systemmsg = "%s just subscribed!" % (event.tags.get('display-name') or event.tags['login'], )
 				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], event.tags.get('display-name') or event.tags['login'], datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message, emotes=event.tags.get('emotes'))).add_done_callback(utils.check_exception)
 				# Make fake chat messages for this resub in the chat log
 				# This makes the resub message just show up as a normal message, which is close enough
