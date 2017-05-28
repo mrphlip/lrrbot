@@ -12,6 +12,7 @@ import urllib.parse
 import urllib.error
 import irc.client
 import sqlalchemy
+import textwrap
 
 @utils.cache(24 * 60 * 60)
 @asyncio.coroutine
@@ -106,7 +107,7 @@ def live(lrrbot, conn, event, respond_to):
 			space.SPACE
 		) for data in streams
 	])
-	return conn.privmsg(respond_to, utils.shorten(message, 450))
+	return conn.privmsg(respond_to, textwrap.shorten(message, 450))
 
 @bot.command("live register")
 @asyncio.coroutine

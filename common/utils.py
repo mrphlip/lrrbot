@@ -7,7 +7,6 @@ import logging
 import os.path
 import random
 import socket
-import textwrap
 import time
 import heapq
 import logging.config
@@ -33,23 +32,6 @@ def deindent(s):
 		yield line
 		yield from generator
 	return "\n".join(skipblank())
-
-def shorten_fallback(text, width, **kwargs):
-	"""textwrap.shorten is introduced in Python 3.4"""
-	w = textwrap.TextWrapper(width=width, **kwargs)
-	r = ' '.join(text.strip().split())
-	r = w.wrap(r)
-	if len(r) > 1:
-		r = r[0]
-		while len(r) + 3 > width:
-			r = r[:r.rfind(' ')]
-			r = r + "..."
-	elif len(r) == 0:
-		r = None
-	else:
-		r = r[0]
-	return r
-shorten = getattr(textwrap, "shorten", shorten_fallback)
 
 def coro_decorator(decorator):
 	"""
