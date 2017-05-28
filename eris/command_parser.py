@@ -3,20 +3,17 @@ import logging
 
 from common import utils
 
-from lrrbot.command_parser import CommandParser as IrcCommandParser
+from common import command_parser
 
 log = logging.getLogger("eris.command_parser")
 
-class CommandParser(IrcCommandParser):
+class CommandParser(command_parser.CommandParser):
 	def __init__(self, eris, signals, engine, metadata):
+		super().__init__(eris.loop)
 		self.eris = eris
 		self.signals = signals
 		self.engine = engine
 		self.metadata = metadata
-
-		self.commands = {}
-		self.command_groups = {}
-		self.re_botcommand = None
 
 		self.signals.signal('message').connect(self.on_message)
 
@@ -27,13 +24,8 @@ class CommandParser(IrcCommandParser):
 			# Stop infinite message loops.
 			return
 
-		if self.re_botcommand is None:
-			self.compile()
-
-		command_match = self.re_botcommand.match(message.content)
-		if command_match:
-			command = command_match.group(command_match.lastindex)
-			log.info("Command from %s#%s: %s " % (message.author.name, message.author.id, command))
-			proc, end = self.command_groups[command_match.lastindex]
-			params = command_match.groups()[command_match.lastindex:end]
+		match = self.get_match(message.content)
+		if match is not None:
+			log.info("Command from %s#%s: %s " % (message.author.name, message.author.id, message.content))
+			proc, params = match
 			asyncio.ensure_future(proc(self, message, *params), loop=self.eris.loop).add_done_callback(utils.check_exception)
