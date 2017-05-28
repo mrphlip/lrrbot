@@ -47,6 +47,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					password, = row
 				else:
 					password = ""
+				if password is None:
+					password = ""
 			password = "oauth:" + password
 		else:
 			password = config['password']
