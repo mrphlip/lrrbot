@@ -4,9 +4,10 @@ import common.http
 
 import asyncio
 
-from Cryptodome.PublicKey import RSA
-from Cryptodome.Signature import PKCS1_v1_5
-from Cryptodome.Hash import SHA256
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.backends import openssl
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+from cryptography.hazmat.primitives.hashes import SHA256
 
 import json
 import base64
@@ -16,8 +17,7 @@ import xml.dom.minidom
 def base64_encode(data):
 	return base64.urlsafe_b64encode(data).strip(b"=")
 
-@asyncio.coroutine
-def get_oauth_token(scopes):
+async def get_oauth_token(scopes):
 	with open("keys.json") as f:
 		keys = json.load(f)
 	t = int(time.time())
@@ -33,16 +33,16 @@ def get_oauth_token(scopes):
 
 	data = base64_encode(header) + b'.' + base64_encode(claim)
 
-	key = RSA.importKey(keys["private_key"])
-	h = SHA256.new(data)
-	signer = PKCS1_v1_5.new(key)
-	signature = signer.sign(h)
+	key = load_pem_private_key(keys["private_key"].encode("utf-8"), None, openssl.backend)
+	signer = key.signer(PKCS1v15(), SHA256())
+	signer.update(data)
+	signature = signer.finalize()
 
 	jwt = (data + b'.' + base64_encode(signature)).decode("utf-8")
 
 	data = {"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer", "assertion": jwt}
 
-	ret = json.loads((yield from common.http.request_coro("https://accounts.google.com/o/oauth2/token", data, "POST")))
+	ret = json.loads((await common.http.request_coro("https://accounts.google.com/o/oauth2/token", data, "POST")))
 	if "error" in ret:
 		raise Exception(ret["error"])
 	return ret
@@ -58,17 +58,16 @@ def new_field(doc, name, value):
 	node.appendChild(doc.createTextNode(value))
 	return node
 
-@asyncio.coroutine
-def add_rows_to_spreadsheet(spreadsheet, rows):
-	token = yield from get_oauth_token(["https://spreadsheets.google.com/feeds"])
+async def add_rows_to_spreadsheet(spreadsheet, rows):
+	token = await get_oauth_token(["https://spreadsheets.google.com/feeds"])
 	headers = {"Authorization": "%(token_type)s %(access_token)s" % token}
 	url = "https://spreadsheets.google.com/feeds/worksheets/%s/private/full" % spreadsheet
-	tree = xml.dom.minidom.parseString((yield from common.http.request_coro(url, headers=headers)))
+	tree = xml.dom.minidom.parseString((await common.http.request_coro(url, headers=headers)))
 	worksheet = next(iter(tree.getElementsByTagName("entry")))
 	list_feed = find_schema(worksheet, "http://schemas.google.com/spreadsheets/2006#listfeed")
 	if list_feed is None:
 		raise Exception("List feed missing.")
-	list_feed = xml.dom.minidom.parseString((yield from common.http.request_coro(list_feed, headers=headers)))
+	list_feed = xml.dom.minidom.parseString((await common.http.request_coro(list_feed, headers=headers)))
 	post_url = find_schema(list_feed, "http://schemas.google.com/g/2005#post")
 	if post_url is None:
 		raise Exception("POST URL missing.")
@@ -82,4 +81,4 @@ def add_rows_to_spreadsheet(spreadsheet, rows):
 			root.appendChild(new_field(doc, column, value))
 
 		headers["Content-Type"] = "application/atom+xml"
-		yield from common.http.request_coro(post_url, headers=headers, data=doc.toxml(), method="POST")
+		await common.http.request_coro(post_url, headers=headers, data=doc.toxml(), method="POST")
