@@ -32,22 +32,23 @@ class ModeratorActions:
 
 		self.last_chat = {}
 
-		self.lrrbot.reactor.add_global_handler("pubmsg", self.record_db_chat, -2)
-		self.lrrbot.reactor.add_global_handler("all_events", self.drop_db_events, -1)
-		self.lrrbot.reactor.add_global_handler("welcome", self.on_connect, 2)
-		self.lrrbot.reactor.execute_every(period=60, function=self.clear_chat)
+		if config['log_desertbus_moderator_actions']:
+			self.lrrbot.reactor.add_global_handler("pubmsg", self.record_db_chat, -2)
+			self.lrrbot.reactor.add_global_handler("all_events", self.drop_db_events, -1)
+			self.lrrbot.reactor.add_global_handler("welcome", self.on_connect, 2)
+			self.lrrbot.reactor.execute_every(period=60, function=self.clear_chat)
 
-		users = self.lrrbot.metadata.tables["users"]
-		with self.lrrbot.engine.begin() as conn:
-			selfrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == WATCHAS)).first()
-			targetrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == WATCHCHANNEL)).first()
-		if selfrow is not None and targetrow is not None:
-			self_channel_id, = selfrow
-			target_channel_id, = targetrow
-			topic = "chat_moderator_actions.%s.%s" % (self_channel_id, target_channel_id)
+			users = self.lrrbot.metadata.tables["users"]
+			with self.lrrbot.engine.begin() as conn:
+				selfrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == WATCHAS)).first()
+				targetrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == WATCHCHANNEL)).first()
+			if selfrow is not None and targetrow is not None:
+				self_channel_id, = selfrow
+				target_channel_id, = targetrow
+				topic = "chat_moderator_actions.%s.%s" % (self_channel_id, target_channel_id)
 
-			self.lrrbot.pubsub.subscribe([topic], WATCHAS)
-			pubsub.signals.signal(topic).connect(self.on_message)
+				self.lrrbot.pubsub.subscribe([topic], WATCHAS)
+				pubsub.signals.signal(topic).connect(self.on_message)
 
 	@utils.swallow_errors
 	def on_message(self, sender, message):
