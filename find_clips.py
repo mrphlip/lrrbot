@@ -156,11 +156,12 @@ def main():
 	if argv:
 		period = argv[0]
 		if period not in ('day', 'week', 'month'):
-			print("Usage:\n  %s [day|week|month]" % sys.argv[0])
+			print("Usage:\n  %s [day|week|month] [channel]" % sys.argv[0])
 			sys.exit(1)
 	else:
 		period = "day"
-	process_clips("loadingreadyrun" or config['channel'], period)
+	channel = argv[1] if len(argv) > 1 else config['channel']
+	process_clips(channel, period)
 	fix_null_vodids()
 
 if __name__ == '__main__':

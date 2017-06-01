@@ -22,8 +22,8 @@ CACHE_TIMEOUT = 5*60
 BEFORE_BUFFER = datetime.timedelta(minutes=15)
 AFTER_BUFFER = datetime.timedelta(minutes=15)
 
-@utils.cache(CACHE_TIMEOUT, params=[0, 1])
-def archive_feed_data(channel, broadcasts):
+@utils.cache(CACHE_TIMEOUT, params=[0, 1, 2])
+def archive_feed_data(channel, broadcasts, extravids=None):
 	url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.parse.quote(channel, safe=""), "true" if broadcasts else "false", 100)
 	req = urllib.request.Request(url)
 	req.add_header('Client-ID', config['twitch_clientid'])
@@ -31,6 +31,18 @@ def archive_feed_data(channel, broadcasts):
 	data = fp.read()
 	fp.close()
 	data = data.decode()
+	videos = flask.json.loads(data)['videos']
+
+	if extravids:
+		for vid in extravids:
+			url = "https://api.twitch.tv/kraken/videos/%s" % vid
+			req = urllib.request.Request(url)
+			req.add_header('Client-ID', config['twitch_clientid'])
+			fp = urllib.request.urlopen(req)
+			data = fp.read()
+			fp.close()
+			data = data.decode()
+			videos.append(flask.json.loads(data))
 
 	# {u'_id': u'v40431562',
 	#  u'_links': {u'channel': u'https://api.twitch.tv/kraken/channels/loadingreadyrun',
@@ -73,7 +85,6 @@ def archive_feed_data(channel, broadcasts):
 	#  u'views': 46,
 	#  u'vod_type': u'archive'}
 
-	videos = flask.json.loads(data)['videos']
 	for video in videos:
 		if video.get('created_at'):
 			video["created_at"] = dateutil.parser.parse(video["created_at"])
@@ -81,6 +92,8 @@ def archive_feed_data(channel, broadcasts):
 			video["delete_at"] = dateutil.parser.parse(video["delete_at"])
 		if video.get('recorded_at'):
 			video["recorded_at"] = dateutil.parser.parse(video["recorded_at"])
+
+	videos.sort(key=lambda v:v.get('recorded_at'), reverse=True)
 	return videos
 
 def archive_feed_data_html(channel, broadcasts, rss):
