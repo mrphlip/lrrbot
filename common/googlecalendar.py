@@ -1,6 +1,8 @@
 import datetime
 import json
 import urllib.parse
+import textwrap
+import string
 
 import dateutil.parser
 import pytz
@@ -107,6 +109,20 @@ def get_next_event(calendar, after=None, include_current=False):
 	lookahead_end = events[first_future_event]['start'] + LOOKAHEAD_PERIOD
 	return [ev for i,ev in enumerate(events) if (i >= first_future_event or include_current) and ev['start'] < lookahead_end]
 
+def process_description(description):
+	lines = [line.strip() for line in description.splitlines() if len(line) > 0]
+
+	if len(lines) == 2:
+		# Show info from LRR (issue #270): line 1 is game, line 2 is show description
+		game, show_description = lines
+		if game == '-':
+			return show_description
+		if show_description[-1] not in string.punctuation:
+			show_description += '.'
+		return "%s Game: %s" % (show_description, game)
+	else:
+		return "; ".join(lines)
+
 def get_next_event_text(calendar, after=None, include_current=None, tz=None, verbose=True):
 	"""
 	Build the actual human-readable response to the !next command.
@@ -142,7 +158,7 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 		concise_title = title
 		if ev['description'] is not None:
 			title += " (%(description)s)" % {
-				"description": utils.shorten(ev['description'], 200),
+				"description": textwrap.shorten(process_description(ev['description']), 200),
 			}
 		# If several events are at the same time, just show the time once after all of them
 		if i == len(events) - 1 or ev['start'] != events[i+1]['start']:
@@ -172,4 +188,4 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 	else:
 		response = ", ".join(concise_strs)
 
-	return utils.shorten(response, 450) # For safety
+	return textwrap.shorten(response, 450) # For safety
