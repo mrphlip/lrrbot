@@ -327,7 +327,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				game_data.lock_tables(conn, self.metadata)
 				old_id = conn.execute(sqlalchemy.select([games.c.id]).where(games.c.name == game_name)).first()
 				if old_id is None:
-					conn.execute(games.insert(), {
+					query = games.insert()
+					query = query.on_conflict_do_update(index_elements=[games.c.id], set_={
+						name: query.excluded.name,
+					})
+					conn.execute(query, {
 						"id": game_id,
 						"name": game_name
 					})
@@ -406,7 +410,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				if show_id is None:
 					raise KeyError(string_id)
 				self.show_override, = show_id
-
 
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""
