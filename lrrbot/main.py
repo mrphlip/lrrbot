@@ -162,7 +162,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			tasks_waiting = [chatlogtask]
 			if self.whisperconn:
 				tasks_waiting.append(self.whisperconn.stop_task())
-			self.cardviewer.stop()
+			tasks_waiting.append(self.cardviewer.stop())
 			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
 
 	def disconnect(self, msg="I'll be back!"):
