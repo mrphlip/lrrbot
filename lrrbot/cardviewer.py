@@ -84,8 +84,7 @@ class CardViewer:
 			self.loop.call_soon_threadsafe(asyncio.async, self._card(card_id))
 
 	@utils.swallow_errors
-	@asyncio.coroutine
-	def _card(self, card_id):
+	async def _card(self, card_id):
 		# Delayed import so this module can be imported before the bot object exists
 		import lrrbot.commands.card
 
@@ -103,7 +102,7 @@ class CardViewer:
 
 		log.info("Got card from pubnub: %r", card_id)
 
-		yield from asyncio.sleep(ANNOUNCE_DELAY)
+		await asyncio.sleep(ANNOUNCE_DELAY)
 
 		lrrbot.commands.card.real_card_lookup(
 			self.lrrbot,

@@ -4,6 +4,7 @@
 aiohttp
 aiomas
 alembic
+async_timeout
 blinker
 cryptography
 discord.py

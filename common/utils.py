@@ -36,16 +36,15 @@ def deindent(s):
 def coro_decorator(decorator):
 	"""
 	Utility decorator used when defining other decorators, so they can wrap
-	either normal functions or asyncio coroutines.
+	either normal functions or coroutines.
 
 	Usage:
 	@coro_decorator
 	def decorator(func):
 		@functools.wraps(func)
-		@asyncio.coroutine # decorator must return a coroutine, and use "yield from" to call func
-		def wrapper(...)
+		async def wrapper(...) # decorator must return a coroutine, and use "await" or "yield from" to call func
 			...
-			ret = yield from func(...)
+			ret = await func(...)
 			...
 			return ...
 		return wrapper
@@ -54,12 +53,11 @@ def coro_decorator(decorator):
 	def normal_func():
 		pass
 
-	@decorator # @decorator must be above @coroutine
-	@asyncio.coroutine
-	def coro_func():
+	@decorator
+	async def coro_func():
 		pass
 
-	Note that the decorator must *not* yield from anything *except* the function
+	Note that the decorator must *not* await anything *except* the function
 	it's decorating.
 	"""
 	# any extra properties that we want to assign to wrappers, in any of the decorators
@@ -80,9 +78,8 @@ def coro_decorator(decorator):
 			# Unwrap the coroutine. We know it should never yield.
 			@functools.wraps(decorated_coro, assigned=functools.WRAPPER_ASSIGNMENTS + EXTRA_PARAMS, updated=())
 			def decorated_func(*args, **kwargs):
-				x = iter(decorated_coro(*args, **kwargs))
 				try:
-					next(x)
+					decorated_coro(*args, **kwargs).send(None)
 				except StopIteration as e:
 					return e.value
 				else:
@@ -141,16 +138,15 @@ class throttle_base(object):
 			self.watchparams = [param_list[i] if isinstance(i, int) else i for i in self.watchparams]
 			self.watchparams = [(i, self.signature.parameters[i].default) for i in self.watchparams]
 
-		@asyncio.coroutine
 		@functools.wraps(func)
-		def wrapper(*args, **kwargs):
-			with (yield from self.lock):
+		async def wrapper(*args, **kwargs):
+			async with self.lock:
 				if self.bypass(func, args, kwargs):
-					return (yield from func(*args, **kwargs))
+					return (await func(*args, **kwargs))
 
 				params = self.watchedparams(args, kwargs)
 				if params not in self.lastrun or len(self.lastrun[params]) < self.count or (self.period and time.time() - self.lastrun[params][0] >= self.period):
-					self.lastreturn[params] = yield from func(*args, **kwargs)
+					self.lastreturn[params] = await func(*args, **kwargs)
 					self.lastrun.setdefault(params, []).append(time.time())
 					if len(self.lastrun[params]) > self.count:
 						self.lastrun[params] = self.lastrun[params][-self.count:]
@@ -189,9 +185,9 @@ class cache(throttle_base):
 def log_errors(func):
 	"""Log any errors thrown by a function"""
 	@functools.wraps(func)
-	def wrapper(*args, **kwargs):
+	async def wrapper(*args, **kwargs):
 		try:
-			return (yield from func(*args, **kwargs))
+			return await func(*args, **kwargs)
 		except:
 			log.exception("Exception in " + func.__name__)
 			raise
@@ -200,11 +196,10 @@ def log_errors(func):
 @coro_decorator
 def swallow_errors(func):
 	"""Log and absorb any errors thrown by a function"""
-	@asyncio.coroutine
 	@functools.wraps(func)
-	def wrapper(*args, **kwargs):
+	async def wrapper(*args, **kwargs):
 		try:
-			return (yield from func(*args, **kwargs))
+			return await func(*args, **kwargs)
 		except PASSTHROUGH_EXCEPTIONS:
 			raise
 		except Exception:

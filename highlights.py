@@ -34,15 +34,13 @@ def delete_staged_highlights(highlights):
 			for highlight in highlights
 		])
 
-@asyncio.coroutine
-def get_videos(*args, **kwargs):
-	videos = yield from twitch.get_videos(*args, **kwargs)
+async def get_videos(*args, **kwargs):
+	videos = await twitch.get_videos(*args, **kwargs)
 	for video in videos:
 		video["recorded_at"] = dateutil.parser.parse(video["recorded_at"])
 	return videos
 
-@asyncio.coroutine
-def lookup_video(highlight, videos):
+async def lookup_video(highlight, videos):
 	while True:
 		last_video = None
 		for video in videos:
@@ -58,14 +56,13 @@ def lookup_video(highlight, videos):
 					return video
 			else:
 				last_video = video
-		more_videos = yield from get_videos(broadcasts=True, offset=len(videos))
+		more_videos = await get_videos(broadcasts=True, offset=len(videos))
 		if len(more_videos) == 0:
 			# It's before the first video, so just return that
 			return videos[-1]
 		videos += more_videos
 
-@asyncio.coroutine
-def main():
+async def main():
 	if twitch.get_info()["live"]:
 		print("Stream is live.")
 		return
@@ -73,9 +70,9 @@ def main():
 	highlights = get_staged_highlights()
 	videos = []
 	for highlight in highlights:
-		highlight["video"] = yield from lookup_video(highlight, videos)
+		highlight["video"] = await lookup_video(highlight, videos)
 
-	yield from gdata.add_rows_to_spreadsheet(SPREADSHEET, [
+	await gdata.add_rows_to_spreadsheet(SPREADSHEET, [
 		format_row(highlight["title"], highlight["description"], highlight["video"],
 			 highlight["time"] - highlight["video"]["recorded_at"], highlight["nick"])
 		for highlight in highlights

@@ -1,6 +1,5 @@
 import json
 import random
-import asyncio
 import socket
 import dateutil.parser
 
@@ -98,8 +97,7 @@ def is_stream_live(username=None):
 	channel_data = get_info(username, use_fallback=False)
 	return channel_data and channel_data['live']
 
-@asyncio.coroutine
-def get_subscribers(channel, token, count=5, offset=None, latest=True):
+async def get_subscribers(channel, token, count=5, offset=None, latest=True):
 	headers = {
 		"Authorization": "OAuth %s" % token,
 		"Client-ID": config['twitch_clientid'],
@@ -110,15 +108,14 @@ def get_subscribers(channel, token, count=5, offset=None, latest=True):
 	}
 	if offset is not None:
 		data['offset'] = str(offset)
-	res = yield from common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
+	res = await common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
 	subscriber_data = json.loads(res)
 	return [
 		(sub['user']['display_name'], sub['user'].get('logo'), sub['created_at'], sub.get('updated_at', sub['created_at']))
 		for sub in subscriber_data['subscriptions']
 	]
 
-@asyncio.coroutine
-def get_follows_channels(username=None):
+async def get_follows_channels(username=None):
 	if username is None:
 		username = config["username"]
 	headers = {
@@ -128,15 +125,14 @@ def get_follows_channels(username=None):
 	follows = []
 	total = 1
 	while len(follows) < total:
-		data = yield from common.http.request_coro(url, headers=headers)
+		data = await common.http.request_coro(url, headers=headers)
 		data = json.loads(data)
 		total = data["_total"]
 		follows += data["follows"]
 		url = data["_links"]["next"]
 	return follows
 
-@asyncio.coroutine
-def get_streams_followed(token):
+async def get_streams_followed(token):
 	url = "https://api.twitch.tv/kraken/streams/followed"
 	headers = {
 		"Authorization": "OAuth %s" % token,
@@ -145,38 +141,35 @@ def get_streams_followed(token):
 	streams = []
 	total = 1
 	while len(streams) < total:
-		data = yield from common.http.request_coro(url, headers=headers)
+		data = await common.http.request_coro(url, headers=headers)
 		data = json.loads(data)
 		total = data["_total"]
 		streams += data["streams"]
 		url = data["_links"]["next"]
 	return streams
 
-@asyncio.coroutine
-def follow_channel(target, token):
+async def follow_channel(target, token):
 	headers = {
 		"Authorization": "OAuth %s" % token,
 		"Client-ID": config['twitch_clientid'],
 	}
-	yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
-										data={"notifications": "false"}, method="PUT", headers=headers)
+	await common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
+	                               data={"notifications": "false"}, method="PUT", headers=headers)
 
-@asyncio.coroutine
-def unfollow_channel(target, token):
+async def unfollow_channel(target, token):
 	headers = {
 		"Authorization": "OAuth %s" % token,
 		"Client-ID": config['twitch_clientid'],
 	}
-	yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
-										method="DELETE", headers=headers)
+	await common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
+	                               method="DELETE", headers=headers)
 
-@asyncio.coroutine
-def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
+async def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
 	channel = channel or config["channel"]
 	headers = {
 		"Client-ID": config['twitch_clientid'],
 	}
-	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/videos" % channel, headers=headers, data={
+	data = await common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/videos" % channel, headers=headers, data={
 		"offset": str(offset),
 		"limit": str(limit),
 		"broadcasts": "true" if broadcasts else "false",

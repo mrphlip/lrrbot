@@ -8,15 +8,14 @@ from common import utils
 log = logging.getLogger("common.url")
 
 @utils.cache(60 * 60, params=[0])
-@asyncio.coroutine
-def canonical_url(url, depth=10):
+async def canonical_url(url, depth=10):
 	urls = []
 	while depth > 0:
 		if not url.startswith("http://") and not url.startswith("https://"):
 			url = "http://" + url
 		urls.append(url)
 		try:
-			res = yield from request_coro(url, method="HEAD", allow_redirects=False)
+			res = await request_coro(url, method="HEAD", allow_redirects=False)
 			if res.status in range(300, 400) and "Location" in res.headers:
 				url = res.headers["Location"]
 				depth -= 1
@@ -30,10 +29,9 @@ def canonical_url(url, depth=10):
 	return urls
 
 @utils.cache(24 * 60 * 60)
-@asyncio.coroutine
-def get_tlds():
+async def get_tlds():
 	tlds = set()
-	data = yield from request_coro("https://data.iana.org/TLD/tlds-alpha-by-domain.txt")
+	data = await request_coro("https://data.iana.org/TLD/tlds-alpha-by-domain.txt")
 	for line in data.splitlines():
 		if not line.startswith("#"):
 			line = line.strip().lower()
@@ -43,13 +41,12 @@ def get_tlds():
 	return tlds
 
 @utils.cache(24 * 60 * 60)
-@asyncio.coroutine
-def url_regex():
+async def url_regex():
 	parens = ["()", "[]", "{}", "<>", '""', "''"]
 
 	# Sort TLDs in decreasing order by length to avoid incorrect matches.
 	# For example: if 'co' is before 'com', 'example.com/path' is matched as 'example.co'.
-	tlds = sorted((yield from get_tlds()), key=lambda e: len(e), reverse=True)
+	tlds = sorted((await get_tlds()), key=lambda e: len(e), reverse=True)
 	re_tld = "(?:" + "|".join(map(re.escape, tlds)) + ")"
 	re_hostname = "(?:(?:(?:[\w-]+\.)+" + re_tld + "\.?)|(?:\d{,3}(?:\.\d{,3}){3})|(?:\[[0-9a-fA-F:.]+\]))"
 	re_url = "((?:https?://)?" + re_hostname + "(?::\d+)?(?:/[\x5E\s\u200b]*)?)"

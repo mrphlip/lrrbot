@@ -22,17 +22,16 @@ class TwitchWhisper:
 		log.debug("Enqueue whisper: %r", (target, text))
 		self.message_queue.put_nowait((target, text))
 
-	@asyncio.coroutine
-	def message_pump(self):
+	async def message_pump(self):
 		# Throttle outgoing messages so we only send 1.5 per second (90 per minute)
 		# The limits we know are roughly 3 per second or 100 per minute but allow
 		# some buffer area due to network lag
 		while True:
-			target, text = yield from self.message_queue.get()
+			target, text = await self.message_queue.get()
 			log.debug("Dequeue whisper: %r", (target, text))
 			if self.lrrbot.connection:
 				try:
 					self.lrrbot.connection.privmsg("#jtv", "/w %s %s" % (target, text))
 				except irc.client.ServerNotConnectedError:
 					pass
-			yield from asyncio.sleep(2/3)
+			await asyncio.sleep(2/3)

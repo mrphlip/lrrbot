@@ -1,5 +1,3 @@
-import asyncio
-
 from common.config import config
 from common import patreon
 
@@ -8,10 +6,9 @@ import lrrbot.decorators
 
 @bot.command("patreon")
 @lrrbot.decorators.throttle()
-@asyncio.coroutine
-def get_patreon_info(lrrbot, conn, event, respond_to):
-	token = yield from patreon.get_token(lrrbot.engine, lrrbot.metadata, config["channel"])
-	campaigns = yield from patreon.get_campaigns(token, ["creator", "goals"])
+async def get_patreon_info(lrrbot, conn, event, respond_to):
+	token = await patreon.get_token(lrrbot.engine, lrrbot.metadata, config["channel"])
+	campaigns = await patreon.get_campaigns(token, ["creator", "goals"])
 	campaign = campaigns["data"][0]["attributes"]
 	total = "%d %s for a total of %s per %s." % (
 		campaign["patron_count"],

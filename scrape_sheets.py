@@ -11,12 +11,11 @@ def getargs():
 	parser.add_argument('sheetid', type=str, help="Sheet ID for the set")
 	return parser.parse_args(args)
 
-@asyncio.coroutine
-def get_data(sheetid):
-	token = yield from gdata.get_oauth_token(["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/spreadsheets.readonly"])
+async def get_data(sheetid):
+	token = await gdata.get_oauth_token(["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/spreadsheets.readonly"])
 	headers = {"Authorization": "%(token_type)s %(access_token)s" % token}
 	url = "https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?majorDimension=ROWS" % (sheetid, "A:I")
-	data = yield from http.request_coro(url, headers=headers)
+	data = await http.request_coro(url, headers=headers)
 	return json.loads(data)
 
 def getcards(data):
@@ -41,9 +40,8 @@ def getcards(data):
 		cards.append(card)
 	return cards
 
-@asyncio.coroutine
-def main(sheetid):
-	data = yield from get_data(sheetid)
+async def main(sheetid):
+	data = await get_data(sheetid)
 	carddata = {
 		data['values'][0][0]: {
 			'cards': getcards(data),

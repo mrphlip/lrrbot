@@ -6,6 +6,7 @@ import urllib.parse
 import urllib.request
 
 import aiohttp
+import async_timeout
 
 from common import config
 from common import utils
@@ -59,15 +60,9 @@ def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **k
 # Limit the number of parallel HTTP connections to a server.
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
 atexit.register(lambda: asyncio.get_event_loop().run_until_complete(http_request_session.close()))
-@asyncio.coroutine
-def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
+async def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
 	firstex = None
-
-	# FIXME(#130): aiohttp fails to decode HEAD requests with Content-Encoding set. Do GET requests instead.
-	real_method = method
-	if method == 'HEAD':
-		real_method = 'GET'
 
 	if method == 'GET':
 		params = data
@@ -76,20 +71,18 @@ def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 		params = None
 	while True:
 		try:
-			res = yield from asyncio.wait_for(http_request_session.request(real_method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects), timeout)
-			if method == "HEAD":
-				yield from res.release()
-				return res
-			status_class = res.status // 100
-			if status_class != 2:
-				yield from res.read()
-				if status_class == 4:
-					maxtries = 1
-				yield from res.release()
-				raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
-			text = yield from res.text()
-			yield from res.release()
-			return text
+			with async_timeout.timeout(timeout):
+				async with http_request_session.request(method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects) as res:
+					if method == "HEAD":
+						return res
+					status_class = res.status // 100
+					if status_class != 2:
+						await res.read()
+						if status_class == 4:
+							maxtries = 1
+						raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)
+					text = await res.text()
+					return text
 		except utils.PASSTHROUGH_EXCEPTIONS:
 			raise
 		except Exception as e:
@@ -101,39 +94,3 @@ def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5
 			else:
 				break
 	raise firstex
-
-def api_request(uri, *args, **kwargs):
-	# Send the information to the server
-	try:
-		res = request(config.config['siteurl'] + uri, *args, **kwargs)
-	except utils.PASSTHROUGH_EXCEPTIONS:
-		raise
-	except Exception:
-		log.exception("Error at server in %s" % uri)
-	else:
-		try:
-			res = json.loads(res)
-		except ValueError:
-			log.exception("Error parsing server response from %s: %s", uri, res)
-		else:
-			if 'success' not in res:
-				log.error("Error at server in %s" % uri)
-			return res
-
-@asyncio.coroutine
-def api_request_coro(uri, *args, **kwargs):
-	try:
-		res = yield from request_coro(config.config['siteurl'] + uri, *args, **kwargs)
-	except utils.PASSTHROUGH_EXCEPTIONS:
-		raise
-	except Exception:
-		log.exception("Error at server in %s" % uri)
-	else:
-		try:
-			res = json.loads(res)
-		except ValueError:
-			log.exception("Error parsing server response from %s: %s", uri, res)
-		else:
-			if 'success' not in res:
-				log.error("Error at server in %s" % uri)
-			return res

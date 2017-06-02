@@ -416,8 +416,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""Check whether the source of the event is a known subscriber to the channel"""
 		return event.tags["subscriber"] or event.tags["patron"]
 
-	@asyncio.coroutine
-	def ban(self, conn, event, reason, bantype):
+	async def ban(self, conn, event, reason, bantype):
 		source = irc.client.NickMask(event.source)
 		display_name = event.tags.get("display_name", source.nick)
 		if bantype == "spam":

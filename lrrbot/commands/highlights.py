@@ -6,7 +6,6 @@ from common.highlights import SPREADSHEET, format_row
 from common import twitch
 from lrrbot.main import bot
 import irc.client
-import asyncio
 
 import dateutil.parser
 import datetime
@@ -14,8 +13,7 @@ import datetime
 @bot.command("highlight (.*?)")
 @lrrbot.decorators.public_only
 @lrrbot.decorators.sub_only
-@asyncio.coroutine
-def highlight(lrrbot, conn, event, respond_to, description):
+async def highlight(lrrbot, conn, event, respond_to, description):
 	source = irc.client.NickMask(event.source)
 	stream_info = twitch.get_info()
 	if not stream_info["live"]:
@@ -23,7 +21,7 @@ def highlight(lrrbot, conn, event, respond_to, description):
 		return
 	now = datetime.datetime.now(datetime.timezone.utc)
 
-	for video in (yield from twitch.get_videos(broadcasts=True)):
+	for video in (await twitch.get_videos(broadcasts=True)):
 		uptime = now - dateutil.parser.parse(video["recorded_at"])
 		if video["status"] == "recording":
 			break
@@ -34,7 +32,7 @@ def highlight(lrrbot, conn, event, respond_to, description):
 		conn.privmsg(source.nick, "The highlights command has been discontinued, please use the \"Clip\" button instead.")
 		return
 
-	yield from gdata.add_rows_to_spreadsheet(SPREADSHEET, [
+	await gdata.add_rows_to_spreadsheet(SPREADSHEET, [
 		format_row(stream_info["status"], description, video, uptime, irc.client.NickMask(event.source).nick)
 	])
 

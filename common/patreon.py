@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import json
 
@@ -8,20 +7,18 @@ import sqlalchemy
 from common.config import config
 from common import http
 
-@asyncio.coroutine
-def request_token(grant_type, **data):
+async def request_token(grant_type, **data):
 	data.update({
 		"grant_type": grant_type,
 		"client_id": config["patreon_clientid"],
 		"client_secret": config["patreon_clientsecret"],
 	})
-	data = yield from http.request_coro("https://api.patreon.com/oauth2/token", data=data, method="POST")
+	data = await http.request_coro("https://api.patreon.com/oauth2/token", data=data, method="POST")
 	data = json.loads(data)
 	expiry = datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=data["expires_in"])
 	return data["access_token"], data["refresh_token"], expiry
 
-@asyncio.coroutine
-def get_token(engine, metadata, user):
+async def get_token(engine, metadata, user):
 	def filter_by_user(query, user):
 		if isinstance(user, int):
 			return query.where(users.c.id == user)
@@ -47,7 +44,7 @@ def get_token(engine, metadata, user):
 		if access_token is None:
 			raise Exception("User not logged in")
 	if expiry < datetime.datetime.now(pytz.utc):
-		access_token, refresh_token, expiry = yield from request_token("refresh_token", refresh_token=refresh_token)
+		access_token, refresh_token, expiry = await request_token("refresh_token", refresh_token=refresh_token)
 		with engine.begin() as conn:
 			conn.execute(patreon_users.update().where(patreon_users.c.id == patreon_id),
 				access_token=access_token,
@@ -57,15 +54,13 @@ def get_token(engine, metadata, user):
 
 	return access_token
 
-@asyncio.coroutine
-def get_campaigns(token, include=["creator", "goals", "rewards"]):
+async def get_campaigns(token, include=["creator", "goals", "rewards"]):
 	data = {"include": ",".join(include)}
 	headers = {"Authorization": "Bearer %s" % token}
-	data = yield from http.request_coro("https://api.patreon.com/oauth2/api/current_user/campaigns", data=data, headers=headers)
+	data = await http.request_coro("https://api.patreon.com/oauth2/api/current_user/campaigns", data=data, headers=headers)
 	return json.loads(data)
 
-@asyncio.coroutine
-def current_user(token):
+async def current_user(token):
 	headers = {"Authorization": "Bearer %s" % token}
-	data = yield from http.request_coro("https://api.patreon.com/oauth2/api/current_user", headers=headers)
+	data = await http.request_coro("https://api.patreon.com/oauth2/api/current_user", headers=headers)
 	return json.loads(data)

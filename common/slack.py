@@ -1,11 +1,9 @@
-import asyncio
 import json
 
 from common.config import config
 from common import http
 
-@asyncio.coroutine
-def send_message(text, **keys):
+async def send_message(text, **keys):
 	keys['text'] = text
 
 	headers = {
@@ -13,7 +11,7 @@ def send_message(text, **keys):
 	}
 
 	if config['slack_webhook_url'] is not None:
-		yield from http.request_coro(config['slack_webhook_url'], method="POST", data=json.dumps(keys), headers=headers)
+		await http.request_coro(config['slack_webhook_url'], method="POST", data=json.dumps(keys), headers=headers)
 
 def escape(text):
 	return text \
