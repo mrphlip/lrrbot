@@ -166,6 +166,18 @@ function twitch_subscription(data) {
 		message.appendChild(link);
 		message.appendChild(document.createTextNode(" just subscribed!"));
 		message_container.appendChild(message);
+
+		if (data.message) {
+			var user_message = createElementWithClass("p", "message");
+			message_container.appendChild(user_message);
+			var quote = document.createElement("q");
+			if (data.messagehtml) {
+				quote.innerHTML = data.messagehtml;
+			} else {
+				quote.appendChild(document.createTextNode(data.message));
+			}
+			user_message.appendChild(quote);
+		}
 	});
 }
 

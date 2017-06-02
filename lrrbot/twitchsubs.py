@@ -122,7 +122,7 @@ class TwitchSubs:
 					monthcount = int(monthcount)
 				systemmsg = event.tags.get('system-msg')
 				if not systemmsg:
-					if monthcount is not None:
+					if monthcount is not None and monthcount != 1:
 						systemmsg = "%s has subscribed for %s months!" % (event.tags.get('display-name') or event.tags['login'], monthcount)
 					else:
 						systemmsg = "%s just subscribed!" % (event.tags.get('display-name') or event.tags['login'], )
