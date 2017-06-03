@@ -9,7 +9,7 @@ WatchdogSec=120s
 Restart=always
 NotifyAccess=main
 WorkingDirectory=%h/lrrbot
-ExecStart=%h/lrrbot/venv/bin/python3 %h/lrrbot/start_eris.py
+ExecStart=/bin/sh -c "exec %h/lrrbot/venv/bin/python3 start_eris.py"
 
 [Install]
 WantedBy=default.target
