@@ -7,7 +7,7 @@ alembic==0.9.2
 async-timeout==1.2.1
 blinker==1.4
 cryptography==1.9
-discord.py
+discord.py==0.16.8
 flask
 flask-csrf
 flask-sqlalchemy
