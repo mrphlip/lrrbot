@@ -166,7 +166,9 @@ def findquote(lrrbot, conn, event, respond_to, query):
 
 	quotes = lrrbot.metadata.tables["quotes"]
 	with lrrbot.engine.begin() as pg_conn:
-		fts_column = sqlalchemy.func.to_tsvector('english', quotes.c.quote)
+		fts_column = sqlalchemy.func.to_tsvector(
+			'english', quotes.c.quote + ' ' + sqlalchemy.func.coalesce(quotes.c.context, '')
+		)
 		query = sqlalchemy.select([
 			quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date, quotes.c.context
 		]).where(
