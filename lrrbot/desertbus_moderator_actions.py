@@ -36,7 +36,7 @@ class ModeratorActions:
 			self.lrrbot.reactor.add_global_handler("pubmsg", self.record_db_chat, -2)
 			self.lrrbot.reactor.add_global_handler("all_events", self.drop_db_events, -1)
 			self.lrrbot.reactor.add_global_handler("welcome", self.on_connect, 2)
-			self.lrrbot.reactor.execute_every(period=60, function=self.clear_chat)
+			self.lrrbot.reactor.scheduler.execute_every(60, self.clear_chat)
 
 			users = self.lrrbot.metadata.tables["users"]
 			with self.lrrbot.engine.begin() as conn:

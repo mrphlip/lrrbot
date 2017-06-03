@@ -74,13 +74,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# Send a keep-alive message every minute, to catch network dropouts
 		# self.connection has a set_keepalive method, but it crashes
 		# if it triggers while the connection is down, so do this instead
-		self.reactor.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
+		self.reactor.scheduler.execute_every(config['keepalivetime'], self.do_keepalive)
 		self.reactor.add_global_handler('pong', self.on_pong)
 		self.missed_pings = 0
 
 		self.reactor.add_global_handler('reconnect', self.disconnect)
 
-		self.reactor.execute_every(period=5, function=self.check_polls)
+		self.reactor.scheduler.execute_every(5, self.check_polls)
 
 		self.service = lrrbot.systemd.Service(loop)
 
