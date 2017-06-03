@@ -47,6 +47,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					password, = row
 				else:
 					password = ""
+				if password is None:
+					password = ""
 			password = "oauth:" + password
 		else:
 			password = config['password']
@@ -72,13 +74,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# Send a keep-alive message every minute, to catch network dropouts
 		# self.connection has a set_keepalive method, but it crashes
 		# if it triggers while the connection is down, so do this instead
-		self.reactor.execute_every(period=config['keepalivetime'], function=self.do_keepalive)
+		self.reactor.scheduler.execute_every(config['keepalivetime'], self.do_keepalive)
 		self.reactor.add_global_handler('pong', self.on_pong)
 		self.missed_pings = 0
 
 		self.reactor.add_global_handler('reconnect', self.disconnect)
 
-		self.reactor.execute_every(period=5, function=self.check_polls)
+		self.reactor.scheduler.execute_every(5, self.check_polls)
 
 		self.service = lrrbot.systemd.Service(loop)
 
@@ -160,7 +162,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			tasks_waiting = [chatlogtask]
 			if self.whisperconn:
 				tasks_waiting.append(self.whisperconn.stop_task())
-			self.cardviewer.stop()
+			tasks_waiting.append(self.cardviewer.stop())
 			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
 
 	def disconnect(self, msg="I'll be back!"):
@@ -325,7 +327,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				game_data.lock_tables(conn, self.metadata)
 				old_id = conn.execute(sqlalchemy.select([games.c.id]).where(games.c.name == game_name)).first()
 				if old_id is None:
-					conn.execute(games.insert(), {
+					query = games.insert()
+					query = query.on_conflict_do_update(index_elements=[games.c.id], set_={
+						name: query.excluded.name,
+					})
+					conn.execute(query, {
 						"id": game_id,
 						"name": game_name
 					})
@@ -405,7 +411,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					raise KeyError(string_id)
 				self.show_override, = show_id
 
-
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""
 		return event.tags["mod"]
@@ -414,8 +419,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""Check whether the source of the event is a known subscriber to the channel"""
 		return event.tags["subscriber"] or event.tags["patron"]
 
-	@asyncio.coroutine
-	def ban(self, conn, event, reason, bantype):
+	async def ban(self, conn, event, reason, bantype):
 		source = irc.client.NickMask(event.source)
 		display_name = event.tags.get("display_name", source.nick)
 		if bantype == "spam":

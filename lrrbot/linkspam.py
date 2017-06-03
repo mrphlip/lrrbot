@@ -44,15 +44,14 @@ class LinkSpam:
 	def check_link_spam(self, conn, event):
 		asyncio.async(self.check_urls(conn, event, event.arguments[0])).add_done_callback(utils.check_exception)
 
-	@asyncio.coroutine
-	def check_urls(self, conn, event, message):
+	async def check_urls(self, conn, event, message):
 		urls = []
 		for match in self.re_url.finditer(message):
 			for url in match.groups():
 				if url is not None:
 					urls.append(url)
 					break
-		canonical_urls = yield from asyncio.gather(*map(common.url.canonical_url, urls), loop=self.loop)
+		canonical_urls = await asyncio.gather(*map(common.url.canonical_url, urls), loop=self.loop)
 		for original_url, url_chain in zip(urls, canonical_urls):
 			for url in url_chain:
 				for rule in self.rules:
@@ -61,5 +60,5 @@ class LinkSpam:
 						source = irc.client.NickMask(event.source)
 						log.info("Detected link spam from %s - %r contains the URL %r which redirects to %r which matches %r",
 							source.nick, message, original_url, url, rule["re"].pattern)
-						yield from self.lrrbot.ban(conn, event, rule["message"] % {str(i+1): v for i, v in enumerate(match.groups())}, rule['type'])
+						await self.lrrbot.ban(conn, event, rule["message"] % {str(i+1): v for i, v in enumerate(match.groups())}, rule['type'])
 						return

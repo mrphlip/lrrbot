@@ -27,8 +27,7 @@ SCOPE = "users pledges-to-me"
 
 @server.app.route('/patreon/')
 @login.require_login
-@asyncio.coroutine
-def patreon_index(session):
+async def patreon_index(session):
 	patreon_users = server.db.metadata.tables['patreon_users']
 	users = server.db.metadata.tables['users']
 	with server.db.engine.begin() as conn:
@@ -45,8 +44,8 @@ def patreon_index(session):
 		state = None
 		is_patron = False
 
-		token = yield from patreon.get_token(server.db.engine, server.db.metadata, session['user']['id'])
-		user = yield from patreon.current_user(token)
+		token = await patreon.get_token(server.db.engine, server.db.metadata, session['user']['id'])
+		user = await patreon.current_user(token)
 		for pledge in user['data'].get('relationships', {}).get('pledges', {}).get('data', []):
 			for obj in user['included']:
 				if obj['type'] == pledge['type'] and obj['id'] == pledge['id'] and obj['attributes']['amount_cents'] > 0:
@@ -60,8 +59,8 @@ def patreon_index(session):
 			break
 
 		if not is_patron:
-			token = yield from patreon.get_token(server.db.engine, server.db.metadata, config['channel'])
-			campaigns = yield from patreon.get_campaigns(token, ["creator"])
+			token = await patreon.get_token(server.db.engine, server.db.metadata, config['channel'])
+			campaigns = await patreon.get_campaigns(token, ["creator"])
 			pledge_url = urllib.parse.urljoin(PATREON_BASE_URL, campaigns['data'][0]['attributes']['pledge_url'])
 			pledge_url = urllib.parse.urlsplit(pledge_url)
 			query_string = urllib.parse.parse_qs(pledge_url.query)
@@ -84,8 +83,7 @@ def patreon_index(session):
 
 @server.app.route('/patreon/login')
 @login.require_login
-@asyncio.coroutine
-def patreon_login(session):
+async def patreon_login(session):
 	code = flask.request.args.get('code')
 	state_param = flask.request.args.get('state')
 	state_sess = flask.session.pop('patreon_state', None)
@@ -97,12 +95,12 @@ def patreon_login(session):
 		flask.flash('Nonce mismatch: %r not equal to %r' % (state_param, state_sess), 'error')
 		return flask.redirect(flask.url_for('patreon_index'))
 
-	access_token, refresh_token, expiry = yield from patreon.request_token('authorization_code',
+	access_token, refresh_token, expiry = await patreon.request_token('authorization_code',
 		code=code,
 		redirect_uri=flask.url_for('patreon_login', _external=True),
 	)
 
-	user = yield from patreon.current_user(access_token)
+	user = await patreon.current_user(access_token)
 
 	patreon_users = server.db.metadata.tables['patreon_users']
 	users = server.db.metadata.tables['users']

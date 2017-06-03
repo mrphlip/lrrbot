@@ -1,0 +1,22 @@
+# This file lists only the direct dependencies.
+# No version numbers are used unless necessary.
+
+aiohttp
+aiomas
+alembic
+async_timeout
+blinker
+cryptography
+discord.py
+flask
+flask-csrf
+flask-sqlalchemy
+irc
+jinja2
+psycopg2
+pubnub
+python-dateutil
+python-mimeparse
+requests
+sqlalchemy
+timelib

@@ -39,9 +39,6 @@ config['reconnecttime'] = int(config.get('reconnecttime', 15))
 config['keepalivetime'] = int(config.get('keepalivetime', 60))
 # keepalivethreshold - number of keep-alive pings with no response before giving up
 config['keepalivethreshold'] = int(config.get('keepalivethreshold', 5))
-# checksubstime - seconds between checking for new subscribers via Twitch API
-# Can be 0 to disable API sub checking
-config['checksubstime'] = int(config.get('checksubstime', 0))
 
 # debug - boolean option
 config.setdefault('debug', False)
@@ -129,3 +126,6 @@ config.setdefault('discord_serverid', '288920509272555520')
 
 # discord_temp_channel_prefix - prefix of a temporary channel
 config['discord_temp_channel_prefix'] = config.get('discord_temp_channel_prefix', '[TEMP]').strip() + ' '
+
+# log_desertbus_moderator_actions - log moderator actions in #desertbus
+config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_moderator_actions', 'true')).lower() != 'false'

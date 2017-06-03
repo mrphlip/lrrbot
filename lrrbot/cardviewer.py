@@ -1,13 +1,16 @@
 import asyncio
-import pubnub
 import logging
 import time
 import re
 import urllib.parse
 
+from pubnub.pnconfiguration import PNConfiguration
+from pubnub.pnconfiguration import PNReconnectionPolicy
+from pubnub.pubnub_asyncio import PubNubAsyncio
+from pubnub.pubnub_asyncio import SubscribeListener
+
 from common import utils
 from common.config import config
-
 
 __all__ = ["CardViewer"]
 
@@ -22,34 +25,63 @@ class CardViewer:
 		self.loop = loop
 		self.last_card_id = None
 		self.last_time = 0
-		if config['cardsubkey']:
-			self.pubnub = pubnub.Pubnub(
-				subscribe_key=config['cardsubkey'],
-				publish_key='',
-				ssl_on=True,  # For some reason not the default??? Also, the docs say this is "sslOn" but they lie.
-				daemon=True,  # Automatically close the pubnub threads when the bot exists - undocumented, but necessary.
-			)
-		else:
-			self.pubnub = None
+		self.task = None
+		self.stop_future = None
 		self.re_local = [
 			re.compile("^/cards/(?P<set>[^-]+)-(?P<name>[^.]+)\.", re.I),
 			re.compile("^/cards/(?P<set>[^_]+)_(?P<name>[^.]+)\.", re.I)
 		]
 
 	def start(self):
-		if self.pubnub:
-			self.pubnub.subscribe(
-				channels=config['cardviewerchannel'],
-				callback=self._callback,
-				error=self._error,
-				connect=self._connect,
-				reconnect=self._reconnect,
-				disconnect=self._disconnect,
-			)
+		if config['cardsubkey']:
+			self.stop_future = asyncio.Future()
+			self.task = asyncio.ensure_future(self.message_pump())
 
-	def stop(self):
-		if self.pubnub:
-			self.pubnub.unsubscribe(channel=config['cardviewerchannel'])
+	@utils.log_errors
+	async def stop(self):
+		if self.task:
+			self.stop_future.set_result(None)
+			await self.task
+
+	@utils.log_errors
+	async def message_pump(self):
+		pnconfig = PNConfiguration()
+		pnconfig.subscribe_key = config['cardsubkey']
+		# Why aren't these the default settings?
+		pnconfig.ssl = True
+		pnconfig.reconnect_policy = PNReconnectionPolicy.EXPONENTIAL
+
+		pubnub = PubNubAsyncio(pnconfig)
+
+		listener = SubscribeListener()
+		pubnub.add_listener(listener)
+
+		pubnub.subscribe().channels(config['cardviewerchannel']).execute()
+		await listener.wait_for_connect()
+		log.info("Connected to PubNub")
+
+		message_future = asyncio.ensure_future(listener.wait_for_message_on(config['cardviewerchannel']))
+
+		while True:
+			await asyncio.wait([self.stop_future, message_future], return_when=asyncio.FIRST_COMPLETED)
+			if message_future.done():
+				message = message_future.result().message
+				log.info("Message from PubNub: %r", message)
+
+				card_id = self._extract(message)
+				if card_id is not None:
+					await self._card(card_id)
+
+				message_future = asyncio.ensure_future(listener.wait_for_message_on(config['cardviewerchannel']))
+			if self.stop_future.done():
+				break
+		if not message_future.done():
+			message_future.cancel()
+
+		pubnub.unsubscribe().channels(config['cardviewerchannel']).execute()
+		await listener.wait_for_disconnect()
+		pubnub.stop()
+		log.info("Disconnected from PubNub")
 
 	def _extract(self, message):
 		url = urllib.parse.urlparse(message)
@@ -74,18 +106,7 @@ class CardViewer:
 			return None
 
 	@utils.swallow_errors
-	def _callback(self, message, channel):
-		if channel != config['cardviewerchannel']:
-			return
-		card_id = self._extract(message)
-		if card_id is not None:
-			# Pubnub is threaded, and asyncio doesn't play very nicely with threading
-			# Call this to get back into the main thread
-			self.loop.call_soon_threadsafe(asyncio.async, self._card(card_id))
-
-	@utils.swallow_errors
-	@asyncio.coroutine
-	def _card(self, card_id):
+	async def _card(self, card_id):
 		# Delayed import so this module can be imported before the bot object exists
 		import lrrbot.commands.card
 
@@ -103,7 +124,7 @@ class CardViewer:
 
 		log.info("Got card from pubnub: %r", card_id)
 
-		yield from asyncio.sleep(ANNOUNCE_DELAY)
+		await asyncio.sleep(ANNOUNCE_DELAY)
 
 		lrrbot.commands.card.real_card_lookup(
 			self.lrrbot,
@@ -113,15 +134,3 @@ class CardViewer:
 			card_id,
 			noerror=True,
 			includehidden=True)
-
-	def _error(self, message):
-		log.error("Pubnub error: %s", message)
-
-	def _connect(self, message):
-		log.info("Pubnub connected: %s", message)
-
-	def _reconnect(self, message):
-		log.info("Pubnub reconnected: %s", message)
-
-	def _disconnect(self, message):
-		log.info("Pubnub disconnected: %s", message)

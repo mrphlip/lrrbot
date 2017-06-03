@@ -324,6 +324,7 @@ async def login(return_to=None):
 					set_={
 						'name': query.excluded.name,
 						'display_name': query.excluded.display_name,
+						'twitch_oauth': query.excluded.twitch_oauth,
 					},
 				)
 				conn.execute(query, user)

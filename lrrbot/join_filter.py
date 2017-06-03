@@ -16,7 +16,7 @@ class JoinFilter:
 
 		self.lrrbot.reactor.add_global_handler('join', self.filter_joins, 20)
 		self.lrrbot.reactor.add_global_handler('part', self.on_part, 20)
-		self.lrrbot.reactor.execute_every(period=TIMEOUT, function=self.remove_stale_entries)
+		self.lrrbot.reactor.scheduler.execute_every(TIMEOUT, self.remove_stale_entries)
 
 	def filter_joins(self, conn, event):
 		source = irc.client.NickMask(event.source)

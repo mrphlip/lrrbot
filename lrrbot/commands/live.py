@@ -12,11 +12,11 @@ import urllib.parse
 import urllib.error
 import irc.client
 import sqlalchemy
+import textwrap
 
 @utils.cache(24 * 60 * 60)
-@asyncio.coroutine
-def extract_new_channels(loop, token):
-	data = yield from common.http.request_coro(googlecalendar.EVENTS_URL % urllib.parse.quote(googlecalendar.CALENDAR_FAN), {
+async def extract_new_channels(loop, token):
+	data = await common.http.request_coro(googlecalendar.EVENTS_URL % urllib.parse.quote(googlecalendar.CALENDAR_FAN), {
 		"key": config["google_key"],
 		"maxResults": "25000",
 	})
@@ -37,18 +37,17 @@ def extract_new_channels(loop, token):
 						continue
 					channels.add(channel)
 
-	follows = yield from twitch.get_follows_channels()
+	follows = await twitch.get_follows_channels()
 	old_channels = {channel["channel"]["name"] for channel in follows}
 	old_channels.add(config["channel"])
 
 	futures = [twitch.follow_channel(channel, token) for channel in channels.difference(old_channels)]
-	yield from asyncio.gather(*futures, loop=loop, return_exceptions=True)
+	await asyncio.gather(*futures, loop=loop, return_exceptions=True)
 
 @bot.command("live")
 @lrrbot.decorators.throttle()
 @lrrbot.decorators.private_reply_when_live
-@asyncio.coroutine
-def live(lrrbot, conn, event, respond_to):
+async def live(lrrbot, conn, event, respond_to):
 	"""
 	Command: !live
 
@@ -61,11 +60,11 @@ def live(lrrbot, conn, event, respond_to):
 			.where(users.c.name == config["username"])).first()
 
 	try:
-		yield from extract_new_channels(lrrbot.loop, token)
+		await extract_new_channels(lrrbot.loop, token)
 	except urllib.error.HTTPError:
 		pass
 
-	streams = yield from twitch.get_streams_followed(token)
+	streams = await twitch.get_streams_followed(token)
 	if streams == []:
 		return conn.privmsg(respond_to, "No fanstreamers currently live.")
 
@@ -106,11 +105,10 @@ def live(lrrbot, conn, event, respond_to):
 			space.SPACE
 		) for data in streams
 	])
-	return conn.privmsg(respond_to, utils.shorten(message, 450))
+	return conn.privmsg(respond_to, textwrap.shorten(message, 450))
 
 @bot.command("live register")
-@asyncio.coroutine
-def register_self(lrrbot, conn, event, respond_to):
+async def register_self(lrrbot, conn, event, respond_to):
 	"""
 	Command: !live register
 
@@ -121,12 +119,11 @@ def register_self(lrrbot, conn, event, respond_to):
 	with lrrbot.engine.begin() as pg_conn:
 		token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
 			.where(users.c.name == config["username"])).first()
-	yield from twitch.follow_channel(channel, token)
+	await twitch.follow_channel(channel, token)
 	conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
 
 @bot.command("live unregister")
-@asyncio.coroutine
-def unregister_self(lrrbot, conn, event, respond_to):
+async def unregister_self(lrrbot, conn, event, respond_to):
 	"""
 	Command: !live unregister
 
@@ -137,13 +134,12 @@ def unregister_self(lrrbot, conn, event, respond_to):
 	with lrrbot.engine.begin() as pg_conn:
 		token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
 			.where(users.c.name == config["username"])).first()
-	yield from twitch.unfollow_channel(channel, token)
+	await twitch.unfollow_channel(channel, token)
 	conn.privmsg(respond_to, "Channel '%s' removed from the fanstreamer list." % channel)
 
 @bot.command("live register (.*)")
 @lrrbot.decorators.mod_only
-@asyncio.coroutine
-def register(lrrbot, conn, event, respond_to, channel):
+async def register(lrrbot, conn, event, respond_to, channel):
 	"""
 	Command: !live register CHANNEL
 
@@ -154,15 +150,14 @@ def register(lrrbot, conn, event, respond_to, channel):
 		token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
 			.where(users.c.name == config["username"])).first()
 	try:
-		yield from twitch.follow_channel(channel, token)
+		await twitch.follow_channel(channel, token)
 		conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
 	except urllib.error.HTTPError:
 		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)
 
 @bot.command("live unregister (.*)")
 @lrrbot.decorators.mod_only
-@asyncio.coroutine
-def unregister(lrrbot, conn, event, respond_to, channel):
+async def unregister(lrrbot, conn, event, respond_to, channel):
 	"""
 	Command: !live unregister CHANNEL
 
@@ -173,7 +168,7 @@ def unregister(lrrbot, conn, event, respond_to, channel):
 		token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
 			.where(users.c.name == config["username"])).first()
 	try:
-		yield from twitch.unfollow_channel(channel, token)
+		await twitch.unfollow_channel(channel, token)
 		conn.privmsg(respond_to, "Channel '%s' removed from the fanstreamer list." % channel)
 	except urllib.error.HTTPError:
 		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)

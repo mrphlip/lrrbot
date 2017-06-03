@@ -156,8 +156,7 @@ def time24(lrrbot, conn, event, respond_to):
 
 @bot.command("viewers")
 @lrrbot.decorators.throttle()
-@asyncio.coroutine
-def viewers(lrrbot, conn, event, respond_to):
+async def viewers(lrrbot, conn, event, respond_to):
 	"""
 	Command: !viewers
 	Section: info
@@ -173,7 +172,7 @@ def viewers(lrrbot, conn, event, respond_to):
 	chatters = len(lrrbot.channels["#%s" % config["channel"]].users())
 	# Twitch stops sending JOINs and PARTs at 1000 users. Need to double-check if over.
 	if chatters > 950:
-		data = yield from common.http.request_coro("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
+		data = await common.http.request_coro("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
 		chatters = json.loads(data).get("chatter_count", chatters)
 
 	if viewers is not None:

@@ -171,8 +171,9 @@ class PubSub:
 				log.exception("Exception in PubSub message task")
 				error = True
 			finally:
-				self.ping_task.cancel()
-				self.ping_task = None
+				if self.ping_task is not None:
+					self.ping_task.cancel()
+					self.ping_task = None
 				if self.disconnect_task is not None:
 					self.disconnect_task.cancel()
 					self.disconnect_task = None
@@ -181,7 +182,7 @@ class PubSub:
 			jitter = random.gauss(0, next_timeout / 4)
 			jitter = max(-next_timeout, min(jitter, next_timeout))
 
-			await asyncio.sleep(min(1, next_timeout + jitter))
+			await asyncio.sleep(max(1, next_timeout + jitter))
 
 			if error:
 				next_timeout = min(next_timeout * 2, 120)

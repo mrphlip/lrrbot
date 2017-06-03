@@ -22,10 +22,9 @@ def mod_only(func):
 		...
 	"""
 	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(self, conn, event, *args, **kwargs):
+	async def wrapper(self, conn, event, *args, **kwargs):
 		if self.is_mod(event):
-			return (yield from func(self, conn, event, *args, **kwargs))
+			return await func(self, conn, event, *args, **kwargs)
 		else:
 			log.info("Refusing %s due to not-a-mod" % func.__name__)
 			source = irc.client.NickMask(event.source)
@@ -45,10 +44,9 @@ def sub_only(func):
 		...
 	"""
 	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(self, conn, event, *args, **kwargs):
+	async def wrapper(self, conn, event, *args, **kwargs):
 		if self.is_sub(event) or self.is_mod(event):
-			return (yield from func(self, conn, event, *args, **kwargs))
+			return await func(self, conn, event, *args, **kwargs)
 		else:
 			log.info("Refusing %s due to not-a-sub" % func.__name__)
 			source = irc.client.NickMask(event.source)
@@ -68,10 +66,9 @@ def public_only(func):
 		...
 	"""
 	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(self, conn, event, *args, **kwargs):
+	async def wrapper(self, conn, event, *args, **kwargs):
 		if event.type == "pubmsg" or self.is_mod(event):
-			return (yield from func(self, conn, event, *args, **kwargs))
+			return await func(self, conn, event, *args, **kwargs)
 		else:
 			source = irc.client.NickMask(event.source)
 			conn.privmsg(source.nick, "That command cannot be used via private message.")
@@ -156,10 +153,9 @@ def private_reply_when_live(func):
 		...
 	"""
 	@functools.wraps(func)
-	@asyncio.coroutine
-	def wrapper(self, conn, event, respond_to, *args, **kwargs):
+	async def wrapper(self, conn, event, respond_to, *args, **kwargs):
 		if event.type == "pubmsg" and twitch.get_info()["live"]:
 			source = irc.client.NickMask(event.source)
 			respond_to = source.nick
-		return (yield from func(self, conn, event, respond_to, *args, **kwargs))
+		return await func(self, conn, event, respond_to, *args, **kwargs)
 	return wrapper

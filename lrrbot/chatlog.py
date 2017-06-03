@@ -36,16 +36,15 @@ def urlize(text):
 # Chat-log handling functions live in an asyncio task, so that functions that take
 # a long time to run, like downloading the emote list, don't block the bot... but
 # one master task, with a message queue, so that things still happen in the right order.
-@asyncio.coroutine
-def run_task():
+async def run_task():
 	while True:
-		ev, params = yield from queue.get()
+		ev, params = await queue.get()
 		if ev == "log_chat":
-			yield from do_log_chat(*params)
+			await do_log_chat(*params)
 		elif ev == "clear_chat_log":
-			yield from do_clear_chat_log(*params)
+			await do_clear_chat_log(*params)
 		elif ev == "rebuild_all":
-			yield from do_rebuild_all()
+			await do_rebuild_all()
 		elif ev == "exit":
 			break
 
@@ -62,8 +61,7 @@ def stop_task():
 	queue.put_nowait(("exit", ()))
 
 @utils.swallow_errors
-@asyncio.coroutine
-def do_log_chat(time, event, metadata):
+async def do_log_chat(time, event, metadata):
 	"""
 	Add a new message to the chat log.
 	"""
@@ -73,7 +71,7 @@ def do_log_chat(time, event, metadata):
 		return
 
 	source = irc.client.NickMask(event.source).nick
-	html = yield from build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', []), metadata.get('emotes'), metadata.get('display-name'))
+	html = await build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', []), metadata.get('emotes'), metadata.get('display-name'))
 	with lrrbot.main.bot.engine.begin() as conn:
 		conn.execute(lrrbot.main.bot.metadata.tables["log"].insert(),
 			time=time,
@@ -89,8 +87,7 @@ def do_log_chat(time, event, metadata):
 		)
 
 @utils.swallow_errors
-@asyncio.coroutine
-def do_clear_chat_log(time, nick):
+async def do_clear_chat_log(time, nick):
 	"""
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
 	"""
@@ -110,7 +107,7 @@ def do_clear_chat_log(time, nick):
 
 		specialuser.add("cleared")
 
-		html = yield from build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
+		html = await build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
 		new_rows.append({
 			"specialuser": list(specialuser),
 			"messagehtml": html,
@@ -120,8 +117,7 @@ def do_clear_chat_log(time, nick):
 		conn.execute(log.update().where(log.c.id == sqlalchemy.bindparam("_key")), *new_rows)
 
 @utils.swallow_errors
-@asyncio.coroutine
-def do_rebuild_all():
+async def do_rebuild_all():
 	"""
 	Rebuild all the message HTML blobs in the database.
 	"""
@@ -142,7 +138,7 @@ def do_rebuild_all():
 				print("\r%d/%d" % (i, count), end='')
 			specialuser = set(specialuser) if specialuser else set()
 			emoteset = set(emoteset) if emoteset else set()
-			html = yield from build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
+			html = await build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
 			conn_update.execute(log.update().where(log.c.id == key), messagehtml=html)
 		print("\r%d/%d" % (count, count))
 		trans.commit()
@@ -153,12 +149,11 @@ def do_rebuild_all():
 		conn_select.close()
 		conn_update.close()
 
-@asyncio.coroutine
-def format_message(message, emotes, emoteset, size="1", cheer=False):
+async def format_message(message, emotes, emoteset, size="1", cheer=False):
 	if emotes is not None:
 		return format_message_explicit_emotes(message, emotes, size=size, cheer=cheer)
 	else:
-		return format_message_emoteset(message, (yield from get_filtered_emotes(emoteset)), cheer=cheer)
+		return format_message_emoteset(message, (await get_filtered_emotes(emoteset)), cheer=cheer)
 
 def format_message_emoteset(message, emotes, size="1", cheer=False):
 	ret = ""
@@ -224,8 +219,7 @@ def format_message_cheer(message, size="1", cheer=False):
 				bits.append('<span class="cheer %s"><img src="%s" alt="%s" title="cheer %d">%d</span>' % (escape(level), url, escape(splits[i + 1]), count, count))
 		return ''.join(bits)
 
-@asyncio.coroutine
-def build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname):
+async def build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname):
 	if source.lower() == config['notifyuser']:
 		return '<div class="notification line" data-timestamp="%d">%s</div>' % (time.timestamp(), escape(message))
 
@@ -252,7 +246,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	ret.append('<span class="nick"')
 	if usercolor:
 		ret.append(' style="color:%s"' % escape(usercolor))
-	ret.append('>%s</span>' % escape(displayname or (yield from get_display_name(source))))
+	ret.append('>%s</span>' % escape(displayname or (await get_display_name(source))))
 
 	if is_action:
 		ret.append(' <span class="action"')
@@ -268,7 +262,7 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 		# either for users to accidentally click, or for Google to see
 		ret.append('<span class="message cleared">%s</span>' % escape(message))
 	else:
-		messagehtml = yield from format_message(message, emotes, emoteset, cheer='cheer' in specialuser)
+		messagehtml = await format_message(message, emotes, emoteset, cheer='cheer' in specialuser)
 		ret.append('<span class="message">%s</span>' % messagehtml)
 
 	if is_action:
@@ -277,13 +271,12 @@ def build_message_html(time, source, target, message, specialuser, usercolor, em
 	return ''.join(ret)
 
 @utils.cache(CACHE_EXPIRY, params=[0])
-@asyncio.coroutine
-def get_display_name(nick):
+async def get_display_name(nick):
 	try:
 		headers = {
 			"Client-ID": config['twitch_clientid'],
 		}
-		data = yield from common.http.request_coro("https://api.twitch.tv/kraken/users/%s" % nick, headers=headers)
+		data = await common.http.request_coro("https://api.twitch.tv/kraken/users/%s" % nick, headers=headers)
 		data = json.loads(data)
 		return data['display_name']
 	except utils.PASSTHROUGH_EXCEPTIONS:
@@ -292,12 +285,11 @@ def get_display_name(nick):
 		return nick
 
 re_just_words = re.compile("^\w+$")
-@asyncio.coroutine
-def get_twitch_emoticons():
+async def get_twitch_emoticons():
 	headers = {
 		"Client-ID": config['twitch_clientid'],
 	}
-	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticons", headers=headers)
+	data = await common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticons", headers=headers)
 	data = json.loads(data)['emoticons']
 	emotesets = {}
 	for emote in data:
@@ -319,12 +311,11 @@ def get_twitch_emoticons():
 			}
 	return emotesets
 
-@asyncio.coroutine
-def get_twitch_emoticon_images():
+async def get_twitch_emoticon_images():
 	headers = {
 		"Client-ID": config['twitch_clientid'],
 	}
-	data = yield from common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticon_images", headers=headers)
+	data = await common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticon_images", headers=headers)
 	data = json.loads(data)["emoticons"]
 	emotesets = {}
 	for emote in data:
@@ -341,19 +332,17 @@ def get_twitch_emoticon_images():
 	return emotesets
 
 @utils.cache(CACHE_EXPIRY)
-@asyncio.coroutine
-def get_twitch_emotes():
+async def get_twitch_emotes():
 	try:
-		return (yield from get_twitch_emoticons())
+		return await get_twitch_emoticons()
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
 	except Exception:
-		return (yield from get_twitch_emoticon_images())
+		return await get_twitch_emoticon_images()
 
-@asyncio.coroutine
-def get_filtered_emotes(setids):
+async def get_filtered_emotes(setids):
 	try:
-		emotesets = yield from get_twitch_emotes()
+		emotesets = await get_twitch_emotes()
 		emotes = dict(emotesets[None])
 		for setid in setids:
 			emotes.update(emotesets.get(setid, {}))

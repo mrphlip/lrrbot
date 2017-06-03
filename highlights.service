@@ -3,4 +3,4 @@ Description=Add highlights to the highlight spreadsheet
 
 [Service]
 WorkingDirectory=%h/lrrbot
-ExecStart=/usr/bin/env python3 %h/lrrbot/highlights.py
+ExecStart=%h/lrrbot/venv/bin/python3 %h/lrrbot/highlights.py

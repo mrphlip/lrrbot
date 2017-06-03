@@ -2,12 +2,12 @@ import time
 import json
 import random
 import html
+import textwrap
 
 import common.http
 import common.time
 import lrrbot.decorators
 from common import space
-from common import utils
 from lrrbot.main import bot
 
 DEFAULT_TIMEOUT = 180
@@ -25,7 +25,7 @@ def check_polls(lrrbot, conn):
 			options = sorted(zip(data["options"], data["votes"]), key=lambda e: (e[1], random.random()), reverse=True)
 			options = "; ".join(map(strawpoll_format, enumerate(options)))
 			response = "Poll complete: %s: %s" % (html.unescape(data["title"]), options)
-			response = utils.shorten(response, 450)
+			response = textwrap.shorten(response, 450)
 			conn.privmsg(respond_to, response)
 	lrrbot.polls = list(filter(lambda e: e[0] >= now, lrrbot.polls))
 
@@ -44,7 +44,7 @@ def polls(lrrbot, conn, event, respond_to):
 	messages = []
 	for end, title, poll_id, respond_to in lrrbot.polls:
 		messages += ["%s (https://www.strawpoll.me/%s%s): %s from now" % (title, poll_id, space.SPACE, common.time.nice_duration(end - now, 1))]
-	conn.privmsg(respond_to, utils.shorten("Active polls: "+"; ".join(messages), 450))
+	conn.privmsg(respond_to, textwrap.shorten("Active polls: "+"; ".join(messages), 450))
 
 @bot.command("(multi)?poll (?:(\d+) )?(?:(?:https?://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/r?)?|(?:([^:]+) ?: ?)?(.*))")
 @lrrbot.decorators.mod_only
