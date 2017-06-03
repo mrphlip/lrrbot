@@ -1,3 +1,4 @@
+import lrrbot.commands.americangladiator
 import lrrbot.commands.card
 import lrrbot.commands.explain
 import lrrbot.commands.game
