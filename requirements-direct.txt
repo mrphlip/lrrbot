@@ -9,7 +9,7 @@ blinker==1.4
 cryptography==1.9
 discord.py==0.16.8
 flask==0.12.2
-flask-csrf
+flask-csrf==0.9.2
 flask-sqlalchemy
 irc
 jinja2
