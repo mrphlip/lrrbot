@@ -2,7 +2,7 @@
 # No version numbers are used unless necessary.
 
 aiohttp==2.1.0
-aiomas
+aiomas==1.0.3
 alembic
 async_timeout
 blinker
