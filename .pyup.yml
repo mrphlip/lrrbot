@@ -1,4 +1,0 @@
-requirements:
-  - requirements.txt
-  - requirements-direct.txt:
-    pin: False

@@ -1,3 +1,4 @@
+# pyup: ignore file
 # This file lists only the direct dependencies.
 # No version numbers are used unless necessary.
 
