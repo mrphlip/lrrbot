@@ -15,7 +15,7 @@ irc==15.1.1
 jinja2==2.9.6
 psycopg2==2.7.1
 pubnub==4.0.12
-python-dateutil
+python-dateutil==2.6.0
 python-mimeparse
 requests
 sqlalchemy
