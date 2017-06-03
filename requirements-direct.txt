@@ -1,7 +1,7 @@
 # This file lists only the direct dependencies.
 # No version numbers are used unless necessary.
 
-aiohttp
+aiohttp==2.1.0
 aiomas
 alembic
 async_timeout
