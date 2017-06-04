@@ -123,11 +123,11 @@ async def get_follows_channels(username=None):
 	}
 	url = "https://api.twitch.tv/kraken/users/%s/follows/channels" % username
 	follows = []
-	total = 1
-	while len(follows) < total:
+	while url:
 		data = await common.http.request_coro(url, headers=headers)
 		data = json.loads(data)
-		total = data["_total"]
+		if not data["follows"]:
+			break
 		follows += data["follows"]
 		url = data["_links"]["next"]
 	return follows
@@ -139,11 +139,11 @@ async def get_streams_followed(token):
 		"Client-ID": config['twitch_clientid'],
 	}
 	streams = []
-	total = 1
-	while len(streams) < total:
+	while url:
 		data = await common.http.request_coro(url, headers=headers)
 		data = json.loads(data)
-		total = data["_total"]
+		if not data["streams"]:
+			break
 		streams += data["streams"]
 		url = data["_links"]["next"]
 	return streams
