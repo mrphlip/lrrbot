@@ -327,7 +327,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				game_data.lock_tables(conn, self.metadata)
 				old_id = conn.execute(sqlalchemy.select([games.c.id]).where(games.c.name == game_name)).first()
 				if old_id is None:
-					query = games.insert()
+					query = insert(games)
 					query = query.on_conflict_do_update(index_elements=[games.c.id], set_={
 						name: query.excluded.name,
 					})
