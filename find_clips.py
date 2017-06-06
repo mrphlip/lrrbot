@@ -11,6 +11,7 @@ import common.postgres
 from common.config import config
 import sqlalchemy
 from sqlalchemy.dialects import postgresql
+import urllib.error
 
 engine, metadata = common.postgres.new_engine_and_metadata()
 TBL_CLIPS = metadata.tables['clips']
@@ -57,8 +58,14 @@ def get_video_info(vodid):
 			'Client-ID': config['twitch_clientid'],
 			'Accept': 'application/vnd.twitchtv.v5+json',
 		}
-		data = common.http.request(VIDEO_URL % vodid, headers=headers)
-		get_video_info._cache[vodid] = json.loads(data)
+		try:
+			data = common.http.request(VIDEO_URL % vodid, headers=headers)
+			get_video_info._cache[vodid] = json.loads(data)
+		except urllib.error.HTTPError as e:
+			if e.code == 404:
+				get_video_info._cache[vodid] = {'httperror': 404}
+			else:
+				raise
 	return get_video_info._cache[vodid]
 get_video_info._cache = {}
 
@@ -72,20 +79,23 @@ def process_clip(clip):
 	# clipped from a vod...
 	if clip['vod']:
 		voddata = get_video_info(clip['vod']['id'])
-		match = RE_STARTTIME.match(clip['vod']['url'])
-		if not match:
-			raise ValueError("Couldn't find start time in %r for %s" % (clip['vod']['url'], clip['slug']))
-		offset = datetime.timedelta(0)
-		for piece in match.captures(1):
-			val, unit = int(piece[:-1]), piece[-1]
-			if unit == 's':
-				offset += datetime.timedelta(seconds=val)
-			elif unit == 'm':
-				offset += datetime.timedelta(minutes=val)
-			elif unit == 'h':
-				offset += datetime.timedelta(hours=val)
-		vod_start = dateutil.parser.parse(voddata['created_at'])
-		clip_start = vod_start + offset
+		if 'httperror' not in voddata:
+			match = RE_STARTTIME.match(clip['vod']['url'])
+			if not match:
+				raise ValueError("Couldn't find start time in %r for %s" % (clip['vod']['url'], clip['slug']))
+			offset = datetime.timedelta(0)
+			for piece in match.captures(1):
+				val, unit = int(piece[:-1]), piece[-1]
+				if unit == 's':
+					offset += datetime.timedelta(seconds=val)
+				elif unit == 'm':
+					offset += datetime.timedelta(minutes=val)
+				elif unit == 'h':
+					offset += datetime.timedelta(hours=val)
+			vod_start = dateutil.parser.parse(voddata['created_at'])
+			clip_start = vod_start + offset
+		else:
+			clip_start = dateutil.parser.parse(clip['created_at'])
 	else:
 		clip_start = dateutil.parser.parse(clip['created_at'])
 	data = {
