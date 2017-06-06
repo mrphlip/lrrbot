@@ -18,6 +18,7 @@ psycopg2
 pubnub
 python-dateutil
 python-mimeparse
+regex
 requests
 sqlalchemy
 timelib
