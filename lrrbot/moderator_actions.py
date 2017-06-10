@@ -69,6 +69,7 @@ class ModeratorActions:
 			text = "%s was untimed-out by %s." % (slack.escape(user), slack.escape(mod))
 
 		elif action in ('twitchbot_rejected', 'automod_rejected'):
+			msg_id = message['data']['msg_id']
 			user = args[0]
 			message = args[1]
 			# mod is always "automod", but still...
@@ -76,6 +77,13 @@ class ModeratorActions:
 			attachments.append({
 				'text': slack.escape(message)
 			})
+
+			# Approve the message because we're unable to turn off Automod.
+			users = self.lrrbot.metadata.tables["users"]
+			with self.lrrbot.engine.begin() as pg_conn:
+				token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
+					.where(users.c.name == config["username"])).first()
+			asyncio.ensure_future(twitch.twitchbot_approve(msg_id, token), loop=self.loop).add_done_callback(utils.check_exception)
 		elif action in ('approved_twitchbot_message', 'approved_automod_message'):
 			user = args[0]
 			text = "%s approved %s's message." % (slack.escape(mod), slack.escape(user))
@@ -112,7 +120,7 @@ class ModeratorActions:
 		else:
 			text = "%s did a %s: %s" % (slack.escape(mod), slack.escape(action), slack.escape(repr(args)))
 
-		asyncio.async(slack.send_message(text, attachments=attachments), loop=self.loop).add_done_callback(utils.check_exception)
+		asyncio.ensure_future(slack.send_message(text, attachments=attachments), loop=self.loop).add_done_callback(utils.check_exception)
 
 	def get_chat_log(self, user):
 		attachments = []
