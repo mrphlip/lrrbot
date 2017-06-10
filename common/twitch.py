@@ -212,3 +212,15 @@ class get_followers:
 			for follow in data['follows']:
 				follow['created_at'] = dateutil.parser.parse(follow['created_at'])
 				self.follows.append(follow)
+
+async def twitchbot_allow(msg_id, token):
+	headers = {
+		"Authorization": "OAuth %s" % token,
+		"Client-ID": config['twitch_clientid'],
+		"Accept": "application/vnd.twitchtv.v5+json",
+	}
+	data = {
+		"msg_id": msg_id,
+	}
+	await common.http.request_coro("https://api.twitch.tv/kraken/chat/twitchbot/approve",
+	                               data=json.dumps(data), method="POST", headers=headers)
