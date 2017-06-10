@@ -218,6 +218,7 @@ async def twitchbot_allow(msg_id, token):
 		"Authorization": "OAuth %s" % token,
 		"Client-ID": config['twitch_clientid'],
 		"Accept": "application/vnd.twitchtv.v5+json",
+		"Content-Type": "application/json",
 	}
 	data = {
 		"msg_id": msg_id,
