@@ -329,7 +329,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				if old_id is None:
 					query = insert(games)
 					query = query.on_conflict_do_update(index_elements=[games.c.id], set_={
-						name: query.excluded.name,
+						"name": query.excluded.name,
 					})
 					conn.execute(query, {
 						"id": game_id,
