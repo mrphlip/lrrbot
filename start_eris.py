@@ -1,16 +1,21 @@
+from common import utils
+utils.init_logging("eris")
+
+import asyncio
 import discord
 import blinker
 import logging
+import os
 
 from common.config import config
 from common import postgres
-from common import utils
+from eris import rpc
+from eris.announcements import Announcements
 from eris.autotopic import Autotopic
 from eris.channel_reaper import ChannelReaper
 from eris.command_parser import CommandParser
 from eris.commands import register as register_commands
 
-utils.init_logging("eris")
 log = logging.getLogger("eris")
 
 eris = discord.Client()
@@ -150,9 +155,17 @@ async def on_group_join(channel, user):
 async def on_group_remove(channel, user):
 	signals.signal('group_remove').send(eris, channel=channel, user=user)
 
+rpc = rpc.Server()
+announcements = rpc.announcements = Announcements(eris, signals, engine, metadata)
 autotopic = Autotopic(eris, signals, engine, metadata)
 channel_reaper = ChannelReaper(eris, signals)
 command_parser = CommandParser(eris, signals, engine, metadata)
 register_commands(command_parser)
+
+try:
+	os.unlink(config['eris_socket'])
+except FileNotFoundError:
+	pass
+asyncio.get_event_loop().run_until_complete(rpc.start(config['eris_socket'], config['eris_port']))
 
 eris.run(config['discord_botsecret'])

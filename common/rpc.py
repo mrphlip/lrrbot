@@ -9,11 +9,7 @@ from common.config import config
 
 log = logging.getLogger('common.rpc')
 
-try:
-	CODEC = aiomas.codecs.MsgPack()
-	CODEC = aiomas.codecs.MsgPack
-except ImportError:
-	CODEC = aiomas.codecs.JSON
+CODEC = aiomas.codecs.MsgPack
 EXTRA_SERIALIZERS = [
 	lambda: (datetime.datetime, lambda t: t.timestamp(), lambda t: datetime.datetime.fromtimestamp(t, pytz.utc))
 ]
@@ -36,7 +32,8 @@ class Server:
 	async def close(self):
 		self.__server.close()
 		await self.__server.wait_closed()
-		await asyncio.gather(client.close() for client in self.__clients)
+		for client in self.__clients:
+			await client.close()
 
 class Proxy:
 	def __init__(self, client, path):
@@ -85,3 +82,4 @@ class Client:
 
 bot = Client(config['socket_filename'], config['socket_port'])
 eventserver = Client(config['eventsocket'], config['event_port'])
+eris = Client(config['eris_socket'], config['eris_port'])

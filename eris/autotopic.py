@@ -46,7 +46,7 @@ class Autotopic:
 			games = self.metadata.tables["games"]
 			game_per_show_data = self.metadata.tables["game_per_show_data"]
 			with self.engine.begin() as conn:
-				if header['current_game']:
+				if header.get('current_game'):
 					game = conn.execute(sqlalchemy.select([
 						sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name)
 					]).select_from(
@@ -59,7 +59,7 @@ class Autotopic:
 				else:
 					game = None
 				
-				if header['current_show']:
+				if header.get('current_show'):
 					show = conn.execute(sqlalchemy.select([shows.c.name])
 						.where(shows.c.id == header['current_show']['id'])
 						.where(shows.c.string_id != "")).first()
