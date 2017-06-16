@@ -66,11 +66,14 @@ config['timezone'] = pytz.timezone(config.get('timezone', 'America/Vancouver'))
 config.setdefault('socket_filename', 'lrrbot.sock')
 # eventsocket - Filename for the UDS channel that the webserver uses to communicate with SSE clients
 config.setdefault('eventsocket', "/tmp/eventserver.sock")
+# eris_socket - Filename for the UDS channel that the Discord bot uses.
+config.setdefault('eris_socket', 'eris.sock')
 
 # socket_port - TCP port to use when Unix domain sockets are not available.
 config['socket_port'] = int(config.get('socket_port', 49601))
 # event_port - TCP port to use when Unix domain sockets are not available.
 config['event_port'] = int(config.get('event_port', 49602))
+config['eris_port'] = int(config.get('event_port', 49603))
 
 # google_key - Google API key
 config.setdefault('google_key', '')
@@ -126,6 +129,9 @@ config.setdefault('discord_serverid', '288920509272555520')
 
 # discord_temp_channel_prefix - prefix of a temporary channel
 config['discord_temp_channel_prefix'] = config.get('discord_temp_channel_prefix', '[TEMP]').strip() + ' '
+
+# discord_channel_announcements - ID of #announcements
+config['discord_channel_annoucements'] = "322643668831961088"
 
 # log_desertbus_moderator_actions - log moderator actions in #desertbus
 config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_moderator_actions', 'true')).lower() != 'false'

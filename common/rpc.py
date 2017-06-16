@@ -82,3 +82,4 @@ class Client:
 
 bot = Client(config['socket_filename'], config['socket_port'])
 eventserver = Client(config['eventsocket'], config['event_port'])
+eris = Client(config['eris_socket'], config['eris_port'])

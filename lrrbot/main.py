@@ -12,25 +12,33 @@ import irc.connection
 import sqlalchemy
 from sqlalchemy.dialects.postgresql import insert
 
-import common.postgres
-import lrrbot.decorators
-import lrrbot.systemd
+from common import game_data
+from common import postgres
+from common import slack
+from common import twitch
 from common import utils
 from common.config import config
-from common import twitch
-from common import slack
-from common import game_data
 from common.pubsub import PubSub
-from lrrbot import chatlog, storage, twitchsubs, whisper, asyncreactor, linkspam, cardviewer
-from lrrbot import spam
+
+from lrrbot import asyncreactor
+from lrrbot import cardviewer
+from lrrbot import chatlog
 from lrrbot import command_parser
-from lrrbot import rpc
-from lrrbot import join_filter
-from lrrbot import twitchfollows
-from lrrbot import twitchcheer
-from lrrbot import moderator_actions
+from lrrbot import decorators
 from lrrbot import desertbus_moderator_actions
+from lrrbot import join_filter
+from lrrbot import linkspam
+from lrrbot import moderator_actions
+from lrrbot import rpc
+from lrrbot import spam
+from lrrbot import storage
+from lrrbot import stream_status
+from lrrbot import systemd
+from lrrbot import twitchcheer
+from lrrbot import twitchfollows
+from lrrbot import twitchsubs
 from lrrbot import video_playback
+from lrrbot import whisper
 
 log = logging.getLogger('lrrbot')
 
@@ -38,7 +46,7 @@ SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', '
 
 class LRRBot(irc.bot.SingleServerIRCBot):
 	def __init__(self, loop):
-		self.engine, self.metadata = common.postgres.new_engine_and_metadata()
+		self.engine, self.metadata = postgres.new_engine_and_metadata()
 		users = self.metadata.tables["users"]
 		if config['password'] == "oauth":
 			with self.engine.begin() as conn:
@@ -83,7 +91,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.reactor.scheduler.execute_every(5, self.check_polls)
 
-		self.service = lrrbot.systemd.Service(loop)
+		self.service = systemd.Service(loop)
 
 		if config['whispers']:
 			self.whisperconn = whisper.TwitchWhisper(self, self.loop)
@@ -125,14 +133,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.pubsub = PubSub(self.engine, self.metadata)
 
-		self.link_spam = linkspam.LinkSpam(self, loop)
-		self.spam = spam.Spam(self, loop)
-		self.subs = twitchsubs.TwitchSubs(self, loop)
-		self.join_filter = join_filter.JoinFilter(self, loop)
-		self.twitchfollows = twitchfollows.TwitchFollows(self, loop)
-		self.twitchcheer = twitchcheer.TwitchCheer(self, loop)
-		self.moderator_actions = moderator_actions.ModeratorActions(self, loop)
 		self.desertbus_moderator_actions = desertbus_moderator_actions.ModeratorActions(self, loop)
+		self.join_filter = join_filter.JoinFilter(self, loop)
+		self.link_spam = linkspam.LinkSpam(self, loop)
+		self.moderator_actions = moderator_actions.ModeratorActions(self, loop)
+		self.spam = spam.Spam(self, loop)
+		self.stream_status = stream_status.StreamStatus(self, loop)
+		self.subs = twitchsubs.TwitchSubs(self, loop)
+		self.twitchcheer = twitchcheer.TwitchCheer(self, loop)
+		self.twitchfollows = twitchfollows.TwitchFollows(self, loop)
 		self.video_playback = video_playback.VideoPlayback(self, loop)
 
 	def reactor_class(self):
@@ -470,7 +479,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""
 		if hasattr(conn.privmsg, "is_wrapped"):
 			return
-		original_privmsg = lrrbot.decorators.twitch_throttle()(conn.privmsg)
+		original_privmsg = decorators.twitch_throttle()(conn.privmsg)
 		@functools.wraps(original_privmsg)
 		def new_privmsg(target, text):
 			if irc.client.is_channel(target):

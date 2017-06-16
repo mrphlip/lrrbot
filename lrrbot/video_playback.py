@@ -46,19 +46,15 @@ class VideoPlayback:
 
 			for topic in topics:
 				pubsub.signals.signal(topic).connect(self.on_message)
+		self.handle = None
 
-	@utils.cache(period=20)
-	def flush_caches(self):
-		log.debug("Flushing stream data cache")
+	def flush_caches_until(self, stream_is_live):
 		twitch.get_info.reset_throttle()
 		self.lrrbot.get_game_id.reset_throttle()
-	
-	def flush_caches_until(self, stream_is_live):
-		self.flush_caches()
 
 		log.debug("Checking stream status")
 		try:
-			retry = twitch.get_info()['live'] != stream_is_live
+			retry = bool(twitch.is_stream_live()) != stream_is_live
 		except utils.PASSTHROUGH_EXCEPTIONS:
 			raise
 		except Exception:
@@ -67,12 +63,14 @@ class VideoPlayback:
 		
 		if retry:
 			log.debug("Stream not in desired state, retrying in 30 seconds")
-			self.loop.call_later(30, self.flush_caches_until, stream_is_live)
+			self.handle = self.loop.call_later(30, self.flush_caches_until, stream_is_live)
 		else:
 			log.debug("Stream is in the desired state")
+			self.handle = None
+			self.lrrbot.stream_status.reschedule()
 
 	def on_message(self, sender, message):
-		if message["type"] == "stream-up":
-			self.flush_caches_until(stream_is_live=True)
-		elif message["type"] == "stream-down":
-			self.flush_caches_until(stream_is_live=False)
+		if message["type"] in {"stream-up", "stream-down"}:
+			if self.handle is not None:
+				self.handle.cancel()
+			self.flush_caches_until(stream_is_live=message["type"] == "stream-up")
