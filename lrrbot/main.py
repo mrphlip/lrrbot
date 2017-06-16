@@ -30,6 +30,7 @@ from lrrbot import twitchfollows
 from lrrbot import twitchcheer
 from lrrbot import moderator_actions
 from lrrbot import desertbus_moderator_actions
+from lrrbot import video_playback
 
 log = logging.getLogger('lrrbot')
 
@@ -132,6 +133,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.twitchcheer = twitchcheer.TwitchCheer(self, loop)
 		self.moderator_actions = moderator_actions.ModeratorActions(self, loop)
 		self.desertbus_moderator_actions = desertbus_moderator_actions.ModeratorActions(self, loop)
+		self.video_playback = video_playback.VideoPlayback(self, loop)
 
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)

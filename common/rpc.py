@@ -36,7 +36,8 @@ class Server:
 	async def close(self):
 		self.__server.close()
 		await self.__server.wait_closed()
-		await asyncio.gather(client.close() for client in self.__clients)
+		for client in self.__clients:
+			await client.close()
 
 class Proxy:
 	def __init__(self, client, path):
