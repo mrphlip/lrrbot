@@ -9,11 +9,7 @@ from common.config import config
 
 log = logging.getLogger('common.rpc')
 
-try:
-	CODEC = aiomas.codecs.MsgPack()
-	CODEC = aiomas.codecs.MsgPack
-except ImportError:
-	CODEC = aiomas.codecs.JSON
+CODEC = aiomas.codecs.MsgPack
 EXTRA_SERIALIZERS = [
 	lambda: (datetime.datetime, lambda t: t.timestamp(), lambda t: datetime.datetime.fromtimestamp(t, pytz.utc))
 ]
