@@ -3,7 +3,7 @@
 # No version numbers are used unless necessary.
 
 aiohttp
-aiomas[mp]
+aiomas
 alembic
 async_timeout
 blinker
