@@ -17,7 +17,7 @@ function addRow()
 	var row = $(
 		"<tr>" +
 			"<td class='action'>" +
-				"<div class='button remove'></div>" +
+				"<div class='button icon remove'></div>" +
 			"</td>" +
 			"<td class='re'>" +
 				"<input type='text'>" +
@@ -61,7 +61,7 @@ function addText()
 {
 	var field = $(
 		"<div>" +
-			"<div class='button remove'></div>" +
+			"<div class='button icon remove'></div>" +
 			"<div class='input'><input type='text'></div>" +
 		"</div>"
 	);

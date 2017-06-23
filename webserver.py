@@ -22,6 +22,7 @@ import www.api
 import www.quotes
 import www.patreon
 import www.clips
+import www.prefs
 
 app.secret_key = config["session_secret"]
 app.config["PREFERRED_URL_SCHEME"] = config["preferred_url_scheme"],

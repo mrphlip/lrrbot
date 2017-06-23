@@ -46,7 +46,7 @@ $(function(){
 {%for rule in rules%}
 <tr class="{{loop.cycle('odd', 'even')}}">
 	<td class="action">
-		<div class="button remove"></div>
+		<div class="button icon remove"></div>
 	</td>
 	<td class="re">
 		<input type="text" value="{{rule['re']|e}}">
@@ -66,7 +66,7 @@ $(function(){
 <tfoot>
 <tr>
 	<td class="action">
-		<div class="button add"></div>
+		<div class="button icon add"></div>
 	</td>
 	<td class="re"></td>
 	<td class="response"></td>

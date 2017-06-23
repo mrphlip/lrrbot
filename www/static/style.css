@@ -43,6 +43,9 @@ body {
 	bottom: 0.5em;
 	right: 0.5em;
 }
+.header .login .display-name {
+	font-weight: bold;
+}
 .infobar, .menu {
 	position: relative;
 	border-radius: 0.5em;
@@ -134,10 +137,19 @@ p.author {
 }
 
 p.error {
-	color: red;
+	color: #F00;
+	background: #FCC;
+	border: 1px solid #F00;
+	padding: 0.5em;
 }
 input.error {
 	background: #F88;
+}
+p.notice {
+	color: #090;
+	background: #CFC;
+	border: 1px solid #090;
+	padding: 0.5em;
 }
 
 div.loading {
@@ -146,21 +158,28 @@ div.loading {
 	height: 18px;
 }
 
-div.button {
+div.icon {
 	background: url(icons.png);
 	width: 22px;
 	height: 22px;
+	display: inline-block;
+	vertical-align: middle;
+}
+div.button {
 	margin: 0 3px;
 	float: left;
 	cursor: pointer;
 }
-div.button.add {
+div.icon.add {
 	background-position: 0 0;
 }
-div.button.remove {
+div.icon.remove {
 	background-position: -22px 0;
 }
-div.button.disabled {
+div.icon.help {
+	background-position: -44px 0;
+}
+div.button.icon.disabled {
 	background: none;
 	cursor: inherit;
 }
@@ -795,7 +814,7 @@ table.quote-search select {
 	font-size: 80%;
 	color: #666;
 }
-.clips .stat .icon
+.clips .stat .thumbicon
 {
 	display: inline-block;
 	vertical-align: middle;
@@ -804,15 +823,20 @@ table.quote-search select {
 	margin: 0 0.25em 0 0;
 	background: url(thumbs48icons.png);
 }
-.clips .stat.unrated .icon
+.clips .stat.unrated .thumbicon
 {
 	background-position: top left;
 }
-.clips .stat.unapproved .icon
+.clips .stat.unapproved .thumbicon
 {
 	background-position: top center;
 }
-.clips .stat.approved .icon
+.clips .stat.approved .thumbicon
 {
 	background-position: top right;
+}
+
+.ui-tooltip-content
+{
+	white-space: pre-wrap;
 }

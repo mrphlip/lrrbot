@@ -18,7 +18,9 @@
 	<h1><a href="{{url_for('index')|e}}"><img src="{{static_url('logo.png')|e}}" alt="LRRbot" width="98" height="100"></a> {%block header%}{%endblock%}</h1>
 	<div class="login">
 		{%if session['user']['id'] is not none%}
-			<a href="{{url_for('logout')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log out ({{session['user']['display_name']|e}})</a>
+			Logged in as: <span class="display-name">{{session['user']['display_name']|e}}</span>
+			| <a href="{{url_for('prefs')|e}}">Preferences</a>
+			| <a href="{{url_for('logout')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log out</a>
 		{%else%}
 			<a href="{{url_for('login')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log in</a>
 		{%endif%}

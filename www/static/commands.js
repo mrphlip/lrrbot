@@ -20,20 +20,20 @@ function addRow()
 		"<tr>" +
 			"<td class='command'>" +
 				"<div>" +
-					"<div class='button remove disabled'></div>" +
+					"<div class='button icon remove disabled'></div>" +
 					"<div class='input'><input type='text'></div>" +
 				"</div>" +
 				"<div>" +
-					"<div class='button add'></div>" +
+					"<div class='button icon add'></div>" +
 				"</div>" +
 			"</td>" +
 			"<td class='response'>" +
 				"<div>" +
-					"<div class='button remove disabled'></div>" +
+					"<div class='button icon remove disabled'></div>" +
 					"<div class='input'><input type='text'></div>" +
 				"</div>" +
 				"<div>" +
-					"<div class='button add'></div>" +
+					"<div class='button icon add'></div>" +
 				"</div>" +
 			"</td>" +
 			"<td class='access'>" +
@@ -102,7 +102,7 @@ function addText()
 {
 	var field = $(
 		"<div>" +
-			"<div class='button remove'></div>" +
+			"<div class='button icon remove'></div>" +
 			"<div class='input'><input type='text'></div>" +
 		"</div>"
 	);

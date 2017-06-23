@@ -1,0 +1,27 @@
+{%extends "master.html"%}
+{%block title%}Preferences{%endblock%}
+{%block header%}Preferences{%endblock%}
+{%block headextra%}
+<script type="text/javascript">
+$(function(){
+	$(".tooltip").tooltip();
+})
+</script>
+{%endblock%}
+{%block content%}
+{%if saved%}
+<p class="notice">Preferences saved</p>
+{%endif%}
+<form action="{{url_for('prefs_save')|e}}" method="POST">
+<input name="_csrf_token" type="hidden" value="{{csrf_token()|e}}">
+<div>
+	<label for="autostatus">Send automatic status whispers</label>
+	<select id="autostatus" name="autostatus">
+		<option value="0" {%if not session['user']['autostatus']%}selected{%endif%}>Off</option>
+		<option value="1" {%if session['user']['autostatus']%}selected{%endif%}>On</option>
+	</select>
+	<div class="icon help tooltip" title="If activated, LRRbot will automatically send you a whisper when it sees you join the chat, with information about the stream.&#xA;&#xA;If the stream is live, it will include the current show and game; if the stream is offline, the next scheduled show."></div>
+</div>
+<input type="submit" value="Save preferences">
+</form>
+{%endblock%}

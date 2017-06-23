@@ -12,13 +12,13 @@
 		<a href="{{url_for("clips_vid", videoid=video['_id'])|e}}">{{video['title']|e}}</a>
 	</td>
 	<td class="stat unrated">
-		<span class="icon"></span>{{video['clips'][None]}}
+		<span class="thumbicon"></span>{{video['clips'][None]}}
 	</td>
 	<td class="stat unapproved">
-		<span class="icon"></span>{{video['clips'][False]}}
+		<span class="thumbicon"></span>{{video['clips'][False]}}
 	</td>
 	<td class="stat approved">
-		<span class="icon"></span>{{video['clips'][True]}}
+		<span class="thumbicon"></span>{{video['clips'][True]}}
 	</td>
 </tr>
 {%endfor%}

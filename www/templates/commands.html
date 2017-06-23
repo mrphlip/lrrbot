@@ -27,27 +27,27 @@
 	<td class="command">
 		{%for c in command%}
 			<div>
-				<div class="button remove {%if len(command) <= 1%}disabled{%endif%}"></div>
+				<div class="button icon remove {%if len(command) <= 1%}disabled{%endif%}"></div>
 				<div class="input">
 					<input type="text" value="{{c|e}}">
 				</div>
 			</div>
 		{%endfor%}
 		<div>
-			<div class="button add"></div>
+			<div class="button icon add"></div>
 		</div>
 	</td>
 	<td class="response">
 		{%for r in response%}
 			<div>
-				<div class="button remove {%if len(response) <= 1%}disabled{%endif%}"></div>
+				<div class="button icon remove {%if len(response) <= 1%}disabled{%endif%}"></div>
 				<div class="input">
 					<input type="text" value="{{r|e}}">
 				</div>
 			</div>
 		{%endfor%}
 		<div>
-			<div class="button add"></div>
+			<div class="button icon add"></div>
 		</div>
 	</td>
 	<td class="access">
