@@ -42,7 +42,7 @@
 			</ul>
 		</div>
 	{%elif session['header']['is_live']%}
-		The currently playing any known game.
+		The stream is currently live, but not playing any known game.
 	{%else%}
 		The stream is not currently live. {{session['header']['nextstream']|e}}
 	{%endif%}
