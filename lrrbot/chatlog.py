@@ -28,8 +28,6 @@ queue = asyncio.Queue()
 
 space.monkey_patch_urlize()
 
-re_cheer = re.compile(r"(?:^|(?<=\s))(cheer0*)([1-9][0-9]*)(?:$|(?=\s))", re.IGNORECASE)
-
 def urlize(text):
 	return real_urlize(text).replace('<a ', '<a target="_blank" rel="noopener nofollow" ')
 
@@ -44,7 +42,7 @@ async def run_task():
 		elif ev == "clear_chat_log":
 			await do_clear_chat_log(*params)
 		elif ev == "rebuild_all":
-			await do_rebuild_all()
+			await do_rebuild_all(*params)
 		elif ev == "exit":
 			break
 
@@ -54,8 +52,8 @@ def log_chat(event, metadata):
 def clear_chat_log(nick):
 	queue.put_nowait(("clear_chat_log", (datetime.datetime.now(pytz.utc), nick)))
 
-def rebuild_all():
-	queue.put_nowait(("rebuild_all", ()))
+def rebuild_all(period=7):
+	queue.put_nowait(("rebuild_all", (period,)))
 
 def stop_task():
 	queue.put_nowait(("exit", ()))
@@ -117,17 +115,18 @@ async def do_clear_chat_log(time, nick):
 		conn.execute(log.update().where(log.c.id == sqlalchemy.bindparam("_key")), *new_rows)
 
 @utils.swallow_errors
-async def do_rebuild_all():
+async def do_rebuild_all(period):
 	"""
 	Rebuild all the message HTML blobs in the database.
 	"""
+	since = datetime.datetime.now(pytz.utc) - datetime.timedelta(days=period)
 	log = lrrbot.main.bot.metadata.tables["log"]
 	conn_select = lrrbot.main.bot.engine.connect()
-	count, = conn_select.execute(log.count()).first()
+	count, = conn_select.execute(log.count().where(log.c.time >= since)).first()
 	rows = conn_select.execute(sqlalchemy.select([
 		log.c.id, log.c.time, log.c.source, log.c.target, log.c.message, log.c.specialuser,
 		log.c.usercolor, log.c.emoteset, log.c.emotes, log.c.displayname
-	]).execution_options(stream_results=True))
+	]).where(log.c.time >= since).execution_options(stream_results=True))
 
 	conn_update = lrrbot.main.bot.engine.connect()
 	trans = conn_update.begin()
@@ -151,11 +150,11 @@ async def do_rebuild_all():
 
 async def format_message(message, emotes, emoteset, size="1", cheer=False):
 	if emotes is not None:
-		return format_message_explicit_emotes(message, emotes, size=size, cheer=cheer)
+		return await format_message_explicit_emotes(message, emotes, size=size, cheer=cheer)
 	else:
-		return format_message_emoteset(message, (await get_filtered_emotes(emoteset)), cheer=cheer)
+		return await format_message_emoteset(message, (await get_filtered_emotes(emoteset)), cheer=cheer)
 
-def format_message_emoteset(message, emotes, size="1", cheer=False):
+async def format_message_emoteset(message, emotes, cheer=False):
 	ret = ""
 	stack = [(message, "")]
 	while len(stack) != 0:
@@ -167,12 +166,12 @@ def format_message_emoteset(message, emotes, size="1", cheer=False):
 				stack.append((parts[0], Markup(emote["html"].format(escape(parts[1])))))
 				break
 		else:
-			ret += Markup(format_message_cheer(prefix, size=size, cheer=cheer)) + suffix
+			ret += Markup(await format_message_cheer(prefix, cheer=cheer)) + suffix
 	return ret
 
-def format_message_explicit_emotes(message, emotes, size="1", cheer=False):
+async def format_message_explicit_emotes(message, emotes, size="1", cheer=False):
 	if not emotes:
-		return Markup(format_message_cheer(message, size=size, cheer=cheer))
+		return Markup(await format_message_cheer(message, cheer=cheer))
 
 	# emotes format is
 	# <emoteid>:<start>-<end>[,<start>-<end>,...][/<emoteid>:<start>-<end>,.../...]
@@ -195,28 +194,32 @@ def format_message_explicit_emotes(message, emotes, size="1", cheer=False):
 	prev = 0
 	for start, end, emoteid in parsed_emotes:
 		if prev < start:
-			bits.append(format_message_cheer(message[prev:start], size=size, cheer=cheer))
+			bits.append(await format_message_cheer(message[prev:start], cheer=cheer))
 		url = escape("https://static-cdn.jtvnw.net/emoticons/v1/%d/%s.0" % (emoteid, size))
 		command = escape(message[start:end])
 		bits.append('<img src="%s" alt="%s" title="%s">' % (url, command, command))
 		prev = end
 	if prev < len(message):
-		bits.append(format_message_cheer(message[prev:], size=size, cheer=cheer))
+		bits.append(await format_message_cheer(message[prev:], cheer=cheer))
 	return Markup(''.join(bits))
 
-def format_message_cheer(message, size="1", cheer=False):
+async def format_message_cheer(message, cheer=False):
 	if not cheer:
 		return urlize(message)
 	else:
+		re_cheer, cheermotes = await get_cheermotes_data()
 		bits = []
 		splits = re_cheer.split(message)
-		for i in range(0, len(splits), 3):
+		for i in range(0, len(splits), 4):
 			bits.append(urlize(splits[i]))
 			if i + 1 < len(splits):
-				count = int(splits[i + 2])
-				level = lrrbot.twitchcheer.TwitchCheer.get_level(count)
-				url = escape("https://static-cdn.jtvnw.net/bits/light/static/%s/%s" % (level, size))
-				bits.append('<span class="cheer %s"><img src="%s" alt="%s" title="cheer %d">%d</span>' % (escape(level), url, escape(splits[i + 1]), count, count))
+				cheermote = cheermotes[splits[i + 2].lower()]
+				codeprefix = splits[i + 1]
+				count = int(splits[i + 3])
+				for tier in cheermote['tiers']:
+					if tier['level'] <= count:
+						break
+				bits.append('<span class="cheer" style="color: %s"><img src="%s" alt="%s" title="%s %d">%d</span>' % (escape(tier['color']), escape(tier['image']), escape(codeprefix), escape(cheermote['prefix']), count, count))
 		return ''.join(bits)
 
 async def build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname):
@@ -352,3 +355,29 @@ async def get_filtered_emotes(setids):
 	except Exception:
 		log.exception("Error fetching emotes")
 		return []
+
+@utils.cache(CACHE_EXPIRY)
+async def get_cheermotes_data():
+	# see: https://discuss.dev.twitch.tv/t/any-update-on-the-cheermotes-docs/9123
+	headers = {
+		"Client-ID": config['twitch_clientid'],
+	}
+	data = await common.http.request_coro("https://api.twitch.tv/kraken/bits/actions?api_version=5", headers=headers)
+	data = json.loads(data)
+	cheermotes = {
+		action['prefix'].lower(): {
+			'prefix': action['prefix'],  # the original capitalisation
+			'tiers': [
+				{
+					'color': tier['color'],
+					'level': tier['min_bits'],
+					'image': tier['images']['light']['static']['1'],
+				}
+				for tier in sorted(action['tiers'], key=lambda tier:tier['min_bits'], reverse=True)
+			],
+		}
+		for action in data['actions']
+	}
+	re_cheer = r"(?:^|(?<=\s))((%s)0*)([1-9][0-9]*)(?:$|(?=\s))" % "|".join(re.escape(i) for i in cheermotes.keys())
+	re_cheer = re.compile(re_cheer, re.IGNORECASE)
+	return re_cheer, cheermotes
