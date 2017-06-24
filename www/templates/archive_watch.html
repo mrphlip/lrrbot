@@ -9,9 +9,11 @@
 <script type="text/javascript" src="https://player.twitch.tv/js/embed/v1.js"></script>
 <script type="text/javascript" src="{{static_url('archive.js')|e}}"></script>
 <script>
-	window.start = {{video["start"].timestamp()|tojson}};
+	window.start = {{vidstart.timestamp()|tojson}};
 	window.initial_time = {%if starttime%}{{starttime|tojson}}{%else%}0{%endif%};
 	window.video = {{video['id']|tojson}};
+	window.twentyfour = {{session['user']['chat_timestamps_24hr']|tojson}};
+	window.seconds = {{session['user']['chat_timestamps_secs']|tojson}};
 </script>
 </head>
 <body>

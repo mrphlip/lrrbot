@@ -22,6 +22,11 @@ CACHE_TIMEOUT = 5*60
 BEFORE_BUFFER = datetime.timedelta(minutes=15)
 AFTER_BUFFER = datetime.timedelta(minutes=15)
 
+TIMESTAMPS_OFF = 0
+TIMESTAMPS_RELATIVE = 1
+TIMESTAMPS_MOONBASE = 2
+TIMESTAMPS_LOCAL = 3
+
 @utils.cache(CACHE_TIMEOUT, params=[0, 1, 2])
 def archive_feed_data(channel, broadcasts, extravids=None):
 	url = "https://api.twitch.tv/kraken/channels/%s/videos?broadcasts=%s&limit=%d" % (urllib.parse.quote(channel, safe=""), "true" if broadcasts else "false", 100)
@@ -122,13 +127,49 @@ def archive_feed():
 	rss = flask.render_template("archive_feed.xml", videos=archive_feed_data_html(channel, broadcasts, True), broadcasts=broadcasts)
 	return flask.Response(rss, mimetype="application/xml")
 
-def chat_data(starttime, endtime, target="#loadingreadyrun"):
+def gen_timestamp_relative(ts, vidstart, fmt, secs):
+	time = (ts - vidstart).total_seconds()
+	sign = ''
+	if time < 0:
+		sign = '\u2212'
+		time = -time
+	time, s = divmod(int(time), 60)
+	h, m = divmod(time, 60)
+	if secs:
+		return '<span class="chat-timestamp">{}{}:{:02}:{:02}</span>'.format(sign, h, m, s)
+	else:
+		return '<span class="chat-timestamp">{}{}:{:02}</span>'.format(sign, h, m)
+
+def gen_timestamp_moonbase(ts, vidstart, fmt, secs):
+	ts = ts.astimezone(config['timezone'])
+	return ('<span class="chat-timestamp">{:' + fmt + '}</span>').format(ts)
+
+def gen_timestamp_local(ts, vidstart, fmt, secs):
+	ts = ts.astimezone(config['timezone'])
+	return ('<span class="chat-timestamp timestamp-time" data-timestamp="{}">{:' + fmt + '}</span>').format(ts.timestamp(), ts)
+
+gen_timestamp_funcs = {
+	TIMESTAMPS_OFF: None,
+	TIMESTAMPS_RELATIVE: gen_timestamp_relative,
+	TIMESTAMPS_MOONBASE: gen_timestamp_moonbase,
+	TIMESTAMPS_LOCAL: gen_timestamp_local,
+}
+
+def chat_data(starttime, endtime, vidstart, timestamp_mode, twentyfour, secs, target="#loadingreadyrun"):
+	gen_timestamps = gen_timestamp_funcs[timestamp_mode]
+	fmt = ("%H" if twentyfour else "%I") + ":%M" + (":%S" if secs else "") + ("" if twentyfour else " %p")
 	log = server.db.metadata.tables["log"]
 	with server.db.engine.begin() as conn:
-		res = conn.execute(sqlalchemy.select([log.c.messagehtml])
+		res = conn.execute(sqlalchemy.select([log.c.messagehtml, log.c.time])
 			.where((log.c.target == target) & log.c.time.between(starttime, endtime))
 			.order_by(log.c.time.asc()))
-		return [message for (message,) in res]
+		if gen_timestamps:
+			return [
+				'<div class="line-wrapper">{} {}</div>'.format(
+					gen_timestamps(ts, vidstart, fmt, secs), message)
+				for (message, ts) in res]
+		else:
+			return [message for (message, time) in res]
 
 @utils.cache(CACHE_TIMEOUT, params=[0])
 def get_video_data(videoid):
@@ -152,12 +193,21 @@ def get_video_data(videoid):
 		return None
 
 @server.app.route('/archive/<videoid>')
-def archive_watch(videoid):
+@login.with_session
+def archive_watch(videoid, session):
 	starttime = common.time.parsetime(flask.request.values.get('t'))
 	if starttime:
 		starttime = int(starttime.total_seconds())
 	video = get_video_data(videoid)
 	if video is None:
 		return "Unrecognised video"
-	chat = chat_data(video["start"] - BEFORE_BUFFER, video["end"] + AFTER_BUFFER)
-	return flask.render_template("archive_watch.html", video=video, chat=chat, starttime=starttime)
+	vidstart = video["start"] + datetime.timedelta(seconds=session['user']['stream_delay'])
+	chat = chat_data(
+		video["start"] - BEFORE_BUFFER,
+		video["end"] + AFTER_BUFFER,
+		vidstart,
+		session['user']['chat_timestamps'],
+		session['user']['chat_timestamps_24hr'],
+		session['user']['chat_timestamps_secs'],
+	)
+	return flask.render_template("archive_watch.html", session=session, video=video, vidstart=vidstart, chat=chat, starttime=starttime)

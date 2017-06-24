@@ -90,6 +90,15 @@ img
 	display: none;
 }
 
+.chat-timestamp
+{
+	font: 75% monospace;
+}
+.line-wrapper .line
+{
+	display: inline;
+}
+
 #resetscroll
 {
 	position: fixed;

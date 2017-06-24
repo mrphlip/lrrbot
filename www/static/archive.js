@@ -13,6 +13,15 @@ $(function(){
 		splitter.position(splitPosition + "%");
 	});
 
+	// Show the timestamps in the local timezone, if that's what the user wants
+	var fmt = {hour: "numeric", minute: "numeric", hour12: !window.twentyfour};
+	if (window.seconds)
+		fmt.second = "numeric";
+	$(".timestamp-time").each(function(){
+		var timestamp = new Date($(this).data('timestamp') * 1000);
+		$(this).text(timestamp.toLocaleTimeString(undefined, fmt));
+	});
+
 	// Load the video
 	window.player = new Twitch.Player("video", {
 		width: "100%",
@@ -37,7 +46,10 @@ $(function(){
 	// Prepare timestamp lookup table
 	window.chatlines = [];
 	$(".line").each(function(){
-		window.chatlines.push({ts: Number($(this).data("timestamp")), obj: $(this)});
+		var linediv = $(this).closest(".line-wrapper");
+		if (!linediv.length)
+			linediv = $(this);
+		window.chatlines.push({ts: Number($(this).data("timestamp")), obj: linediv});
 	});
 
 	// Create poll to scroll the chat to the right place

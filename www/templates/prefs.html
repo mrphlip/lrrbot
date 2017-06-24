@@ -5,7 +5,22 @@
 <script type="text/javascript">
 $(function(){
 	$(".tooltip").tooltip();
-})
+	$("#chat_timestamps").change(showHideTimestamps);
+	showHideTimestamps();
+});
+function showHideTimestamps() {
+	var val = $("#chat_timestamps").val();
+	if (val == 0) {
+		$("#row_chat_timestamps_24hr").hide();
+		$("#row_chat_timestamps_secs").hide();
+	} else if (val == 1) {
+		$("#row_chat_timestamps_24hr").hide();
+		$("#row_chat_timestamps_secs").show();
+	} else {
+		$("#row_chat_timestamps_24hr").show();
+		$("#row_chat_timestamps_secs").show();
+	}
+}
 </script>
 {%endblock%}
 {%block content%}
@@ -14,6 +29,8 @@ $(function(){
 {%endif%}
 <form action="{{url_for('prefs_save')|e}}" method="POST">
 <input name="_csrf_token" type="hidden" value="{{csrf_token()|e}}">
+<input type="submit" value="Save preferences">
+<h2>Chatbot options</h2>
 <div>
 	<label for="autostatus">Send automatic status whispers</label>
 	<select id="autostatus" name="autostatus">
@@ -22,6 +39,38 @@ $(function(){
 	</select>
 	<div class="icon help tooltip" title="If activated, LRRbot will automatically send you a whisper when it sees you join the chat, with information about the stream.&#xA;&#xA;If the stream is live, it will include the current show and game; if the stream is offline, the next scheduled show."></div>
 </div>
-<input type="submit" value="Save preferences">
+<h2>VOD playback options</h2>
+<div>
+	<label for="stream_delay">Simulate stream delay</label>
+	<select id="stream_delay" name="stream_delay">
+		<option value="0" {%if session['user']['stream_delay'] == 0%}selected{%endif%}>Off</option>
+		<option value="10" {%if session['user']['stream_delay'] == 10%}selected{%endif%}>On</option>
+	</select>
+	<div class="icon help tooltip" title="If activated, the saved chat next to past broadcasts will be adjusted to account for streaming delays.&#xA;&#xA;If this is off, the chat will look like how it looked to the hosts &ndash; chat messages synchronised with what the hosts were doing at the time.&#xA;&#xA;If this is on, the chat will look like how it looked to live viewers &ndash; chat messages will be (roughly) synchronised with the video the chatters were seeing at the time, on a 10 second delay."></div>
+</div>
+<div>
+	<label for="chat_timestamps">Show chat timestamps</label>
+	<select id="chat_timestamps" name="chat_timestamps">
+		<option value="0" {%if session['user']['chat_timestamps'] == 0%}selected{%endif%}>Off</option>
+		<option value="1" {%if session['user']['chat_timestamps'] == 1%}selected{%endif%}>Stream-relative</option>
+		<option value="2" {%if session['user']['chat_timestamps'] == 2%}selected{%endif%}>Moonbase Time</option>
+		<option value="3" {%if session['user']['chat_timestamps'] == 3%}selected{%endif%}>Local Time</option>
+	</select>
+	<div class="icon help tooltip" title="Set whether to show timestamps next to messages in the chat on past broadcasts.&#xA;&#xA;Stream-relative &ndash; show times relative to the start of the stream (eg an hour into the vod will show as 1:00:00)&#xA;&#xA;Moonbase Time &ndash; Show the times in Pacific Time, the local time of LRR.&#xA;&#xA;Local Time &ndash; Show the times in your own local timezone."></div>
+</div>
+<div id="row_chat_timestamps_24hr">
+	<label for="chat_timestamps_24hr">Chat timestamps in 24-hour time</label>
+	<select id="chat_timestamps_24hr" name="chat_timestamps_24hr">
+		<option value="0" {%if not session['user']['chat_timestamps_24hr']%}selected{%endif%}>Off</option>
+		<option value="1" {%if session['user']['chat_timestamps_24hr']%}selected{%endif%}>On</option>
+	</select>
+</div>
+<div id="row_chat_timestamps_secs">
+	<label for="chat_timestamps_secs">Chat timestamps include seconds</label>
+	<select id="chat_timestamps_secs" name="chat_timestamps_secs">
+		<option value="0" {%if not session['user']['chat_timestamps_secs']%}selected{%endif%}>Off</option>
+		<option value="1" {%if session['user']['chat_timestamps_secs']%}selected{%endif%}>On</option>
+	</select>
+</div>
 </form>
 {%endblock%}

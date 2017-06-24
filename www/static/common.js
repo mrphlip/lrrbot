@@ -20,4 +20,8 @@ $(function(){
 		var timestamp = new Date($(this).data('timestamp') * 1000);
 		$(this).text(timestamp.toLocaleString());
 	});
+	$(".timestamp-time").each(function(){
+		var timestamp = new Date($(this).data('timestamp') * 1000);
+		$(this).text(timestamp.toLocaleTimeString());
+	});
 });

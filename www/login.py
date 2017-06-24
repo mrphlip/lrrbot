@@ -211,9 +211,11 @@ async def load_session(include_url=True, include_header=True):
 		with server.db.engine.begin() as conn:
 			query = sqlalchemy.select([
 				users.c.name, sqlalchemy.func.coalesce(users.c.display_name, users.c.name), users.c.twitch_oauth,
-				users.c.is_sub, users.c.is_mod, users.c.autostatus, users.c.patreon_user_id
+				users.c.is_sub, users.c.is_mod, users.c.autostatus, users.c.patreon_user_id,
+				users.c.stream_delay, users.c.chat_timestamps, users.c.chat_timestamps_24hr, users.c.chat_timestamps_secs
 			]).where(users.c.id == user_id)
-			name, display_name, token, is_sub, is_mod, autostatus, patreon_user_id = conn.execute(query).first()
+			name, display_name, token, is_sub, is_mod, autostatus, patreon_user_id, \
+				stream_delay, chat_timestamps, chat_timestamps_24hr, chat_timestamps_secs = conn.execute(query).first()
 			session['user'] = {
 				"id": user_id,
 				"name": name,
@@ -223,6 +225,10 @@ async def load_session(include_url=True, include_header=True):
 				"is_mod": is_mod,
 				"autostatus": autostatus,
 				"patreon_user_id": patreon_user_id,
+				"stream_delay": stream_delay,
+				"chat_timestamps": chat_timestamps,
+				"chat_timestamps_24hr": chat_timestamps_24hr,
+				"chat_timestamps_secs": chat_timestamps_secs,
 			}
 	else:
 		session['user'] = {
@@ -233,6 +239,10 @@ async def load_session(include_url=True, include_header=True):
 			"is_sub": False,
 			"is_mod": False,
 			"autostatus": False,
+			"stream_delay": 10,
+			"chat_timestamps": 0,
+			"chat_timestamps_24hr": True,
+			"chat_timestamps_secs": False,
 		}
 	return session
 
