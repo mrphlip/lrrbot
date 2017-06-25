@@ -47,7 +47,7 @@ pytz==2017.2
 requests==2.18.1
 six==1.10.0
 SQLAlchemy==1.1.11
-tempora==1.7
+tempora==1.8
 timelib==0.2.4
 urllib3==1.21.1
 websockets==3.3
