@@ -24,8 +24,10 @@ class Request(urllib.request.Request):
 		else:
 			return super().get_method()
 
-def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **kwargs):
+def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=5, **kwargs):
 	"""Download a webpage, with retries on failure."""
+	if headers is None:
+		headers = {}
 	# Let's be nice.
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
 	if data:
@@ -60,7 +62,9 @@ def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **k
 # Limit the number of parallel HTTP connections to a server.
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
 atexit.register(lambda: asyncio.get_event_loop().run_until_complete(http_request_session.close()))
-async def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
+async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, timeout=5, allow_redirects=True):
+	if headers is None:
+		headers = {}
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
 	firstex = None
 
