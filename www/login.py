@@ -13,6 +13,7 @@ import www.utils
 from www import server
 from common.config import config, from_apipass
 from common import utils
+from common import http
 from common import twitch
 from common import game_data
 from common import googlecalendar
@@ -267,8 +268,13 @@ async def login(return_to=None):
 				'grant_type': 'authorization_code',
 				'redirect_uri': config['twitch_redirect_uri'],
 				'code': flask.request.values['code'],
+				'state': twitch_state,
 			}
-			res_json = urllib.request.urlopen("https://api.twitch.tv/kraken/oauth2/token", urllib.parse.urlencode(oauth_params).encode()).read().decode()
+			headers = {
+				'Client-ID': config['twitch_clientid'],
+				'Accept': 'application/vnd.twitchtv.v5+json',
+			}
+			res_json = await common.http.request_coro("https://api.twitch.tv/kraken/oauth2/token", method="POST", data=oauth_params, headers=headers)
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('access_token'):
 				raise Exception("No access token from Twitch: %s" % res_json)
@@ -276,10 +282,8 @@ async def login(return_to=None):
 			granted_scopes = res_object["scope"]
 
 			# Use that access token to get basic information about the user
-			req = urllib.request.Request("https://api.twitch.tv/kraken/")
-			req.add_header("Authorization", "OAuth %s" % access_token)
-			req.add_header("Client-ID", config['twitch_clientid'])
-			res_json = urllib.request.urlopen(req).read().decode()
+			headers['Authorization'] = "OAuth %s" % access_token
+			res_json = await common.http.request_coro("https://api.twitch.tv/kraken/", headers=headers)
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('token', {}).get('valid'):
 				raise Exception("User object not valid: %s" % res_json)
@@ -310,6 +314,7 @@ async def login(return_to=None):
 				# we already have, if we have it already
 				'display_name': user_name,
 			}
+			users = server.db.metadata.tables["users"]
 			with server.db.engine.begin() as conn:
 				query = insert(users)
 				query = query.on_conflict_do_update(
@@ -322,7 +327,7 @@ async def login(return_to=None):
 				conn.execute(query, user)
 
 			# Store the user ID into the session
-			flask.session['id'] = user["_id"]
+			flask.session['id'] = user_id
 			flask.session.permanent = remember_me
 
 			return_to = flask.session.pop('login_return_to', None)
