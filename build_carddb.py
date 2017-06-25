@@ -29,7 +29,7 @@ SOURCE_FILENAME = 'AllSets.json'
 EXTRAS_FILENAME = 'extracards.json'
 MAXLEN = 450
 
-engine, metadata = common.postgres.new_engine_and_metadata()
+engine, metadata = common.postgres.get_engine_and_metadata()
 
 def main():
 	if not do_download_file(URL, ZIP_FILENAME) and not os.access(EXTRAS_FILENAME, os.F_OK):

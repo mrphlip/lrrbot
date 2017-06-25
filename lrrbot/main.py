@@ -46,7 +46,7 @@ SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', '
 
 class LRRBot(irc.bot.SingleServerIRCBot):
 	def __init__(self, loop):
-		self.engine, self.metadata = postgres.new_engine_and_metadata()
+		self.engine, self.metadata = postgres.get_engine_and_metadata()
 		users = self.metadata.tables["users"]
 		if config['password'] == "oauth":
 			with self.engine.begin() as conn:

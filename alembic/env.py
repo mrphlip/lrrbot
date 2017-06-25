@@ -2,6 +2,7 @@ from __future__ import with_statement
 from alembic import context
 import sqlalchemy
 import logging
+from common import postgres
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s")
 
@@ -33,6 +34,7 @@ def run_migrations_online():
 
 	"""
 	connectable = sqlalchemy.create_engine(context.config.get_section_option("lrrbot", "postgres", 'postgres:///lrrbot'))
+	postgres.set_engine_and_metadata(connectable, sqlalchemy.MetaData(bind=engine))
 
 	with connectable.connect() as connection:
 		context.configure(connection=connection, target_metadata=target_metadata)

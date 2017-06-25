@@ -8,7 +8,7 @@ import dateutil.parser
 import asyncio
 import sqlalchemy
 
-engine, metadata = common.postgres.new_engine_and_metadata()
+engine, metadata = common.postgres.get_engine_and_metadata()
 
 def get_staged_highlights():
 	highlights = metadata.tables["highlights"]

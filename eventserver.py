@@ -22,7 +22,7 @@ class Server(common.rpc.Server):
 
 	def __init__(self):
 		super().__init__()
-		self.engine, self.metadata = common.postgres.new_engine_and_metadata()
+		self.engine, self.metadata = common.postgres.get_engine_and_metadata()
 		self.queues = []
 
 	async def negotiate(self, request):
