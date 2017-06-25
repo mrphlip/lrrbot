@@ -6,7 +6,7 @@
 {%for video in videos%}
 <tr class="{{loop.cycle('even','odd')}} {%if video['clips'][None]>0%}incomplete{%else%}complete{%endif%}">
 	<td class="thumbnail">
-		<a href="{{url_for("clips_vid", videoid=video['_id'])|e}}"><img src="{{video['preview']|e}}" alt=""></a>
+		<a href="{{url_for("clips_vid", videoid=video['_id'])|e}}"><img src="{{video['preview']['small']|e}}" alt=""></a>
 	</td>
 	<td class="main">
 		<a href="{{url_for("clips_vid", videoid=video['_id'])|e}}">{{video['title']|e}}</a>

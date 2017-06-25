@@ -1,5 +1,5 @@
 <div style="font: 100% sans-serif; color: black">
-{%if not rss%}<a href="{{url_for("archive_watch", videoid=vid['_id'])|e}}">{%endif%}<img src="{{vid['preview']|https|e}}" alt="{{vid['title']|e}}" width="320" height="240" style="float:left; margin: 0 0.5em 0.25em 0">{%if not rss%}</a>{%endif%}
+{%if not rss%}<a href="{{url_for("archive_watch", videoid=vid['_id'])|e}}">{%endif%}<img src="{{vid['preview']['medium']|https|e}}" alt="{{vid['title']|e}}" width="320" height="180" style="float:left; margin: 0 0.5em 0.25em 0">{%if not rss%}</a>{%endif%}
 <p style="font: bold 125% sans-serif">{%if not rss%}<a href="{{url_for("archive_watch", videoid=vid['_id'])|e}}">{%endif%}{{vid['title']|e}}{%if not rss%}</a>{%endif%}</p>
 <p>Recorded at: {{vid['recorded_at']|timestamp}}</p>
 {%if vid['description']%}<p>{{vid['description']|e}}</p>{%endif%}
@@ -11,6 +11,6 @@
 <p style="font-size: 80%; color: #999">{{vid['_id']|e}}</p>
 {%if rss and vid['thumbnails']%}
 <div style="clear: left"></div>
-<p>{%for thumb in vid['thumbnails']%}<img src="{{thumb['url']|https|e}}" alt="" width="160" height="120">{%endfor%}</p>
+<p>{%for thumb in vid['thumbnails']%}<img src="{{thumb['url']|https|e}}" alt="" width="160" height="90">{%endfor%}</p>
 {%endif%}
 </div>

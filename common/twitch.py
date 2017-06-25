@@ -336,7 +336,29 @@ async def unfollow_channel(target):
 	await common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (userid, targetuserid),
 	                               method="DELETE", headers=headers)
 
-async def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
+async def get_video(videoid):
+	"""
+	Get the details for a specific VOD.
+
+	Parameter can be passed with or without the 'v' prefix (ie '123' or 'v123').
+
+	See:
+	https://dev.twitch.tv/docs/v5/reference/videos/#get-video
+	"""
+	headers = {
+		"Client-ID": config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
+	}
+	data = await common.http.request_coro("https://api.twitch.tv/kraken/videos/%s" % videoid.lstrip('v'), headers=headers)
+	return json.loads(data)
+
+async def get_videos(channel=None, offset=0, limit=10, broadcasts=False):
+	"""
+	Get the details for the latest videos (either broadcasts or highlights) from a channel.
+
+	See:
+	https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-videos
+	"""
 	channelid = get_user(name=channel or config["channel"]).id
 	headers = {
 		"Client-ID": config['twitch_clientid'],
@@ -345,8 +367,7 @@ async def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=Fal
 	data = await common.http.request_coro("https://api.twitch.tv/kraken/channels/%d/videos" % channelid, headers=headers, data={
 		"offset": str(offset),
 		"limit": str(limit),
-		"broadcasts": "true" if broadcasts else "false",
-		"hls": "true" if hls else "false",
+		"broadcast_type": "archive" if broadcasts else "highlight",
 	})
 	return json.loads(data)["videos"]
 
