@@ -23,7 +23,7 @@ class TwitchFollows:
 
 	async def check_follows(self):
 		if self.last_timestamp is None:
-			async for follower in twitch.get_followers(config['channel']):
+			async for follower in twitch.get_followers():
 				if self.last_timestamp is None or self.last_timestamp == follower['created_at']:
 					self.last_timestamp = follower['created_at']
 					self.last_users.add(follower['user']['_id'])
@@ -34,7 +34,7 @@ class TwitchFollows:
 			self.last_users = set()
 			events = []
 
-			async for follower in twitch.get_followers(config['channel']):
+			async for follower in twitch.get_followers():
 				if follower['created_at'] >= self.last_timestamp:
 					if follower['user']['_id'] not in last_users:
 						events.append((

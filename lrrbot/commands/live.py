@@ -15,7 +15,7 @@ import sqlalchemy
 import textwrap
 
 @utils.cache(24 * 60 * 60)
-async def extract_new_channels(loop, token):
+async def extract_new_channels(loop):
 	data = await common.http.request_coro(googlecalendar.EVENTS_URL % urllib.parse.quote(googlecalendar.CALENDAR_FAN), {
 		"key": config["google_key"],
 		"maxResults": "25000",
@@ -41,7 +41,7 @@ async def extract_new_channels(loop, token):
 	old_channels = {channel["channel"]["name"] for channel in follows}
 	old_channels.add(config["channel"])
 
-	futures = [twitch.follow_channel(channel, token) for channel in channels.difference(old_channels)]
+	futures = [twitch.follow_channel(channel) for channel in channels.difference(old_channels)]
 	await asyncio.gather(*futures, loop=loop, return_exceptions=True)
 
 @bot.command("live")
@@ -54,17 +54,12 @@ async def live(lrrbot, conn, event, respond_to):
 	Post the currenly live fanstreamers.
 	"""
 
-	users = lrrbot.metadata.tables["users"]
-	with lrrbot.engine.begin() as pg_conn:
-		token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
-			.where(users.c.name == config["username"])).first()
-
 	try:
-		await extract_new_channels(lrrbot.loop, token)
+		await extract_new_channels(lrrbot.loop)
 	except urllib.error.HTTPError:
 		pass
 
-	streams = await twitch.get_streams_followed(token)
+	streams = await twitch.get_streams_followed()
 	if streams == []:
 		return conn.privmsg(respond_to, "No fanstreamers currently live.")
 
@@ -115,11 +110,7 @@ async def register_self(lrrbot, conn, event, respond_to):
 	Register your channel as a fanstreamer channel.
 	"""
 	channel = irc.client.NickMask(event.source).nick.lower()
-	users = lrrbot.metadata.tables["users"]
-	with lrrbot.engine.begin() as pg_conn:
-		token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
-			.where(users.c.name == config["username"])).first()
-	await twitch.follow_channel(channel, token)
+	await twitch.follow_channel(channel)
 	conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
 
 @bot.command("live unregister")
@@ -130,11 +121,7 @@ async def unregister_self(lrrbot, conn, event, respond_to):
 	Unregister your channel as a fanstreamer channel.
 	"""
 	channel = irc.client.NickMask(event.source).nick.lower()
-	users = lrrbot.metadata.tables["users"]
-	with lrrbot.engine.begin() as pg_conn:
-		token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
-			.where(users.c.name == config["username"])).first()
-	await twitch.unfollow_channel(channel, token)
+	await twitch.unfollow_channel(channel)
 	conn.privmsg(respond_to, "Channel '%s' removed from the fanstreamer list." % channel)
 
 @bot.command("live register (.*)")
@@ -145,12 +132,8 @@ async def register(lrrbot, conn, event, respond_to, channel):
 
 	Register CHANNEL as a fanstreamer channel.
 	"""
-	users = lrrbot.metadata.tables["users"]
-	with lrrbot.engine.begin() as pg_conn:
-		token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
-			.where(users.c.name == config["username"])).first()
 	try:
-		await twitch.follow_channel(channel, token)
+		await twitch.follow_channel(channel)
 		conn.privmsg(respond_to, "Channel '%s' added to the fanstreamer list." % channel)
 	except urllib.error.HTTPError:
 		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)
@@ -163,12 +146,8 @@ async def unregister(lrrbot, conn, event, respond_to, channel):
 
 	Unregister CHANNEL as a fanstreamer channel.
 	"""
-	users = lrrbot.metadata.tables["users"]
-	with lrrbot.engine.begin() as pg_conn:
-		token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
-			.where(users.c.name == config["username"])).first()
 	try:
-		await twitch.unfollow_channel(channel, token)
+		await twitch.unfollow_channel(channel)
 		conn.privmsg(respond_to, "Channel '%s' removed from the fanstreamer list." % channel)
 	except urllib.error.HTTPError:
 		conn.privmsg(respond_to, "'%s' isn't a Twitch channel." % channel)

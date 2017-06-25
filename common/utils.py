@@ -11,10 +11,12 @@ import time
 import heapq
 import logging.config
 import configparser
+import sqlalchemy
 
 import werkzeug.datastructures
 
 from common import config
+from common import postgres
 
 # Need to delay creation of our "log" until init_logging is called
 log = None
@@ -342,3 +344,48 @@ def init_logging(mode=None):
 	logging.config.fileConfig(logging_conf)
 	global log
 	log = logging.getLogger('utils')
+
+def get_user_id(name):
+	"""
+	Get the user id for a given username, if it's in our database.
+
+	For a more thorough version that gets the id even if the name isn't in our
+	database, see common.twitch.get_user
+	"""
+	engine, metadata = postgres.get_engine_and_metadata()
+	users = metadata.tables["users"]
+	with engine.begin() as conn:
+		row = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == name)).first()
+	if row:
+		return row[0]
+	else:
+		return None
+
+def get_user_name(id):
+	"""
+	Get the username for a given user id, if it's in our database.
+
+	For a more thorough version that gets the name even if the id isn't in our
+	database, see common.twitch.get_user
+	"""
+	engine, metadata = postgres.get_engine_and_metadata()
+	users = metadata.tables["users"]
+	with engine.begin() as conn:
+		row = conn.execute(sqlalchemy.select([users.c.name]).where(users.c.id == id)).first()
+	if row:
+		return row[0]
+	else:
+		return None
+
+async def async_to_list(aiter):
+	"""
+	Convert an asynchronous generator to a simple list.
+	"""
+	# Can't do this until Python3.6 ...
+	# https://www.python.org/dev/peps/pep-0530/
+	# return [i async for i in aiter]
+
+	res = []
+	async for i in aiter:
+		res.append(i)
+	return res

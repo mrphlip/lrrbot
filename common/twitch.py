@@ -2,12 +2,174 @@ import json
 import random
 import socket
 import dateutil.parser
+import sqlalchemy
+import collections
 
 import common.http
 from common import utils
+from common import postgres
 from common.config import config
 
 GAME_CHECK_INTERVAL = 5*60
+
+User = collections.namedtuple('User', ['id', 'name', 'display_name', 'token'])
+def get_user(id=None, name=None, get_missing=True):
+	"""
+	Get the details for a given user, specified by either name or id.
+
+	Returns a named tuple of (id, name, display_name, token)
+
+	If get_missing is true, get the details for this user from Twitch if the user
+	is not already in the database. Otherwise if the userisn't in the database,
+	this returns None.
+	"""
+	engine, metadata = postgres.get_engine_and_metadata()
+	users = metadata.tables["users"]
+	with engine.begin() as conn:
+		query = sqlalchemy.select([users.c.id, users.c.name, users.c.display_name, users.c.twitch_oauth])
+		if id is not None:
+			query = query.where(users.c.id == id)
+			url = "https://api.twitch.tv/kraken/users/%d" % id
+			data = {}
+			by_name = False
+		elif name is not None:
+			query = query.where(users.c.name == name)
+			url = "https://api.twitch.tv/kraken/users"
+			data = {'login': name}
+			by_name = True
+		else:
+			raise ValueError("Pass at least one of name or id")
+
+		row = conn.execute(query).first()
+		if row:
+			return User(*row)
+
+		if get_missing:
+			headers = {
+				'Client-ID': config['twitch_clientid'],
+				'Accept': 'application/vnd.twitchtv.v5+json',
+			}
+			res = common.http.request(url, data=data, headers=headers)
+			user = json.loads(res)
+			if by_name:
+				user = user['users'][0]
+			insert_query = insert(users)
+			insert_query = insert_query.on_conflict_do_update(
+				index_elements=[users.c.id],
+				set_={
+					'name': insert_query.excluded.name,
+					'display_name': insert_query.excluded.display_name,
+				},
+			)
+			conn.execute(insert_query, {
+				"id": user["_id"],
+				"name": user["name"],
+				"display_name": user["display_name"],
+			})
+
+			return User(user["_id"], user["name"], user['display_name'], None)
+
+class get_paginated_by_offset:
+	"""
+	Collect all the results from a paginated query that uses the offset/limit
+	method of pagination.
+
+	See:
+	https://dev.twitch.tv/docs/v5/guides/using-the-twitch-api#paging-through-results-cursor-vs-offset
+
+	Provide the url/data/headers without the offset/limit arguments, and the name
+	of the attribute in the result which contains the list to be collected.
+
+	Optionally can provide a limit to stop the process before the end of the list.
+	The returned list may be longer than limit, but once the limit is reached, no
+	further pages will be requested.
+	"""
+	PAGE_SIZE = 25
+
+	def __init__(self, url, attr, data=None, headers=None, limit=None):
+		self.url = url
+		self.attr = attr
+		if data:
+			self.data = dict(data)
+		else:
+			self.data = {}
+		self.headers = headers
+		self.limit = limit
+
+		self.count = 0
+		self.total = 1
+		self.offset = 0
+		self.buffer = None
+
+	async def __aiter__(self):
+		return self
+
+	async def __anext__(self):
+		while True:
+			if self.buffer:
+				self.count += 1
+				return self.buffer.pop(0)
+
+			if self.offset > self.total:
+				raise StopAsyncIteration
+			if self.limit is not None and self.count > self.limit:
+				raise StopAsyncIteration
+
+			self.data['offset'] = self.offset
+			self.data['limit'] = self.PAGE_SIZE
+			res = await common.http.request_coro(self.url, data=self.data, headers=self.headers)
+			res = json.loads(res)
+			self.buffer = res[self.attr]
+			self.total = res['_total']
+			self.offset += self.PAGE_SIZE
+
+class get_paginated_by_cursor:
+	"""
+	Collect all the results from a paginated query that uses the cursor
+	method of pagination.
+
+	See:
+	https://dev.twitch.tv/docs/v5/guides/using-the-twitch-api#paging-through-results-cursor-vs-offset
+
+	Provide the url/data/headers without the cursor argument, and the name
+	of the attribute in the result which contains the list to be collected.
+
+	Optionally can provide a limit to stop the process before the end of the list.
+	The returned list may be longer than limit, but once the limit is reached, no
+	further pages will be requested.
+	"""
+	def __init__(self, url, attr, data=None, headers=None, limit=None):
+		self.url = url
+		self.attr = attr
+		if data:
+			self.data = dict(data)
+		else:
+			self.data = {}
+		self.headers = headers
+		self.limit = limit
+
+		self.count = 0
+		self.cursor = True
+		self.buffer = None
+
+	async def __aiter__(self):
+		return self
+
+	async def __anext__(self):
+		while True:
+			if self.buffer:
+				self.count += 1
+				return self.buffer.pop(0)
+
+			if not self.cursor:
+				raise StopAsyncIteration
+			if self.limit is not None and self.count > self.limit:
+				raise StopAsyncIteration
+
+			res = await common.http.request_coro(self.url, data=self.data, headers=self.headers)
+			res = json.loads(res)
+			self.buffer = res[self.attr]
+			self.cursor = self.data['cursor'] = res.get('_cursor')
 
 def get_info_uncached(username=None, use_fallback=True):
 	"""
@@ -16,19 +178,21 @@ def get_info_uncached(username=None, use_fallback=True):
 	Defaults to the stream channel if not otherwise specified.
 
 	For response object structure, see:
-	https://github.com/justintv/Twitch-API/blob/master/v3_resources/channels.md#example-response
+	https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-by-id
 
 	May throw exceptions on network/Twitch error.
 	"""
 	if username is None:
 		username = config['channel']
+	userid = get_user(name=username).id
 
 	# Attempt to get the channel data from /streams/channelname
 	# If this succeeds, it means the channel is currently live
 	headers = {
 		'Client-ID': config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
-	res = common.http.request("https://api.twitch.tv/kraken/streams/%s" % username, headers=headers)
+	res = common.http.request("https://api.twitch.tv/kraken/streams/%d?stream_type=live" % userid, headers=headers)
 	data = json.loads(res)
 	channel_data = data.get('stream') and data['stream'].get('channel')
 	if channel_data:
@@ -42,7 +206,7 @@ def get_info_uncached(username=None, use_fallback=True):
 
 	# If that failed, it means the channel is offline
 	# Ge the channel data from here instead
-	res = common.http.request("https://api.twitch.tv/kraken/channels/%s" % username, headers=headers)
+	res = common.http.request("https://api.twitch.tv/kraken/channels/%d" % userid, headers=headers)
 	channel_data = json.loads(res)
 	channel_data['live'] = False
 	return channel_data
@@ -57,7 +221,7 @@ def get_game(name, all=False):
 	Get the game information for a particular game.
 
 	For response object structure, see:
-	https://github.com/justintv/Twitch-API/blob/master/v3_resources/search.md#example-response-1
+	https://dev.twitch.tv/docs/v5/reference/search/#search-games
 
 	May throw exceptions on network/Twitch error.
 	"""
@@ -68,13 +232,14 @@ def get_game(name, all=False):
 	}
 	headers = {
 		'Client-ID': config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
 	res = common.http.request("https://api.twitch.tv/kraken/search/games", search_opts, headers=headers)
 	res = json.loads(res)
 	if all:
-		return res['games']
+		return res['games'] or []
 	else:
-		for game in res['games']:
+		for game in res['games'] or []:
 			if game['name'] == name:
 				return game
 		return None
@@ -97,10 +262,12 @@ def is_stream_live(username=None):
 	channel_data = get_info(username, use_fallback=False)
 	return channel_data and channel_data['live']
 
-async def get_subscribers(channel, token, count=5, offset=None, latest=True):
+async def get_subscribers(channel=None, count=5, offset=None, latest=True):
+	channelid, channelname, display_name, token = get_user(name=channel or config["channel"])
 	headers = {
-		"Authorization": "OAuth %s" % token,
-		"Client-ID": config['twitch_clientid'],
+		'Authorization': "OAuth %s" % token,
+		'Client-ID': config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
 	data = {
 		"limit": str(count),
@@ -108,7 +275,7 @@ async def get_subscribers(channel, token, count=5, offset=None, latest=True):
 	}
 	if offset is not None:
 		data['offset'] = str(offset)
-	res = await common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/subscriptions" % channel, headers=headers, data=data)
+	res = await common.http.request_coro("https://api.twitch.tv/kraken/channels/%d/subscriptions" % channelid, headers=headers, data=data)
 	subscriber_data = json.loads(res)
 	return [
 		(sub['user']['display_name'], sub['user'].get('logo'), sub['created_at'], sub.get('updated_at', sub['created_at']))
@@ -116,60 +283,66 @@ async def get_subscribers(channel, token, count=5, offset=None, latest=True):
 	]
 
 async def get_follows_channels(username=None):
+	"""
+	Get a list of all channels followed by a given user.
+
+	See:
+	https://dev.twitch.tv/docs/v5/reference/users/#get-user-follows
+	"""
+	headers = {
+		'Client-ID': config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
+	}
 	if username is None:
 		username = config["username"]
-	headers = {
-		"Client-ID": config['twitch_clientid'],
-	}
-	url = "https://api.twitch.tv/kraken/users/%s/follows/channels" % username
-	follows = []
-	while url:
-		data = await common.http.request_coro(url, headers=headers)
-		data = json.loads(data)
-		if not data["follows"]:
-			break
-		follows += data["follows"]
-		url = data["_links"]["next"]
-	return follows
+	userid = get_user(name=username).id
+	url = "https://api.twitch.tv/kraken/users/%d/follows/channels" % userid
+	return await utils.async_to_list(get_paginated_by_offset(url, 'follows', headers=headers))
 
-async def get_streams_followed(token):
-	url = "https://api.twitch.tv/kraken/streams/followed"
-	headers = {
-		"Authorization": "OAuth %s" % token,
-		"Client-ID": config['twitch_clientid'],
-	}
-	streams = []
-	while url:
-		data = await common.http.request_coro(url, headers=headers)
-		data = json.loads(data)
-		if not data["streams"]:
-			break
-		streams += data["streams"]
-		url = data["_links"]["next"]
-	return streams
+async def get_streams_followed():
+	"""
+	Get a list of all currently-live streams on channels followed by us.
 
-async def follow_channel(target, token):
+	See:
+	https://dev.twitch.tv/docs/v5/reference/streams/#get-followed-streams
+	"""
+	token = get_user(name=config["username"]).token
 	headers = {
-		"Authorization": "OAuth %s" % token,
-		"Client-ID": config['twitch_clientid'],
+		'Authorization': "OAuth %s" % token,
+		'Client-ID': config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
-	await common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
+	return await utils.async_to_list(get_paginated_by_offset("https://api.twitch.tv/kraken/streams/followed", 'streams', headers=headers))
+
+async def follow_channel(target):
+	userid, username, display_name, token = get_user(name=config["username"])
+	targetuserid = get_user(name=target).id
+	headers = {
+		'Authorization': "OAuth %s" % token,
+		'Client-ID': config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
+	}
+	await common.http.request_coro("https://api.twitch.tv/kraken/users/%d/follows/channels/%d" % (userid, targetuserid),
 	                               data={"notifications": "false"}, method="PUT", headers=headers)
 
-async def unfollow_channel(target, token):
+async def unfollow_channel(target):
+	userid, username, display_name, token = get_user(name=config["username"])
+	targetuserid = get_user(name=target).id
 	headers = {
-		"Authorization": "OAuth %s" % token,
-		"Client-ID": config['twitch_clientid'],
+		'Authorization': "OAuth %s" % token,
+		'Client-ID': config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
-	await common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (config["username"], target),
+	await common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (userid, targetuserid),
 	                               method="DELETE", headers=headers)
 
 async def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=False):
-	channel = channel or config["channel"]
+	channelid = get_user(name=channel or config["channel"]).id
 	headers = {
 		"Client-ID": config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
-	data = await common.http.request_coro("https://api.twitch.tv/kraken/channels/%s/videos" % channel, headers=headers, data={
+	data = await common.http.request_coro("https://api.twitch.tv/kraken/channels/%d/videos" % channelid, headers=headers, data={
 		"offset": str(offset),
 		"limit": str(limit),
 		"broadcasts": "true" if broadcasts else "false",
@@ -177,51 +350,30 @@ async def get_videos(channel=None, offset=0, limit=10, broadcasts=False, hls=Fal
 	})
 	return json.loads(data)["videos"]
 
-def get_user(user):
+def get_followers(channel=None, direction='desc'):
+	"""
+	Get an asynchronous list of all the followers of a given channel.
+
+	See:
+	https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-followers
+	"""
+	channelid = get_user(name=channel or config["channel"]).id
+	url = "https://api.twitch.tv/kraken/channels/%d/follows" % channelid
 	headers = {
 		"Client-ID": config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
-	return json.loads(common.http.request("https://api.twitch.tv/kraken/users/%s" % user, headers=headers))
+	return get_paginated_by_cursor(url, 'follows', data={'direction': direction}, headers=headers)
 
-class get_followers:
-	def __init__(self, channel, limit=25, direction='desc'):
-		self.next_url = "https://api.twitch.tv/kraken/channels/%s/follows" % channel
-		self.params = {
-			'limit': str(limit),
-			'direction': direction,
-		}
-		self.headers = {
-			'Client-ID': config['twitch_clientid'],
-		}
-		self.follows = []
-
-	async def __aiter__(self):
-		return self
-
-	async def __anext__(self):
-		while True:
-			if self.follows:
-				return self.follows.pop(0)
-
-			if self.next_url is None:
-				raise StopAsyncIteration
-
-			data = json.loads(await common.http.request_coro(self.next_url, data=self.params, headers=self.headers))
-			self.params = {}
-			self.next_url = data['_links'].get('next') if data.get('_cursor') else None
-			for follow in data['follows']:
-				follow['created_at'] = dateutil.parser.parse(follow['created_at'])
-				self.follows.append(follow)
-
-async def twitchbot_allow(msg_id, token):
+async def twitchbot_approve(msg_id):
+	token = get_user(name=config["username"]).token
 	headers = {
 		"Authorization": "OAuth %s" % token,
 		"Client-ID": config['twitch_clientid'],
 		"Accept": "application/vnd.twitchtv.v5+json",
-		"Content-Type": "application/json",
 	}
 	data = {
 		"msg_id": msg_id,
 	}
 	await common.http.request_coro("https://api.twitch.tv/kraken/chat/twitchbot/approve",
-	                               data=json.dumps(data), method="POST", headers=headers)
+	                               data=data, method="POST", headers=headers, asjson=True)
