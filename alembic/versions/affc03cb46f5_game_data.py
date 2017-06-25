@@ -161,9 +161,11 @@ def upgrade():
 				for nick, vote in game.get("votes", {}).items():
 					if nick not in all_users:
 						try:
-							req = session.get("https://api.twitch.tv/kraken/users/%s" % urllib.parse.quote(nick), headers={'Client-ID': clientid})
+							req = session.get(
+								"https://api.twitch.tv/kraken/users?login=%s" % urllib.parse.quote(nick),
+								headers={'Client-ID': clientid, 'Accept': 'application/vnd.twitchtv.v5+json'})
 							req.raise_for_status()
-							user = req.json()
+							user = req.json()['users'][0]
 							all_users[nick] = user["_id"]
 							alembic.op.bulk_insert(users, [{
 								"id": user["_id"],

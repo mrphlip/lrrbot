@@ -12,6 +12,8 @@ import logging
 
 log = logging.getLogger("a6854cd2e5f1_users")
 
+CHUNK_SIZE = 100
+
 def upgrade():
 	users_table = alembic.op.create_table("users",
 		sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=False),
@@ -33,25 +35,30 @@ def upgrade():
 	names.update(data.get("subs", []))
 	names.update(data.get("mods", []))
 	names.update(data.get("twitch_oauth", {}).keys())
+	names = list(names)
 	users = []
 	with requests.Session() as session:
-		for i, nick in enumerate(names):
-			log.info("Fetching %d/%d: %r", i + 1, len(names), nick)
+		for i in range(0, len(names), CHUNK_SIZE):
+			chunk = names[i:i+CHUNK_SIZE]
+			log.info("Fetching %d-%d/%d", i + 1, i + len(chunk), len(names))
 			try:
-				req = session.get("https://api.twitch.tv/kraken/users/%s" % urllib.parse.quote(nick), headers={'Client-ID': clientid})
+				req = session.get(
+					"https://api.twitch.tv/kraken/users?login=%s" % urllib.parse.quote(",".join(chunk)),
+					headers={'Client-ID': clientid, 'Accept': 'application/vnd.twitchtv.v5+json'})
 				req.raise_for_status()
-				user = req.json()
-				users.append({
-					"id": user["_id"],
-					"name": user["name"],
-					"display_name": user.get("display_name"),
-					"twitch_oauth": data.get("twitch_oauth", {}).get(nick),
-					"is_sub": nick in data.get("subs", []),
-					"is_mod": nick in data.get("mods", []),
-					"autostatus": nick in data.get("autostatus", []),
-				})
+				for user in req.json()['users']:
+					nick = user['name'].lower()
+					users.append({
+						"id": user["_id"],
+						"name": user["name"],
+						"display_name": user.get("display_name"),
+						"twitch_oauth": data.get("twitch_oauth", {}).get(nick),
+						"is_sub": nick in data.get("subs", []),
+						"is_mod": nick in data.get("mods", []),
+						"autostatus": nick in data.get("autostatus", []),
+					})
 			except Exception:
-				log.exception("Failed to fetch data for %r", nick)
+				log.exception("Failed to fetch data for %r", chunk)
 	alembic.op.bulk_insert(users_table, users)
 
 	for key in ["autostatus", "subs", "mods", "twitch_oauth"]:
