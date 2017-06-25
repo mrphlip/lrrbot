@@ -249,7 +249,7 @@ async def build_message_html(time, source, target, message, specialuser, usercol
 	ret.append('<span class="nick"')
 	if usercolor:
 		ret.append(' style="color:%s"' % escape(usercolor))
-	ret.append('>%s</span>' % escape(displayname or (await get_display_name(source))))
+	ret.append('>%s</span>' % escape(displayname or get_display_name(source)))
 
 	if is_action:
 		ret.append(' <span class="action"')
@@ -274,49 +274,24 @@ async def build_message_html(time, source, target, message, specialuser, usercol
 	return ''.join(ret)
 
 @utils.cache(CACHE_EXPIRY, params=[0])
-async def get_display_name(nick):
+def get_display_name(nick):
 	try:
-		headers = {
-			"Client-ID": config['twitch_clientid'],
-		}
-		data = await common.http.request_coro("https://api.twitch.tv/kraken/users/%s" % nick, headers=headers)
-		data = json.loads(data)
-		return data['display_name']
+		return common.twitch.get_user(name=nick).display_name
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
 	except Exception:
 		return nick
 
 re_just_words = re.compile("^\w+$")
-async def get_twitch_emoticons():
+@utils.cache(CACHE_EXPIRY)
+async def get_twitch_emotes():
+	"""
+	See:
+	https://dev.twitch.tv/docs/v5/reference/chat/#get-chat-emoticons-by-set
+	"""
 	headers = {
 		"Client-ID": config['twitch_clientid'],
-	}
-	data = await common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticons", headers=headers)
-	data = json.loads(data)['emoticons']
-	emotesets = {}
-	for emote in data:
-		regex = emote['regex']
-		if regex == r"\:-?[\\/]": # Don't match :/ inside URLs
-			regex = r"\:-?[\\/](?![\\/])"
-		regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
-		if re_just_words.match(regex):
-			regex = r"\b%s\b" % regex
-		regex = re.compile("(%s)" % regex)
-		for image in emote['images']:
-			if image['url'] is None:
-				continue
-			html = '<img src="%s" width="%d" height="%d" alt="{0}" title="{0}">' % (
-			common.url.https(image['url']), image['width'], image['height'])
-			emotesets.setdefault(image.get("emoticon_set"), {})[emote['regex']] = {
-				"regex": regex,
-				"html": html,
-			}
-	return emotesets
-
-async def get_twitch_emoticon_images():
-	headers = {
-		"Client-ID": config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
 	data = await common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticon_images", headers=headers)
 	data = json.loads(data)["emoticons"]
@@ -333,15 +308,6 @@ async def get_twitch_emoticon_images():
 			"html": '<img src="https://static-cdn.jtvnw.net/emoticons/v1/%s/1.0" alt="{0}" title="{0}">' % emote["id"]
 		}
 	return emotesets
-
-@utils.cache(CACHE_EXPIRY)
-async def get_twitch_emotes():
-	try:
-		return await get_twitch_emoticons()
-	except utils.PASSTHROUGH_EXCEPTIONS:
-		raise
-	except Exception:
-		return await get_twitch_emoticon_images()
 
 async def get_filtered_emotes(setids):
 	try:
@@ -360,9 +326,10 @@ async def get_filtered_emotes(setids):
 async def get_cheermotes_data():
 	# see: https://discuss.dev.twitch.tv/t/any-update-on-the-cheermotes-docs/9123
 	headers = {
-		"Client-ID": config['twitch_clientid'],
+		'Client-ID': config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
-	data = await common.http.request_coro("https://api.twitch.tv/kraken/bits/actions?api_version=5", headers=headers)
+	data = await common.http.request_coro("https://api.twitch.tv/kraken/bits/actions", headers=headers)
 	data = json.loads(data)
 	cheermotes = {
 		action['prefix'].lower(): {
