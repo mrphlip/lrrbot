@@ -22,7 +22,7 @@ import common.rpc
 for key, name in from_apipass.items():
 	from_apipass[key] = twitch.get_user(name=name).id
 
-# See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
+# See https://dev.twitch.tv/docs/v5/guides/authentication/#scopes
 # We don't actually need, or want, any at present
 REQUEST_SCOPES = []
 
