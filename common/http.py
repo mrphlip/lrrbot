@@ -24,12 +24,21 @@ class Request(urllib.request.Request):
 		else:
 			return super().get_method()
 
-def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **kwargs):
+def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=5, asjson=False, **kwargs):
 	"""Download a webpage, with retries on failure."""
+	if headers is None:
+		headers = {}
 	# Let's be nice.
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
+
+	if 'api.twitch.tv' in url and headers.get('Accept') != 'application/vnd.twitchtv.v5+json':
+		log.warning("Non-v5 request to: %r", url)
+
 	if data:
-		if isinstance(data, dict):
+		if asjson and method != 'GET':
+			headers['Content-Type'] = "application/json"
+			data = json.dumps(data)
+		elif isinstance(data, dict):
 			data = urllib.parse.urlencode(data)
 		if method == 'GET':
 			url = '%s?%s' % (url, data)
@@ -44,6 +53,7 @@ def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **k
 	firstex = None
 	while True:
 		try:
+			log.debug("%s %r...", req.get_method(), req.get_full_url())
 			return urllib.request.urlopen(req, timeout=timeout).read().decode("utf-8")
 		except utils.PASSTHROUGH_EXCEPTIONS:
 			raise
@@ -60,18 +70,28 @@ def request(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, **k
 # Limit the number of parallel HTTP connections to a server.
 http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
 atexit.register(lambda: asyncio.get_event_loop().run_until_complete(http_request_session.close()))
-async def request_coro(url, data=None, method='GET', maxtries=3, headers={}, timeout=5, allow_redirects=True):
+async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, timeout=5, allow_redirects=True, asjson=False):
+	if headers is None:
+		headers = {}
 	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
-	firstex = None
+
+	if 'api.twitch.tv' in url and headers.get('Accept') != 'application/vnd.twitchtv.v5+json':
+		log.warning("Non-v5 request to: %r", url)
 
 	if method == 'GET':
 		params = data
 		data = None
 	else:
 		params = None
+		if asjson:
+			headers['Content-Type'] = "application/json"
+			data = json.dumps(data)
+
+	firstex = None
 	while True:
 		try:
 			with async_timeout.timeout(timeout):
+				log.debug("%s %r%s...", method, url, repr(params) if params else '')
 				async with http_request_session.request(method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects) as res:
 					if method == "HEAD":
 						return res

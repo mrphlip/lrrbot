@@ -13,7 +13,7 @@ import sqlalchemy
 from sqlalchemy.dialects import postgresql
 import urllib.error
 
-engine, metadata = common.postgres.new_engine_and_metadata()
+engine, metadata = common.postgres.get_engine_and_metadata()
 TBL_CLIPS = metadata.tables['clips']
 
 CLIPS_URL = "https://api.twitch.tv/kraken/clips/top"

@@ -79,11 +79,7 @@ class ModeratorActions:
 			})
 
 			# Approve the message because we're unable to turn off Automod.
-			users = self.lrrbot.metadata.tables["users"]
-			with self.lrrbot.engine.begin() as pg_conn:
-				token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
-					.where(users.c.name == config["username"])).first()
-			asyncio.ensure_future(twitch.twitchbot_approve(msg_id, token), loop=self.loop).add_done_callback(utils.check_exception)
+			asyncio.ensure_future(twitch.twitchbot_approve(msg_id), loop=self.loop).add_done_callback(utils.check_exception)
 		elif action in ('approved_twitchbot_message', 'approved_automod_message'):
 			user = args[0]
 			text = "%s approved %s's message." % (slack.escape(mod), slack.escape(user))

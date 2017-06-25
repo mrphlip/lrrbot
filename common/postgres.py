@@ -35,5 +35,24 @@ def ping_connection(connection, branch):
 		else:
 			raise
 
+_engine_and_metadata = None
+def get_engine_and_metadata():
+	"""
+	Return the SQLAlchemy engine and metadata for this process, creating one if
+	there isn't one already.
+	"""
+	if _engine_and_metadata is None:
+		set_engine_and_metadata(*new_engine_and_metadata())
+	return _engine_and_metadata
+
+def set_engine_and_metadata(engine, metadata):
+	"""
+	Set the SQLAlchemy engine and metadata for this process, for
+	get_engine_and_metadata to return, if they are created by another source
+	(eg flask_sqlalchemy).
+	"""
+	global _engine_and_metadata
+	_engine_and_metadata = engine, metadata
+
 def escape_like(s):
 	return s.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')

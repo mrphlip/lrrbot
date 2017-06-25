@@ -17,10 +17,14 @@ RENAMES = {
 	'dixonij': 'dix',
 }
 
+CHUNK_SIZE = 100
+
 def upgrade():
 	conn = alembic.op.get_bind()
 	for old, new in RENAMES.items():
 		conn.execute("UPDATE history SET changeuser = %s WHERE changeuser = %s", new, old)
+
+	clientid = alembic.context.config.get_section_option("lrrbot", "twitch_clientid")
 
 	# Find missing users
 	names = [nick for nick, in conn.execute("""
@@ -34,15 +38,18 @@ def upgrade():
 	""")]
 	users = []
 	with requests.Session() as session:
-		for i, nick in enumerate(names):
-			log.info("Fetching %d/%d: %r", i + 1, len(names), nick)
+		for i in range(0, len(names), CHUNK_SIZE):
+			chunk = names[i:i+CHUNK_SIZE]
+			log.info("Fetching %d-%d/%d", i + 1, i + len(chunk), len(names))
 			try:
-				req = session.get("https://api.twitch.tv/kraken/users/%s" % urllib.parse.quote(nick))
+				req = session.get(
+					"https://api.twitch.tv/kraken/users?login=%s" % urllib.parse.quote(",".join(chunk)),
+					headers={'Client-ID': clientid, 'Accept': 'application/vnd.twitchtv.v5+json'})
 				req.raise_for_status()
-				user = req.json()
-				alembic.op.execute("INSERT INTO users (id, name, display_name) VALUES (%(_id)s, %(name)s, %(display_name)s)", user)
+				for user in req.json()['users']:
+					alembic.op.execute("INSERT INTO users (id, name, display_name) VALUES (%(_id)s, %(name)s, %(display_name)s)", user)
 			except:
-				log.exception("Failed to fetch data for %r", nick)
+				log.exception("Failed to fetch data for %r", chunk)
 				raise
 
 	alembic.op.add_column("highlights", sqlalchemy.Column("user", sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id")))

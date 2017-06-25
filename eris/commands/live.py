@@ -15,12 +15,7 @@ def markdown_escape(text):
 def register(bot):
 	@bot.command("live")
 	async def live(bot, command):
-		users = bot.metadata.tables["users"]
-		with bot.engine.begin() as pg_conn:
-			token, = pg_conn.execute(sqlalchemy.select([users.c.twitch_oauth])
-				.where(users.c.name == config["username"])).first()
-
-		streams = await twitch.get_streams_followed(token)
+		streams = await twitch.get_streams_followed()
 		if len(streams) == 0:
 			return await bot.eris.send_message(command.channel, "No fanstreamers currently live.")
 

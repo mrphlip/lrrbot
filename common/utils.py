@@ -11,10 +11,12 @@ import time
 import heapq
 import logging.config
 import configparser
+import sqlalchemy
 
 import werkzeug.datastructures
 
 from common import config
+from common import postgres
 
 # Need to delay creation of our "log" until init_logging is called
 log = None
@@ -342,3 +344,16 @@ def init_logging(mode=None):
 	logging.config.fileConfig(logging_conf)
 	global log
 	log = logging.getLogger('utils')
+
+async def async_to_list(aiter):
+	"""
+	Convert an asynchronous generator to a simple list.
+	"""
+	# Can't do this until Python3.6 ...
+	# https://www.python.org/dev/peps/pep-0530/
+	# return [i async for i in aiter]
+
+	res = []
+	async for i in aiter:
+		res.append(i)
+	return res

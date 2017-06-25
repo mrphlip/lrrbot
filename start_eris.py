@@ -19,7 +19,7 @@ from eris.commands import register as register_commands
 log = logging.getLogger("eris")
 
 eris = discord.Client()
-engine, metadata = postgres.new_engine_and_metadata()
+engine, metadata = postgres.get_engine_and_metadata()
 
 # `discord.py`'s event handling is pretty poor. There can only be a single handler for an event.
 # Convert `discord.py`'s events into `blinker` signals to get around that.

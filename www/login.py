@@ -13,33 +13,22 @@ import www.utils
 from www import server
 from common.config import config, from_apipass
 from common import utils
+from common import http
 from common import twitch
 from common import game_data
 from common import googlecalendar
 import common.rpc
 
-with server.db.engine.begin() as conn:
-	users = server.db.metadata.tables["users"]
-	for key, name in from_apipass.items():
-		query = insert(users) \
-			.values(id=sqlalchemy.bindparam("_id")) \
-			.returning(users.c.id)
-		query = query.on_conflict_do_update(
-			index_elements=[users.c.id],
-			set_={
-				'name': query.excluded.name,
-				'display_name': query.excluded.display_name,
-			},
-		)
-		from_apipass[key], = conn.execute(query, twitch.get_user(name)).first()
+for key, name in from_apipass.items():
+	from_apipass[key] = twitch.get_user(name=name).id
 
-# See https://github.com/justintv/Twitch-API/blob/master/authentication.md#scopes
+# See https://dev.twitch.tv/docs/v5/guides/authentication/#scopes
 # We don't actually need, or want, any at present
 REQUEST_SCOPES = []
 
 SPECIAL_USERS = {}
-SPECIAL_USERS.setdefault(config["username"], []).extend(['chat_login', 'user_read', 'user_follows_edit'])
-SPECIAL_USERS.setdefault(config["channel"], []).extend(['channel_subscriptions'])
+SPECIAL_USERS.setdefault(config["username"], list(REQUEST_SCOPES)).extend(['chat_login', 'user_read', 'user_follows_edit'])
+SPECIAL_USERS.setdefault(config["channel"], list(REQUEST_SCOPES)).extend(['channel_subscriptions'])
 
 def with_session(func):
 	"""
@@ -121,19 +110,7 @@ async def load_session(include_url=True, include_header=True):
 	user_name = flask.session.get('user')
 	if user_id is None and user_name is not None:
 		# Upgrade old session
-		with server.db.engine.begin() as conn:
-			query = insert(users) \
-				.values(id=sqlalchemy.bindparam("_id")) \
-				.returning(users.c.id)
-			query = query.on_conflict_do_update(
-				index_elements=[users.c.id],
-				set_={
-					'name': query.excluded.name,
-					'display_name': query.excluded.display_name,
-				},
-			)
-			user_id, = conn.execute(query, twitch.get_user(user_name)).first()
-		flask.session["id"] = user_id
+		user_id = flask.session["id"] = twitch.get_user(name=user_name).id
 	if 'user' in flask.session:
 		del flask.session["user"]
 	if 'apipass' in flask.request.values and flask.request.values['apipass'] in from_apipass:
@@ -291,8 +268,13 @@ async def login(return_to=None):
 				'grant_type': 'authorization_code',
 				'redirect_uri': config['twitch_redirect_uri'],
 				'code': flask.request.values['code'],
+				'state': twitch_state,
 			}
-			res_json = urllib.request.urlopen("https://api.twitch.tv/kraken/oauth2/token", urllib.parse.urlencode(oauth_params).encode()).read().decode()
+			headers = {
+				'Client-ID': config['twitch_clientid'],
+				'Accept': 'application/vnd.twitchtv.v5+json',
+			}
+			res_json = await common.http.request_coro("https://api.twitch.tv/kraken/oauth2/token", method="POST", data=oauth_params, headers=headers)
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('access_token'):
 				raise Exception("No access token from Twitch: %s" % res_json)
@@ -300,15 +282,14 @@ async def login(return_to=None):
 			granted_scopes = res_object["scope"]
 
 			# Use that access token to get basic information about the user
-			req = urllib.request.Request("https://api.twitch.tv/kraken/")
-			req.add_header("Authorization", "OAuth %s" % access_token)
-			req.add_header("Client-ID", config['twitch_clientid'])
-			res_json = urllib.request.urlopen(req).read().decode()
+			headers['Authorization'] = "OAuth %s" % access_token
+			res_json = await common.http.request_coro("https://api.twitch.tv/kraken/", headers=headers)
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('token', {}).get('valid'):
 				raise Exception("User object not valid: %s" % res_json)
 			if not res_object.get('token', {}).get('user_name'):
 				raise Exception("No user name from Twitch: %s" % res_json)
+			user_id = res_object['token']['user_id']
 			user_name = res_object['token']['user_name'].lower()
 
 			# If one of our special users logged in *without* using the "as" flag,
@@ -324,23 +305,29 @@ async def login(return_to=None):
 						special_user=user_name, remember_me=remember_me)
 
 			# Store the user to the database
-			user = twitch.get_user(user_name)
-			user["id"] = user["_id"]
-			user["twitch_oauth"] = access_token
+			user = {
+				'id': user_id,
+				'name': user_name,
+				'twitch_oauth': access_token,
+				# We don't get the display name from this endpoint, but it's not that important
+				# just set it to lowercase (the same as user_name) but don't overwrite what
+				# we already have, if we have it already
+				'display_name': user_name,
+			}
+			users = server.db.metadata.tables["users"]
 			with server.db.engine.begin() as conn:
 				query = insert(users)
 				query = query.on_conflict_do_update(
 					index_elements=[users.c.id],
 					set_={
 						'name': query.excluded.name,
-						'display_name': query.excluded.display_name,
 						'twitch_oauth': query.excluded.twitch_oauth,
 					},
 				)
 				conn.execute(query, user)
 
 			# Store the user ID into the session
-			flask.session['id'] = user["_id"]
+			flask.session['id'] = user_id
 			flask.session.permanent = remember_me
 
 			return_to = flask.session.pop('login_return_to', None)

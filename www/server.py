@@ -8,7 +8,7 @@ import asyncio
 import functools
 
 from common.config import config
-from common import space
+from common import space, postgres
 
 class Application(Flask):
 	def __init__(self, *args, **kwargs):
@@ -43,6 +43,7 @@ with warnings.catch_warnings():
     # Yes, I know you can't understand FTS indexes.
     warnings.simplefilter("ignore", category=sqlalchemy.exc.SAWarning)
     db.reflect()
+postgres.set_engine_and_metadata(db.engine, db.metadata)
 csrf(app)
 space.monkey_patch_urlize()
 
