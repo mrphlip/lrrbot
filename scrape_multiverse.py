@@ -26,7 +26,7 @@ def cleantext(text):
 	return text
 
 re_embalm = regex.compile(r"(?:^|\n|,)\s*Embalm\b", regex.IGNORECASE)
-def getcard(row):
+def getcard(row, setid):
 	typeline = row['Card Type']
 	if row['SuperType']:
 		typeline = "%s %s" % (row['SuperType'], typeline)
@@ -44,7 +44,7 @@ def getcard(row):
 		'loyalty': row['Loyalty'],
 	}
 	card = dict((k, v.strip()) for k, v in card.items() if v is not None and v != "")
-	yield card
+	yield card, setid
 
 	# Create tokens for Embalm creatures for AKH preprere
 	if re_embalm.search(card.get('text', '')):
@@ -58,9 +58,9 @@ def getcard(row):
 		card['type'] = typeline
 		del card['manaCost']
 		del card['number']
-		yield card
+		yield card, setid + "_TKN"
 
-def getsplitcard(row):
+def getsplitcard(row, setid):
 	# Format:
 	#  Card Title is set to "Lefthalf /// Righthalf"
 	#  Rules Text is set to "Left half rules///\nRighthalf\nRightcost\nRighttype\nRight half rules"
@@ -80,7 +80,7 @@ def getsplitcard(row):
 	subrow = dict(row)
 	subrow['Card Title'] = names[0]
 	subrow['Rules Text'] = text[0]
-	left = next(getcard(subrow))
+	left = next(getcard(subrow, setid))
 
 	carddata = text[1].split("\n")
 	if not carddata[0]:
@@ -91,25 +91,26 @@ def getsplitcard(row):
 	subrow['Mana'] = carddata[1]
 	subrow['Card Type'] = carddata[2]
 	subrow['Rules Text'] = "\n".join(carddata[3:])
-	right = next(getcard(subrow))
+	right = next(getcard(subrow, setid))
 
-	left['layout'] = right['layout'] = "split"
-	left['names'] = right['names'] = names
+	left[0]['layout'] = right[0]['layout'] = "aftermath"
+	left[0]['names'] = right[0]['names'] = names
 	return [left, right]
 
-def getcards(data):
+def getcards(data, setid):
 	for row in data:
 		if '///' in row['Card Title']:
-			yield from getsplitcard(row)
+			yield from getsplitcard(row, setid)
 		else:
-			yield from getcard(row)
+			yield from getcard(row, setid)
 
 def main(filenames):
 	carddata = {}
 	for filename in filenames:
 		setid = filename.split('.')[0]
 		data = get_data(filename)
-		carddata[setid] = {'cards': list(getcards(data))}
+		for card, cardsetid in getcards(data, setid):
+			carddata.setdefault(cardsetid, {'cards':[]})['cards'].append(card)
 	with open("extracards.json", "w") as fp:
 		json.dump(carddata, fp, indent=2, sort_keys=True)
 

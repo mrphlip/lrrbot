@@ -1,6 +1,6 @@
 import re
 
-re_specialchars = re.compile(r"[ \-'\",:!?.()_\u00ae&/]")
+re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/]")
 LETTERS_MAP = {
 	'\u00e0': 'a',
 	'\u00e1': 'a',

@@ -70,20 +70,20 @@ def main():
 				if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
 					continue
 
-				cardname, description, multiverseids, collector, hidden = process_card(card, expansion, include_reminder=setid in ('UGL', 'UNH'))
+				filteredname, cardname, description, multiverseids, collector, hidden = process_card(card, expansion, include_reminder=setid in ('UGL', 'UNH'))
 				if description is None:
 					continue
 
 				# Check if there's already a row for this card in the DB
 				# (keep the one with the latest release date - it's more likely to have the accurate text in mtgjson)
 				rows = conn.execute(sqlalchemy.select([cards.c.id, cards.c.lastprinted])
-					.where(cards.c.filteredname == cardname)).fetchall()
+					.where(cards.c.filteredname == filteredname)).fetchall()
 				if not rows:
 					real_cardid = cardid
 					conn.execute(cards.insert(),
 						id=real_cardid,
-						filteredname=cardname,
-						name=card['name'],
+						filteredname=filteredname,
+						name=cardname,
 						text=description,
 						lastprinted=release_date,
 						hidden=hidden,
@@ -207,7 +207,7 @@ def process_card(card, expansion, include_reminder=False):
 	if card.get('layout') in ('split', 'aftermath'):
 		# Return split cards as a single card... for all the other pieces, return nothing
 		if card['name'] != card['names'][0]:
-			return None, None, None, None, None
+			return None, None, None, None, None, None
 		splits = []
 		for splitname in card['names']:
 			candidates = [i for i in expansion['cards'] if i['name'] == splitname]
@@ -215,20 +215,27 @@ def process_card(card, expansion, include_reminder=False):
 				print("Can't find split card piece: %s" % splitname)
 				sys.exit(1)
 			splits.append(candidates[0])
+		filteredparts = []
 		nameparts = []
 		descparts = []
 		allmultiverseids = []
 		numbers = []
 		anyhidden = False
 		for s in splits:
-			name, desc, multiverseids, number, hidden = process_single_card(s, expansion, include_reminder)
+			filtered, name, desc, multiverseids, number, hidden = process_single_card(s, expansion, include_reminder)
+			filteredparts.append(filtered)
 			nameparts.append(name)
 			descparts.append(desc)
 			allmultiverseids.extend(multiverseids)
 			numbers.append(number)
 			anyhidden = anyhidden or hidden
 
-		return "".join(nameparts), "%s | %s" % (" // ".join(card['names']), " // ".join(descparts)), allmultiverseids, numbers[0], anyhidden
+		separator = {'split': ' and ', 'aftermath': ' to '}.get(card['layout'], ' // ')
+		filtseparator = {'split': 'and', 'aftermath': 'to'}.get(card['layout'], '')
+		filteredname = filtseparator.join(filteredparts)
+		cardname = separator.join(nameparts)
+		description = "%s | %s" % (separator.join(card['names']), " // ".join(descparts))
+		return filteredname, cardname, description, allmultiverseids, numbers[0], anyhidden
 	else:
 		return process_single_card(card, expansion, include_reminder)
 
@@ -245,11 +252,9 @@ def process_single_card(card, expansion, include_reminder=False):
 			multiverseids = []
 
 	# sanitise card name
-	name = clean_text(card.get('internalname', card["name"]))
-	if card['name'] == '_____':
-		pass
-	elif not re_check.match(name):
-		print("Still some junk left in name %s (%s)" % (card.get('internalname', card["name"]), json.dumps(name)))
+	filtered = clean_text(card.get('internalname', card["name"]))
+	if not re_check.match(filtered):
+		print("Still some junk left in name %s (%s)" % (card.get('internalname', card["name"]), json.dumps(filtered)))
 		print(json.dumps(card))
 		sys.exit(1)
 
@@ -347,7 +352,7 @@ def process_single_card(card, expansion, include_reminder=False):
 	if len(desc) > MAXLEN:
 		desc = desc[:MAXLEN-1] + "\u2026"
 
-	return name, desc, multiverseids, card.get('number'), 'internalname' in card
+	return filtered, card['name'], desc, multiverseids, card.get('number'), 'internalname' in card
 
 if __name__ == '__main__':
 	main()
