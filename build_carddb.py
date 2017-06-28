@@ -120,7 +120,7 @@ def main():
 							collector=collector,
 							cardid=real_cardid,
 						)
-					elif rows[0][0] != real_cardid:
+					elif rows[0][0] != real_cardid and setid != 'CPK':
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (setid, collector, card['name'], rows2[0][0]))
 
