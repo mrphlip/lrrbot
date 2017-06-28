@@ -230,11 +230,9 @@ def process_card(card, expansion, include_reminder=False):
 			numbers.append(number)
 			anyhidden = anyhidden or hidden
 
-		separator = {'split': ' and ', 'aftermath': ' to '}.get(card['layout'], ' // ')
-		filtseparator = {'split': 'and', 'aftermath': 'to'}.get(card['layout'], '')
-		filteredname = filtseparator.join(filteredparts)
-		cardname = separator.join(nameparts)
-		description = "%s | %s" % (separator.join(card['names']), " // ".join(descparts))
+		filteredname = ''.join(filteredparts)
+		cardname = " // ".join(nameparts)
+		description = "%s | %s" % (" // ".join(card['names']), " // ".join(descparts))
 		return filteredname, cardname, description, allmultiverseids, numbers[0], anyhidden
 	else:
 		return process_single_card(card, expansion, include_reminder)
