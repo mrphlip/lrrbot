@@ -25,7 +25,7 @@ def cleantext(text):
 	text = re_textcost.sub(lambda match:cleancost(match.group(1)), text)
 	return text
 
-re_embalm = regex.compile(r"(?:^|\n|,)\s*Embalm\b", regex.IGNORECASE)
+re_embalm = regex.compile(r"(?:^|\n|,)\s*(Embalm|Eternalize)\b", regex.IGNORECASE)
 def getcard(row, setid):
 	typeline = row['Card Type']
 	if row['SuperType']:
@@ -46,8 +46,9 @@ def getcard(row, setid):
 	card = dict((k, v.strip()) for k, v in card.items() if v is not None and v != "")
 	yield card, setid
 
-	# Create tokens for Embalm creatures for AKH preprere
-	if re_embalm.search(card.get('text', '')):
+	# Create tokens for Embalm and Eternalize creatures for AKH/HOU preprere
+	match = re_embalm.search(card.get('text', ''))
+	if match:
 		card = dict(card)
 		card['internalname'] = card['name'] + "_TKN"
 		card['name'] = card['name'] + " token"
@@ -58,6 +59,8 @@ def getcard(row, setid):
 		card['type'] = typeline
 		del card['manaCost']
 		del card['number']
+		if match.group(1) == "Eternalize":
+			card['power'] = card['toughness'] = '4'
 		yield card, setid + "_TKN"
 
 def getsplitcard(row, setid):
