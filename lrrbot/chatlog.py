@@ -312,7 +312,7 @@ async def get_twitch_emotes():
 async def get_filtered_emotes(setids):
 	try:
 		emotesets = await get_twitch_emotes()
-		emotes = dict(emotesets[None])
+		emotes = dict(emotesets[0])
 		for setid in setids:
 			emotes.update(emotesets.get(setid, {}))
 		return emotes.values()
