@@ -5,6 +5,7 @@ from common import rpc
 from common import storm
 from common import twitch
 from common import utils
+import dateutil.parser
 
 FOLLOWER_CHECK_DELAY = 60
 
@@ -51,6 +52,7 @@ class TwitchFollows:
 
 			for name, avatar, timestamp in events[::-1]:
 				self.last_timestamp = timestamp
+				timestamp = dateutil.parser.parse(timestamp)
 				event = {
 					'name': name,
 					'avatar': avatar,
