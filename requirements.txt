@@ -49,7 +49,7 @@ six==1.10.0
 SQLAlchemy==1.1.11
 tempora==1.8
 timelib==0.2.4
-urllib3==1.21.1
+urllib3==1.22
 websockets==3.3
 Werkzeug==0.12.2
 yarl==0.12.0
