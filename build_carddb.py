@@ -281,43 +281,21 @@ def process_single_card(card, expansion, include_reminder=False):
 				yield card['names'][0]
 				yield ')'
 		elif card.get('layout') == 'meld':
-			# Only the melded card in MTGJSON has all three cards in the 'names' field
-			# The front-face cards only have [me, back]
-			melded_card = [i for i in expansion['cards'] if i['name'] == card['names'][-1]]
-			if not melded_card:
-				print("Can't find melded card: %s" % card['names'][-1])
-				sys.exit(1)
-			melded_card = melded_card[0]
-			# MTGJSON doesn't have this field in a consistent order...
-			# some cards have [top, bottom, back] some have [bottom, top, back]
-			part_cards = [i for i in expansion['cards'] if i['name'] in melded_card['names'][:-1]]
-			if len(part_cards) != 2:
-				print("Can't find part-cards for melded card: %s" % melded_card['name'])
-				sys.exit(1)
-			if melded_card['number'][-1] != 'b':
-				print("Melded card's number doesn't end in 'b': %s" % melded_card['name'])
-				sys.exit(1)
-			if part_cards[0]['number'] == melded_card['number'][:-1] + 'a':
-				bottom_card, top_card = part_cards
-			elif part_cards[1]['number'] == melded_card['number'][:-1] + 'a':
-				top_card, bottom_card = part_cards
-			else:
-				print("Couldn't figure out which card was top and bottom for: %s" % melded_card['name'])
-				sys.exit(1)
-			if card['name'] == top_card['name']:
+			top_card, bottom_card, melded_card = card['names']
+			if card['name'] == top_card:
 				# The names of what this melds with and into are in the card text
 				pass
-			elif card['name'] == bottom_card['name']:
+			elif card['name'] == bottom_card:
 				yield ' (melds with: '
-				yield top_card['name']
+				yield top_card
 				yield '; into: '
-				yield melded_card['name']
+				yield melded_card
 				yield ')'
-			elif card['name'] == melded_card['name']:
+			elif card['name'] == melded_card:
 				yield ' (melds from: '
-				yield top_card['name']
+				yield top_card
 				yield '; '
-				yield bottom_card['name']
+				yield bottom_card
 				yield ')'
 		yield ' | '
 		yield card.get('type', '?Type missing?')
