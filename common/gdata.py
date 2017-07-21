@@ -34,9 +34,7 @@ async def get_oauth_token(scopes):
 	data = base64_encode(header) + b'.' + base64_encode(claim)
 
 	key = load_pem_private_key(keys["private_key"].encode("utf-8"), None, openssl.backend)
-	signer = key.signer(PKCS1v15(), SHA256())
-	signer.update(data)
-	signature = signer.finalize()
+	signature = key.sign(data, PKCS1v15(), SHA256())
 
 	jwt = (data + b'.' + base64_encode(signature)).decode("utf-8")
 
