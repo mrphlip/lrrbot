@@ -12,7 +12,7 @@ import datetime
 @server.app.route('/clips')
 @login.require_mod
 async def clips_vidlist(session):
-	videos = await archive_feed_data('loadingreadyrun', True, extravids=('v148607054',))
+	videos = await archive_feed_data('loadingreadyrun', True)
 	# The archive still gives the ids as "v12345" but the clips use just "12345"
 	videoids = [video['_id'].lstrip('v') for video in videos]
 
