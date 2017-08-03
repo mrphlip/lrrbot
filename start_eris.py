@@ -15,7 +15,6 @@ from eris.autotopic import Autotopic
 from eris.channel_reaper import ChannelReaper
 from eris.command_parser import CommandParser
 from eris.commands import register as register_commands
-from eris.welcome import Welcome
 
 log = logging.getLogger("eris")
 
@@ -160,7 +159,6 @@ rpc = rpc.Server()
 announcements = rpc.announcements = Announcements(eris, signals, engine, metadata)
 autotopic = Autotopic(eris, signals, engine, metadata)
 channel_reaper = ChannelReaper(eris, signals)
-welcome = Welcome(eris, signals)
 command_parser = CommandParser(eris, signals, engine, metadata)
 register_commands(command_parser)
 
