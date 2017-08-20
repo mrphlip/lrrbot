@@ -50,7 +50,7 @@ SQLAlchemy==1.1.13
 tempora==1.9
 timelib==0.2.4
 urllib3==1.22
-websockets==3.3
+websockets==3.4
 Werkzeug==0.12.2
 yarl==0.12.0
 regex==2017.07.28
