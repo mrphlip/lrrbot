@@ -126,7 +126,7 @@ def process_clip(clip):
 		"title": clip['title'],
 		"vodid": clip['vod']['id'] if clip['vod'] else None,
 		"time": clip_start,
-		"data": json.dumps(clip),
+		"data": clip,
 		"deleted": False,
 	}
 	with engine.begin() as conn:

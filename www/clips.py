@@ -58,8 +58,7 @@ async def clips_vid(session, videoid):
 			"rating": rating,
 			"overlap": False,
 		}
-		for clipjson, time, rating in clip_data
-		for clip in [flask.json.loads(clipjson)]
+		for clip, time, rating in clip_data
 	]
 	lastend = None
 	prevclip = None
