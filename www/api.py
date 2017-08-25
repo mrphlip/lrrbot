@@ -131,6 +131,7 @@ async def get_clips(session):
 			clipdata = conn.execute(sqlalchemy.select(
 				[clips.c.slug, clips.c.title, clips.c.vodid, clips.c.rating])
 				.where(clips.c.time >= startdt)
+				.where(clips.c.deleted == False)
 				.order_by(clips.c.time.asc())).fetchall()
 			clipdata = [
 				{
@@ -144,6 +145,7 @@ async def get_clips(session):
 			clipdata = conn.execute(sqlalchemy.select([clips.c.slug])
 				.where(clips.c.rating == True)
 				.where(clips.c.time >= startdt)
+				.where(clips.c.deleted == False)
 				.order_by(clips.c.time.asc())).fetchall()
 			clipdata = "\n".join(CLIP_URL.format(slug) for slug, in clipdata)
 			return flask.wrappers.Response(clipdata, mimetype="text/plain")

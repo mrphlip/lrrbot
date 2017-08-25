@@ -6,6 +6,7 @@ import json
 import regex
 import datetime
 import dateutil.parser
+import pytz
 import common.http
 import common.postgres
 from common.config import config
@@ -16,6 +17,7 @@ import urllib.error
 engine, metadata = common.postgres.get_engine_and_metadata()
 TBL_CLIPS = metadata.tables['clips']
 
+CLIP_URL = "https://api.twitch.tv/kraken/clips/%s"
 CLIPS_URL = "https://api.twitch.tv/kraken/clips/top"
 VIDEO_URL = "https://api.twitch.tv/kraken/videos/%s"
 
@@ -37,17 +39,38 @@ def get_clips_page(channel, period="day", limit=10, cursor=None):
 	data = common.http.request(CLIPS_URL, params, headers=headers)
 	return json.loads(data)
 
+def get_clip_info(slug, check_missing=False):
+	"""
+	https://dev.twitch.tv/docs/v5/reference/clips/#get-clip
+	"""
+	headers = {
+		'Client-ID': config['twitch_clientid'],
+		'Accept': 'application/vnd.twitchtv.v5+json',
+	}
+	try:
+		data = common.http.request(CLIP_URL % slug, headers=headers)
+	except urllib.error.HTTPError as e:
+		if e.code == 404 and check_missing:
+			return None
+		else:
+			raise
+	else:
+		return json.loads(data)
+
 def process_clips(channel, period="day", per_page=10):
 	cursor = None
+	slugs = []
 	while True:
 		data = get_clips_page(channel, period, per_page, cursor)
 		if not data['clips']:
 			break
 		for clip in data['clips']:
 			process_clip(clip)
+			slugs.append(clip['slug'])
 		cursor = data['_cursor']
 		if not cursor:
 			break
+	return slugs
 
 def get_video_info(vodid):
 	"""
@@ -104,6 +127,7 @@ def process_clip(clip):
 		"vodid": clip['vod']['id'] if clip['vod'] else None,
 		"time": clip_start,
 		"data": json.dumps(clip),
+		"deleted": False,
 	}
 	with engine.begin() as conn:
 		query = postgresql.insert(TBL_CLIPS)
@@ -114,6 +138,7 @@ def process_clip(clip):
 					'vodid': query.excluded.vodid,
 					'time': query.excluded.time,
 					'data': query.excluded.data,
+					'deleted': query.excluded.deleted,
 				}
 			)
 		conn.execute(query, data)
@@ -162,6 +187,23 @@ def get_closest_vodid(conn, cliptime):
 	else:
 		raise ValueError("Can't find any non-null vodids in the DB...")
 
+def check_deleted_clips(period, slugs):
+	"""
+	Go through any clips we have in the DB that weren't returned from the Twitch
+	query, and check if they actually exist (maybe they dropped out of the "last
+	day" early) or if they've been deleted, in which case mark that in the DB.
+	"""
+	period = datetime.timedelta(days={'day': 1, 'week': 7, 'month': 28}[period])
+	start = datetime.datetime.now(pytz.UTC) - period
+	with engine.begin() as conn:
+		clips = conn.execute(sqlalchemy.select([TBL_CLIPS.c.id, TBL_CLIPS.c.slug])
+			.where(TBL_CLIPS.c.time >= start)
+			.where(TBL_CLIPS.c.slug.notin_(slugs))
+			.where(TBL_CLIPS.c.deleted == False))
+		for clipid, slug in clips:
+			if get_clip_info(slug, check_missing=True) is None:
+				conn.execute(TBL_CLIPS.update().values(deleted=True).where(TBL_CLIPS.c.id == clipid))
+
 def main():
 	if argv:
 		period = argv[0]
@@ -171,8 +213,9 @@ def main():
 	else:
 		period = "day"
 	channel = argv[1] if len(argv) > 1 else config['channel']
-	process_clips(channel, period)
+	slugs = process_clips(channel, period)
 	fix_null_vodids()
+	check_deleted_clips(period, slugs)
 
 if __name__ == '__main__':
 	main()

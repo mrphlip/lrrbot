@@ -22,6 +22,7 @@ async def clips_vidlist(session):
 		for vodid, rating, clipcount in conn.execute(
 				sqlalchemy.select([clips.c.vodid, clips.c.rating, sqlalchemy.func.count()])
 					.where(clips.c.vodid.in_(videoids))
+					.where(clips.c.deleted == False)
 					.group_by(clips.c.vodid, clips.c.rating)):
 			clip_counts[vodid][rating] += clipcount
 	for video in videos:
@@ -39,6 +40,7 @@ async def clips_vid(session, videoid):
 		clip_data = conn.execute(
 			sqlalchemy.select([clips.c.data, clips.c.time, clips.c.rating])
 				.where(clips.c.vodid == videoid.lstrip('v'))
+				.where(clips.c.deleted == False)
 				.order_by(clips.c.time.asc())).fetchall()
 
 	clip_data = [
