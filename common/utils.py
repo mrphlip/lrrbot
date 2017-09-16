@@ -97,6 +97,7 @@ class throttle_base(object):
 		self.watchparams = params
 		self.lastrun = {}
 		self.lastreturn = {}
+		self.lastcleanup = time.time()
 		self.log = log
 		self.count = count
 		self.lock = asyncio.Lock()
@@ -142,6 +143,10 @@ class throttle_base(object):
 
 		@functools.wraps(func)
 		async def wrapper(*args, **kwargs):
+			# periodically remove stale entries from cache
+			if time.time() - self.lastcleanup > self.period * 2:
+				self.cleanup()
+
 			async with self.lock:
 				if self.bypass(func, args, kwargs):
 					return (await func(*args, **kwargs))
@@ -162,6 +167,20 @@ class throttle_base(object):
 	def reset_throttle(self):
 		self.lastrun = {}
 		self.lastreturn = {}
+		self.lastcleanup = time.time()
+
+	def cleanup(self):
+		"""Remove expired cache entries"""
+		cutoff = time.time() - self.period
+		toremove = set()
+		for key, runtimes in self.lastrun.items():
+			if runtimes[-1] < cutoff:
+				toremove.add(key)
+		for key in toremove:
+			del self.lastrun[key]
+			del self.lastreturn[key]
+		self.lastcleanup = time.time()
+
 
 class cache(throttle_base):
 	"""Cache the results of a function for a given period
