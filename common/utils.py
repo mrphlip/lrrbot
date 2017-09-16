@@ -144,7 +144,7 @@ class throttle_base(object):
 		@functools.wraps(func)
 		async def wrapper(*args, **kwargs):
 			# periodically remove stale entries from cache
-			if time.time() - self.lastcleanup > self.period * 2:
+			if self.period is not None and time.time() - self.lastcleanup > self.period * 2:
 				self.cleanup()
 
 			async with self.lock:
