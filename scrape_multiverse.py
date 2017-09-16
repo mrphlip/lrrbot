@@ -6,7 +6,13 @@ import regex  # not re, because we need .captures()
 
 def get_data(filename):
 	with open(filename, newline='') as fp:
-		yield from csv.DictReader(fp)
+		for row in csv.DictReader(fp):
+			# Fix some inconsistent casing
+			if 'Supertype' in row:
+				row['SuperType'] = row.pop('Supertype')
+			if 'Subtype' in row:
+				row['SubType'] = row.pop('Subtype')
+			yield row
 
 re_cost = regex.compile(r"^(?:o([WUBRGTXC]|\d+|cT))*$")
 code_map = {'cT': "T"}
@@ -28,7 +34,7 @@ def cleantext(text):
 re_embalm = regex.compile(r"(?:^|\n|,)\s*(Embalm|Eternalize)\b", regex.IGNORECASE)
 def getcard(row, setid):
 	typeline = row['Card Type']
-	if row['SuperType']:
+	if row.get('SuperType'):
 		typeline = "%s %s" % (row['SuperType'], typeline)
 	if row['SubType']:
 		typeline = "%s \u2014 %s" % (typeline, row['SubType'])
@@ -98,11 +104,44 @@ def getsplitcard(row, setid):
 
 	left[0]['layout'] = right[0]['layout'] = "aftermath"
 	left[0]['names'] = right[0]['names'] = names
-	return [left, right]
+	return left, right
+
+def getdfc(frontrow, backrow, setid):
+	front = next(getcard(frontrow, setid))
+	back = next(getcard(backrow, setid))
+	front[0]['layout'] = back[0]['layout'] = 'double-faced'
+	front[0]['names'] = back[0]['names'] = [front[0]['name'], back[0]['name']]
+	front[0]['number'] += 'a'
+	back[0]['number'] += 'b'
+	return front, back
+
+def match_dfcs(data):
+	# For DFCs the front and back face have the same collector number
+	# and the back face has the text "(Transforms from [front face].)"
+	numbers = {}
+	for row in data:
+		numbers.setdefault(row['Collector Number'], []).append(row)
+	for rows in numbers.values():
+		if len(rows) == 1:
+			yield rows[0]
+		elif len(rows) == 2:
+			if "(Transforms from %s.)" % rows[0]['Card Title'] in rows[1]['Rules Text']:
+				yield rows[0], rows[1]
+			elif "(Transforms from %s.)" % rows[1]['Card Title'] in rows[0]['Rules Text']:
+				yield rows[1], rows[0]
+			else:
+				raise ValueError("Can't find front/back faces of %d (%s/%s)" %
+					(rows[0]['Collector Number'], rows[0]['Card Title'], rows[1]['Card Title']))
+		else:
+			raise ValueError("Too many cards for collector number %d" % rows[0]['Collector Number'])
 
 def getcards(data, setid):
+	if setid in ('XLN', 'RIX'):
+		data = match_dfcs(data)
 	for row in data:
-		if '///' in row['Card Title']:
+		if isinstance(row, tuple):
+			yield from getdfc(row[0], row[1], setid)
+		elif '///' in row['Card Title']:
 			yield from getsplitcard(row, setid)
 		else:
 			yield from getcard(row, setid)
