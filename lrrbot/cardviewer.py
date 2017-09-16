@@ -14,7 +14,7 @@ from common.config import config
 
 __all__ = ["CardViewer"]
 
-REPEAT_TIMER = 60
+REPEAT_TIMER = 120
 ANNOUNCE_DELAY = 10
 
 log = logging.getLogger('cardviewer')
@@ -23,8 +23,6 @@ class CardViewer:
 	def __init__(self, lrrbot, loop):
 		self.lrrbot = lrrbot
 		self.loop = loop
-		self.last_card_id = None
-		self.last_time = 0
 		self.task = None
 		self.stop_future = None
 		self.re_local = [
@@ -107,20 +105,16 @@ class CardViewer:
 
 	@utils.swallow_errors
 	async def _card(self, card_id):
-		# Delayed import so this module can be imported before the bot object exists
-		import lrrbot.commands.card
-
 		if not self.lrrbot.cardview:
 			return
 
-		# Protect against bouncing - don't repeat the same card multiple times in
-		# quick succession.
-		# We should be running back in the main thread, being run by asyncio, so
-		# don't need to worry about locking or suchlike here.
-		if card_id == self.last_card_id and time.time() - self.last_time < REPEAT_TIMER:
-			return
-		self.last_card_id = card_id
-		self.last_time = time.time()
+		await self._card_debounce(card_id)
+
+	@utils.swallow_errors
+	@utils.cache(REPEAT_TIMER, params=['card_id'])
+	async def _card_debounce(self, card_id):
+		# Delayed import so this module can be imported before the bot object exists
+		import lrrbot.commands.card
 
 		log.info("Got card from pubnub: %r", card_id)
 
