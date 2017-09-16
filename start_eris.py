@@ -2,6 +2,8 @@ from common import utils
 utils.init_logging("eris")
 
 import asyncio
+import aiohttp
+from aiosocks.connector import ProxyConnector, ProxyClientRequest
 import discord
 import blinker
 import logging
@@ -19,6 +21,24 @@ from eris.commands import register as register_commands
 log = logging.getLogger("eris")
 
 eris = discord.Client()
+
+if config['discord_use_tor']:
+	# Heavy monkey-patching because `discord.py` doesn't actually expose any of this and the `connector` kwarg on `Client` is not enough.
+
+	old_recreate = eris.http.recreate
+	def new_recreate(*args, **kwargs):
+		ret = old_recreate()
+		eris.http.session = aiohttp.ClientSession(connector=ProxyConnector(loop=eris.http.loop), request_class=ProxyClientRequest, loop=eris.http.loop)
+		return ret
+	eris.http.recreate = new_recreate
+	eris.http.recreate()
+
+	old_request = eris.http.request
+	def new_request(*args, **kwargs):
+		kwargs['proxy'] = 'socks5://localhost:9050'
+		return old_request(*args, **kwargs)
+	eris.http.request = new_request
+
 engine, metadata = postgres.get_engine_and_metadata()
 
 # `discord.py`'s event handling is pretty poor. There can only be a single handler for an event.

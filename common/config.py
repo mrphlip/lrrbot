@@ -127,6 +127,9 @@ config.setdefault('discord_botsecret', '')
 # discord_serverid - ID of the LRR Discord server
 config.setdefault('discord_serverid', '288920509272555520')
 
+# discord_use_tor - Use Discord over Tor because of the IP ban
+config.setdefault('discord_use_tor', False)
+
 # discord_temp_channel_prefix - prefix of a temporary channel
 config['discord_temp_channel_prefix'] = config.get('discord_temp_channel_prefix', '[TEMP]').strip() + ' '
 

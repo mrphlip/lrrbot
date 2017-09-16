@@ -4,6 +4,7 @@
 
 aiohttp
 aiomas
+aiosocks
 alembic
 async_timeout
 blinker
