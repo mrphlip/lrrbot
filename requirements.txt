@@ -45,7 +45,7 @@ python-editor==1.0.3
 python-mimeparse==1.6.0
 pytz==2017.2
 requests==2.18.4
-six==1.10.0
+six==1.11.0
 SQLAlchemy==1.1.14
 tempora==1.9
 timelib==0.2.4
