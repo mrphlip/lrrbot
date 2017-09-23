@@ -109,7 +109,7 @@ class Server(common.rpc.Server):
 		})
 
 	@aiomas.expose
-	async def event(self, event, data, time):
+	async def event(self, event, data, time=None):
 		if time is None:
 			time = datetime.datetime.now(tz=pytz.utc)
 		events = self.metadata.tables['events']

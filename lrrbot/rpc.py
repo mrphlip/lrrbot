@@ -191,3 +191,8 @@ class Server(common.rpc.Server):
 	@aiomas.expose
 	def disconnect_from_chat(self):
 		self.lrrbot.disconnect()
+
+	@aiomas.expose
+	def get_polls(self):
+		from lrrbot.commands import strawpoll
+		return strawpoll.get_polls_data(self.lrrbot)
