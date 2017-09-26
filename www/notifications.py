@@ -13,7 +13,9 @@ from www import server
 from www import login
 
 MILESTONES = [
+	("Twitch Prime", config["timezone"].localize(datetime.datetime(2016, 9, 30, 12, 0))),
 	("LoadingReadyLive premiere", config["timezone"].localize(datetime.datetime(2016, 5, 14, 17, 0))),
+	("Pre-PreRelease premiere", config["timezone"].localize(datetime.datetime(2016, 3, 26, 12, 0))),
 	("YRR of LRR finale", config["timezone"].localize(datetime.datetime(2014, 12, 29, 18, 30))),
 	("YRR of LRR launch", config["timezone"].localize(datetime.datetime(2014, 1, 7))),
 	("Twitch partnership", config["timezone"].localize(datetime.datetime(2013, 8, 31, 10, 0))),
