@@ -4,12 +4,14 @@ import random
 import html
 import textwrap
 import asyncio
+import datetime
 
 import common.http
 import common.time
 import common.rpc
 import lrrbot.decorators
 from common import space, utils
+from common.config import config
 from lrrbot.main import bot
 
 DEFAULT_TIMEOUT = 180
@@ -130,7 +132,13 @@ async def nowkiss_poll(lrrbot, conn, event, respond_to):
 
 	Start a new Strawpoll poll for the Now Kiss swipe left/right vote.
 	"""
+	game = lrrbot.get_game_name()
+	now = datetime.datetime.now(config['timezone'])
+	if game and game != 'Games + Demos':
+		prompt = "Keep playing {}? [{:%Y-%m-%d}]".format(game, now)
+	else:
+		prompt = "Keep playing? [{:%Y-%m-%d}]".format(now)
 	await new_poll(
 		lrrbot, conn, event, respond_to,
-		None, '300', None, 'Now Kiss?', 'Swipe Right (yes);Swipe Left (no)',
+		None, '300', None, prompt, 'Swipe Right (keep playing next week);Swipe Left (new game!)',
 		tag="nowkiss")

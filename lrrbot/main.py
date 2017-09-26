@@ -359,6 +359,28 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return game_id
 		return self.game_override
 
+	def get_game_name(self):
+		game_id = self.get_game_id()
+		if game_id is None:
+			return None
+		show_id = self.get_show_id()
+		game_per_show_data = self.metadata.tables["game_per_show_data"]
+		games = self.metadata.tables["games"]
+		with self.engine.begin() as conn:
+			row = conn.execute(
+				sqlalchemy.select([
+					sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name)
+				]).select_from(
+					games.outerjoin(game_per_show_data,
+						(game_per_show_data.c.game_id == games.c.id)
+							& (game_per_show_data.c.show_id == show_id))
+				).where(games.c.id == game_id)).first()
+			if row is None:
+				return None
+			else:
+				game, = row
+		return game
+
 	def override_game(self, name):
 		"""
 			Override current game.
