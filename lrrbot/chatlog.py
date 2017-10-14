@@ -296,7 +296,7 @@ async def get_twitch_emotes():
 	data = await common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticon_images", headers=headers)
 	data = json.loads(data)["emoticons"]
 	emotesets = {}
-	for emote in data:
+	for i, emote in enumerate(data, 1):
 		regex = emote["code"]
 		if regex == r"\:-?[\\/]": # Don't match :/ inside URLs
 			regex = r"\:-?[\\/](?![\\/])"
@@ -307,6 +307,8 @@ async def get_twitch_emotes():
 			"regex": re.compile("(%s)" % regex),
 			"html": '<img src="https://static-cdn.jtvnw.net/emoticons/v1/%s/1.0" alt="{0}" title="{0}">' % emote["id"]
 		}
+		if i % 1000 == 0:
+			await asyncio.sleep(0)
 	return emotesets
 
 async def get_filtered_emotes(setids):
