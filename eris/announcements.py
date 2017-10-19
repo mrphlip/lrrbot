@@ -46,4 +46,4 @@ class Announcements:
 			else:
 				description = show
 
-		await self.eris.send_message(channel, "%s is live with %s (%s)! %s" % (data['display_name'], description, data['status'], data['url']))
+		await self.eris.send_message(channel, "%s is live with %s (%s)! <%s>" % (data['display_name'], description, data['status'], data['url']))
