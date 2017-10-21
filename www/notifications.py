@@ -20,7 +20,7 @@ MILESTONES = [
 	("YRR of LRR launch", config["timezone"].localize(datetime.datetime(2014, 1, 7))),
 	("Twitch partnership", config["timezone"].localize(datetime.datetime(2013, 8, 31, 10, 0))),
 	("First Twitch stream", config["timezone"].localize(datetime.datetime(2012, 1, 14, 21, 0))),
-	("LoadingReadyRun launch", config["timezone"].localize(datetime.datetime(2003, 10, 24))),
+	("LoadingReadyRun launch", config["timezone"].localize(datetime.datetime(2003, 10, 13))),
 ]
 
 def get_events():
