@@ -130,8 +130,11 @@ config.setdefault('discord_serverid', '288920509272555520')
 # discord_temp_channel_prefix - prefix of a temporary channel
 config['discord_temp_channel_prefix'] = config.get('discord_temp_channel_prefix', '[TEMP]').strip() + ' '
 
-# discord_channel_announcements - ID of #announcements
-config['discord_channel_announcements'] = "322643668831961088"
+# discord_channel_announcements - ID of #stream-announcements
+config.setdefault('discord_channel_announcements', "322643668831961088")
+
+# discord_category_voice - ID of the voice channel category
+config.setdefault('discord_category_voice', "360796352357072896")
 
 # log_desertbus_moderator_actions - log moderator actions in #desertbus
 config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_moderator_actions', 'true')).lower() != 'false'
