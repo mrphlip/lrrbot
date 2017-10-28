@@ -29,6 +29,7 @@ class CardViewer:
 			re.compile("^/cards/(?P<set>[^-]+)-(?P<name>[^.]+)\.", re.I),
 			re.compile("^/cards/(?P<set>[^_]+)_(?P<name>[^.]+)\.", re.I)
 		]
+		self.re_scryfall = re.compile("^/cards/multiverse/(\d+)", re.I)
 
 	def start(self):
 		if config['cardsubkey']:
@@ -91,6 +92,16 @@ class CardViewer:
 			except (ValueError, KeyError, IndexError):
 				log.exception("Failed to extract multiverse ID from %r", message)
 				return None
+		elif url.netloc == "api.scryfall.com":
+			match = self.re_scryfall.match(url.path)
+			if match is not None:
+				try:
+					return int(match.group(1))
+				except (ValueError, KeyError, IndexError):
+					log.exception("Failed to extract multiverse ID from %r", message)
+					return None
+			else:
+				log.error("Failed to extract multiverse ID from %r", message)
 		# Card images for the pre-prerelease, extract set and card name
 		elif url.netloc == "localhost":
 			for regex in self.re_local:
