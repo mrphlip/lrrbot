@@ -14,6 +14,7 @@ flask-csrf
 flask-sqlalchemy
 irc
 jinja2
+peony-twitter
 psycopg2
 pubnub
 python-dateutil

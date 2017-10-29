@@ -136,5 +136,14 @@ config.setdefault('discord_channel_announcements', "322643668831961088")
 # discord_category_voice - ID of the voice channel category
 config.setdefault('discord_category_voice', "360796352357072896")
 
+# twitter_api_key - Twitter API key
+config.setdefault('twitter_api_key', '')
+
+# twitter_api_secret - Twitter API secret
+config.setdefault('twitter_api_secret', '')
+
+# twitter_users - Twitter users to monitor for tweets
+config['twitter_users'] = [user.strip() for user in config.get('twitter_users_to_monitor', "loadingreadyrun").split(',')]
+
 # log_desertbus_moderator_actions - log moderator actions in #desertbus
 config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_moderator_actions', 'true')).lower() != 'false'
