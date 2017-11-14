@@ -22,7 +22,7 @@ idna==2.6
 inflect==0.2.5
 irc==16.1
 itsdangerous==0.24
-jaraco.classes==1.4.2
+jaraco.classes==1.4.3
 jaraco.collections==1.5.2
 jaraco.functools==1.16
 jaraco.itertools==2.0.1
