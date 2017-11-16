@@ -52,6 +52,8 @@ class ModeratorActions:
 
 	@utils.swallow_errors
 	def on_message(self, sender, message):
+		log.info("Got message: %r", message['data'])
+
 		action = message['data']['moderation_action']
 		args = message['data']['args']
 		mod = message['data']['created_by']
