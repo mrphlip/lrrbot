@@ -77,7 +77,6 @@ class Autotopic:
 			messages.append(self.uptime_msg())
 		else:
 			messages.append(googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL))
-		messages = ["DESERT BUS!"]
 		if header.get('advice'):
 			messages.append(header['advice'])
 		await self.eris.edit_channel(channel, topic=" ".join(messages))
