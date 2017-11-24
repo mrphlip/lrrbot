@@ -5,7 +5,7 @@ aiohttp==2.3.3
 aiomas==1.0.3
 alembic==0.9.6
 appdirs==1.4.3
-arrow==0.10.0
+arrow==0.11.0
 asn1crypto==0.23.0
 async-timeout==2.0.0
 blinker==1.4
