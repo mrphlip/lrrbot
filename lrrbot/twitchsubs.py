@@ -34,41 +34,65 @@ class TwitchSubs:
 
 	def on_usernotice(self, conn, event):
 		self.lrrbot.check_message_tags(conn, event)
-		if event.tags.get('msg-id') in ('sub', 'resub'):
-				if len(event.arguments) > 0:
-					message = event.arguments[0]
+		if event.tags.get('msg-id') in ('sub', 'resub', 'subgift'):
+			if len(event.arguments) > 0:
+				message = event.arguments[0]
+			else:
+				message = None
+
+			monthcount = event.tags.get('msg-param-months')
+			if monthcount is not None:
+				monthcount = int(monthcount)
+			else:
+				monthcount = 1
+
+			display_name = event.tags.get('display-name') or event.tags['login']
+
+			recipient_display_name = event.tags.get('msg-param-recipient-user-name') or event.tags.get('msg-param-recipient-user-name')
+			if recipient_display_name is not None:
+				benefactor_display_name = display_name
+				display_name = recipient_display_name
+			else:
+				benefactor_display_name = None
+
+			systemmsg = event.tags.get('system-msg')
+			if not systemmsg:
+				if monthcount > 1:
+					systemmsg = "%s has subscribed for %s months!" % (display_name, monthcount)
 				else:
-					message = None
-				monthcount = event.tags.get('msg-param-months')
-				if monthcount is not None:
-					monthcount = int(monthcount)
-				systemmsg = event.tags.get('system-msg')
-				if not systemmsg:
-					if monthcount is not None and monthcount != 1:
-						systemmsg = "%s has subscribed for %s months!" % (event.tags.get('display-name') or event.tags['login'], monthcount)
-					else:
-						systemmsg = "%s just subscribed!" % (event.tags.get('display-name') or event.tags['login'], )
-				asyncio.ensure_future(self.on_subscriber(conn, "#" + config['channel'], event.tags.get('display-name') or event.tags['login'], datetime.datetime.now(tz=pytz.utc), monthcount=monthcount, message=message, emotes=event.tags.get('emotes'))).add_done_callback(utils.check_exception)
-				# Make fake chat messages for this resub in the chat log
-				# This makes the resub message just show up as a normal message, which is close enough
+					systemmsg = "%s just subscribed!" % (display_name, )
+
+			asyncio.ensure_future(self.on_subscriber(
+				conn,
+				"#" + config['channel'],
+				display_name,
+				datetime.datetime.now(tz=pytz.utc),
+				monthcount=monthcount,
+				message=message,
+				emotes=event.tags.get('emotes'),
+				benefactor=benefactor_display_name,
+			)).add_done_callback(utils.check_exception)
+
+			# Make fake chat messages for this resub in the chat log
+			# This makes the resub message just show up as a normal message, which is close enough
+			self.lrrbot.log_chat(conn, irc.client.Event(
+				"pubmsg",
+				"%s!%s@tmi.twitch.tv" % (config['notifyuser'], config['notifyuser']),
+				event.target,
+				[systemmsg],
+				{},
+			))
+			if message:
 				self.lrrbot.log_chat(conn, irc.client.Event(
 					"pubmsg",
-					"%s!%s@tmi.twitch.tv" % (config['notifyuser'], config['notifyuser']),
+					event.source,
 					event.target,
-					[systemmsg],
-					{},
+					[message],
+					event.tags,
 				))
-				if message:
-					self.lrrbot.log_chat(conn, irc.client.Event(
-						"pubmsg",
-						event.source,
-						event.target,
-						[message],
-						event.tags,
-					))
-				return "NO MORE"
+			return "NO MORE"
 
-	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None, emotes=None):
+	async def on_subscriber(self, conn, channel, user, eventtime, logo=None, monthcount=None, message=None, emotes=None, benefactor=None):
 		log.info('New subscriber: %r at %r', user, eventtime)
 
 		now = time.time()
@@ -81,6 +105,7 @@ class TwitchSubs:
 
 		data = {
 			'name': user,
+			'benefactor': benefactor,
 		}
 		if logo is None:
 			try:
@@ -103,13 +128,14 @@ class TwitchSubs:
 			data['message'] = message
 			data['messagehtml'] = await chatlog.format_message(message, emotes, [], cheer=False)
 
-		if monthcount is not None and monthcount > 1:
+		if monthcount > 1:
 			event = "twitch-resubscription"
 			data['monthcount'] = monthcount
 			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
 		else:
 			event = "twitch-subscription"
 			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
+
 		storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
 		conn.privmsg(channel, "lrrSPOT Thanks for subscribing, %s! (Today's storm count: %d)" % (data['name'], storm_count))
 
