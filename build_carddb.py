@@ -6,6 +6,8 @@ formatted to send down the chat.
 """
 
 import sys
+argv = sys.argv[1:]
+sys.argv = sys.argv[:1]
 import os
 import urllib.request
 import urllib.error
@@ -52,6 +54,10 @@ def main():
 		mtgjson = extracards
 		del extracards
 
+	# Allow only importing individual sets for faster testing
+	if argv:
+		mtgjson = {setid: mtgjson[setid] for setid in argv}
+
 	print("Processing...")
 	cards = metadata.tables["cards"]
 	card_multiverse = metadata.tables["card_multiverse"]
@@ -70,7 +76,7 @@ def main():
 				if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
 					continue
 
-				filteredname, cardname, description, multiverseids, collector, hidden = process_card(card, expansion, include_reminder=setid in ('UGL', 'UNH'))
+				filteredname, cardname, description, multiverseids, collector, hidden = process_card(card, expansion, include_reminder=setid in {'UGL', 'UNH', 'UST'})
 				if description is None:
 					continue
 
@@ -124,22 +130,36 @@ def main():
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (setid, collector, card['name'], rows2[0][0]))
 
-		cardid += 1
-		conn.execute(cards.insert(),
-			id=cardid,
-			filteredname="bfmbigfurrymonster",
-			name="B.F.M. (Big Furry Monster)""B.F.M. (Big Furry Monster)",
-			text="B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
-			lastprinted=datetime.date(1998, 8, 11),
-		)
-		conn.execute(card_multiverse.insert(), [
-			{"id": 9780, "cardid": cardid},
-			{"id": 9844, "cardid": cardid},
-		])
-		conn.execute(card_collector.insert(), [
-			{"setid": "UGL", "collector": "28", "cardid": cardid},
-			{"setid": "UGL", "collector": "29", "cardid": cardid},
-		])
+		if 'UGL' in mtgjson:
+			cardid += 1
+			conn.execute(cards.insert(),
+				id=cardid,
+				filteredname="bfmbigfurrymonster",
+				name="B.F.M. (Big Furry Monster)",
+				text="B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
+				lastprinted=datetime.date(1998, 8, 11),
+			)
+			conn.execute(card_multiverse.insert(), [
+				{"id": 9780, "cardid": cardid},
+				{"id": 9844, "cardid": cardid},
+			])
+			conn.execute(card_collector.insert(), [
+				{"setid": "UGL", "collector": "28", "cardid": cardid},
+				{"setid": "UGL", "collector": "29", "cardid": cardid},
+			])
+
+		if 'UST' in mtgjson:
+			release_date = dateutil.parser.parse(mtgjson['UST'].get('releaseDate', '1970-01-01')).date()
+			for filteredname, cardname, description in gen_augments(mtgjson['UST']):
+				cardid += 1
+				conn.execute(cards.insert(),
+					id=cardid,
+					filteredname=filteredname,
+					name=cardname,
+					text=description,
+					lastprinted=release_date,
+					hidden=True,
+				)
 
 def do_download_file(url, fn):
 	"""
@@ -318,7 +338,7 @@ def process_single_card(card, expansion, include_reminder=False):
 		if 'text' in card:
 			yield ' | '
 			text = card['text']
-			# Let UGL and UNH cards keep their reminder text, since there's joeks in there
+			# Let Un-set cards keep their reminder text, since there's joeks in there
 			if not include_reminder:
 				text = re_remindertext.sub(lambda match: ' ' if match.group(1) and match.group(2) else '', text)
 			yield re_newlines.sub(' / ', text.strip())
@@ -329,6 +349,62 @@ def process_single_card(card, expansion, include_reminder=False):
 		desc = desc[:MAXLEN-1] + "\u2026"
 
 	return filtered, card['name'], desc, multiverseids, card.get('number'), 'internalname' in card
+
+def gen_augments(expansion):
+	hosts = []
+	augments = []
+	for card in expansion['cards']:
+		if 'Host' in card['types']:
+			hosts.append(card)
+		elif '\nAugment ' in card.get('text', ''):
+			augments.append(card)
+	for augment in augments:
+		for host in hosts:
+			yield gen_augment(augment, host, expansion)
+
+HOST_PREFIX = "When this creature enters the battlefield, "
+def gen_augment(augment, host, expansion):
+	combined = {
+		'layout': 'normal',
+		'internalname': "%s_%s" % (augment['name'], host['name']),
+		'manaCost': host['manaCost'],
+		'power': host['power'],
+		'toughness': host['toughness'],
+	}
+
+	host_part = host['name'].split()[-1]
+	augment_part = augment['name']
+	if augment_part[-1] != '-':
+		augment_part += ' '
+	combined['name'] = augment_part + host_part
+
+	combined['types'] = augment['types']
+	combined['subtypes'] = augment['subtypes'] + host['subtypes']
+	combined['type'] = ' '.join(combined['types']) + " — " + ' '.join(combined['subtypes'])
+
+	host_lines = host['text'].split("\n")
+	for host_ix, host_line in enumerate(host_lines):
+		if host_line.startswith(HOST_PREFIX):
+			break
+	else:
+		raise ValueError("Card text for host %r not expected" % host['name'])
+	del host_lines[host_ix]
+	host_line = host_line[len(HOST_PREFIX):]
+
+	augment_lines = augment['text'].split("\n")
+	for augment_ix, augment_line in enumerate(augment_lines):
+		if augment_line[-1] in {',', ':'}:
+			break
+	else:
+		raise ValueError("Card text for augment %r not expected" % augment['name'])
+	del augment_lines[augment_ix]
+	if augment_line[-1] == ':':
+		host_line = host_line[:1].upper() + host_line[1:]
+
+	combined_lines = host_lines + [augment_line + ' ' + host_line] + augment_lines
+	combined['text'] = "\n".join(combined_lines)
+
+	return process_single_card(combined, expansion, include_reminder=True)[:3]
 
 if __name__ == '__main__':
 	main()
