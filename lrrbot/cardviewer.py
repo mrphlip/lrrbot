@@ -26,8 +26,8 @@ class CardViewer:
 		self.task = None
 		self.stop_future = None
 		self.re_local = [
-			re.compile("^/cards/(?P<set>[^-]+)-(?P<name>[^.]+)\.", re.I),
-			re.compile("^/cards/(?P<set>[^_]+)_(?P<name>[^.]+)\.", re.I)
+			re.compile("^/cards/(?P<set>[^-]+)-(?P<name>[^.]+?)(\+(?P=set)-(?P<name2>[^.]+))?\.", re.I),
+			re.compile("^/cards/(?P<set>[^_]+)_(?P<name>[^.]+?)(\+(?P=set)_(?P<name2>[^.]+))?\.", re.I),
 		]
 		self.re_scryfall = re.compile("^/cards/multiverse/(\d+)", re.I)
 
@@ -107,7 +107,11 @@ class CardViewer:
 			for regex in self.re_local:
 				match = regex.match(url.path)
 				if match is not None:
-					return urllib.parse.unquote(match.group("name"))
+					if match.group("name2") is not None:
+						return "%s_%s" % (urllib.parse.unquote(match.group("name")),
+							urllib.parse.unquote(match.group("name2")))
+					else:
+						return urllib.parse.unquote(match.group("name"))
 			log.error("Failed to extract set and card name from %r", message)
 			return None
 		else:
