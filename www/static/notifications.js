@@ -164,7 +164,10 @@ function twitch_subscription(data) {
 		var message = createElementWithClass("p", "system-message");
 		link.appendChild(document.createTextNode(data.name));
 		message.appendChild(link);
-		message.appendChild(document.createTextNode(" just subscribed!"));
+		message.appendChild(document.createTextNode(" just subscribed"));
+		if (data.benefactor)
+			message.appendChild(document.createTextNode(", thanks to " + data.benefactor));
+		message.appendChild(document.createTextNode("!"));
 		message_container.appendChild(message);
 
 		if (data.message) {
@@ -205,7 +208,10 @@ function twitch_resubscription(data) {
 		var message = createElementWithClass("p", "system-message");
 		link.appendChild(document.createTextNode(data.name));
 		message.appendChild(link);
-		message.appendChild(document.createTextNode(" subscribed for " + data.monthcount + " month" + (data.monthcount != 1 ? 's' : '') + " in a row!"));
+		message.appendChild(document.createTextNode(" subscribed for " + data.monthcount + " month" + (data.monthcount != 1 ? 's' : '') + " in a row"));
+		if (data.benefactor)
+			message.appendChild(document.createTextNode(", thanks to " + data.benefactor));
+		message.appendChild(document.createTextNode("!"));
 		message_container.appendChild(message);
 
 		if (data.message) {
