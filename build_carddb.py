@@ -368,9 +368,10 @@ def gen_augment(augment, host, expansion):
 		'layout': 'normal',
 		'internalname': "%s_%s" % (augment['name'], host['name']),
 		'manaCost': host['manaCost'],
-		'power': host['power'],
-		'toughness': host['toughness'],
+		'power': str(int(host['power']) + int(augment['power'])),
+		'toughness': str(int(host['toughness']) + int(augment['toughness'])),
 	}
+
 
 	host_part = host['name'].split()[-1]
 	augment_part = augment['name']
