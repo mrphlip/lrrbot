@@ -89,7 +89,7 @@ def main():
 				elif rows[0][1] < release_date:
 					real_cardid = rows[0][0]
 					conn.execute(cards.update().where(cards.c.id == real_cardid),
-						name=card["name"],
+						name=cardname,
 						text=description,
 						lastprinted=release_date,
 						hidden=hidden,
@@ -105,9 +105,9 @@ def main():
 							id=mid,
 							cardid=real_cardid,
 						)
-					elif rows[0][0] != real_cardid:
+					elif rows[0][0] != real_cardid and setid not in ('CPK', 'UST'):
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
-						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, card['name'], rows2[0][0]))
+						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, cardname, rows2[0][0]))
 
 				for collector in collectors:
 					rows = conn.execute(sqlalchemy.select([card_collector.c.cardid])
@@ -118,9 +118,9 @@ def main():
 							collector=collector,
 							cardid=real_cardid,
 						)
-					elif rows[0][0] != real_cardid and setid != 'CPK':
+					elif rows[0][0] != real_cardid and setid not in ('CPK', 'UST'):
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
-						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (setid, collector, card['name'], rows2[0][0]))
+						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (setid, collector, cardname, rows2[0][0]))
 
 def do_download_file(url, fn):
 	"""
@@ -221,11 +221,16 @@ def process_card(card, expansion, include_reminder=False):
 		yield process_single_card(card, expansion, include_reminder)
 
 def process_single_card(card, expansion, include_reminder=False):
-	if not (card.get('layout') == 'flip' and card['name'] != card['names'][0]):
+	if 'internalname' in card:
+		hidden = True
+		multiverseids = numbers = []
+	elif card.get('layout') == 'flip' and card['name'] != card['names'][0]:
+		hidden = False
+		multiverseids = numbers = []
+	else:
+		hidden = False
 		multiverseids = [card['multiverseid']] if card.get('multiverseid') else []
 		numbers = [card['number']] if card.get('number') else []
-	else:
-		multiverseids = numbers = []
 
 	# sanitise card name
 	filtered = clean_text(card.get('internalname', card["name"]))
@@ -306,7 +311,7 @@ def process_single_card(card, expansion, include_reminder=False):
 	if len(desc) > MAXLEN:
 		desc = desc[:MAXLEN-1] + "\u2026"
 
-	return filtered, card['name'], desc, multiverseids, numbers, 'internalname' in card
+	return filtered, card['name'], desc, multiverseids, numbers, hidden
 
 
 SPECIAL_SETS = {}
@@ -347,16 +352,49 @@ def process_set_unhinged(expansion):
 
 @special_set('UST')
 def process_set_unstable(expansion):
-	for card in expansion['cards']:
-		yield from process_card(card, expansion, include_reminder=True)
+	# https://magic.wizards.com/en/articles/archive/news/unstable-variants-2017-12-06
+	with open("UST_variants.json") as fp:
+		variants = json.load(fp)
+	variants_processed = set()
 
 	hosts = []
 	augments = []
 	for card in expansion['cards']:
+		if card['name'] in variants:
+			# Handle a potential future where these variants are in mtgjson
+			if card['name'] in variants_processed:
+				continue
+
+			yield from process_card(card, expansion, include_reminder=True)
+
+			variants_processed.add(card['name'])
+			orig_name = card['name']
+			for ix, variant in enumerate(variants[card['name']]):
+				card.update(variant)
+				if 'name' not in variant:
+					suffix = chr(ord('A') + ix)
+					if variant:  # don't include suffix on display-name for alt-art-only variants
+						card['name'] = "%s (%s)" % (orig_name, suffix)
+					card['internalname'] = "%s_%s" % (orig_name, suffix)
+				if 'types' in variant or 'subtypes' in variant:
+					make_type(card)
+				yield from process_card(card, expansion, include_reminder=True)
+		else:
+			yield from process_card(card, expansion, include_reminder=True)
+
 		if 'Host' in card['types']:
 			hosts.append(card)
+			# for the benefit of the overlay
+			card['internalname'] = card['name'] + "_HOST"
+			yield from process_card(card, expansion, include_reminder=True)
 		elif '\nAugment ' in card.get('text', ''):
 			augments.append(card)
+			card['internalname'] = card['name'] + "_AUG"
+			yield from process_card(card, expansion, include_reminder=True)
+
+	if variants_processed != variants.keys():
+		raise ValueError("Didn't find all variant cards: %r" % (variants.keys() - variants_processed,))
+
 	for augment in augments:
 		for host in hosts:
 			yield gen_augment(augment, host, expansion)
@@ -365,7 +403,7 @@ HOST_PREFIX = "When this creature enters the battlefield, "
 def gen_augment(augment, host, expansion):
 	combined = {
 		'layout': 'normal',
-		'internalname': "%s_%s" % (augment['name'], host['name']),
+		'internalname': "%s_%s" % (augment['internalname'], host['internalname']),
 		'manaCost': host['manaCost'],
 		'power': str(int(host['power']) + int(augment['power'])),
 		'toughness': str(int(host['toughness']) + int(augment['toughness'])),
@@ -380,7 +418,7 @@ def gen_augment(augment, host, expansion):
 
 	combined['types'] = augment['types']
 	combined['subtypes'] = augment['subtypes'] + host['subtypes']
-	combined['type'] = ' '.join(combined['types']) + " — " + ' '.join(combined['subtypes'])
+	make_type(combined)
 
 	host_lines = host['text'].split("\n")
 	for host_ix, host_line in enumerate(host_lines):
@@ -405,6 +443,13 @@ def gen_augment(augment, host, expansion):
 	combined['text'] = "\n".join(combined_lines)
 
 	return process_single_card(combined, expansion, include_reminder=True)
+
+def make_type(card):
+	typeline = ' '.join(card['types'])
+	if card.get('subtypes'):
+		typeline += " \u2014 " + ' '.join(card['subtypes'])
+	card['type'] = typeline
+	return typeline
 
 if __name__ == '__main__':
 	main()
