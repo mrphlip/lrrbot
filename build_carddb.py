@@ -465,9 +465,12 @@ def gen_augment(augment, host, expansion):
 	return process_single_card(combined, expansion, include_reminder=True)
 
 def make_type(card):
-	typeline = ' '.join(card['types'])
+	types = card['types']
+	if card.get('supertypes'):
+		types = card['supertypes'] + types
 	if card.get('subtypes'):
-		typeline += " \u2014 " + ' '.join(card['subtypes'])
+		types = types + ["\u2014"] + card['subtypes']
+	typeline = ' '.join(types)
 	card['type'] = typeline
 	return typeline
 
