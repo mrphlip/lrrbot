@@ -52,6 +52,6 @@ tempora==1.9
 timelib==0.2.4
 urllib3==1.22
 websockets==4.0.1
-Werkzeug==0.12.2
+Werkzeug==0.13
 yarl==0.15.0
 regex==2017.12.05
