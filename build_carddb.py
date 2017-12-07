@@ -54,10 +54,6 @@ def main():
 		mtgjson = extracards
 		del extracards
 
-	# Allow only importing individual sets for faster testing
-	if argv:
-		mtgjson = {setid: mtgjson[setid] for setid in argv}
-
 	print("Processing...")
 	cards = metadata.tables["cards"]
 	card_multiverse = metadata.tables["card_multiverse"]
@@ -68,17 +64,13 @@ def main():
 		conn.execute(cards.delete())
 		cardid = 0
 		for setid, expansion in mtgjson.items():
-			release_date = dateutil.parser.parse(expansion.get('releaseDate', '1970-01-01')).date()
-			for card in expansion['cards']:
-				cardid += 1
-				if card['layout'] in ('token', 'plane', 'scheme', 'phenomenon', 'vanguard'):  # don't care about these special cards for now
-					continue
-				if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
-					continue
+			# Allow only importing individual sets for faster testing
+			if argv and setid not in argv:
+				continue
 
-				filteredname, cardname, description, multiverseids, collector, hidden = process_card(card, expansion, include_reminder=setid in {'UGL', 'UNH', 'UST'})
-				if description is None:
-					continue
+			release_date = dateutil.parser.parse(expansion.get('releaseDate', '1970-01-01')).date()
+			for filteredname, cardname, description, multiverseids, collectors, hidden in process_set(setid, expansion):
+				cardid += 1
 
 				# Check if there's already a row for this card in the DB
 				# (keep the one with the latest release date - it's more likely to have the accurate text in mtgjson)
@@ -117,7 +109,7 @@ def main():
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, card['name'], rows2[0][0]))
 
-				if collector:
+				for collector in collectors:
 					rows = conn.execute(sqlalchemy.select([card_collector.c.cardid])
 						.where((card_collector.c.setid == setid) & (card_collector.c.collector == collector))).fetchall()
 					if not rows:
@@ -129,37 +121,6 @@ def main():
 					elif rows[0][0] != real_cardid and setid != 'CPK':
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (setid, collector, card['name'], rows2[0][0]))
-
-		if 'UGL' in mtgjson:
-			cardid += 1
-			conn.execute(cards.insert(),
-				id=cardid,
-				filteredname="bfmbigfurrymonster",
-				name="B.F.M. (Big Furry Monster)",
-				text="B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
-				lastprinted=datetime.date(1998, 8, 11),
-			)
-			conn.execute(card_multiverse.insert(), [
-				{"id": 9780, "cardid": cardid},
-				{"id": 9844, "cardid": cardid},
-			])
-			conn.execute(card_collector.insert(), [
-				{"setid": "UGL", "collector": "28", "cardid": cardid},
-				{"setid": "UGL", "collector": "29", "cardid": cardid},
-			])
-
-		if 'UST' in mtgjson:
-			release_date = dateutil.parser.parse(mtgjson['UST'].get('releaseDate', '1970-01-01')).date()
-			for filteredname, cardname, description in gen_augments(mtgjson['UST']):
-				cardid += 1
-				conn.execute(cards.insert(),
-					id=cardid,
-					filteredname=filteredname,
-					name=cardname,
-					text=description,
-					lastprinted=release_date,
-					hidden=True,
-				)
 
 def do_download_file(url, fn):
 	"""
@@ -224,10 +185,12 @@ re_newlines = re.compile(r"[\r\n]+")
 re_multiplespaces = re.compile(r"\s{2,}")
 re_remindertext = re.compile(r"( *)\([^()]*\)( *)")
 def process_card(card, expansion, include_reminder=False):
+	if card['layout'] in ('token', 'plane', 'scheme', 'phenomenon', 'vanguard'):  # don't care about these special cards for now
+		return
 	if card.get('layout') in ('split', 'aftermath'):
 		# Return split cards as a single card... for all the other pieces, return nothing
 		if card['name'] != card['names'][0]:
-			return None, None, None, None, None, None
+			return
 		splits = []
 		for splitname in card['names']:
 			candidates = [i for i in expansion['cards'] if i['name'] == splitname]
@@ -239,35 +202,30 @@ def process_card(card, expansion, include_reminder=False):
 		nameparts = []
 		descparts = []
 		allmultiverseids = []
-		numbers = []
+		allnumbers = []
 		anyhidden = False
 		for s in splits:
-			filtered, name, desc, multiverseids, number, hidden = process_single_card(s, expansion, include_reminder)
+			filtered, name, desc, multiverseids, numbers, hidden = process_single_card(s, expansion, include_reminder)
 			filteredparts.append(filtered)
 			nameparts.append(name)
 			descparts.append(desc)
 			allmultiverseids.extend(multiverseids)
-			numbers.append(number)
+			allnumbers.extend(numbers)
 			anyhidden = anyhidden or hidden
 
 		filteredname = ''.join(filteredparts)
 		cardname = " // ".join(nameparts)
 		description = "%s | %s" % (" // ".join(card['names']), " // ".join(descparts))
-		return filteredname, cardname, description, allmultiverseids, numbers[0], anyhidden
+		yield filteredname, cardname, description, allmultiverseids, allnumbers, anyhidden
 	else:
-		return process_single_card(card, expansion, include_reminder)
+		yield process_single_card(card, expansion, include_reminder)
 
 def process_single_card(card, expansion, include_reminder=False):
-	if card.get('layout') == 'flip':
-		if card['name'] == card['names'][0] and card.get('multiverseid'):
-			multiverseids = [card['multiverseid']]
-		else:
-			multiverseids = []
+	if not (card.get('layout') == 'flip' and card['name'] != card['names'][0]):
+		multiverseids = [card['multiverseid']] if card.get('multiverseid') else []
+		numbers = [card['number']] if card.get('number') else []
 	else:
-		if card.get('multiverseid'):
-			multiverseids = [card['multiverseid']]
-		else:
-			multiverseids = []
+		multiverseids = numbers = []
 
 	# sanitise card name
 	filtered = clean_text(card.get('internalname', card["name"]))
@@ -348,9 +306,50 @@ def process_single_card(card, expansion, include_reminder=False):
 	if len(desc) > MAXLEN:
 		desc = desc[:MAXLEN-1] + "\u2026"
 
-	return filtered, card['name'], desc, multiverseids, card.get('number'), 'internalname' in card
+	return filtered, card['name'], desc, multiverseids, numbers, 'internalname' in card
 
-def gen_augments(expansion):
+
+SPECIAL_SETS = {}
+def special_set(setid):
+	def decorator(func):
+		SPECIAL_SETS[setid] = func
+		return func
+	return decorator
+
+def process_set(setid, expansion):
+	handler = SPECIAL_SETS.get(setid, process_set_general)
+	yield from handler(expansion)
+
+def process_set_general(expansion):
+	for card in expansion['cards']:
+		yield from process_card(card, expansion)
+
+@special_set('UGL')
+def process_set_unglued(expansion):
+	for card in expansion['cards']:
+		if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
+			continue
+		yield from process_card(card, expansion, include_reminder=True)
+
+	yield (
+		"bfmbigfurrymonster",
+		"B.F.M. (Big Furry Monster)",
+		"B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
+		[9780, 9844],
+		['28', '29'],
+		False,
+	)
+
+@special_set('UNH')
+def process_set_unhinged(expansion):
+	for card in expansion['cards']:
+		yield from process_card(card, expansion, include_reminder=True)
+
+@special_set('UST')
+def process_set_unstable(expansion):
+	for card in expansion['cards']:
+		yield from process_card(card, expansion, include_reminder=True)
+
 	hosts = []
 	augments = []
 	for card in expansion['cards']:
@@ -405,7 +404,7 @@ def gen_augment(augment, host, expansion):
 	combined_lines = host_lines + [augment_line + ' ' + host_line] + augment_lines
 	combined['text'] = "\n".join(combined_lines)
 
-	return process_single_card(combined, expansion, include_reminder=True)[:3]
+	return process_single_card(combined, expansion, include_reminder=True)
 
 if __name__ == '__main__':
 	main()
