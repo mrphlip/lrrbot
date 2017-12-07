@@ -329,6 +329,25 @@ def process_set_general(expansion):
 	for card in expansion['cards']:
 		yield from process_card(card, expansion)
 
+@special_set('AKH')
+@special_set('HOU')
+def process_set_amonkhet(expansion):
+	re_embalm = re.compile(r"(?:^|\n|,)\s*(Embalm|Eternalize)\b", re.IGNORECASE)
+	for card in expansion['cards']:
+		yield from process_card(card, expansion)
+
+		match = re_embalm.search(card.get('text', ''))
+		if match:
+			card['internalname'] = card['name'] + "_TKN"
+			card['name'] = card['name'] + " token"
+			card['subtypes'] = ["Zombie"] + card['subtypes']
+			make_type(card)
+			del card['manaCost']
+			del card['number']
+			if match.group(1) == "Eternalize":
+				card['power'] = card['toughness'] = '4'
+			yield from process_card(card, expansion)
+
 @special_set('UGL')
 def process_set_unglued(expansion):
 	for card in expansion['cards']:
@@ -359,6 +378,7 @@ def process_set_unstable(expansion):
 
 	hosts = []
 	augments = []
+	re_augment = re.compile(r"(?:^|\n|,)\s*Augment\b", re.IGNORECASE)
 	for card in expansion['cards']:
 		if card['name'] in variants:
 			# Handle a potential future where these variants are in mtgjson
@@ -387,7 +407,7 @@ def process_set_unstable(expansion):
 			# for the benefit of the overlay
 			card['internalname'] = card['name'] + "_HOST"
 			yield from process_card(card, expansion, include_reminder=True)
-		elif '\nAugment ' in card.get('text', ''):
+		elif re_augment.search(card.get('text', '')):
 			augments.append(card)
 			card['internalname'] = card['name'] + "_AUG"
 			yield from process_card(card, expansion, include_reminder=True)
