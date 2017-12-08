@@ -26,8 +26,7 @@ class CardViewer:
 		self.task = None
 		self.stop_future = None
 		self.re_local = [
-			re.compile("^/cards/(?P<set>[^-]+)-(?P<name>[^.]+?)(\+(?P=set)-(?P<name2>[^.]+))?\.", re.I),
-			re.compile("^/cards/(?P<set>[^_]+)_(?P<name>[^.]+?)(\+(?P=set)_(?P<name2>[^.]+))?\.", re.I),
+			re.compile("^/cards/(?P<set>[^_]+)_(?P<name>[^+]+)(?:\+(?P=set)_(?P<name2>[^+]+))?\.[^.]*$", re.I),
 		]
 		self.re_scryfall = re.compile("^/cards/multiverse/(\d+)", re.I)
 
