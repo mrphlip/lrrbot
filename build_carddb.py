@@ -429,14 +429,14 @@ def gen_augment(augment, host, expansion):
 		'toughness': str(int(host['toughness']) + int(augment['toughness'])),
 	}
 
-
 	host_part = host['name'].split()[-1]
 	augment_part = augment['name']
 	if augment_part[-1] != '-':
 		augment_part += ' '
 	combined['name'] = augment_part + host_part
 
-	combined['types'] = augment['types']
+	combined['supertypes'] = host.get('supertypes', []) + augment.get('supertypes', [])
+	combined['types'] = [i for i in host['types'] if i not in {'Host', 'Creature'}] + augment['types']
 	combined['subtypes'] = augment['subtypes'] + host['subtypes']
 	make_type(combined)
 
