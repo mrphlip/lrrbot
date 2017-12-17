@@ -63,9 +63,9 @@ async def do_log_chat(time, event, metadata):
 	"""
 	Add a new message to the chat log.
 	"""
-	# Don't log server commands like .timeout
+	# Don't log blank lines or server commands like .timeout
 	message = event.arguments[0]
-	if message[0] in "./" and message[1:4].lower() != "me ":
+	if not message or (message[0] in "./" and message[1:4].lower() != "me "):
 		return
 
 	source = irc.client.NickMask(event.source).nick
