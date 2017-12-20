@@ -147,3 +147,6 @@ config['twitter_users'] = [user.strip() for user in config.get('twitter_users_to
 
 # log_desertbus_moderator_actions - log moderator actions in #desertbus
 config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_moderator_actions', 'true')).lower() != 'false'
+
+# autoautomod - automatically approve posts rejected by automod
+config['autoautomod'] = str(config.get('autoautomod', 'false')).lower() != 'false'
