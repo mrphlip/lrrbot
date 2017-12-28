@@ -2,7 +2,7 @@
 # It is basically equivalent to lockfiles in Bundler, Cargo or Yarn.
 # Use `pip freeze -r requirements.txt | grep -vE "^## The following requirements were added by pip freeze:\$|^pkg-resources==0.0.0\$"` to generate.
 aiohttp==2.3.7
-aiomas==1.0.3
+aiomas==2.0.0
 alembic==0.9.6
 appdirs==1.4.3
 arrow==0.12.0
