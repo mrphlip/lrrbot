@@ -3,6 +3,7 @@ import random
 import socket
 import dateutil.parser
 import sqlalchemy
+from sqlalchemy.dialects.postgresql import insert
 import collections
 
 import common.http
