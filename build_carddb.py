@@ -302,20 +302,16 @@ def process_single_card(card, expansion, include_reminder=False):
 	if len(desc) > MAXLEN:
 		desc = desc[:MAXLEN-1] + "\u2026"
 
-	if 'internalname' in card:
-		hidden = True
-		multiverseids = numbers = []
-	elif card.get('layout') == 'flip' and card['name'] != card['names'][0]:
-		hidden = False
+	if card.get('layout') == 'flip' and card['name'] != card['names'][0]:
 		multiverseids = numbers = []
 	else:
-		hidden = False
 		multiverseids = [card['multiverseid']] if card.get('multiverseid') else []
 		if card.get('variations'):
 			multiverseids.extend(card['variations'])
 		numbers = card['number'] if card.get('number') else []
 		if not isinstance(numbers, list):
 			numbers = [numbers]
+	hidden = 'internalname' in card
 
 	# if a card has multiple variants, make "number" entries for the variants
 	# to match what sort of thing we'd be seeing on scryfall
@@ -408,12 +404,12 @@ def process_set_unstable(expansion):
 			orig_number = card['number']
 			for ix, variant in enumerate(variants[card['name']]):
 				card.update(variant)
+				suffix = chr(ord('A') + ix)
+				card['number'] = orig_number + suffix.lower()
 				if 'name' not in variant:
-					suffix = chr(ord('A') + ix)
 					# include suffix on display-name for non-alt-art-only variants
 					if variant.keys() - {'multiverseid'}:
 						card['name'] = "%s (%s)" % (orig_name, suffix)
-					card['number'] = orig_number + suffix.lower()
 					card['internalname'] = "%s_%s" % (orig_name, suffix)
 				if 'types' in variant or 'subtypes' in variant:
 					make_type(card)
@@ -425,10 +421,14 @@ def process_set_unstable(expansion):
 			hosts.append(card)
 			# for the benefit of the overlay
 			card['internalname'] = card['name'] + "_HOST"
+			del card['multiverseid']
+			del card['number']
 			yield from process_card(card, expansion, include_reminder=True)
 		elif re_augment.search(card.get('text', '')):
 			augments.append(card)
 			card['internalname'] = card['name'] + "_AUG"
+			del card['multiverseid']
+			del card['number']
 			yield from process_card(card, expansion, include_reminder=True)
 
 	if variants_processed != variants.keys():
