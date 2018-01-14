@@ -183,6 +183,7 @@ async def load_session(include_url=True, include_header=True):
 			session['header']['nextstream'] = googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
 
 	if user_id is not None:
+		user_id = int(user_id)
 		users = server.db.metadata.tables["users"]
 		patreon_users = server.db.metadata.tables["patreon_users"]
 		with server.db.engine.begin() as conn:
