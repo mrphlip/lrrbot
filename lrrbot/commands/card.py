@@ -62,7 +62,7 @@ def find_card(lrrbot, search, includehidden=False):
 	if isinstance(search, tuple):
 		query = (sqlalchemy.select([cards.c.name, cards.c.text])
 						.select_from(card_collector.join(cards, cards.c.id == card_collector.c.cardid))
-						.where((card_collector.c.setid == search[0]) & (card_collector.c.collector == search[1])))
+						.where((card_collector.c.setid == search[0].lower()) & (card_collector.c.collector == search[1])))
 		if not includehidden:
 			query = query.where(cards.c.hidden == False)
 		with lrrbot.engine.begin() as conn:

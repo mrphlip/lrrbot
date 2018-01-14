@@ -28,7 +28,8 @@ class CardViewer:
 		self.re_local = [
 			re.compile("^/cards/(?P<set>[^_]+)_(?P<name>[^+]+)(?:\+(?P=set)_(?P<name2>[^+]+))?\.[^.]*$", re.I),
 		]
-		self.re_scryfall = re.compile("^/cards/multiverse/(\d+)", re.I)
+		self.re_scryfall_1 = re.compile("^/cards/multiverse/(\d+)", re.I)
+		self.re_scryfall_2 = re.compile("^/cards/[^/]+/[^/]+/(?P<set>[^/]+)/(?P<number>[^/]+)\.[^.]*($|\?)", re.I)
 
 	def start(self):
 		if config['cardsubkey']:
@@ -91,16 +92,18 @@ class CardViewer:
 			except (ValueError, KeyError, IndexError):
 				log.exception("Failed to extract multiverse ID from %r", message)
 				return None
-		elif url.netloc == "api.scryfall.com":
-			match = self.re_scryfall.match(url.path)
+		elif url.netloc in ("api.scryfall.com", "img.scryfall.com"):
+			match = self.re_scryfall_1.match(url.path)
 			if match is not None:
 				try:
 					return int(match.group(1))
 				except (ValueError, KeyError, IndexError):
-					log.exception("Failed to extract multiverse ID from %r", message)
+					log.exception("Failed to extract card ID from %r", message)
 					return None
-			else:
-				log.error("Failed to extract multiverse ID from %r", message)
+			match = self.re_scryfall_2.match(url.path)
+			if match is not None:
+				return (match.group("set"), match.group("number"))
+			log.error("Failed to extract card ID from %r", message)
 		# Card images for the pre-prerelease, extract set and card name
 		elif url.netloc == "localhost":
 			for regex in self.re_local:

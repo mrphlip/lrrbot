@@ -120,7 +120,7 @@ def main():
 							collector=collector,
 							cardid=real_cardid,
 						)
-					elif rows[0][0] != real_cardid and csetid not in ('CPK', 'UST'):
+					elif rows[0][0] != real_cardid and setid not in ('CPK', 'UST'):
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (csetid, collector, cardname, rows2[0][0]))
 
@@ -324,7 +324,7 @@ def process_single_card(card, expansion, include_reminder=False):
 		for i in range(len(multiverseids)):
 			numbers.append(orig_number + chr(ord('a') + i))
 
-	numbers = [(expansion['code'], i) for i in numbers]
+	numbers = [(expansion['code'].lower(), i) for i in numbers]
 
 	return filtered, card['name'], desc, multiverseids, numbers, hidden
 
@@ -492,7 +492,7 @@ def skip_set(expansion):
 def process_set_portal2(expansion):
 	# This set is PO2 in mtgjson but P02 in Scryfall...
 	for filtered, name, desc, multiverseids, numbers, hidden in process_set_general(expansion):
-		numbers.extend([('P02', i[1]) for i in numbers])
+		numbers.extend([('p02', i[1]) for i in numbers])
 		yield filtered, name, desc, multiverseids, numbers, hidden
 
 def get_scryfall_numbers(mtgjson):
