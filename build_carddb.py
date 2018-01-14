@@ -107,7 +107,7 @@ def main():
 							id=mid,
 							cardid=real_cardid,
 						)
-					elif rows[0][0] != real_cardid and setid not in ('CPK', 'UST'):
+					elif rows[0][0] != real_cardid and setid not in {'CPK'}:
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, cardname, rows2[0][0]))
 
@@ -120,7 +120,7 @@ def main():
 							collector=collector,
 							cardid=real_cardid,
 						)
-					elif rows[0][0] != real_cardid and setid not in ('CPK', 'UST'):
+					elif rows[0][0] != real_cardid and setid not in {'CPK'}:
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (csetid, collector, cardname, rows2[0][0]))
 
@@ -397,6 +397,9 @@ def process_set_unstable(expansion):
 			if card['name'] in variants_processed:
 				continue
 
+			# Don't link the non-varianted version to the multiverse id
+			# (the multiverse ids for the variants are in the json)
+			del card['multiverseid']
 			yield from process_card(card, expansion, include_reminder=True)
 
 			variants_processed.add(card['name'])
