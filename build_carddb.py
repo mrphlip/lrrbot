@@ -43,6 +43,8 @@ def main():
 		fp = io.TextIOWrapper(zfp.open(SOURCE_FILENAME))
 		mtgjson = json.load(fp)
 
+	get_scryfall_numbers(mtgjson)
+
 	try:
 		with open(EXTRAS_FILENAME) as fp:
 			extracards = json.load(fp)
@@ -109,18 +111,18 @@ def main():
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, cardname, rows2[0][0]))
 
-				for collector in collectors:
+				for csetid, collector in collectors:
 					rows = conn.execute(sqlalchemy.select([card_collector.c.cardid])
-						.where((card_collector.c.setid == setid) & (card_collector.c.collector == collector))).fetchall()
+						.where((card_collector.c.setid == csetid) & (card_collector.c.collector == collector))).fetchall()
 					if not rows:
 						conn.execute(card_collector.insert(),
-							setid=setid,
+							setid=csetid,
 							collector=collector,
 							cardid=real_cardid,
 						)
-					elif rows[0][0] != real_cardid and setid not in ('CPK', 'UST'):
+					elif rows[0][0] != real_cardid and csetid not in ('CPK', 'UST'):
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
-						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (setid, collector, cardname, rows2[0][0]))
+						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (csetid, collector, cardname, rows2[0][0]))
 
 def do_download_file(url, fn):
 	"""
@@ -311,7 +313,9 @@ def process_single_card(card, expansion, include_reminder=False):
 		multiverseids = [card['multiverseid']] if card.get('multiverseid') else []
 		if card.get('variations'):
 			multiverseids.extend(card['variations'])
-		numbers = [card['number']] if card.get('number') else []
+		numbers = card['number'] if card.get('number') else []
+		if not isinstance(numbers, list):
+			numbers = [numbers]
 
 	# if a card has multiple variants, make "number" entries for the variants
 	# to match what sort of thing we'd be seeing on scryfall
@@ -319,6 +323,8 @@ def process_single_card(card, expansion, include_reminder=False):
 		orig_number = numbers[0]
 		for i in range(len(multiverseids)):
 			numbers.append(orig_number + chr(ord('a') + i))
+
+	numbers = [(expansion['code'], i) for i in numbers]
 
 	return filtered, card['name'], desc, multiverseids, numbers, hidden
 
@@ -476,6 +482,64 @@ def gen_augment(augment, host, expansion):
 	combined['text'] = "\n".join(combined_lines)
 
 	return process_single_card(combined, expansion, include_reminder=True)
+
+@special_set('VAN')
+def skip_set(expansion):
+	if False:
+		yield
+
+@special_set('PO2')
+def process_set_portal2(expansion):
+	# This set is PO2 in mtgjson but P02 in Scryfall...
+	for filtered, name, desc, multiverseids, numbers, hidden in process_set_general(expansion):
+		numbers.extend([('P02', i[1]) for i in numbers])
+		yield filtered, name, desc, multiverseids, numbers, hidden
+
+def get_scryfall_numbers(mtgjson):
+	"""
+	Find sets that don't have collector numbers, and get the numbers that scryfall uses.
+	"""
+	try:
+		with open("scryfall.json") as fp:
+			scryfall = json.load(fp)
+	except IOError:
+		scryfall = {}
+	for setid, expansion in mtgjson.items():
+		if argv and setid not in argv:
+			continue
+		if any('number' in card for card in expansion['cards']):
+			continue
+
+		if setid not in scryfall:
+			scryfall[setid] = download_scryfall_numbers(setid)
+			# Save after downloading each set, so if we have an error we've still saved
+			# all the downloading we've done already
+			with open("scryfall.json", "w") as fp:
+				json.dump(scryfall, fp, indent=2, sort_keys=True)
+
+		for card in expansion['cards']:
+			if card['name'] not in scryfall[setid]:
+				raise ValueError("Couldn't find any matching scryfall cards for %s (%s)" % (card['name'], setid))
+			card['number'] = scryfall[setid][card['name']]
+
+def download_scryfall_numbers(setid):
+	print("Downloading scryfall data for %s..." % setid)
+	if setid == 'PO2': # scryfall uses a slightly different code here
+		setid = 'P02'
+	url = "https://api.scryfall.com/cards/search?q=%s" % urllib.parse.quote("++e:%s" % setid)
+	mapping = {}
+	while url is not None:
+		fp = io.TextIOWrapper(urllib.request.urlopen(url))
+		data = json.load(fp)
+		fp.close()
+		time.sleep(0.1) # rate limit
+		for card in data['data']:
+			mapping.setdefault(card['name'], []).append(card['collector_number'])
+		if data['has_more']:
+			url = data['next_page']
+		else:
+			url = None
+	return mapping
 
 def make_type(card):
 	types = card['types']
