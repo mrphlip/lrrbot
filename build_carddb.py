@@ -221,17 +221,6 @@ def process_card(card, expansion, include_reminder=False):
 		yield process_single_card(card, expansion, include_reminder)
 
 def process_single_card(card, expansion, include_reminder=False):
-	if 'internalname' in card:
-		hidden = True
-		multiverseids = numbers = []
-	elif card.get('layout') == 'flip' and card['name'] != card['names'][0]:
-		hidden = False
-		multiverseids = numbers = []
-	else:
-		hidden = False
-		multiverseids = [card['multiverseid']] if card.get('multiverseid') else []
-		numbers = [card['number']] if card.get('number') else []
-
 	# sanitise card name
 	filtered = clean_text(card.get('internalname', card["name"]))
 	if not re_check.match(filtered):
@@ -311,6 +300,26 @@ def process_single_card(card, expansion, include_reminder=False):
 	if len(desc) > MAXLEN:
 		desc = desc[:MAXLEN-1] + "\u2026"
 
+	if 'internalname' in card:
+		hidden = True
+		multiverseids = numbers = []
+	elif card.get('layout') == 'flip' and card['name'] != card['names'][0]:
+		hidden = False
+		multiverseids = numbers = []
+	else:
+		hidden = False
+		multiverseids = [card['multiverseid']] if card.get('multiverseid') else []
+		if card.get('variations'):
+			multiverseids.extend(card['variations'])
+		numbers = [card['number']] if card.get('number') else []
+
+	# if a card has multiple variants, make "number" entries for the variants
+	# to match what sort of thing we'd be seeing on scryfall
+	if len(multiverseids) > 1 and len(numbers) == 1:
+		orig_number = numbers[0]
+		for i in range(len(multiverseids)):
+			numbers.append(orig_number + chr(ord('a') + i))
+
 	return filtered, card['name'], desc, multiverseids, numbers, hidden
 
 
@@ -344,6 +353,7 @@ def process_set_amonkhet(expansion):
 			make_type(card)
 			del card['manaCost']
 			del card['number']
+			del card['multiverseid']
 			if match.group(1) == "Eternalize":
 				card['power'] = card['toughness'] = '4'
 			yield from process_card(card, expansion)
@@ -389,12 +399,15 @@ def process_set_unstable(expansion):
 
 			variants_processed.add(card['name'])
 			orig_name = card['name']
+			orig_number = card['number']
 			for ix, variant in enumerate(variants[card['name']]):
 				card.update(variant)
 				if 'name' not in variant:
 					suffix = chr(ord('A') + ix)
-					if variant:  # don't include suffix on display-name for alt-art-only variants
+					# include suffix on display-name for non-alt-art-only variants
+					if variant.keys() - {'multiverseid'}:
 						card['name'] = "%s (%s)" % (orig_name, suffix)
+					card['number'] = orig_number + suffix.lower()
 					card['internalname'] = "%s_%s" % (orig_name, suffix)
 				if 'types' in variant or 'subtypes' in variant:
 					make_type(card)
