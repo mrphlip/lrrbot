@@ -3,7 +3,7 @@
 # Use `pip freeze -r requirements.txt | grep -vE "^## The following requirements were added by pip freeze:\$|^pkg-resources==0.0.0\$"` to generate.
 aiohttp==2.3.7
 aiomas==2.0.1
-alembic==0.9.6
+alembic==0.9.7
 appdirs==1.4.3
 arrow==0.12.0
 asn1crypto==0.24.0
