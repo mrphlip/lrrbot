@@ -54,4 +54,4 @@ urllib3==1.22
 websockets==4.0.1
 Werkzeug==0.14.1
 yarl==1.0.0
-regex==2017.12.12
+regex==2018.01.10
