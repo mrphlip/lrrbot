@@ -122,7 +122,7 @@ function startScrolling() {
 }
 
 function onKeypress(e) {
-	if (e.keyCode === 0 || e.keyCode === 32) {
+	if (e.key === " " || e.key === "Spacebar" || e.keyCode === 32) {
 		if (window.player.isPaused())
 			window.player.play();
 		else
