@@ -489,6 +489,7 @@ def gen_augment(augment, host, expansion):
 	return process_single_card(combined, expansion, include_reminder=True)
 
 @special_set('VAN')
+@special_set('V17') # just reprints, and the meld cards aren't formatted properly
 def skip_set(expansion):
 	if False:
 		yield
