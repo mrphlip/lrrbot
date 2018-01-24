@@ -34,7 +34,11 @@ MAXLEN = 450
 engine, metadata = common.postgres.get_engine_and_metadata()
 
 def main():
-	if not do_download_file(URL, ZIP_FILENAME) and not os.access(EXTRAS_FILENAME, os.F_OK):
+	force_run = False
+	if '-f' in argv:
+		argv.remove('-f')
+		force_run = True
+	if not do_download_file(URL, ZIP_FILENAME) and not os.access(EXTRAS_FILENAME, os.F_OK) and not force_run:
 		print("No new version of mtgjson data file")
 		return
 
@@ -363,7 +367,7 @@ def process_set_amonkhet(expansion):
 @special_set('UGL')
 def process_set_unglued(expansion):
 	for card in expansion['cards']:
-		if card['name'] == 'B.F.M. (Big Furry Monster)':  # do this card special
+		if card['name'] in {'B.F.M. (Big Furry Monster)', 'B.F.M. (Big Furry Monster, Right Side)'}:  # do this card special
 			continue
 		yield from process_card(card, expansion, include_reminder=True)
 
@@ -379,6 +383,9 @@ def process_set_unglued(expansion):
 @special_set('UNH')
 def process_set_unhinged(expansion):
 	for card in expansion['cards']:
+		if card['name'] == 'Curse of the Fire Penguin Creature':
+			card['internalname'] = card['name']
+			del card['multiverseid']
 		yield from process_card(card, expansion, include_reminder=True)
 
 re_ust_variant = re.compile(r"^(.*) \(([a-z])\)$", re.IGNORECASE)
