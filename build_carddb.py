@@ -381,44 +381,42 @@ def process_set_unhinged(expansion):
 	for card in expansion['cards']:
 		yield from process_card(card, expansion, include_reminder=True)
 
+re_ust_variant = re.compile(r"^(.*) \(([a-z])\)$", re.IGNORECASE)
+ust_killbots = {"Curious Killbot": 'a', "Delighted Killbot": 'b', "Despondent Killbot": 'c', "Enraged Killbot": 'd'}
+def check_unstable_variant(card):
+	match = re_ust_variant.match(card['name'])
+	if match:
+		name, variant = match.groups()
+		return name, variant.lower(), True
+	if card['name'] in ust_killbots:
+		return card['name'], ust_killbots[card['name']], False
+	# Don't need to worry about the art-only variants, they have "variations" in
+	# the mtgjson already, which is handled by process_single_card
+	return None, None, None
+
 @special_set('UST')
 def process_set_unstable(expansion):
-	# https://magic.wizards.com/en/articles/archive/news/unstable-variants-2017-12-06
-	with open("UST_variants.json") as fp:
-		variants = json.load(fp)
-	variants_processed = set()
-
 	hosts = []
 	augments = []
 	re_augment = re.compile(r"(?:^|\n|,)\s*Augment\b", re.IGNORECASE)
 	for card in expansion['cards']:
-		if card['name'] in variants:
-			# Handle a potential future where these variants are in mtgjson
-			if card['name'] in variants_processed:
-				continue
+		# Fix a typo from Gatherer
+		if card['name'] == "Rhino-":
+			card['toughness'] = "+4"
 
-			# Don't link the non-varianted version to the multiverse id
-			# (the multiverse ids for the variants are in the json)
-			del card['multiverseid']
-			yield from process_card(card, expansion, include_reminder=True)
-
-			variants_processed.add(card['name'])
-			orig_name = card['name']
-			orig_number = card['number']
-			for ix, variant in enumerate(variants[card['name']]):
-				card.update(variant)
-				suffix = chr(ord('A') + ix)
-				card['number'] = orig_number + suffix.lower()
-				if 'name' not in variant:
-					# include suffix on display-name for non-alt-art-only variants
-					if variant.keys() - {'multiverseid'}:
-						card['name'] = "%s (%s)" % (orig_name, suffix)
-					card['internalname'] = "%s_%s" % (orig_name, suffix)
-				if 'types' in variant or 'subtypes' in variant:
-					make_type(card)
-				yield from process_card(card, expansion, include_reminder=True)
-		else:
-			yield from process_card(card, expansion, include_reminder=True)
+		variantname, variant, hidden = check_unstable_variant(card)
+		if variantname:
+			# Generate a "general" version of variant cards
+			if variant == 'a':
+				generic = dict(card)
+				generic['name'] = variantname
+				del generic['multiverseid']
+				yield from process_card(generic, expansion, include_reminder=True)
+			# Tag the individual variant
+			card['number'] += variant
+			if hidden:
+				card['internalname'] = variantname + "_" + variant
+		yield from process_card(card, expansion, include_reminder=True)
 
 		if 'Host' in card['types']:
 			hosts.append(card)
@@ -433,9 +431,6 @@ def process_set_unstable(expansion):
 			del card['multiverseid']
 			del card['number']
 			yield from process_card(card, expansion, include_reminder=True)
-
-	if variants_processed != variants.keys():
-		raise ValueError("Didn't find all variant cards: %r" % (variants.keys() - variants_processed,))
 
 	for augment in augments:
 		for host in hosts:
