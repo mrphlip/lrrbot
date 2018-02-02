@@ -39,7 +39,7 @@ peony-twitter==1.0.3
 psycopg2==2.7.3.2
 pubnub==4.0.13
 pycparser==2.18
-pycryptodomex==3.4.8
+pycryptodomex==3.4.9
 pyparsing==2.2.0
 python-dateutil==2.6.1
 python-editor==1.0.3
