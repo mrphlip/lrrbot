@@ -36,7 +36,7 @@ more-itertools==4.1.0
 multidict==4.1.0
 packaging==16.8
 peony-twitter==1.0.3
-psycopg2==2.7.3.2
+psycopg2==2.7.4
 pubnub==4.0.13
 pycparser==2.18
 pycryptodomex==3.4.12
