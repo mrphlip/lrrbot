@@ -1,7 +1,7 @@
 # This file lists all dependencies pinned to the used version.
 # It is basically equivalent to lockfiles in Bundler, Cargo or Yarn.
 # Use `pip freeze -r requirements.txt | grep -vE "^## The following requirements were added by pip freeze:\$|^pkg-resources==0.0.0\$"` to generate.
-aiohttp==2.3.9
+aiohttp==2.3.10
 aiomas==2.0.1
 alembic==0.9.7
 appdirs==1.4.3
@@ -32,26 +32,26 @@ jaraco.text==1.9.2
 Jinja2==2.10
 Mako==1.0.7
 MarkupSafe==1.0
-more-itertools==4.0.1
-multidict==4.0.0
+more-itertools==4.1.0
+multidict==4.1.0
 packaging==16.8
 peony-twitter==1.0.3
-psycopg2==2.7.3.2
+psycopg2==2.7.4
 pubnub==4.0.13
 pycparser==2.18
-pycryptodomex==3.4.7
+pycryptodomex==3.4.12
 pyparsing==2.2.0
 python-dateutil==2.6.1
 python-editor==1.0.3
 python-mimeparse==1.6.0
-pytz==2017.3
+pytz==2018.3
 requests==2.18.4
 six==1.11.0
-SQLAlchemy==1.2.1
+SQLAlchemy==1.2.2
 tempora==1.10
 timelib==0.2.4
 urllib3==1.22
 websockets==4.0.1
 Werkzeug==0.14.1
-yarl==1.0.0
-regex==2018.01.10
+yarl==1.1.0
+regex==2018.02.08
