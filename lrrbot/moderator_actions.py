@@ -51,9 +51,9 @@ class ModeratorActions:
 
 		if action == 'timeout':
 			user = args[0]
-			length = int(args[1])
+			length = time.nice_duration(int(args[1]), 0) if args[1] != '' else '???'
 			reason = args[2] if len(args) >= 3 else None
-			text = "%s was%s timed out for %s by %s." % (slack.escape(user), " also" if same_user else "", slack.escape(time.nice_duration(length, 0)), slack.escape(mod))
+			text = "%s was%s timed out for %s by %s." % (slack.escape(user), " also" if same_user else "", slack.escape(length), slack.escape(mod))
 			if reason is not None:
 				text += " Reason: %s" % slack.escape(reason)
 		elif action == 'ban':
