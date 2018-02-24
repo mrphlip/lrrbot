@@ -1,7 +1,7 @@
 # This file lists all dependencies pinned to the used version.
 # It is basically equivalent to lockfiles in Bundler, Cargo or Yarn.
 # Use `pip freeze -r requirements.txt | grep -vE "^## The following requirements were added by pip freeze:\$|^pkg-resources==0.0.0\$"` to generate.
-aiohttp==2.3.10
+aiohttp==3.0.2
 aiomas==2.0.1
 alembic==0.9.8
 appdirs==1.4.3
