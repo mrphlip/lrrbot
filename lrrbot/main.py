@@ -268,7 +268,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		#  * is some sort of Twitchsm'n
 		is_mod = is_mod or tags.get('user-type', '') in {'mod', 'global_mod', 'admin', 'staff'}
 		#  * is broadcaster
-		tags["mod"] = is_mod = is_mod or nick.lower() == config['channel']
+		is_mod = is_mod or nick.lower() == config['channel']
+		#  * is in list of extra mods
+		is_mod = is_mod or nick.lower() in config['mods']
+		tags["mod"] = is_mod
 
 		if 'bits' in tags:
 			tags['bits'] = int(tags['bits'])
