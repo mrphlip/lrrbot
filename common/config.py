@@ -152,4 +152,4 @@ config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_modera
 config['autoautomod'] = str(config.get('autoautomod', 'false')).lower() != 'false'
 
 # mods - extra users who should be treated as mods by the bot even if they're not +o
-config['mods'] = set(i.lower for i in config['mods'].split(',')) if config.get('mods') else set()
+config['mods'] = set(i.lower() for i in config['mods'].split(',')) if config.get('mods') else set()
