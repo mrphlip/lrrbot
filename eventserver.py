@@ -38,10 +38,10 @@ class Server(common.rpc.Server):
 
 	def get_last_events(self, request):
 		try:
-			last_event_id = int(request.headers.get('Last-Event-Id', request.GET.get('last-event-id')))
+			last_event_id = int(request.headers.get('Last-Event-Id', request.query.get('last-event-id')))
 		except (ValueError, TypeError):
 			last_event_id = None
-		interval = request.GET.get('interval')
+		interval = request.query.get('interval')
 		if interval is not None and last_event_id is None:
 			last_event_id = 0
 		if last_event_id is not None:
