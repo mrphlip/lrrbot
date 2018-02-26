@@ -35,7 +35,7 @@ MarkupSafe==1.0
 more-itertools==4.1.0
 multidict==4.1.0
 packaging==16.8
-peony-twitter==1.0.3
+peony-twitter==1.0.4
 psycopg2==2.7.4
 pubnub==4.0.13
 pycparser==2.18
