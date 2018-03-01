@@ -82,15 +82,13 @@ class Server(common.rpc.Server):
 					event = await asyncio.wait_for(queue.get(), 15)
 					if event['event'] is Poison:
 						break
-					response.write(b"id:%d\n" % event['id'])
-					response.write(b"event:%s\n" % event['event'].encode('utf-8'))
-					response.write(b"data:%s\n" % json.dumps(event['data']).encode('utf-8'))
-					response.write(b"\n")
-					await response.drain()
+					await response.write(b"id:%d\n" % event['id'])
+					await response.write(b"event:%s\n" % event['event'].encode('utf-8'))
+					await response.write(b"data:%s\n" % json.dumps(event['data']).encode('utf-8'))
+					await response.write(b"\n")
 					queue.task_done()
 				except asyncio.TimeoutError:
-					response.write(b":keep-alive\n\n")
-					await response.drain()
+					await response.write(b":keep-alive\n\n")
 			except IOError:
 				break
 
