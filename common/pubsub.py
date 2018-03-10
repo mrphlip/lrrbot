@@ -40,10 +40,14 @@ class PubSub:
 				return row[0]
 		raise Exception("User %r not found" % user)
 
+	def _send(self, message):
+		log.debug("Sending: %r", message)
+		self.stream.send_json(message)
+
 	def _listen(self, topics, user):
 		message_id = uuid.uuid4().hex
 		log.debug("Listening for topics %r as %r, message %s", topics, user, message_id)
-		self.stream.send_json({
+		self._send({
 			'type': "LISTEN",
 			'nonce': message_id,
 			'data': {
@@ -55,7 +59,7 @@ class PubSub:
 	def _unlisten(self, topics):
 		message_id = uuid.uuid4().hex
 		log.debug("Unlistening topics %r, message %s", topics, message_id)
-		self.stream.send_json({
+		self._send({
 			'type': 'UNLISTEN',
 			'nonce': message_id,
 			'data': {
@@ -110,18 +114,21 @@ class PubSub:
 			log.debug("Sending a PING in %f seconds", next_timeout)
 			await asyncio.sleep(next_timeout)
 			log.debug("Sending a PING.")
-			self.stream.send_json({
+			self._send({
 				'type': 'PING',
 			})
 			self.disconnect_task = asyncio.ensure_future(self._disconnect())
 			self.disconnect_task.add_done_callback(utils.check_exception)
 
 	async def _disconnect(self):
-		await asyncio.sleep(10)
-		log.debug("Disconnecting due to missed PONG.")
-		if self.stream is not None:
-			await self.stream.close()
-		self.disconnect_task = None
+		try:
+			await asyncio.sleep(10)
+			log.debug("Disconnecting due to missed PONG.")
+			if self.stream is not None:
+				await self.stream.close()
+			self.disconnect_task = None
+		except asyncio.CancelledError:
+			return
 
 	async def message_pump(self):
 		next_timeout = 1
