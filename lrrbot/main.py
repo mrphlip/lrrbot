@@ -131,7 +131,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.commands = command_parser.CommandParser(self, loop)
 		self.command = self.commands.decorator
 
-		self.pubsub = PubSub(self.engine, self.metadata)
+		self.pubsub = PubSub(self.engine, self.metadata, loop)
 
 		self.desertbus_moderator_actions = desertbus_moderator_actions.ModeratorActions(self, loop)
 		self.join_filter = join_filter.JoinFilter(self, loop)

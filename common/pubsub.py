@@ -22,9 +22,10 @@ class Topic:
 		self.refcount = 1
 
 class PubSub:
-	def __init__(self, engine, metadata):
+	def __init__(self, engine, metadata, loop):
 		self.engine = engine
 		self.metadata = metadata
+		self.loop = loop
 		self.topics = {}
 
 		self.task = None
@@ -40,14 +41,14 @@ class PubSub:
 				return row[0]
 		raise Exception("User %r not found" % user)
 
-	def _send(self, message):
+	async def _send(self, message):
 		log.debug("Sending: %r", message)
-		self.stream.send_json(message)
+		await self.stream.send_json(message)
 
-	def _listen(self, topics, user):
+	async def _listen(self, topics, user):
 		message_id = uuid.uuid4().hex
 		log.debug("Listening for topics %r as %r, message %s", topics, user, message_id)
-		self._send({
+		await self._send({
 			'type': "LISTEN",
 			'nonce': message_id,
 			'data': {
@@ -56,10 +57,10 @@ class PubSub:
 			}
 		})
 
-	def _unlisten(self, topics):
+	async def _unlisten(self, topics):
 		message_id = uuid.uuid4().hex
 		log.debug("Unlistening topics %r, message %s", topics, message_id)
-		self._send({
+		await self._send({
 			'type': 'UNLISTEN',
 			'nonce': message_id,
 			'data': {
@@ -84,9 +85,9 @@ class PubSub:
 
 		if len(new_topics) > 0:
 			if self.stream is not None:
-				self._listen(new_topics, as_user)
+				loop.run_until_complete(self._listen(new_topics, as_user))
 			elif self.task is None:
-				self.task = asyncio.ensure_future(self.message_pump())
+				self.task = asyncio.ensure_future(self.message_pump(), loop=self.loop)
 
 	def unsubscribe(self, topics):
 		orphan_topics = []
@@ -96,7 +97,7 @@ class PubSub:
 				del self.topics[topic]
 				orphan_topics.append(topic)
 		if len(orphan_topics) > 0 and self.stream is not None:
-			self._unlisten(orphan_topics)
+			loop.run_until_complete(self._unlisten(orphan_topics))
 
 	def close(self):
 		if self.task is not None:
@@ -114,10 +115,10 @@ class PubSub:
 			log.debug("Sending a PING in %f seconds", next_timeout)
 			await asyncio.sleep(next_timeout)
 			log.debug("Sending a PING.")
-			self._send({
+			await self._send({
 				'type': 'PING',
 			})
-			self.disconnect_task = asyncio.ensure_future(self._disconnect())
+			self.disconnect_task = asyncio.ensure_future(self._disconnect(), loop=self.loop)
 			self.disconnect_task.add_done_callback(utils.check_exception)
 
 	async def _disconnect(self):
@@ -139,7 +140,7 @@ class PubSub:
 				async with http.http_request_session.ws_connect("wss://pubsub-edge.twitch.tv") as pubsub:
 					log.debug("Connected to wss://pubsub-edge.twitch.tv")
 					self.stream = pubsub
-					self.ping_task = asyncio.ensure_future(self._ping())
+					self.ping_task = asyncio.ensure_future(self._ping(), loop=self.loop)
 					self.ping_task.add_done_callback(utils.check_exception)
 
 					# TODO: coalesce topics
@@ -147,7 +148,7 @@ class PubSub:
 					for topic, data in self.topics.items():
 						for_user.setdefault(data.as_user, []).append(topic)
 					for user, topics in for_user.items():
-						self._listen(topics, user)
+						await self._listen(topics, user)
 
 					async for message in pubsub:
 						if message.type == aiohttp.WSMsgType.TEXT:
