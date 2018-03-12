@@ -197,7 +197,7 @@ def uptime_msg(stream_info=None, factor=1):
 	else:
 		return "The stream is not live."
 
-@bot.command("(uptime|updog)")
+@bot.command("uptime")
 @lrrbot.decorators.throttle()
 def uptime(lrrbot, conn, event, respond_to, command):
 	"""
@@ -206,7 +206,13 @@ def uptime(lrrbot, conn, event, respond_to, command):
 
 	Post the duration the stream has been live.
 	"""
-	conn.privmsg(respond_to, uptime_msg(factor=7 if command == "updog" else 1))
+	conn.privmsg(respond_to, uptime_msg())
+
+@bot.command("updog")
+@lrrbot.decorators.throttle()
+def updog(lrrbot, conn, event, respond_to, command):
+	# intentionally not in help
+	conn.privmsg(respond_to, uptime_msg(factor=7) + " lrrSPOT")
 
 @utils.cache(30) # We could easily be sending a bunch of these at once, and the info doesn't change often
 def get_status_msg(lrrbot):
