@@ -7,7 +7,7 @@ alembic==0.9.8
 appdirs==1.4.3
 arrow==0.12.1
 asn1crypto==0.24.0
-async-timeout==2.0.0
+async-timeout==2.0.1
 blinker==1.4
 certifi==2018.1.18
 cffi==1.11.5
