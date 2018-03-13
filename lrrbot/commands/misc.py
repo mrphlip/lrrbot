@@ -199,7 +199,7 @@ def uptime_msg(stream_info=None, factor=1):
 
 @bot.command("uptime")
 @lrrbot.decorators.throttle()
-def uptime(lrrbot, conn, event, respond_to, command):
+def uptime(lrrbot, conn, event, respond_to):
 	"""
 	Command: !uptime
 	Section: info
@@ -210,7 +210,7 @@ def uptime(lrrbot, conn, event, respond_to, command):
 
 @bot.command("updog")
 @lrrbot.decorators.throttle()
-def updog(lrrbot, conn, event, respond_to, command):
+def updog(lrrbot, conn, event, respond_to):
 	# intentionally not in help
 	conn.privmsg(respond_to, uptime_msg(factor=7) + " lrrSPOT")
 
