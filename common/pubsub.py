@@ -85,7 +85,7 @@ class PubSub:
 
 		if len(new_topics) > 0:
 			if self.stream is not None:
-				loop.run_until_complete(self._listen(new_topics, as_user))
+				self.loop.run_until_complete(self._listen(new_topics, as_user))
 			elif self.task is None:
 				self.task = asyncio.ensure_future(self.message_pump(), loop=self.loop)
 
@@ -97,7 +97,7 @@ class PubSub:
 				del self.topics[topic]
 				orphan_topics.append(topic)
 		if len(orphan_topics) > 0 and self.stream is not None:
-			loop.run_until_complete(self._unlisten(orphan_topics))
+			self.loop.run_until_complete(self._unlisten(orphan_topics))
 
 	def close(self):
 		if self.task is not None:
