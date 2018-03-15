@@ -12,6 +12,7 @@ import irc.connection
 import sqlalchemy
 from sqlalchemy.dialects.postgresql import insert
 
+from common import FRAMEWORK_ONLY
 from common import game_data
 from common import postgres
 from common import slack
@@ -524,4 +525,24 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		event.target = config['username']
 		self.reactor._handle_event(self.connection, event)
 
-bot = LRRBot(asyncio.get_event_loop())
+class FakeBot:
+	"""
+	Contains enough stuff for all the modules to be imported, without actually
+	doing anything...
+	"""
+	def __init__(self, loop):
+		self.engine, self.metadata = postgres.get_engine_and_metadata()
+		self.loop = loop
+		self.rpc_server = self
+		self.reactor = self
+		self.commands = self
+	def command(self, *a, **kw):
+		return lambda x:x
+	def noop(self, *a, **kw):
+		pass
+	add_global_handler = add = noop
+
+if FRAMEWORK_ONLY:
+	bot = FakeBot(asyncio.get_event_loop())
+else:
+	bot = LRRBot(asyncio.get_event_loop())

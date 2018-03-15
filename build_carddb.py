@@ -5,9 +5,9 @@ it to turn the highly-structured data there into a flat list of card names to de
 formatted to send down the chat.
 """
 
+import common
+common.FRAMEWORK_ONLY = True
 import sys
-argv = sys.argv[1:]
-sys.argv = sys.argv[:1]
 import os
 import urllib.request
 import urllib.error
@@ -35,8 +35,8 @@ engine, metadata = common.postgres.get_engine_and_metadata()
 
 def main():
 	force_run = False
-	if '-f' in argv:
-		argv.remove('-f')
+	if '-f' in sys.argv:
+		sys.argv.remove('-f')
 		force_run = True
 	if not do_download_file(URL, ZIP_FILENAME) and not os.access(EXTRAS_FILENAME, os.F_OK) and not force_run:
 		print("No new version of mtgjson data file")
@@ -71,7 +71,7 @@ def main():
 		cardid = 0
 		for setid, expansion in mtgjson.items():
 			# Allow only importing individual sets for faster testing
-			if argv and setid not in argv:
+			if len(sys.argv) > 1 and setid not in sys.argv[1:]:
 				continue
 
 			release_date = dateutil.parser.parse(expansion.get('releaseDate', '1970-01-01')).date()
@@ -511,7 +511,7 @@ def get_scryfall_numbers(mtgjson):
 	except IOError:
 		scryfall = {}
 	for setid, expansion in mtgjson.items():
-		if argv and setid not in argv:
+		if len(sys.argv) > 1 and setid not in sys.argv[1:]:
 			continue
 		if any('number' in card for card in expansion['cards']):
 			continue
