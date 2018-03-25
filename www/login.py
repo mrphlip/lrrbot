@@ -126,11 +126,7 @@ async def load_session(include_url=True, include_header=True):
 		if 'current_game' in session['header']:
 			games = server.db.metadata.tables["games"]
 			shows = server.db.metadata.tables["shows"]
-			stats = server.db.metadata.tables["stats"]
 			game_per_show_data = server.db.metadata.tables["game_per_show_data"]
-			game_stats = server.db.metadata.tables["game_stats"]
-			game_votes = server.db.metadata.tables["game_votes"]
-			disabled_stats = server.db.metadata.tables["disabled_stats"]
 			with server.db.engine.begin() as conn:
 				game_id = session['header']['current_game']['id']
 				show_id = session['header']['current_show']['id']
@@ -143,41 +139,6 @@ async def load_session(include_url=True, include_header=True):
 				session['header']['current_show']['name'], = conn.execute(sqlalchemy.select([
 					shows.c.name,
 				]).where(shows.c.id == show_id)).first()
-
-				good = sqlalchemy.cast(
-					sqlalchemy.func.sum(sqlalchemy.cast(game_votes.c.vote, sqlalchemy.Integer)),
-					sqlalchemy.Numeric
-				)
-				rating = conn.execute(sqlalchemy.select([
-					(100 * good / sqlalchemy.func.count(game_votes.c.vote)),
-					good,
-					sqlalchemy.func.count(game_votes.c.vote),
-				]).where(game_votes.c.game_id == game_id).where(game_votes.c.show_id == show_id)).first()
-				if rating[0] is not None and rating[1] is not None:
-					session['header']['current_game']["rating"] = {
-						'perc': rating[0],
-						'good': rating[1],
-						'total': rating[2],
-					}
-				stats_query = sqlalchemy.select([
-					game_stats.c.count,
-					game_data.stat_plural(stats, game_stats.c.count)
-				]).select_from(game_stats
-					.join(stats, stats.c.id == game_stats.c.stat_id)
-				).where(game_stats.c.game_id == game_id) \
-					.where(game_stats.c.show_id == show_id) \
-					.where(~sqlalchemy.exists(sqlalchemy.select([1])
-						.where(disabled_stats.c.stat_id == game_stats.c.stat_id)
-						.where(disabled_stats.c.show_id == game_stats.c.show_id)
-					)) \
-					.order_by(game_stats.c.count.desc())
-				session['header']['current_game']['stats'] = [
-					{
-						'count': count,
-						'type': type,
-					}
-					for count, type in conn.execute(stats_query)
-				]
 
 		if not session['header']['is_live']:
 			session['header']['nextstream'] = googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)

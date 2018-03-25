@@ -2,13 +2,11 @@ import irc
 import sqlalchemy
 from sqlalchemy.dialects.postgresql import insert
 
-
 import lrrbot.decorators
 from common import utils
 from common import twitch
 from lrrbot import storage
 from lrrbot.main import bot
-from lrrbot.commands.stats import stat_increment
 
 @bot.command("game")
 @lrrbot.decorators.throttle()
@@ -25,30 +23,20 @@ def current_game(lrrbot, conn, event, respond_to):
 		return
 	show_id = lrrbot.get_show_id()
 
-	game_votes = lrrbot.metadata.tables["game_votes"]
 	game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
 	games = lrrbot.metadata.tables["games"]
 	with lrrbot.engine.begin() as pg_conn:
-		good = sqlalchemy.cast(
-			sqlalchemy.func.sum(sqlalchemy.cast(game_votes.c.vote, sqlalchemy.Integer)),
-			sqlalchemy.Numeric
-		)
-		votes_query = sqlalchemy.alias(sqlalchemy.select([
-			(100 * good / sqlalchemy.func.count(game_votes.c.vote)).label("rating")
-		]).where(game_votes.c.game_id == game_id).where(game_votes.c.show_id == show_id))
-		game, rating = pg_conn.execute(
+		game, = pg_conn.execute(
 			sqlalchemy.select([
 				sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
-				votes_query.c.rating
 			]).select_from(
 				games.outerjoin(game_per_show_data,
 					(game_per_show_data.c.game_id == games.c.id)
 						& (game_per_show_data.c.show_id == show_id))
 			).where(games.c.id == game_id)).first()
 
-		conn.privmsg(respond_to, "Currently playing: %s%s%s" % (
+		conn.privmsg(respond_to, "Currently playing: %s%s" % (
 			game,
-			" (rating %0.0f%%)" % rating if rating is not None else "",
 			" (overridden)" if lrrbot.game_override is not None else ""
 		))
 
@@ -148,34 +136,3 @@ def refresh(lrrbot, conn, event, respond_to):
 	lrrbot.get_game_id.reset_throttle()
 	current_game.reset_throttle()
 	current_game(lrrbot, conn, event, respond_to)
-
-@bot.command("game completed")
-@lrrbot.decorators.throttle(30, notify=lrrbot.decorators.Visibility.PUBLIC, modoverride=False, allowprivate=False)
-def completed(lrrbot, conn, event, respond_to):
-	"""
-	Command: !game completed
-	Section: info
-
-	Mark a game as having been completed.
-	"""
-	game_id = lrrbot.get_game_id()
-	if game_id is None:
-		conn.privmsg(respond_to, "Not currently playing any game")
-		return
-	show_id = lrrbot.get_show_id()
-	games = lrrbot.metadata.tables["games"]
-	game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
-	stats = lrrbot.metadata.tables["stats"]
-	with lrrbot.engine.begin() as pg_conn:
-		name, = pg_conn.execute(sqlalchemy.select([
-			sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
-		]).select_from(games.outerjoin(
-			game_per_show_data,
-			(game_per_show_data.c.game_id == games.c.id) & (game_per_show_data.c.show_id == show_id)
-		)).where(games.c.id == game_id)).first()
-		stat_id, emote = pg_conn.execute(sqlalchemy.select([stats.c.id, stats.c.emote])
-			.where(stats.c.string_id == "completed")).first()
-		stat_increment(lrrbot, pg_conn, game_id, show_id, stat_id, 1)
-	if emote:
-		emote += " "
-	conn.privmsg(respond_to, "%s%s added to the completed list" % (emote, name))

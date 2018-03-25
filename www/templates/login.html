@@ -25,7 +25,7 @@ window.onload = init;
 {%if special_user%}
 <p class="error">Trying to log in as a special user <code>{{special_user|e}}</code>. Attempting login again with extra permissions requested...</p>
 {%else%}
-<p>Logging in to the LRRbot website via Twitch will let us know what your username is in the chat, so you can do things like vote on game ratings and such without spamming the chat. It also allows moderators access to administrative pages on the site.</p>
+<p>Logging in to the LRRbot website via Twitch will let us know what your username is in the chat. It also allows moderators access to administrative pages on the site.</p>
 {%endif%}
 <form id="frm" action="https://api.twitch.tv/kraken/oauth2/authorize" method="GET" {%if special_user%}style="display:none"{%endif%}>
 <div id="remember_me_wrapper" style="display: none; margin: 0.25em 0"><label><input id="remember_me" type="checkbox" onclick="update_state()" onchange="update_state()" {%if remember_me%}checked{%endif%}> Remember me</label></div>

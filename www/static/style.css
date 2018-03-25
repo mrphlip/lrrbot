@@ -369,40 +369,8 @@ ul.pagination li :visited {
 	background: #CCC;
 }
 
-table.statstable td.game {
-	text-align: right;
-}
-table.statstable thead th, table.statstable tfoot th.total {
-	text-align: center;
-}
-table.statstable td.stat, table.statstable tfoot th.stat {
-	text-align: right;
-}
-table.statstable td.game {
-	text-align: left;
-}
 .alias {
 	border-bottom: 1px dotted black;
-}
-table.statstable div.rating {
-	margin: 0.25em;
-	border: 1px solid black;
-	width: 20em;
-	height: 1em;
-	background: #C00;
-}
-table.statstable div.rating .good {
-	background: #0C0;
-	height: 1em;
-	margin: 0;
-	padding: 0;
-	border: none;
-	float: left;
-}
-.highchart {
-	width: auto;
-	height: 25em;
-	margin: 0.5em 0;
 }
 
 table.votes tr.current {
@@ -758,7 +726,7 @@ table.quote-search select {
 .clips tr.incomplete.even
 {
 	background: #DCC;
-}1
+}
 .clips tr.incomplete.odd
 {
 	background: #CBB;

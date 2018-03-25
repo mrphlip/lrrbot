@@ -4,8 +4,6 @@ from sqlalchemy.dialects.postgresql import insert
 
 TABLES = [
 	"game_per_show_data",
-	"game_stats",
-	"game_votes",
 	"games",
 	"quotes",
 ]
@@ -27,63 +25,6 @@ def merge_games(conn, metadata, old_id, new_id, result_id):
 	conn.execute(quotes.update().where(quotes.c.game_id.in_({old_id, new_id})), {
 		"game_id": result_id,
 	})
-
-	game_stats = metadata.tables["game_stats"]
-	query = insert(game_stats) \
-		.from_select(["game_id", "show_id", "stat_id", "count"],
-			sqlalchemy.select([result_id, game_stats.c.show_id, game_stats.c.stat_id, sqlalchemy.func.sum(game_stats.c.count)])
-				.where((game_stats.c.game_id == old_id) | (game_stats.c.game_id == new_id))
-				.group_by(game_stats.c.show_id, game_stats.c.stat_id)
-		)
-	query = query.on_conflict_do_update(
-		index_elements=[game_stats.c.game_id, game_stats.c.show_id, game_stats.c.stat_id],
-		set_={
-			'count': query.excluded.count,
-		}
-	)
-	conn.execute(query, {
-		"result_id": result_id,
-		"old_id": old_id,
-		"new_id": new_id,
-	})
-	conn.execute(game_stats.delete().where(game_stats.c.game_id.in_({old_id, new_id} - {result_id})))
-
-	game_votes = metadata.tables["game_votes"]
-	try:
-		with conn.begin_nested():
-			conn.execute(game_votes.update().where(game_votes.c.game_id.in_({old_id, new_id})), {
-				"game_id": result_id,
-			})
-	except sqlalchemy.exc.IntegrityError:
-		with conn.begin_nested():
-			res = conn.execute(sqlalchemy.select([
-				game_votes.c.show_id, game_votes.c.user_id, game_votes.c.vote
-			]).where(game_votes.c.game_id == old_id))
-
-			votes = {
-				(show_id, user_id): vote
-				for show_id, user_id, vote in res
-			}
-
-			res = conn.execute(sqlalchemy.select([
-				game_votes.c.show_id, game_votes.c.user_id, game_votes.c.vote
-			]).where(game_votes.c.game_id == new_id))
-
-			votes.update({
-				(show_id, user_id): vote
-				for show_id, user_id, vote in res
-			})
-
-			conn.execute(game_votes.delete().where(game_votes.c.game_id.in_({old_id, new_id})))
-			conn.execute(game_votes.insert(), [
-				{
-					"game_id": result_id,
-					"show_id": show_id,
-					"user_id": user_id,
-					"vote": vote
-				}
-				for (show_id, user_id), vote in votes.items()
-			])
 
 	game_per_show_data = metadata.tables["game_per_show_data"]
 	try:
@@ -130,15 +71,3 @@ def merge_games(conn, metadata, old_id, new_id, result_id):
 
 	games = metadata.tables["games"]
 	conn.execute(games.delete().where(games.c.id.in_({old_id, new_id} - {result_id})))
-
-def stat_plural(stats, count):
-	plural = sqlalchemy.func.coalesce(stats.c.plural,
-		sqlalchemy.func.coalesce(stats.c.singular, stats.c.string_id).concat("s")
-	)
-	if count is not None:
-		return sqlalchemy.case(
-			{1: sqlalchemy.func.coalesce(stats.c.singular, stats.c.string_id)},
-			value=count,
-			else_=plural,
-		)
-	return plural
