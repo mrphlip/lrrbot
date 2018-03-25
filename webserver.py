@@ -11,10 +11,8 @@ from www.server import app
 import www.index
 import www.help
 import www.notifications
-import www.stats
 import www.login
 import www.archive
-import www.votes
 import www.commands
 import www.spam
 import www.history

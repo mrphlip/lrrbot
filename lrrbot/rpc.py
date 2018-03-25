@@ -127,7 +127,7 @@ class Server(common.rpc.Server):
 
 	def generate_tweet(self):
 		import lrrbot.commands
-		mode = utils.weighted_choice([(0, 10), (1, 4), (2, 1)])
+		mode = utils.weighted_choice([(0, 10), (1, 4)])
 		if mode == 0: # get random !advice
 			return random.choice(storage.data['responses']['advice']['response'])
 		elif mode == 1: # get a random !quote
@@ -146,34 +146,6 @@ class Server(common.rpc.Server):
 				if context:
 					quote_msg += ", {context}".format(context=context)
 			return quote_msg
-		else: # get a random statistic
-			game_per_show_data = self.lrrbot.metadata.tables["game_per_show_data"]
-			game_stats = self.lrrbot.metadata.tables["game_stats"]
-			games = self.lrrbot.metadata.tables["games"]
-			shows = self.lrrbot.metadata.tables["shows"]
-			stats = self.lrrbot.metadata.tables["stats"]
-			with self.lrrbot.engine.begin() as conn:
-				res = conn.execute(
-					sqlalchemy.select([
-						sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
-						shows.c.name,
-						game_data.stat_plural(stats, game_stats.c.count),
-						game_stats.c.count,
-						sqlalchemy.func.log(game_stats.c.count)
-					]).select_from(
-						game_stats
-							.join(games, games.c.id == game_stats.c.game_id)
-							.join(shows, shows.c.id == game_stats.c.show_id)
-							.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == game_stats.c.game_id) & (game_per_show_data.c.show_id == game_stats.c.show_id))
-							.join(stats, stats.c.id == game_stats.c.stat_id)
-					).where(game_stats.c.count > 1)
-				)
-				game, show, stat, count = utils.pick_weighted_random_elements((
-					((game, show, stat, count), weight)
-					for game, show, stat, count, weight in res
-				), 1)[0]
-
-			return "%d %s for %s on %s" % (count, stat, game, show)
 
 	@aiomas.expose
 	def patreon_pledge(self, data):

@@ -7,7 +7,6 @@ from collections import OrderedDict
 
 SECTIONS = OrderedDict((
 	("info", "Stream information"),
-	("stats", "Stats tracking"),
 	("quotes", "Quotes"),
 	("text", "Simple text responses"),
 	("misc", "Miscellaneous"),

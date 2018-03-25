@@ -9,7 +9,6 @@
 <script type="text/javascript" src="{{static_url('jquery-1.10.2.js')|e}}"></script>
 <script type="text/javascript" src="{{static_url('jquery-ui-1.11.4-tooltip.js')|e}}"></script>
 <script type="text/javascript" src="{{static_url('common.js')|e}}"></script>
-<script type="text/javascript" src="{{static_url('infobar.js')|e}}"></script>
 {%block headextra%}{%endblock%}
 {%endblock%}
 </head>
@@ -31,18 +30,7 @@
 		<div class="advice">{{session['header']['advice']|e}}</div>
 	{%endif%}
 	{%if session['header'].get('current_game')%}
-		<span class="showmore expand"></span>
         Currently playing: <span class="currently-playing">{{session['header']['current_game']['display']|e}}</span> on <span class="currently-playing">{{session['header']['current_show']['name']}}</span>
-		{%if session['header']['current_game'].get("rating")%}
-			<span class="rating" style="display: none">&ndash; {{"%.0f"|format(session['header']['current_game']['rating']['perc'])|e}}% ({{session['header']['current_game']['rating']['good']|e}}/{{session['header']['current_game']['rating']['total']|e}})</span>
-		{%endif%}
-		<div class="stats" style="display: none">
-			<ul>
-				{%for stat in session['header']['current_game']['stats']%}
-				<li {%if loop.first%}class="first"{%endif%}><span class="stat-count">{{stat['count']|e}}</span> <span class="stat-type">{{stat['type']|e}}</span></li>
-				{%endfor%}
-			</ul>
-		</div>
 	{%elif session['header']['is_live']%}
 		The stream is currently live, but not playing any known game.
 	{%else%}
@@ -56,9 +44,7 @@
 <div class="menu">
 <ul>
 	<li class="first"><a href="{{url_for('help')|e}}">Commands</a></li>
-	<li><a href="{{url_for('stats')|e}}">Stats</a></li>
 	<li><a href="{{url_for('notifications')|e}}">Notifications</a></li>
-	<li><a href="{{url_for('votes')|e}}">Votes</a></li>
 	<li><a href="{{url_for('archive')|e}}">Past Broadcasts</a></li>
 	<li><a href="{{url_for('archive')|e}}?highlights=true">Highlights</a></li>
 	<li><a href="{{url_for('quotes')|e}}">Quotes</a></li>
