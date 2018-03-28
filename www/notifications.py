@@ -56,11 +56,6 @@ def get_milestones():
 def notifications(session):
 	last_event_id, events = get_events()
 
-	if server.app.debug:
-		eventserver_root = "http://localhost:8080"
-	else:
-		eventserver_root = ""
-
 	patreon_users = server.db.metadata.tables['patreon_users']
 	users = server.db.metadata.tables['users']
 	with server.db.engine.begin() as conn:
@@ -71,4 +66,9 @@ def notifications(session):
 	if name:
 		name = name[0]
 
-	return flask.render_template('notifications.html', events=events, last_event_id=last_event_id, eventserver_root=eventserver_root, session=session, patreon_creator_name=name, milestones=get_milestones())
+	return flask.render_template('notifications.html', events=events, last_event_id=last_event_id, session=session, patreon_creator_name=name, milestones=get_milestones())
+
+# Compatibility shim
+@server.app.route('/notifications/events')
+def events():
+	return flask.redirect(flask.url_for("api_v2.events", **flask.request.args), 301)

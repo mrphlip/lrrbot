@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', function (event) {
 	}
 
 	if (window.EventSource) {
-		var stream = new EventSource(window.EVENTSERVER_ROOT + "/notifications/events?last-event-id=" + window.last_event_id);
+		var stream = new EventSource("/api/v2/events?last-event-id=" + window.last_event_id);
 		stream.addEventListener("twitch-subscription", function (event) {
 			twitch_subscription(JSON.parse(event.data));
 			update_title();
@@ -68,7 +68,7 @@ function ajax_poll() {
 		});
 		update_title();
 	})
-	req.open("GET", window.EVENTSERVER_ROOT + "/notifications/events?last-event-id=" + window.last_event_id);
+	req.open("GET", "/api/v2/events?last-event-id=" + window.last_event_id);
 	req.setRequestHeader("Accept", "application/json");
 	req.send();
 }

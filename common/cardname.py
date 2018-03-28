@@ -1,5 +1,7 @@
 import re
 
+from common.postgres import escape_like
+
 re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/\u2019]")
 LETTERS_MAP = {
 	'\u00e0': 'a',
@@ -42,3 +44,6 @@ def clean_text(text):
 	for k, v in LETTERS_MAP.items():
 		text = text.replace(k, v)
 	return text
+
+def to_query(text):
+	return "%" + "%".join(escape_like(clean_text(word)) for word in text.split()) + "%"

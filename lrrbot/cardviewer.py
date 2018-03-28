@@ -1,8 +1,10 @@
 import asyncio
+import aiomas
 import logging
 import time
 import re
 import urllib.parse
+import sqlalchemy
 
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.pnconfiguration import PNReconnectionPolicy
@@ -20,6 +22,8 @@ ANNOUNCE_DELAY = 10
 log = logging.getLogger('cardviewer')
 
 class CardViewer:
+	router = aiomas.rpc.Service()
+
 	def __init__(self, lrrbot, loop):
 		self.lrrbot = lrrbot
 		self.loop = loop
@@ -30,6 +34,24 @@ class CardViewer:
 		]
 		self.re_scryfall_1 = re.compile("^/cards/multiverse/(\d+)", re.I)
 		self.re_scryfall_2 = re.compile("^/cards/[^/]+/[^/]+/(?P<set>[^/]+)/(?P<number>[^/]+)\.[^.]*($|\?)", re.I)
+
+		self.lrrbot.rpc_server.cardviewer = self
+
+	@aiomas.expose
+	@utils.cache(REPEAT_TIMER, params=['card_id'])
+	def announce(self, card_id):
+		cards = self.lrrbot.metadata.tables['cards']
+		with self.lrrbot.engine.begin() as conn:
+			card = conn.execute(sqlalchemy.select([cards.c.name, cards.c.text]).where(cards.c.id == card_id)).first()
+			if card is not None:
+				name, text = card
+			else:
+				return
+
+		log.info("Got a card from the API: [%d] %s", card_id, name)
+
+		asyncio.ensure_future(asyncio.sleep(ANNOUNCE_DELAY), loop=self.loop) \
+			.add_done_callback(lambda fut: self.lrrbot.connection.privmsg("#" + config['channel'], text))
 
 	def start(self):
 		if config['cardsubkey']:
