@@ -50,8 +50,9 @@ class CardViewer:
 
 		log.info("Got a card from the API: [%d] %s", card_id, name)
 
-		asyncio.ensure_future(asyncio.sleep(ANNOUNCE_DELAY), loop=self.loop) \
-			.add_done_callback(lambda fut: self.lrrbot.connection.privmsg("#" + config['channel'], text))
+		if self.lrrbot.cardview:
+			asyncio.ensure_future(asyncio.sleep(ANNOUNCE_DELAY), loop=self.loop) \
+				.add_done_callback(lambda fut: self.lrrbot.connection.privmsg("#" + config['channel'], text))
 
 	def start(self):
 		if config['cardsubkey']:
