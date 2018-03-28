@@ -1,0 +1,429 @@
+{% extends "master.html" %}
+
+{% block title %}LRRbot API v2 documentation{% endblock %}
+
+{% block header %}LRRbot API v2 documentation{% endblock %}
+
+{% block content %}
+<h2>Table of contents</h2>
+<ul>
+	<li><a href="#cardviewer_announce"><code>POST {{ url_for("api_v2.cardviewer_announce") }}</code></a></li>
+	<li><a href="#get_clips"><code>GET {{ url_for("api_v2.get_clips") }}</code></a></li>
+	<li><a href="#disconnect"><code>POST {{ url_for("api_v2.disconnect") }}</code></a></li>
+	<li><a href="#events"><code>GET {{ url_for("api_v2.events") }}</code></a></li>
+	<li><a href="#get_polls"><code>GET {{ url_for("api_v2.get_polls") }}</code></a></li>
+	<li><a href="#set_show"><code>PUT {{ url_for("api_v2.set_show") }}</code></a></li>
+	<li><a href="#stormcount"><code>GET {{ url_for("api_v2.stormcount") }}</code></a></li>
+	<li><a href="#get_tweet"><code>GET {{ url_for("api_v2.get_tweet") }}</code></a></li>
+</ul>
+
+<h2 id="cardviewer_announce"><code>POST {{ url_for("api_v2.cardviewer_announce") }}</code></h2>
+<p>
+	Announce an MTG card in chat. If multiple modes would match the query the first one is used. For example
+	the query <code>{"multiverseid": 1, "name": "Lighning Bolt"}</code> would announce the card Ankh of Mishra.
+</p>
+<h3>By multiverse ID</h3>
+<dl>
+	<dt><code>multiverseid</code></dt>
+	<dd>The ID of the card on Gatherer.</dd>
+</dl>
+<h4>Example</h4>
+<pre>{"multiverseid": 435173}</pre>
+<h3>By name</h3>
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name of the card.</dd>
+	<dt><code>variant</code></dt>
+	<dd>Optional. Card variant code if there's multiple cards with the same name.</dd>
+</dl>
+<h4>Examples</h4>
+<pre>{"name": "Strip Mine"}
+{"name": "Adanto, the First Fort"}
+{"name": "Very Cryptic Command", "variant": "c"}</pre>
+<h3>Host and augment</h3>
+<dl>
+	<dt><code>host</code></dt>
+	<dd>The name of the host creature.</dd>
+	<dt><code>augment</code></dt>
+	<dd>The name of the augment creature.</dd>
+</dl>
+<h4>Example</h4>
+<pre>{"augment": "Half-Kitten, Half-", "host": "Adorable Kitten"}</pre>
+
+<h3>Response</h3>
+On success it will respond with the name and the text of the card.
+<pre>{
+  "name": "Llanowar Elves",
+  "text": "Llanowar Elves [G] | Creature — Elf Druid [1/1] | {T}: Add {G} to your mana pool."
+}</pre>
+
+<h2 id="get_clips"><code>GET {{ url_for("api_v2.get_clips") }}</code></h2>
+<p>Get the list of clips. The user must me a moderator.</p>
+
+<h3>Query parameters</h3>
+<dl>
+	<dt><code>days</code></dt>
+	<dd>Return clips that are up to <code>days</code> days old. The default is 14.</dd>
+	<dt><code>full</code></dt>
+	<dd>If zero (the default) then return all accepted clips as URLs one per line.</dd>
+	<dd>If non-zero then return all clips as JSON.</dd>
+	<dd>
+		<dl>
+			<dt><code>rating</code></dt>
+			<dd><code>true</code> if the clip was accepted, <code>false</code> if it wasn't.</dd>
+			<dt><code>slug</code></dt>
+			<dd>The URL slug of the clip.</dd>
+			<dt><code>title</code></dt>
+			<dd>The title of the clip.</dd>
+			<dt><code>url</code></dt>
+			<dd>The URL of the clip.</dd>
+			<dt><code>vodid</code></dt>
+			<dd>The ID of the video the clip is taken from.</dd>
+		</dl>
+	</dd>
+</dl>
+
+<h3>Example response</h3>
+<h4><code>full=0</code></h4>
+<pre>https://clips.twitch.tv/TolerantDirtyFishKreygasm
+https://clips.twitch.tv/WrongUnusualSparrowOhMyDog
+https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
+
+<h4><code>full=1</code></h4>
+<pre>[
+  {
+    "rating": false, 
+    "slug": "VibrantPiercingRuffMrDestructoid", 
+    "title": "the Steam dalay", 
+    "url": "https://clips.twitch.tv/VibrantPiercingRuffMrDestructoid", 
+    "vodid": "238399552"
+  }
+]</pre>
+
+<h2 id="disconnect"><code>POST {{ url_for("api_v2.disconnect") }}</code></h2>
+<p>Disconnects the bot from Twitch. Returns nothing. The user must be a moderator.</p>
+
+<h2 id="events"><code>GET {{ url_for("api_v2.events") }}</code></h2>
+<p>Get all events after a certain event. This endpoint uses content negotiation to determine how it behaves.</p>
+
+<h3>Filter parameters</h3>
+<p>If no filter parameters are set only new events will be returned.</p>
+
+<dl>
+	<dt><code>last-event-id</code></dt>
+	<dd>Only include events after this one. Can also be set as the <code>Last-Event-ID</code> header. If both are present the header is used.</dd>
+	<dt><code>interval</code></dt>
+	<dd>Only include events that happened up to <code>interval</code> ago.
+		The syntax is whatever <a href="https://www.postgresql.org/docs/10/static/datatype-datetime.html#DATATYPE-INTERVAL-INPUT">PostgreSQL accepts.</a></dd>
+</dl>
+
+<h3>Events</h3>
+<h4>Common fields</h4>
+<dl>
+	<dt><code>count</code></dt>
+	<dl>The value of the corresponding stormcount. In general how many events of the same type as this event have occurred today. Is not present on all event types.</dl>
+	<dt><code>time</code></dt>
+	<dt>Timestamp of the event in the ISO 8601 format.</dt>
+</dl>
+
+<h4><code>patreon-pledge</code></h4>
+<p>New patron on Patreon.</p>
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name used in the announcement. Twitch name if it's known, Patreon name otherwise.</dd>
+	<dt><code>patreon</code></dt>
+	<dd>Patreon specific information</dd>
+	<dd>
+		<dl>
+			<dt><code>full_name</code></dt>
+			<dd>Patron full name</dd>
+			<dt><code>avatar</code></dt>
+			<dd>Avatar. Might be missing or <code>null</code>.</dd>
+			<dt><code>url</code></dt>
+			<dd>Patron's Patreon page</dd>
+		</dl>	
+	</dd>
+	<dt><code>twitch</code></dt>
+	<dd>Twitch specific information. Might be not present or <code>null</code>.</dd>
+	<dd>
+		<dl>
+			<dt><code>name</code></dt>
+			<dd>Patron's Twitch name.</dd>
+		</dl>
+	</dd>
+</dl>
+<h5>Example payload</h5>
+<pre>{
+  "name": "qrpth",
+  "twitch": {
+    "name": "qrpth"
+  },
+  "patreon": {
+    "avatar": "//s3-us-west-1.amazonaws.com/patreon.user/wyI1P8QgKYucgLGoHwDqE2ezldUBSDHk5eAxNRzYr7psZarMizNwlEhCPDM41gIa_large_2.jpeg",
+    "full_name": "qrpth",
+    "url": "https://www.patreon.com/qrpth"
+  },
+  "time": "2016-06-20T21:17:09.890668+02:00",
+  "count": 1
+}</pre>
+
+<h4><code>strawpoll-add</code></h4>
+<p>
+	New poll was added with <kbd>!poll</kbd> or <kbd>!nowkiss</kbd>. The payload is the same as returned by
+	<a href="https://strawpoll.me/">strawpoll.me's</a> <a href="https://github.com/strawpoll/strawpoll/wiki/API">API</a>.
+	The only difference is the <code>tag</code> key which if present and equal to <code>"nowkiss"</code> means that the
+	poll was created with <kbd>!nowkiss</kbd>.
+</p>
+<h5>Example payload</h5>
+<pre>{
+  "id": 15346267,
+  "title": "Keep playing Hustle Cat? [2018-03-23]",
+  "time": "2018-03-23T20:03:36.540677+01:00",
+  "options": [
+    "Swipe Right (keep playing next week)",
+    "Swipe Left (new game!)"
+  ],
+  "captcha": false,
+  "dupcheck": "normal",
+  "votes": [
+    0,
+    0
+  ],
+  "multi": false,
+  "tag": "nowkiss"
+}</pre>
+
+<h4><code>strawpoll-complete</code></h4>
+<p>
+	A poll has completed and the results have been announced in chat. The payload is the same as returned by
+	<a href="https://strawpoll.me/">strawpoll.me's</a> <a href="https://github.com/strawpoll/strawpoll/wiki/API">API</a>.
+	The only difference is the <code>tag</code> key which if present and equal to <code>"nowkiss"</code> means that the
+	poll was created with <kbd>!nowkiss</kbd>.
+</p>
+<h5>Example payload</h5>
+<pre>{
+  "id": 15346267,
+  "title": "Keep playing Hustle Cat? [2018-03-23]",
+  "time": "2018-03-23T20:08:41.598222+01:00",
+  "options": [
+    "Swipe Right (keep playing next week)",
+    "Swipe Left (new game!)"
+  ],
+  "captcha": false,
+  "dupcheck": "normal",
+  "votes": [
+    90,
+    5
+  ],
+  "multi": false,
+  "tag": "nowkiss"
+}</pre>
+
+<h4><code>stream-down</code></h4>
+<p>The stream has stopped.</p>
+<h5>Example payload</h5>
+<pre>{
+  "time": "2018-03-27T01:59:55.636950+02:00"
+}</pre>
+
+<h4><code>stream-up</code></h4>
+<p>The stream has started.</p>
+<h5>Example payload</h5>
+<pre>{
+  "time": "2018-03-27T01:59:55.636950+02:00"
+}</pre>
+
+<h4><code>twitch-follow</code></h4>
+<p>New follower on Twitch.</p>
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar</dd>
+</dl>
+
+<h5>Example payload</h5>
+<pre>{
+  "name": "qrpth",
+  "avatar": "https://static-cdn.jtvnw.net/jtv_user_pictures/qrpth-profile_image-d43b8ad66411f7a4-300x300.png",
+  "time": "2016-07-21T19:54:30+02:00",
+  "count": 7
+}</pre>
+
+<h4><code>twitch-message</code></h4>
+<p>New message from Twitch. Used to be sent to say the number of people that subscribed since the last stream.</p>
+
+<dl>
+	<dt><code>message</code></dt>
+	<dd>The message.</dd>
+</dl>
+
+<h5>Example payload</h5>
+<pre>{
+  "message": "23 viewers resubscribed while you were away!",
+  "time": "2017-05-24T18:07:59.674772+02:00",
+  "count": 1
+}</pre>
+
+<h4><code>twitch-resubscription</code></h4>
+<p>New returning subscriber on Twitch.</p>
+
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar. Might be not present or <code>null</code>.</dd>
+	<dt><code>benefactor</code></dt>
+	<dd>The name of the user who gifted this subscription. Might be <code>null</code> or missing.</dd>
+	<dt><code>monthcount</code></dt>
+	<dd></dd>
+	<dt><code>message</code></dt>
+	<dd>The plaintext subscription message. Might be <code>null</code> or missing.</dd>
+	<dt><code>messagehtml</code></dt>
+	<dd>The subscription message as HTML. Might be <code>null</code> or missing.</dd>
+</dl>
+
+<h5>Example payload</h5>
+<pre>{
+  "benefactor": null,
+  "name": "qrpth",
+  "monthcount": 23,
+  "time": "2018-03-16T22:18:43.166609+01:00",
+  "count": 30,
+  "avatar": "https://static-cdn.jtvnw.net/jtv_user_pictures/qrpth-profile_image-d43b8ad66411f7a4-300x300.png",
+  "message": "lrrHORN lrrHORN lrrHEART",
+  "messagehtml": "&lt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/44650/1.0\" alt=\"lrrHORN\" title=\"lrrHORN\"> &lt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/44650/1.0\" alt=\"lrrHORN\" title=\"lrrHORN\"> &lgt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/325892/1.0\" alt=\"lrrHEART\" title=\"lrrHEART\">"
+}</pre>
+
+<h4><code>twitch-subscription</code></h4>
+<p>New subscriber on Twitch.</p>
+
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar. Might be not present or <code>null</code>.</dd>
+	<dt><code>benefactor</code></dt>
+	<dd>The name of the user who gifted this subscription. Might be <code>null</code> or missing.</dd>
+</dl>
+
+<h5>Example payload</h5>
+<pre>{
+  "name": "rourke9",
+  "avatar": "https://static-cdn.jtvnw.net/user-default-pictures/49988c7b-57bc-4dee-bd4f-6df4ad215d3a-profile_image-300x300.jpg",
+  "benefactor": "F1SHOR",
+  "time": "2018-03-25T03:45:05.509759+02:00",
+  "count": 12
+}</pre>
+
+<h3>Server-sent events mode (default)</h3>
+<h4>Example request</h4>
+<pre>curl -H "Accept: text/event-stream" {{ url_for("api_v2.events", _external=True) }}</pre>
+<h4>Example response</h4>
+<pre>id:102985
+event:stream-up
+data:{"time": "2018-03-27T20:59:04.621308+02:00"}
+
+:keep-alive
+
+...</pre>
+
+<h3>JSON mode</h3>
+<p>Will only return old events. Thus if no filter parameter is set this will return an empty list</p>
+<h4>Example request</h4>
+<pre>curl -H "Accept: application/json" {{ url_for("api_v2.events", _external=True) }}</pre>
+<h4>Example response</h4>
+<pre>{
+  "events": [
+    {
+      "data": {
+        "time": "2018-03-27T20:59:04.621308+02:00"
+      },
+      "id": 102985,
+      "event": "stream-up"
+    }
+  ]
+}</pre>
+
+<h2 id="get_polls"><code>GET {{ url_for("api_v2.get_polls") }}</code></h2>
+<p>Get currently active polls.</p>
+
+<dl>
+	<dt><code>id</code></dt>
+	<dd><a href="https://strawpoll.me/">strawpoll.me</a> ID of the poll</dd>
+	<dt><code>title</code></dt>
+	<dd>The name of the poll</dd>
+	<dt><code>tag</code></dt>
+	<dd>If present and equal to <code>"nowkiss"</code> then the poll was created with <kbd>!nowkiss</kbd>.</dd>
+</dl>
+
+<h3>Example response</h3>
+<pre>[
+  {
+    "id": 15346267,
+    "title": "Keep playing Hustle Cat? [2018-03-23]",
+    "tag": "nowkiss"
+  }
+]</pre>
+
+<h2 id="set_show"><code>PUT {{ url_for("api_v2.set_show") }}</code></h2>
+<p>Set the current show. Returns the currently active show which might not be what was set. The user must be a moderator.</p>
+
+<dl>
+	<dt><code>code</code></dt>
+	<dd>The show code or empty string to unset the show.</dd>
+	<dd>
+		<table class="nicetable">
+			<thead>
+				<tr><th>Code</th><th>Name</th></tr>
+			</thead>
+			<tbody>
+				{% for key, name in shows %}
+					<tr class="{{ loop.cycle('odd', 'even') }}">
+						<td><code>{{ key }}</code></td>
+						<td>{{ name }}</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</dd>
+</dl>
+
+<h3>Example request</h3>
+<pre>curl -X PUT {{ url_for("api_v2.set_show", _external=True, apipass="dickbutt") }} -H "Content-Type: application/json" -d '{"code": "tinker"}'</pre>
+
+<h3>Example response</h3>
+<pre>{
+  "code": "tinker", 
+  "name": "Tinker, Tailor, Solder, Fry"
+}</pre>
+
+<h2 id="stormcount"><code>GET {{ url_for("api_v2.stormcount") }}</code></h2>
+<p>Get today's stormcounts.</p>
+
+<dl>
+	<dt><code>patreon-pledge</code></dt>
+	<dd>The number of new patrons on Patreon.</dd>
+
+	<dt><code>twitch-cheer</code></dt>
+	<dd>The total number of bits cheered.</dd>
+
+	<dt><code>twitch-follow</code></dt>
+	<dd>The number of new followers.</dd>
+
+	<dt><code>twitch-resubscription</code></dt>
+	<dd>The number of returning subscribers.</dd>
+
+	<dt><code>twitch-subscription</code></dt>
+	<dd>The number of new subscribers.</dd>
+</dl>
+
+<h3>Example response</h3>
+<pre>{{ stormcount }}</pre>
+
+<h2 id="get_tweet"><code>GET {{ url_for("api_v2.get_tweet") }}</code></h2>
+<p>Get a random message to post on <a href="https://twitter.com/lrrbot">LRRbot's Twitter account</a>.</p>
+<h3>Example response</h3>
+<pre>{{ tweet }}</pre>
+
+{% endblock %}

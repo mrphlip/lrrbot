@@ -17,6 +17,7 @@ import www.commands
 import www.spam
 import www.history
 import www.api
+import www.api_v2
 import www.quotes
 import www.patreon
 import www.clips
@@ -34,6 +35,8 @@ app.jinja_env.globals["min"] = min
 app.jinja_env.globals["max"] = max
 app.jinja_env.globals["static_url"] = www.utils.static_url
 app.jinja_env.globals["cycler"] = www.utils.CyclerExt
+
+app.register_blueprint(www.api_v2.blueprint, url_prefix="/api/v2")
 
 __all__ = ['app']
 

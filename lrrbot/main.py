@@ -99,9 +99,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			self.whisperconn = None
 
-		# create pubnub listener
-		self.cardviewer = cardviewer.CardViewer(self, self.loop)
-
 		# IRC event handlers
 		self.reactor.add_global_handler('welcome', self.check_privmsg_wrapper, 0)
 		self.reactor.add_global_handler('welcome', self.on_connect, 1)
@@ -128,6 +125,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.spammers = {}
 
 		self.rpc_server = rpc.Server(self, loop)
+
+		# create pubnub listener
+		self.cardviewer = cardviewer.CardViewer(self, self.loop)
 
 		self.commands = command_parser.CommandParser(self, loop)
 		self.command = self.commands.decorator

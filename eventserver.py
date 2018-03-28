@@ -144,8 +144,8 @@ async def main(loop):
 	server = Server()
 	await server.start(config['eventsocket'], config['event_port'])
 	app = aiohttp.web.Application()
-	app.router.add_route('GET', '/notifications/events', server.negotiate)
-	app.router.add_route('OPTIONS', '/notifications/events', server.cors_preflight)
+	app.router.add_route('GET', '/api/v2/events', server.negotiate)
+	app.router.add_route('OPTIONS', '/api/v2/events', server.cors_preflight)
 	app.on_shutdown.append(server.on_shutdown)
 
 	handler = app.make_handler()
