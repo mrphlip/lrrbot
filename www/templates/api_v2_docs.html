@@ -14,6 +14,7 @@
 	<li><a href="#get_polls"><code>GET {{ url_for("api_v2.get_polls") }}</code></a></li>
 	<li><a href="#set_show"><code>PUT {{ url_for("api_v2.set_show") }}</code></a></li>
 	<li><a href="#stormcount"><code>GET {{ url_for("api_v2.stormcount") }}</code></a></li>
+	<li><a href="#stormcount_all"><code>GET {{ url_for("api_v2.stormcount_all") }}</code></a></li>
 	<li><a href="#get_tweet"><code>GET {{ url_for("api_v2.get_tweet") }}</code></a></li>
 </ul>
 
@@ -32,7 +33,7 @@
 <h3>By name</h3>
 <dl>
 	<dt><code>name</code></dt>
-	<dd>Name of the card.</dd>
+	<dd>Name of the card. It doesn't need to be exact. In general if it works with <code>!card</code> it will work with this.</dd>
 	<dt><code>variant</code></dt>
 	<dd>Optional. Card variant code if there's multiple cards with the same name.</dd>
 </dl>
@@ -233,6 +234,36 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
   "time": "2018-03-27T01:59:55.636950+02:00"
 }</pre>
 
+<h4><code>twitch-cheer</code></h4>
+<p></p>
+<dl>
+	<dt><code>bits</code></dt>
+	<dd>The number of bits cheered.</dd>
+
+	<dt><code>level</code></dt>
+	<dd><code>"red"</code> for 10000+ bits, <code>"blue"</code> for 5000-9999, <code>"green"</code> for 1000-4999, <code>"purple"</code> for 100-999, <code>"gray"</code> for 1-99</dd>
+
+	<dt><code>message</code></dt>
+	<dd>The plaintext message.</dd>
+
+	<dt><code>messagehtml</code></dt>
+	<dd>The message as HTML.</dd>
+
+	<dt><code>name</code></dt>
+	<dd>The name of the cheerer.</dd>
+</dl>
+
+<h5>Example payload</h5>
+<pre>{
+  "bits": 500,
+  "time": "2018-03-29T05:56:42.567491+02:00",
+  "messagehtml": "&lt;span class=\"cheer\" style=\"color: #9c3ee8\">&lt;img src=\"https://d3aqoihi2n8ty8.cloudfront.net/actions/cheer/light/static/100/1.png\" alt=\"cheer\" title=\"Cheer 100\">100&lt;/span> &lt;span class=\"cheer\" style=\"color: #9c3ee8\">&lt;img src=\"https://d3aqoihi2n8ty8.cloudfront.net/actions/cheer/light/static/100/1.png\" alt=\"cheer\" title=\"Cheer 100\">100&lt;/span> &lt;span class=\"cheer\" style=\"color: #9c3ee8\">&lt;img src=\"https://d3aqoihi2n8ty8.cloudfront.net/actions/cheer/light/static/100/1.png\" alt=\"cheer\" title=\"Cheer 100\">100&lt;/span> &lt;span class=\"cheer\" style=\"color: #9c3ee8\">&lt;img src=\"https://d3aqoihi2n8ty8.cloudfront.net/actions/cheer/light/static/100/1.png\" alt=\"cheer\" title=\"Cheer 100\">100&lt;/span> &lt;span class=\"cheer\" style=\"color: #9c3ee8\">&lt;img src=\"https://d3aqoihi2n8ty8.cloudfront.net/actions/cheer/light/static/100/1.png\" alt=\"cheer\" title=\"Cheer 100\">100&lt/span> Great show, Great game",
+  "count": 8321,
+  "message": "cheer100 cheer100 cheer100 cheer100 cheer100 Great show, Great game",
+  "level": "purple",
+  "name": "thundervoice1"
+}</pre>
+
 <h4><code>twitch-follow</code></h4>
 <p>New follower on Twitch.</p>
 <dl>
@@ -411,6 +442,9 @@ data:{"time": "2018-03-27T20:59:04.621308+02:00"}
 	<dt><code>twitch-follow</code></dt>
 	<dd>The number of new followers.</dd>
 
+	<dt><code>twitch-message</code></dt>
+	<dd>The number of messages from Twitch.</dd>
+
 	<dt><code>twitch-resubscription</code></dt>
 	<dd>The number of returning subscribers.</dd>
 
@@ -420,6 +454,44 @@ data:{"time": "2018-03-27T20:59:04.621308+02:00"}
 
 <h3>Example response</h3>
 <pre>{{ stormcount }}</pre>
+
+<h2 id="stormcount_all"><code>GET {{ url_for("api_v2.stormcount_all") }}</code></h2>
+<p>
+	Get a list of daily stormcounts. The structure of the individual stormcounts is the same as for
+	<a href="#stormcount"><code>GET {{ url_for("api_v2.stormcount") }}</code></a> but there's an additional
+	key <code>date</code> that indicates in the ISO 8601 format what day the stormcounts are for.
+</p>
+
+<pre>[
+	...,
+  {
+    "date": "2016-06-21", 
+    "patreon-pledge": 3, 
+    "twitch-cheer": 0, 
+    "twitch-follow": 0, 
+    "twitch-message": 0, 
+    "twitch-resubscription": 23, 
+    "twitch-subscription": 8
+  }, 
+  {
+    "date": "2016-06-20", 
+    "patreon-pledge": 1, 
+    "twitch-cheer": 0, 
+    "twitch-follow": 0, 
+    "twitch-message": 1, 
+    "twitch-resubscription": 21, 
+    "twitch-subscription": 4
+  }, 
+  {
+    "date": "2016-06-19", 
+    "patreon-pledge": 0, 
+    "twitch-cheer": 0, 
+    "twitch-follow": 0, 
+    "twitch-message": 0, 
+    "twitch-resubscription": 0, 
+    "twitch-subscription": 16
+  }
+]</pre>
 
 <h2 id="get_tweet"><code>GET {{ url_for("api_v2.get_tweet") }}</code></h2>
 <p>Get a random message to post on <a href="https://twitter.com/lrrbot">LRRbot's Twitter account</a>.</p>

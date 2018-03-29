@@ -44,12 +44,41 @@ async def docs(session):
 @blueprint.route("/stormcount")
 def stormcount():
 	return flask.jsonify({
+		'twitch-message': common.storm.get(server.db.engine, server.db.metadata, 'twitch-message'),
 		'twitch-subscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-subscription'),
 		'twitch-resubscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-resubscription'),
 		'twitch-follow': common.storm.get(server.db.engine, server.db.metadata, 'twitch-follow'),
 		'twitch-cheer': common.storm.get(server.db.engine, server.db.metadata, 'twitch-cheer'),
 		'patreon-pledge': common.storm.get(server.db.engine, server.db.metadata, 'patreon-pledge'),
 	})
+
+@blueprint.route("/stormcount/all")
+def stormcount_all():
+	storm = server.db.metadata.tables["storm"]
+	with server.db.engine.begin() as conn:
+		res = conn.execute(sqlalchemy.select([
+			storm.c.date,
+			storm.c["twitch-subscription"],
+			storm.c["twitch-resubscription"],
+			storm.c["twitch-follow"],
+			storm.c["twitch-message"],
+			storm.c["patreon-pledge"],
+			storm.c["twitch-cheer"],
+		]).order_by(storm.c.date.desc()))
+
+		return flask.jsonify([
+			{
+				"date": date.isoformat(),
+				"twitch-subscription": twitch_subscription,
+				"twitch-resubscription": twitch_resubscription,
+				"twitch-follow": twitch_follow,
+				"twitch-message": twitch_message,
+				"patreon-pledge": patreon_pledge,
+				"twitch-cheer": twitch_cheer,
+			}
+			for date, twitch_subscription, twitch_resubscription, twitch_follow, twitch_message, patreon_pledge, twitch_cheer in res
+		])
+
 
 @blueprint.route("/show", methods=["PUT"])
 @require_mod
