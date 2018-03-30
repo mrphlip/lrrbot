@@ -190,30 +190,12 @@ async def patreon_webhooks():
 					'pledge_start': query.excluded.pledge_start,
 				}
 			)
-			patron_id, = conn.execute(query,
-					patreon_id=patron['id'],
-					full_name=patron['attributes']['full_name'],
-					pledge_start=pledge_start,
+			conn.execute(query,
+				patreon_id=patron['id'],
+				full_name=patron['attributes']['full_name'],
+				pledge_start=pledge_start,
 			).first()
-			twitch_user = conn.execute(sqlalchemy.select([users.c.name]).where(users.c.patreon_user_id == patron_id)).first()
-			if twitch_user is not None:
-				twitch_user = {
-					'name': twitch_user[0]
-				}
-			data = {
-				'patreon': {
-					'full_name': patron['attributes']['full_name'],
-					'avatar': patron['attributes']['image_url'],
-					'url': patron['attributes']['url']
-				},
-				'twitch': twitch_user,
-			}
-		data["name"] = data['twitch']['name'] if data['twitch'] is not None else data['patreon']['full_name']
-		data["count"] = common.storm.increment(server.db.engine, server.db.metadata, 'patreon-pledge')
-		results = await asyncio.gather(common.rpc.bot.patreon_pledge(data), common.rpc.eventserver.event('patreon-pledge', data, datetime.datetime.now(tz=pytz.utc)), return_exceptions=True)
-		for result in results:
-			if isinstance(result, BaseException):
-				raise result
+		common.storm.increment(server.db.engine, server.db.metadata, 'patreon-pledge')
 	elif event == 'pledges:update':
 		with server.db.engine.begin() as conn:
 			query = insert(patreon_users).returning(patreon_users.c.id)

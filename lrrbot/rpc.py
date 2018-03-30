@@ -149,19 +149,6 @@ class Server(common.rpc.Server):
 			return quote_msg
 
 	@aiomas.expose
-	def patreon_pledge(self, data):
-		patreon_users = self.lrrbot.metadata.tables['patreon_users']
-		users = self.lrrbot.metadata.tables['users']
-		with self.lrrbot.engine.begin() as conn:
-			name = conn.execute(sqlalchemy.select([patreon_users.c.full_name])
-				.select_from(users.join(patreon_users))
-				.where(users.c.name == config['channel'])
-			).first()
-		if name:
-			storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
-			self.lrrbot.connection.privmsg("#" + config['channel'], "lrrSPOT Thanks for supporting %s on Patreon, %s! (Today's storm count: %d)" % (name[0], data['name'], storm_count))
-
-	@aiomas.expose
 	def disconnect_from_chat(self):
 		self.lrrbot.disconnect()
 
