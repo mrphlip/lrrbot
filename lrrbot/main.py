@@ -278,7 +278,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			tags['bits'] = int(tags['bits'])
 
 		if "user-id" not in tags:
-			tags["display_name"] = tags.get("display_name", nick)
+			tags["display-name"] = tags.get("display-name", nick)
 			return
 		tags["user-id"] = int(tags["user-id"])
 
@@ -320,7 +320,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			else:
 				tags['patron'] = False
 
-		tags["display_name"] = tags.get("display_name", nick)
+		tags["display-name"] = tags.get("display-name", nick)
 
 	@utils.swallow_errors
 	def on_clearchat(self, conn, event):
@@ -458,7 +458,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	async def ban(self, conn, event, reason, bantype):
 		source = irc.client.NickMask(event.source)
-		display_name = event.tags.get("display_name", source.nick)
+		display_name = event.tags.get("display-name", source.nick)
 		if bantype == "spam":
 			# Start lenient in case of false positives, but then escalate
 			self.spammers.setdefault(source.nick.lower(), 0)

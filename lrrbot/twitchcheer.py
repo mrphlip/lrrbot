@@ -24,10 +24,10 @@ class TwitchCheer:
 			asyncio.ensure_future(self.on_cheer(event)).add_done_callback(utils.check_exception)
 
 	async def on_cheer(self, event):
-		log.info("Got %d bits from %s", event.tags['bits'], event.tags['display_name'])
+		log.info("Got %d bits from %s", event.tags['bits'], event.tags['display-name'])
 		eventname = 'twitch-cheer'
 		data = {
-			'name': event.tags['display_name'],
+			'name': event.tags['display-name'],
 			'message': event.arguments[0],
 			'messagehtml': await chatlog.format_message(event.arguments[0], event.tags.get('emotes'), event.tags.get('emoteset', []), cheer=True),
 			'bits': event.tags['bits'],
