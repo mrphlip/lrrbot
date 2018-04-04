@@ -27,7 +27,7 @@ jaraco.collections==1.5.3
 jaraco.functools==1.17
 jaraco.itertools==2.2
 jaraco.logging==1.5.1
-jaraco.stream==1.1.2
+jaraco.stream==1.2
 jaraco.text==1.10
 Jinja2==2.10
 Mako==1.0.7
