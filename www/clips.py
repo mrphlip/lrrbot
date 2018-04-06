@@ -43,6 +43,9 @@ async def clips_vid(session, videoid):
 				.where(clips.c.deleted == False)
 				.order_by(clips.c.time.asc())).fetchall()
 
+	if video is None and clip_data:
+		video = {'start': clip_data[0][1], 'title': 'Unknown video'}
+
 	clip_data = [
 		{
 			"slug": clip['slug'],
