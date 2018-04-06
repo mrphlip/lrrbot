@@ -152,7 +152,7 @@ def main(filenames):
 		setid = filename.split('.')[0]
 		data = get_data(filename)
 		for card, cardsetid in getcards(data, setid):
-			carddata.setdefault(cardsetid, {'cards':[]})['cards'].append(card)
+			carddata.setdefault(cardsetid, {'code': cardsetid, 'cards':[]})['cards'].append(card)
 	with open("extracards.json", "w") as fp:
 		json.dump(carddata, fp, indent=2, sort_keys=True)
 
