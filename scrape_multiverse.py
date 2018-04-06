@@ -50,24 +50,7 @@ def getcard(row, setid):
 		'loyalty': row['Loyalty'],
 	}
 	card = dict((k, v.strip()) for k, v in card.items() if v is not None and v != "")
-	yield card, setid
-
-	# Create tokens for Embalm and Eternalize creatures for AKH/HOU preprere
-	match = re_embalm.search(card.get('text', ''))
-	if match:
-		card = dict(card)
-		card['internalname'] = card['name'] + "_TKN"
-		card['name'] = card['name'] + " token"
-		typeline = row['Card Type']
-		if row['SuperType']:
-			typeline = "%s %s" % (row['SuperType'], typeline)
-		typeline = "%s \u2014 Zombie %s" % (typeline, row['SubType'])
-		card['type'] = typeline
-		del card['manaCost']
-		del card['number']
-		if match.group(1) == "Eternalize":
-			card['power'] = card['toughness'] = '4'
-		yield card, setid + "_TKN"
+	yield card
 
 def getsplitcard(row, setid):
 	# Format:
@@ -151,8 +134,14 @@ def main(filenames):
 	for filename in filenames:
 		setid = filename.split('.')[0]
 		data = get_data(filename)
-		for card, cardsetid in getcards(data, setid):
-			carddata.setdefault(cardsetid, {'code': cardsetid, 'cards':[]})['cards'].append(card)
+		carddata[setid] = {
+			'code': setid,
+			'cards': list(getcards(data, setid)),
+			# We're using this primarly for the PPR so the wording in this set is the
+			# newest around. And it's straight from the source, so it's more likely to
+			# be correct if there's a conflict.
+			'releaseDate': '2038-01-18',
+		}
 	with open("extracards.json", "w") as fp:
 		json.dump(carddata, fp, indent=2, sort_keys=True)
 
