@@ -73,7 +73,8 @@ class ModeratorActions:
 			msg_id = message['data']['msg_id']
 			user = args[0]
 			message = args[1]
-			# mod is always "automod", but still...
+			if not mod:
+				mod = "the strange voices that lie beneath"
 			text = "%s's message was rejected by %s." % (slack.escape(user), slack.escape(mod))
 			attachments.append({
 				'text': slack.escape(message)
