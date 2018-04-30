@@ -28,7 +28,7 @@ jaraco.functools==1.17
 jaraco.itertools==2.2
 jaraco.logging==1.5.2
 jaraco.stream==1.2
-jaraco.text==1.10
+jaraco.text==1.10.1
 Jinja2==2.10
 Mako==1.0.7
 MarkupSafe==1.0
