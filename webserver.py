@@ -41,4 +41,5 @@ app.register_blueprint(www.api_v2.blueprint, url_prefix="/api/v2")
 __all__ = ['app']
 
 if __name__ == '__main__':
-	app.run(debug=True, use_reloader=False)
+	app.env = "development"
+	app.run(debug=True, threaded=False, use_reloader=False)
