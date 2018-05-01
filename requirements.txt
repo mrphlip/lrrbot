@@ -53,5 +53,5 @@ timelib==0.2.4
 urllib3==1.22
 websockets==4.0.1
 Werkzeug==0.14.1
-yarl==1.2.0
+yarl==1.2.2
 regex==2018.02.21
