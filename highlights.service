@@ -1,6 +1,0 @@
-[Unit]
-Description=Add highlights to the highlight spreadsheet
-
-[Service]
-WorkingDirectory=%h/lrrbot
-ExecStart=/bin/sh -c "exec %h/lrrbot/venv/bin/python3 highlights.py"
