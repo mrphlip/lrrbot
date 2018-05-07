@@ -14,6 +14,7 @@ from eris.announcements import Announcements
 from eris.autotopic import Autotopic
 from eris.channel_reaper import ChannelReaper
 from eris.command_parser import CommandParser
+from eris.voice_channel_tracker import VoiceChannelTracker
 from eris.commands import register as register_commands
 
 log = logging.getLogger("eris")
@@ -160,6 +161,7 @@ announcements = rpc.announcements = Announcements(eris, signals, engine, metadat
 autotopic = Autotopic(eris, signals, engine, metadata)
 channel_reaper = ChannelReaper(eris, signals)
 command_parser = CommandParser(eris, signals, engine, metadata)
+voice_channel_tracker = VoiceChannelTracker(eris, signals)
 register_commands(command_parser)
 
 try:

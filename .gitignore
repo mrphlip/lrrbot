@@ -21,3 +21,4 @@ desktop.ini
 *.7
 *.log.*.bz2
 venv
+*.csv
