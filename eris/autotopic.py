@@ -2,6 +2,7 @@ import asyncio
 import dateutil
 import datetime
 import sqlalchemy
+import textwrap
 
 from common.config import config
 from common import rpc
@@ -12,6 +13,8 @@ from common import twitch
 
 import logging
 log = logging.getLogger('eris.autotopic')
+
+MAX_TOPIC_LENGTH = 1024
 
 class Autotopic:
 	def __init__(self, eris, signals, engine, metadata):
@@ -69,17 +72,29 @@ class Autotopic:
 					show = None
 
 			if game and show:
-				messages.append("Stream currently live: playing %s on %s." % (game, show))
+				messages.append("Now live: %s on %s." % (game, show))
 			elif game:
-				messages.append("Stream currently live: playing %s." % game)
+				messages.append("Now live: %s." % game)
 			elif show:
-				messages.append("Stream currently live: showing %s." % show)
+				messages.append("Now live: %s." % show)
 			messages.append(self.uptime_msg())
 		else:
-			messages.append(googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL))
+			now = datetime.datetime.now(datetime.timezone.utc)
+			events = googlecalendar.get_next_event(googlecalendar.CALENDAR_LRL, after=now)
+			for event in events:
+				if event['start'] > now:
+					message = "In %s: " % time.nice_duration(event['start'] - now, 1)
+				else:
+					message = "%s ago: " % time.nice_duration(now - event['start'], 1)
+				message += event['title']
+				if event['description'] is not None:
+					message += " (%s)" % (textwrap.shorten(googlecalendar.process_description(event['description']), 200))
+				message += " at " + event['start'].astimezone(config['timezone']).strftime(googlecalendar.DISPLAY_FORMAT)
+				message += "."
+				messages.append(message)
 		if header.get('advice'):
 			messages.append(header['advice'])
-		await self.eris.edit_channel(channel, topic=" ".join(messages))
+		await self.eris.edit_channel(channel, topic=textwrap.shorten(" ".join(messages), MAX_TOPIC_LENGTH))
 
 
 	def schedule_update_topic(self):
