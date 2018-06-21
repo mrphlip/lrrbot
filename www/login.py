@@ -241,7 +241,7 @@ async def login(return_to=None):
 			if not res_object.get('access_token'):
 				raise Exception("No access token from Twitch: %s" % res_json)
 			access_token = res_object['access_token']
-			granted_scopes = res_object["scope"]
+			granted_scopes = res_object.get("scope", [])
 
 			# Use that access token to get basic information about the user
 			headers['Authorization'] = "OAuth %s" % access_token
