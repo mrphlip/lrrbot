@@ -92,15 +92,14 @@ def getsplitcard(row, setid):
 def getdfc(frontrow, backrow, setid):
 	front = next(getcard(frontrow, setid))
 	back = next(getcard(backrow, setid))
-	front[0]['layout'] = back[0]['layout'] = 'double-faced'
-	front[0]['names'] = back[0]['names'] = [front[0]['name'], back[0]['name']]
-	front[0]['number'] += 'a'
-	back[0]['number'] += 'b'
+	front['layout'] = back['layout'] = 'double-faced'
+	front['names'] = back['names'] = [front['name'], back['name']]
+	front['number'] += 'a'
+	back['number'] += 'b'
 	return front, back
 
 def match_dfcs(data):
 	# For DFCs the front and back face have the same collector number
-	# and the back face has the text "(Transforms from [front face].)"
 	numbers = {}
 	for row in data:
 		numbers.setdefault(row['Collector Number'], []).append(row)
@@ -108,10 +107,18 @@ def match_dfcs(data):
 		if len(rows) == 1:
 			yield rows[0]
 		elif len(rows) == 2:
+			# There's no direct indication which card is the front face, we need to guess...
+			# in Ixalan the back face has reminder text
 			if "(Transforms from %s.)" % rows[0]['Card Title'] in rows[1]['Rules Text']:
 				yield rows[0], rows[1]
 			elif "(Transforms from %s.)" % rows[1]['Card Title'] in rows[0]['Rules Text']:
 				yield rows[1], rows[0]
+			# The back face doesn't have a mana cost
+			elif rows[0]['Mana'] and not rows[1]['Mana']:
+				yield rows[0], rows[1]
+			elif rows[1]['Mana'] and not rows[0]['Mana']:
+				yield rows[1], rows[0]
+			# give up if we can't figure it out
 			else:
 				raise ValueError("Can't find front/back faces of %d (%s/%s)" %
 					(rows[0]['Collector Number'], rows[0]['Card Title'], rows[1]['Card Title']))
@@ -119,7 +126,7 @@ def match_dfcs(data):
 			raise ValueError("Too many cards for collector number %d" % rows[0]['Collector Number'])
 
 def getcards(data, setid):
-	if setid in ('XLN', 'RIX'):
+	if setid in ('XLN', 'RIX', 'M19'):
 		data = match_dfcs(data)
 	for row in data:
 		if isinstance(row, tuple):
