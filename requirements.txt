@@ -24,7 +24,7 @@ irc==16.3
 itsdangerous==0.24
 jaraco.classes==1.5
 jaraco.collections==1.5.3
-jaraco.functools==1.19
+jaraco.functools==1.20
 jaraco.itertools==2.3
 jaraco.logging==1.5.2
 jaraco.stream==1.2
