@@ -272,10 +272,6 @@ ul.pagination li :visited {
 	margin: 0 auto;
 }
 
-#notificationlist .container > .message {
-	margin-left: 64px;
-}
-
 #notificationlist .duration {
 	color: #666;
 	font: italic 80% sans-serif;
@@ -283,13 +279,11 @@ ul.pagination li :visited {
 }
 
 #notificationlist .user.with-avatar {
-	height: 64px;
-}
-
-#notificationlist .user.with-avatar .message-container {
-	position: relative;
-	top: 50%;
-	transform: translateY(-50%);
+	display: grid;
+	grid-template-columns: 64px 1fr;
+	grid-template-rows: 1fr;
+	grid-gap: 0.5em;
+	align-items: center;
 }
 
 #notificationlist .user a {
@@ -300,7 +294,6 @@ ul.pagination li :visited {
 #notificationlist .user .avatar {
 	height: 64px;
 	width: 64px;
-	float: left;
 }
 
 #notificationlist .user .message {

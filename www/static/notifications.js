@@ -134,10 +134,6 @@ function create_row(data, callback) {
 	row.appendChild(container);
 
 	callback(container);
-
-	var clear = document.createElement("div");
-	clear.className = "clear";
-	container.appendChild(clear);
 }
 
 function twitch_subscription(data) {
