@@ -10,7 +10,7 @@ import dateutil.parser
 import datetime
 
 # TODO: move this somewhere easier to edit, like the DB or something?
-EXTRA_VIDS = ['v282776393']
+EXTRA_VIDS = ('v282776393', )
 
 @server.app.route('/clips')
 @login.require_mod
