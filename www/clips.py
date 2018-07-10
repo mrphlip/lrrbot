@@ -9,10 +9,13 @@ from common.time import nice_duration
 import dateutil.parser
 import datetime
 
+# TODO: move this somewhere easier to edit, like the DB or something?
+EXTRA_VIDS = ['v282776393']
+
 @server.app.route('/clips')
 @login.require_mod
 async def clips_vidlist(session):
-	videos = await archive_feed_data('loadingreadyrun', True)
+	videos = await archive_feed_data('loadingreadyrun', True, extravids=EXTRA_VIDS)
 	# The archive still gives the ids as "v12345" but the clips use just "12345"
 	videoids = [video['_id'].lstrip('v') for video in videos]
 
