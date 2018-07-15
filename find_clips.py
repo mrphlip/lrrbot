@@ -21,6 +21,8 @@ CLIP_URL = "https://api.twitch.tv/kraken/clips/%s"
 CLIPS_URL = "https://api.twitch.tv/kraken/clips/top"
 VIDEO_URL = "https://api.twitch.tv/kraken/videos/%s"
 
+DEFAULT_CHANNELS = ['loadingreadyrun', 'dnd', 'magic']
+
 def get_clips_page(channel, period="day", limit=10, cursor=None):
 	"""
 	https://dev.twitch.tv/docs/v5/reference/clips/#get-top-clips
@@ -128,6 +130,7 @@ def process_clip(clip):
 		"time": clip_start,
 		"data": clip,
 		"deleted": False,
+		"channel": clip['broadcaster']['name'],
 	}
 	with engine.begin() as conn:
 		query = postgresql.insert(TBL_CLIPS)
@@ -139,6 +142,7 @@ def process_clip(clip):
 					'time': query.excluded.time,
 					'data': query.excluded.data,
 					'deleted': query.excluded.deleted,
+					'channel': query.excluded.channel,
 				}
 			)
 		conn.execute(query, data)
@@ -150,26 +154,29 @@ def fix_null_vodids():
 	that has a vodid, and use that.
 	"""
 	with engine.begin() as conn:
-		badvods = conn.execute(sqlalchemy.select([TBL_CLIPS.c.id, TBL_CLIPS.c.time])
+		badvods = conn.execute(sqlalchemy
+			.select([TBL_CLIPS.c.id, TBL_CLIPS.c.time, TBL_CLIPS.c.channel])
 			.where(TBL_CLIPS.c.vodid == None))
 		# Get the updated vodids first, then update them all after, so that we don't
 		# use the vods we're updating as a source for copying to others...
 		updates = []
-		for clipid, cliptime in badvods:
-			vodid = get_closest_vodid(conn, cliptime)
+		for clipid, cliptime, channel in badvods:
+			vodid = get_closest_vodid(conn, cliptime, channel)
 			updates.append((clipid, vodid))
 		for clipid, vodid in updates:
 			conn.execute(TBL_CLIPS.update().values(vodid=vodid).where(TBL_CLIPS.c.id == clipid))
 
-def get_closest_vodid(conn, cliptime):
+def get_closest_vodid(conn, cliptime, channel):
 	prevclip = conn.execute(sqlalchemy.select([TBL_CLIPS.c.vodid, TBL_CLIPS.c.time])
 		.where(TBL_CLIPS.c.vodid != None)
 		.where(TBL_CLIPS.c.time < cliptime)
+		.where(TBL_CLIPS.c.channel == channel)
 		.limit(1)
 		.order_by(TBL_CLIPS.c.time.desc())).first()
 	nextclip = conn.execute(sqlalchemy.select([TBL_CLIPS.c.vodid, TBL_CLIPS.c.time])
 		.where(TBL_CLIPS.c.vodid != None)
 		.where(TBL_CLIPS.c.time > cliptime)
+		.where(TBL_CLIPS.c.channel == channel)
 		.limit(1)
 		.order_by(TBL_CLIPS.c.time.asc())).first()
 
@@ -212,8 +219,9 @@ def main():
 			sys.exit(1)
 	else:
 		period = "day"
-	channel = argv[1] if len(argv) > 1 else config['channel']
-	slugs = process_clips(channel, period)
+	channels = argv[1:] if len(argv) > 1 else DEFAULT_CHANNELS
+	for channel in channels:
+		slugs = process_clips(channel, period)
 	fix_null_vodids()
 	check_deleted_clips(period, slugs)
 

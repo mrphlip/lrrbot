@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer for the find_clips_week script
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=default.target
