@@ -14,7 +14,7 @@ EXTRA_VIDS = (
 	# Dice Friends
 	'v282776393', 'v285543438', 'v288411779','v288415324',
 	# LRRMTG
-	'v286225280',
+	'v286225280', 'v289105547',
 )
 
 @server.app.route('/clips')
