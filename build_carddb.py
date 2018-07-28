@@ -191,7 +191,7 @@ re_newlines = re.compile(r"[\r\n]+")
 re_multiplespaces = re.compile(r"\s{2,}")
 re_remindertext = re.compile(r"( *)\([^()]*\)( *)")
 def process_card(card, expansion, include_reminder=False):
-	if card['layout'] in ('token', 'plane', 'phenomenon', 'vanguard'):  # don't care about these special cards for now
+	if card['layout'] in ('token', ):  # don't care about these special cards for now
 		return
 	if card.get('layout') in ('split', 'aftermath'):
 		# Return split cards as a single card... for all the other pieces, return nothing
@@ -288,10 +288,16 @@ def process_single_card(card, expansion, include_reminder=False):
 			yield str(card['loyalty'])
 			yield ']'
 		if 'hand' in card or 'life' in card:
-			yield ' [hand:'
-			yield str(card.get('hand', '?'))
-			yield '/life:'
-			yield str(card.get('life', '?'))
+			yield ' [hand: '
+			if 'hand' in card:
+				yield "%+d" % card['hand']
+			else:
+				yield "?"
+			yield ', life: '
+			if 'life' in card:
+				yield "%+d" % card['life']
+			else:
+				yield "?"
 			yield ']'
 		if 'text' in card:
 			yield ' | '
@@ -488,7 +494,6 @@ def gen_augment(augment, host, expansion):
 
 	return process_single_card(combined, expansion, include_reminder=True)
 
-@special_set('VAN')
 @special_set('V17') # just reprints, and the meld cards aren't formatted properly
 def skip_set(expansion):
 	if False:
