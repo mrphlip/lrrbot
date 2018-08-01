@@ -7,6 +7,12 @@ import lrrbot.decorators
 @bot.command("patreon")
 @lrrbot.decorators.throttle()
 async def get_patreon_info(lrrbot, conn, event, respond_to):
+	"""
+	Command: !patreon
+	Section: info
+
+	Post the Patreon total.
+	"""
 	token = await patreon.get_token(lrrbot.engine, lrrbot.metadata, config["channel"])
 	campaigns = await patreon.get_campaigns(token, ["creator", "goals"])
 	campaign = campaigns["data"][0]["attributes"]
