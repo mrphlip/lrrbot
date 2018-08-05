@@ -16,6 +16,7 @@ from common import FRAMEWORK_ONLY
 from common import game_data
 from common import postgres
 from common import slack
+from common import state
 from common import twitch
 from common import utils
 from common.config import config
@@ -46,6 +47,13 @@ log = logging.getLogger('lrrbot')
 SELF_METADATA = {'specialuser': {'mod', 'subscriber'}, 'usercolor': '#FF0000', 'emoteset': {317}}
 
 class LRRBot(irc.bot.SingleServerIRCBot):
+	game_override = state.Property("lrrbot.main.game_override")
+	show_override = state.Property("lrrbot.main.show_override")
+	access = state.Property("lrrbot.main.access", "all")
+	show_id = state.Property("lrrbot.main.show_id")
+	polls = state.Property("lrrbot.main.polls", [])
+	cardview = state.Property("lrrbot.main.cardview", False)
+
 	def __init__(self, loop):
 		self.engine, self.metadata = postgres.get_engine_and_metadata()
 		users = self.metadata.tables["users"]
@@ -115,12 +123,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.whisperconn.add_whisper_handler(self.on_whisper_received)
 
 		# Set up bot state
-		self.game_override = None
-		self.show_override = None
-		self.access = "all"
-		self.set_show("")
-		self.polls = []
-		self.cardview = False
+		if self.show_id is None:
+			self.set_show("")
 
 		self.spammers = {}
 
