@@ -8,10 +8,7 @@ import common.rpc
 @server.app.route('/commands')
 @login.require_mod
 async def commands(session):
-	mode = flask.request.values.get('mode', 'responses')
-	assert(mode in ('responses', 'explanations'))
-
-	data = await common.rpc.bot.get_data(mode)
+	data = await common.rpc.bot.get_data('responses')
 
 	# Prepare the data, and group equivalent commands together
 	data_reverse = {}
@@ -28,13 +25,11 @@ async def commands(session):
 	data = [(commands, response[0], response[1]) for response, commands in data_reverse.items()]
 	data.sort()
 
-	return flask.render_template("commands.html", commands=data, len=len, mode=mode, session=session)
+	return flask.render_template("commands.html", commands=data, len=len, session=session)
 
 @server.app.route('/commands/submit', methods=['POST'])
 @login.require_mod
 async def commands_submit(session):
-	mode = flask.request.values.get('mode', 'responses')
-	assert(mode in ('responses', 'explanations'))
 	data = flask.json.loads(flask.request.values['data'])
 	# Server-side sanity checking
 	for command, response_data in data.items():
@@ -59,9 +54,6 @@ async def commands_submit(session):
 			response_data['response'] = response_data['response'][0]
 		if response_data['access'] not in ('any', 'sub', 'mod'):
 			raise ValueError("Invalid access level")
-	if mode == 'responses':
-		await common.rpc.bot.static.modify_commands(data)
-	elif mode == 'explanations':
-		await common.rpc.bot.explain.modify_explanations(data)
-	history.store(mode, session['user']['id'], data)
+	await common.rpc.bot.static.modify_commands(data)
+	history.store('responses', session['user']['id'], data)
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())

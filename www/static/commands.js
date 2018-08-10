@@ -48,8 +48,6 @@ function addRow()
 			"</td>" +
 		"</tr>"
 	);
-	if (jQuery("table.commands").data('mode') === "explanations")
-		row.find('.access select').val('mod');
 	row.find('button.del').click(deleteRow);
 	row.find('div.button.add').click(addText);
 	row.find('div.button.remove').click(deleteText);
@@ -62,11 +60,7 @@ function deleteRow()
 	var row = $(this).closest('tr');
 	var label = row.find('td.command input').eq(0).val();
 	var undoRow = $("tr.undo");
-	var mode = jQuery("table.commands").data('mode');
-	if (mode == "explanations")
-		undoRow.find("code").text("!explain " + label);
-	else
-		undoRow.find("code").text("!" + label);
+	undoRow.find("code").text("!" + label);
 	undoRow.insertAfter(row).show();
 	row.remove();
 	window.undorow = row;
@@ -153,7 +147,6 @@ function save()
 		}
 	});
 	if (foundError) return;
-	var mode = jQuery("table.commands").data('mode');
 	// Send the data up to the server
 	$('div.loading').show();
 	$('button.save').hide();
@@ -161,7 +154,7 @@ function save()
 	$.ajax({
 		'type': 'POST',
 		'url': "commands/submit",
-		'data': "data=" + encodeURIComponent(data) + "&mode=" + encodeURIComponent(mode) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
+		'data': "data=" + encodeURIComponent(data) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
 		'dataType': 'json',
 		'async': true,
 		'cache': false,

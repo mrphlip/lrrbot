@@ -51,7 +51,6 @@
 	<li><a href="{{url_for('patreon_index')|e}}">Patreon</a></li>
 	{%if session['user']['is_mod']%}
 	<li><a href="{{url_for('commands')|e}}">Responses</a></li>
-	<li><a href="{{url_for('commands')|e}}?mode=explanations">Explanations</a></li>
 	<li><a href="{{url_for('spam')|e}}">Spam</a></li>
 	<li><a href="{{url_for('history')|e}}">History</a></li>
 	<li><a href="{{url_for('clips_vidlist')|e}}">Clips</a></li>
