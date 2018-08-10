@@ -12,9 +12,10 @@ import datetime
 # TODO: move this somewhere easier to edit, like the DB or something?
 EXTRA_VIDS = (
 	# Dice Friends
-	'v282776393', 'v285543438', 'v288411779','v288415324',
+	'v282776393', 'v285543438', 'v288411779','v288415324', 'v291183406',
+	'v294007776',
 	# LRRMTG
-	'v286225280', 'v289105547',
+	'v286225280', 'v289105547', 'v291852800', 'v294697523',
 )
 
 @server.app.route('/clips')
