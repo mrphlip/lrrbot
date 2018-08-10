@@ -21,7 +21,7 @@ import lrrbot.docstring
 log = logging.getLogger('serverevents')
 
 class Server(common.rpc.Server):
-	router = aiomas.rpc.Service(['cardviewer', 'explain', 'link_spam', 'spam', 'static'])
+	router = aiomas.rpc.Service(['cardviewer', 'link_spam', 'spam', 'static'])
 
 	def __init__(self, lrrbot, loop):
 		super().__init__()
@@ -29,7 +29,6 @@ class Server(common.rpc.Server):
 		self.loop = loop
 
 		self.cardviewer = None
-		self.explain = None
 		self.link_spam = None
 		self.spam = None
 		self.static = None

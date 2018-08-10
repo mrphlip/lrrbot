@@ -1,5 +1,4 @@
 import lrrbot.commands.card
-import lrrbot.commands.explain
 import lrrbot.commands.game
 import lrrbot.commands.lockdown
 import lrrbot.commands.misc

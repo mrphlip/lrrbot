@@ -1,6 +1,6 @@
 {%extends "master.html"%}
-{%block title%}{{mode|ucfirst|e}}{%endblock%}
-{%block header%}{{mode|ucfirst|e}}{%endblock%}
+{%block title%}Responses{%endblock%}
+{%block header%}Responses{%endblock%}
 {%block headextra%}
 <script type="text/javascript">window.csrf_token = {{csrf_token()|tojson}}</script>
 <script type="text/javascript" src="{{static_url('commands.js')|e}}"></script>
@@ -10,7 +10,7 @@
 	<button class="save">Save</button>
 	<div class="loading" style="display: none; margin: 0 0 0 auto"></div>
 </div>
-<table class="nicetable commands" data-mode="{{mode|e}}">
+<table class="nicetable commands">
 <thead>
 <tr>
 	<td class="command"></td>
