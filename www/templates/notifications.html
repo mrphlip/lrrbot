@@ -69,6 +69,37 @@
 							{% endif %}
 						</div>
 					</div>
+				{% elif event['event'] == 'twitch-subscription-mysterygift' %}
+					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
+						{% if event['data']['avatar'] %}
+							<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">
+								<img class="avatar" src="{{ event['data']['avatar'] | https }}">
+							</a>
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message">
+								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a>
+								has gifted {{ event['data']['subcount'] }} sub{% if event['data']['subcount'] != 1%}s{% endif %} in the channel!
+							</p>
+							{% for sub in event['data']['subscribers'] %}
+								<div class="sublist{% if sub['avatar'] %} with-avatar{% endif %}">
+									{% if sub['avatar'] %}
+										<a href="https://www.twitch.tv/{{ sub['name'] }}" rel="noopener nofollow">
+											<img class="avatar" src="{{ sub['avatar'] | https }}">
+										</a>
+									{% endif %}
+									<p class="message">
+										<a href="https://www.twitch.tv/{{ sub['name'] }}" rel="noopener nofollow">{{ sub['name'] }}</a>
+										{% if sub['monthcount'] %}
+											for {{ sub['monthcount'] }} month{% if sub['monthcount'] != 1%}s{% endif %} in a row!
+										{% else %}
+											is a new subscriber!
+										{% endif %}
+									</p>
+								</div>
+							{% endfor %}
+						</div>
+					</div>
 				{% elif event['event'] == 'twitch-cheer' %}
 					<div class="user with-avatar">
 						<img class="avatar" src="https://static-cdn.jtvnw.net/bits/light/static/{{ event['data']['level'] }}/3">
@@ -100,6 +131,6 @@
 				{% endif %}
 			</div>
 		</li>
-	{%endfor%}
+	{% endfor %}
 </ol>
 {%endblock%}
