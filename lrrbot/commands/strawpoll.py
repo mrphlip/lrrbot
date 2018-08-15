@@ -59,7 +59,7 @@ def polls(lrrbot, conn, event, respond_to):
 
 	List all currently active polls.
 	"""
-	if lrrbot.polls == []:
+	if not lrrbot.polls:
 		return conn.privmsg(respond_to, "No active polls.")
 	now = time.time()
 	messages = []
@@ -102,7 +102,9 @@ async def new_poll(lrrbot, conn, event, respond_to, multi, timeout, poll_id, tit
 	else:
 		timeout = DEFAULT_TIMEOUT
 	end = time.time() + int(timeout)
-	lrrbot.polls += [(end, title, poll_id, respond_to, tag)]
+	# NB: need to assign to lrrbot.polls, rather than using lrrbot.polls.append,
+	# so that the state change gets saved properly
+	lrrbot.polls = lrrbot.polls + [(end, title, poll_id, respond_to, tag)]
 	conn.privmsg(respond_to, "New poll: %s (https://www.strawpoll.me/%s%s): %s from now" % (title, poll_id, space.SPACE, common.time.nice_duration(timeout, 1)))
 
 	if tag is not None:
