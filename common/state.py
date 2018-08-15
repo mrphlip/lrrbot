@@ -1,6 +1,8 @@
 import sqlalchemy
 from sqlalchemy.dialects.postgresql import insert
 
+from common import postgres
+
 def get(engine, metadata, key, default=None):
 	state = metadata.tables['state']
 	with engine.begin() as conn:
@@ -25,3 +27,33 @@ def set(engine, metadata, key, value):
 			'key': key,
 			'value': value,
 		})
+
+class Property:
+	"""
+	Higher level interface over `state.get` and `state.set` using the descriptor protocol.
+
+	## Example:
+	```python
+	class LRRbot:
+		polls = state.Property("lrrbot.main.polls", [])
+	```
+	"""
+
+	def __init__(self, key, default=None):
+		self._engine, self._metadata = postgres.get_engine_and_metadata()
+		self._key = key
+		self._default = default
+
+	def __get__(self, obj, type=None):
+		return get(self._engine, self._metadata, self._key, self._default)
+
+	def __set__(self, obj, value):
+		return set(self._engine, self._metadata, self._key, value)
+
+	def __repr__(self):
+		return "%(module)s.%(class)s(%(_key)r, %(_default)r)" % {
+			"module": self.__class__.__module__,
+			"class": self.__class__.__qualname__,
+			"_key": self._key,
+			"_default": self._default,
+		}
