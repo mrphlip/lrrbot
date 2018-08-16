@@ -121,7 +121,7 @@ class Server(common.rpc.Server):
 	@aiomas.expose
 	def get_tweet(self):
 		tweet = self.generate_tweet()
-		while len(tweet) > 140:
+		while len(tweet) > 280:
 			tweet = self.generate_tweet()
 		return tweet
 
