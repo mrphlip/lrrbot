@@ -17,6 +17,10 @@ window.addEventListener('DOMContentLoaded', function (event) {
 			twitch_resubscription(JSON.parse(event.data));
 			update_title();
 		});
+		stream.addEventListener("twitch-subscription-mysterygift", function (event) {
+			twitch_subscription_mysterygift(JSON.parse(event.data));
+			update_title();
+		});
 		stream.addEventListener("twitch-cheer", function (event) {
 			twitch_cheer(JSON.parse(event.data));
 			update_title();
@@ -54,6 +58,9 @@ function ajax_poll() {
 					break;
 				case 'twitch-resubscription':
 					twitch_resubscription(event.data);
+					break;
+				case 'twitch-subscription-mysterygift':
+					twitch_subscription_mysterygift(event.data);
 					break;
 				case 'twitch-message':
 					twitch_message(event.data);
@@ -137,6 +144,8 @@ function create_row(data, callback) {
 }
 
 function twitch_subscription(data) {
+	if (data.ismulti)
+		return;
 	create_row(data, function (container) {
 		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
 		container.appendChild(user);
@@ -181,6 +190,8 @@ function twitch_subscription(data) {
 }
 
 function twitch_resubscription(data) {
+	if (data.ismulti)
+		return;
 	create_row(data, function (container) {
 		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
 		container.appendChild(user);
@@ -220,6 +231,64 @@ function twitch_resubscription(data) {
 				quote.appendChild(document.createTextNode(data.message));
 			}
 			user_message.appendChild(quote);
+		}
+	});
+}
+
+function twitch_subscription_mysterygift(data) {
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		var link = document.createElement("a");
+		link.href = "https://www.twitch.tv/" + data.name;
+		link.rel = "noopener nofollow";
+
+		if (data.avatar) {
+			var avatar_link = link.cloneNode();
+			user.appendChild(avatar_link);
+
+			var avatar = createElementWithClass("img", "avatar");
+			avatar.src = data.avatar;
+			avatar_link.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		link.appendChild(document.createTextNode(data.name));
+		message.appendChild(link);
+		message.appendChild(document.createTextNode(" has gifted " + data.subcount + " sub" + (data.subcount != 1 ? 's' : '') + " in the channel!"));
+		message_container.appendChild(message);
+
+		for (var i = 0; i < data.subscribers.length; i++) {
+			var sub = data.subscribers[i];
+			var sublist = createElementWithClass("div", "sublist" + (sub.avatar ? " with-avatar" : ""));
+
+			var link = document.createElement("a");
+			link.href = "https://www.twitch.tv/" + sub.name;
+			link.rel = "noopener nofollow";
+
+			if (sub.avatar) {
+				var avatar_link = link.cloneNode();
+				sublist.appendChild(avatar_link);
+
+				var avatar = createElementWithClass("img", "avatar");
+				avatar.src = sub.avatar;
+				avatar_link.appendChild(avatar);
+			}
+
+			var sub_message = createElementWithClass("p", "message");
+			link.appendChild(document.createTextNode(sub.name));
+			sub_message.appendChild(link);
+			if (sub.monthcount)
+				sub_message.appendChild(document.createTextNode(" for " + sub.monthcount + " month" + (sub.monthcount != 1 ? 's' : '') + " in a row!"));
+			else
+				sub_message.appendChild(document.createTextNode(" is a new subscriber!"));
+			sublist.append(sub_message);
+
+			message_container.appendChild(sublist);
 		}
 	});
 }

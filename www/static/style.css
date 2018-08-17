@@ -285,6 +285,13 @@ ul.pagination li :visited {
 	grid-gap: 0.5em;
 	align-items: center;
 }
+#notificationlist .sublist.with-avatar {
+	display: grid;
+	grid-template-columns: 32px 1fr;
+	grid-template-rows: 1fr;
+	grid-gap: 0.5em;
+	align-items: center;
+}
 
 #notificationlist .user a {
 	color: black;
@@ -294,6 +301,10 @@ ul.pagination li :visited {
 #notificationlist .user .avatar {
 	height: 64px;
 	width: 64px;
+}
+#notificationlist .user .sublist .avatar {
+	height: 32px;
+	width: 32px;
 }
 
 #notificationlist .user .message {
