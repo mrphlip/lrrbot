@@ -25,6 +25,10 @@ log = None
 # clause, we want to explicitly catch and re-raise these.
 PASSTHROUGH_EXCEPTIONS = (asyncio.CancelledError, )
 
+# Maximum length of a chat message - this allows for 32 chars for protocol
+# overhead (ie "PRIVMSG [target]" etc) to fit within 512
+MAX_LEN = 480
+
 def deindent(s):
 	def skipblank():
 		generator = map(lambda s: s.lstrip(), s.splitlines())
@@ -376,3 +380,27 @@ async def async_to_list(aiter):
 	async for i in aiter:
 		res.append(i)
 	return res
+
+def check_length(msg, maxlen=MAX_LEN):
+	"""
+	Check if a message is short enough to be sent to the channel.
+	"""
+	return len(msg.encode("utf-8")) <= maxlen
+
+def trim_length(msg, maxlen=MAX_LEN, do_warn=False):
+	"""
+	Check if a message is short enough to be sent to the channel, and if not,
+	trim it to fit.
+	"""
+	encmsg = msg.encode("utf-8")
+	if len(encmsg) > maxlen:
+		if do_warn:
+			log.warning("Trimming message as it is too long: %s", msg)
+		# \u2026 takes up three bytes, so cut off the first maxlen-3 bytes of the
+		# message
+		# Are we about to cut off in the middle of a UTF-8 sequence?
+		while encmsg[maxlen - 3] & 0xC0 == 0x80:
+			maxlen -= 1
+		return encmsg[:maxlen - 3].decode("utf-8") + "\u2026"
+	else:
+		return msg

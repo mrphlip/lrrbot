@@ -226,12 +226,20 @@ class TwitchSubs:
 			names = ", ".join(names)
 
 		storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
-		conn.privmsg(channel, "lrrSPOT Thanks for the gift%s, %s! Welcome to %s! (Today's storm count: %d)" % (
+
+		welcomemsg = "lrrSPOT Thanks for the gift%s, %s! Welcome to %s! (Today's storm count: %d)" % (
 			'' if multi_gift['subcount'] == 1 else 's',
 			multi_gift['name'],
 			names,
-			storm_count))
-
+			storm_count)
+		if not utils.check_length(welcomemsg):
+			names = "all %d recipients" % multi_gift['subcount']
+			welcomemsg = "lrrSPOT Thanks for the gift%s, %s! Welcome to %s! (Today's storm count: %d)" % (
+				'' if multi_gift['subcount'] == 1 else 's',
+				multi_gift['name'],
+				names,
+				storm_count)
+		conn.privmsg(channel, welcomemsg)
 		await common.rpc.eventserver.event(event, multi_gift, eventtime)
 
 	async def cleanup(self):

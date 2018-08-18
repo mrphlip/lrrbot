@@ -34,7 +34,7 @@ async def report_poll(conn, poll_id, respond_to, tag):
 	options = sorted(zip(data["options"], data["votes"]), key=lambda e: (e[1], random.random()), reverse=True)
 	options = "; ".join(map(strawpoll_format, enumerate(options)))
 	response = "Poll complete: %s: %s" % (html.unescape(data["title"]), options)
-	response = textwrap.shorten(response, 450)
+	response = utils.trim_length(response)
 	conn.privmsg(respond_to, response)
 
 	if tag is not None:
@@ -65,7 +65,7 @@ def polls(lrrbot, conn, event, respond_to):
 	messages = []
 	for end, title, poll_id, respond_to, tag in lrrbot.polls:
 		messages += ["%s (https://www.strawpoll.me/%s%s): %s from now" % (title, poll_id, space.SPACE, common.time.nice_duration(end - now, 1))]
-	conn.privmsg(respond_to, textwrap.shorten("Active polls: "+"; ".join(messages), 450))
+	conn.privmsg(respond_to, utils.trim_length("Active polls: "+"; ".join(messages)))
 
 @bot.command("(multi)?poll (?:(\d+) )?(?:(?:https?://)?(?:www\.)?strawpoll\.me/([^/]+)(?:/r?)?|(?:([^:]+) ?: ?)?(.*))")
 @lrrbot.decorators.mod_only

@@ -4,6 +4,7 @@ from www import server
 from www import login
 from www import history
 import common.rpc
+from common import utils
 
 @server.app.route('/commands')
 @login.require_mod
@@ -48,7 +49,7 @@ async def commands_submit(session):
 				raise ValueError("Value is not a string or list of strings")
 			if response == '':
 				raise ValueError("Response is blank")
-			if len(response) > 450:
+			if not utils.check_length(response):
 				raise ValueError("Response is too long")
 		if len(response_data['response']) == 1:
 			response_data['response'] = response_data['response'][0]

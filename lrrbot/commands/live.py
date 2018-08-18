@@ -77,7 +77,7 @@ async def live(lrrbot, conn, event, respond_to):
 			" (%s)" % data["channel"]["status"] if data["channel"].get("status") not in [None, ""] else ""
 		) for data in streams
 	])
-	if len(message) <= 450:
+	if utils.check_length(message):
 		return conn.privmsg(respond_to, message)
 
 	# Shorter message
@@ -89,7 +89,7 @@ async def live(lrrbot, conn, event, respond_to):
 			" is playing %s" % data["game"] if data.get("game") is not None else "",
 		) for data in streams
 	])
-	if len(message) <= 450:
+	if utils.check_length(message):
 		return conn.privmsg(respond_to, message)
 
 	# Shortest message
@@ -100,7 +100,7 @@ async def live(lrrbot, conn, event, respond_to):
 			space.SPACE
 		) for data in streams
 	])
-	return conn.privmsg(respond_to, textwrap.shorten(message, 450))
+	return conn.privmsg(respond_to, utils.trim_length(message))
 
 @bot.command("live register")
 async def register_self(lrrbot, conn, event, respond_to):

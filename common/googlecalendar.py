@@ -183,9 +183,9 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 			elif calendar == CALENDAR_FAN:
 				response = "Next scheduled fan stream: %s." % ", ".join(strs)
 
-			if len(response) <= 450:
+			if utils.check_length(response):
 				break
 	else:
 		response = ", ".join(concise_strs)
 
-	return textwrap.shorten(response, 450) # For safety
+	return utils.trim_length(response) # For safety

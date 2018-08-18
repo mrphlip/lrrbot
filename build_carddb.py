@@ -29,7 +29,6 @@ URL = 'http://mtgjson.com/json/AllSets.json.zip'
 ZIP_FILENAME = 'AllSets.json.zip'
 SOURCE_FILENAME = 'AllSets.json'
 EXTRAS_FILENAME = 'extracards.json'
-MAXLEN = 450
 
 engine, metadata = common.postgres.get_engine_and_metadata()
 
@@ -309,8 +308,7 @@ def process_single_card(card, expansion, include_reminder=False):
 
 	desc = ''.join(build_description())
 	desc = re_multiplespaces.sub(' ', desc).strip()
-	if len(desc) > MAXLEN:
-		desc = desc[:MAXLEN-1] + "\u2026"
+	desc = utils.trim_length(desc)
 
 	if card.get('layout') == 'flip' and card['name'] != card['names'][0]:
 		multiverseids = numbers = []

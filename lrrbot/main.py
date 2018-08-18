@@ -515,6 +515,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		def new_privmsg(target, text):
 			if irc.client.is_channel(target):
 				username = config["username"]
+				text = utils.trim_length(text, do_warn=True)
 				chatlog.log_chat(irc.client.Event("pubmsg", username, target, [text]), SELF_METADATA)
 				original_privmsg(target, text)
 			elif self.whisperconn:
