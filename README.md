@@ -15,7 +15,9 @@ LRRbot contains modules that aren't licensed under Apache-2.0:
 ### Linux (Ubuntu 16.10)
 Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon integration, Slack integration.
 
- 1. These commands assume Ubuntu 16.10 and that you're using Bash as your shell. Adapt as needed.  
+ 1. These commands assume Ubuntu 16.10 and that you're using Bash as your shell. Adapt as needed.
+	
+	Currently lrrbot works with postgresql >= 9.5 and python >= 3.5 and < 3.7, if the exact versions in the command below are unavailable on your operating system.
     ```
     sudo apt-get install git postgresql-9.5 postgresql-server-dev-9.5 python3.5-dev virtualenv build-essential
     git clone git@github.com:mrphlip/lrrbot
