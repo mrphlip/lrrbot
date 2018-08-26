@@ -1,5 +1,6 @@
 import urllib.request
 import urllib.parse
+import urllib.error
 import contextlib
 import datetime
 import copy
@@ -36,7 +37,12 @@ async def archive_feed_data(channel, broadcasts, extravids=None):
 	videos = await twitch.get_videos(channel, broadcasts=broadcasts, limit=100)
 	if extravids:
 		for vid in extravids:
-			videos.append(await twitch.get_video(vid))
+			try:
+				video = await twitch.get_video(vid)
+			except urllib.error.HTTPError:
+				pass
+			else:
+				videos.append(video)
 
 	for video in videos:
 		if video.get('created_at'):

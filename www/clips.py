@@ -5,30 +5,24 @@ from www import server
 from www import login
 from www.archive import archive_feed_data, get_video_data
 import common.rpc
+from common.config import config
 from common.time import nice_duration
 import dateutil.parser
 import datetime
 
-# TODO: move this somewhere easier to edit, like the DB or something?
-EXTRA_VIDS = (
-	# Dice Friends
-	'v282776393', 'v285543438', 'v288411779','v288415324', 'v291183406',
-	'v294007776', 'v296995063', 'v299868209',
-	# LRRMTG
-	'v286225280', 'v289105547', 'v291852800', 'v294697523', 'v297694060',
-	'v300528370',
-)
-
 @server.app.route('/clips')
 @login.require_mod
 async def clips_vidlist(session):
-	videos = await archive_feed_data('loadingreadyrun', True, extravids=EXTRA_VIDS)
-	# The archive still gives the ids as "v12345" but the clips use just "12345"
-	videoids = [video['_id'].lstrip('v') for video in videos]
-
 	clips = server.db.metadata.tables["clips"]
-	clip_counts = defaultdict(lambda:{None: 0, False: 0, True: 0})
+	ext_vids = server.db.metadata.tables["external_video"]
 	with server.db.engine.begin() as conn:
+		extravids = tuple(vid for vid, in conn.execute(
+			sqlalchemy.select([ext_vids.c.vodid])))
+		videos = await archive_feed_data(config['channel'], True, extravids=extravids)
+		# The archive still gives the ids as "v12345" but the clips use just "12345"
+		videoids = [video['_id'].lstrip('v') for video in videos]
+
+		clip_counts = defaultdict(lambda:{None: 0, False: 0, True: 0})
 		for vodid, rating, clipcount in conn.execute(
 				sqlalchemy.select([clips.c.vodid, clips.c.rating, sqlalchemy.func.count()])
 					.where(clips.c.vodid.in_(videoids))
@@ -38,7 +32,8 @@ async def clips_vidlist(session):
 	for video in videos:
 		video['clips'] = clip_counts[video['_id'].lstrip('v')]
 
-	return flask.render_template("clips_vidlist.html", videos=videos, session=session)
+	return flask.render_template("clips_vidlist.html", videos=videos,
+		main_channel=config['channel'], session=session)
 
 @server.app.route('/clips/<videoid>')
 @login.require_mod
@@ -93,3 +88,8 @@ def clip_submit(session):
 			.where(clips.c.slug == flask.request.values['slug'])
 		)
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
+
+@server.app.route('/clips/external')
+@login.require_mod
+def external_clips(session):
+	return "TODO"

@@ -2,6 +2,7 @@
 {%block title%}Clips VOD list{%endblock%}
 {%block header%}Clips VOD list{%endblock%}
 {%block content%}
+<!--<p><a href="{{url_for("external_clips")|e}}">Manage external videos</a></p>-->
 <table class="nicetable clips">
 {%for video in videos%}
 <tr class="{{loop.cycle('even','odd')}} {%if video['clips'][None]>0%}incomplete{%else%}complete{%endif%}">
@@ -10,6 +11,9 @@
 	</td>
 	<td class="main">
 		<a href="{{url_for("clips_vid", videoid=video['_id'])|e}}">{{video['title']|e}}</a>
+		{% if video['channel']['name'] != main_channel %}
+			<span class="external_channel">[{{video['channel']['display_name']|e}}]</span>
+		{% endif %}
 	</td>
 	<td class="stat unrated">
 		<span class="thumbicon"></span>{{video['clips'][None]}}

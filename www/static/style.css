@@ -807,6 +807,12 @@ table.quote-search select {
 {
 	background-position: top right;
 }
+.clips .external_channel
+{
+	color: #666;
+	font-size: 80%;
+	font-style: italic;
+}
 
 .ui-tooltip-content
 {

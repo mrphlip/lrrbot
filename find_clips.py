@@ -16,12 +16,11 @@ import urllib.error
 
 engine, metadata = common.postgres.get_engine_and_metadata()
 TBL_CLIPS = metadata.tables['clips']
+TBL_EXT_CHANNEL = metadata.tables['external_channel']
 
 CLIP_URL = "https://api.twitch.tv/kraken/clips/%s"
 CLIPS_URL = "https://api.twitch.tv/kraken/clips/top"
 VIDEO_URL = "https://api.twitch.tv/kraken/videos/%s"
-
-DEFAULT_CHANNELS = ['loadingreadyrun', 'dnd', 'magic']
 
 def get_clips_page(channel, period="day", limit=10, cursor=None):
 	"""
@@ -211,6 +210,13 @@ def check_deleted_clips(period, slugs):
 			if get_clip_info(slug, check_missing=True) is None:
 				conn.execute(TBL_CLIPS.update().values(deleted=True).where(TBL_CLIPS.c.id == clipid))
 
+def get_default_channels():
+	channels = [config['channel']]
+	with engine.begin() as conn:
+		channels.extend(channel for channel, in conn.execute(
+			sqlalchemy.select([TBL_EXT_CHANNEL.c.channel])))
+	return channels
+
 def main():
 	if argv:
 		period = argv[0]
@@ -219,7 +225,7 @@ def main():
 			sys.exit(1)
 	else:
 		period = "day"
-	channels = argv[1:] if len(argv) > 1 else DEFAULT_CHANNELS
+	channels = argv[1:] if len(argv) > 1 else get_default_channels()
 	for channel in channels:
 		slugs = process_clips(channel, period)
 	fix_null_vodids()
