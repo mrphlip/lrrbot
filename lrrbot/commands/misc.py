@@ -98,9 +98,15 @@ def next(lrrbot, conn, event, respond_to, timezone):
 	else:
 		conn.privmsg(respond_to, googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
 
-@bot.command("desert ?bus( .*)?")
+@bot.command("(?:db ?count(?: |-)?down|db ?next|next ?db)( .*)?")
 @lrrbot.decorators.throttle()
 def desertbus(lrrbot, conn, event, respond_to, timezone):
+	"""
+	Commnand: !desertbus
+	Section: info
+
+	Shows the countdown until the next Desert Bus for Hope marathon begins.
+	"""
 	if not timezone:
 		timezone = config['timezone']
 	else:
