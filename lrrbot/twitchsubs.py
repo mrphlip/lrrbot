@@ -126,6 +126,31 @@ class TwitchSubs:
 				{},
 			))
 			return "NO MORE"
+		else:
+			logging.info("Unrecognised USERNOTICE: %s\n%r %r", event.tags.get('msg-id'), event.tags, event.arguments)
+
+			messages = []
+			if event.tags.get('system-msg'):
+				messages.append(event.tags['system-msg'])
+			if len(event.arguments) > 0:
+				messages.append(event.arguments[0])
+
+			for msg in messages:
+				self.lrrbot.log_chat(conn, irc.client.Event(
+					"pubmsg",
+					"%s!%s@tmi.twitch.tv" % (config['notifyuser'], config['notifyuser']),
+					event.target,
+					[msg],
+					{},
+				))
+
+			if messages:
+				asyncio.ensure_future(self.on_unknown_message(
+					conn,
+					datetime.datetime.now(tz=pytz.utc),
+					message="\u2014".join(messages),
+				)).add_done_callback(utils.check_exception)
+				event = 'twitch-message'
 
 	async def on_subscriber(self, conn, channel, login, user, eventtime, logo=None, monthcount=None, message=None, emotes=None, benefactor_login=None, benefactor=None):
 		log.info('New subscriber: %r at %r', user, eventtime)
@@ -256,3 +281,10 @@ class TwitchSubs:
 				)
 
 			await asyncio.sleep(MULTI_GIFT_CLEANUP_INTERVAL)
+
+	async def on_unknown_message(self, conn, eventtime, message):
+		event = "twitch-message"
+		data = {
+			'message': message,
+		}
+		await common.rpc.eventserver.event(event, multi_gift, eventtime)
