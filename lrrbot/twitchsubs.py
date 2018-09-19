@@ -287,4 +287,4 @@ class TwitchSubs:
 		data = {
 			'message': message,
 		}
-		await common.rpc.eventserver.event(event, multi_gift, eventtime)
+		await common.rpc.eventserver.event(event, data, eventtime)
