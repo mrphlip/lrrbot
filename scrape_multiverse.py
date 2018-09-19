@@ -41,13 +41,13 @@ def getcard(row, setid):
 	card = {
 		'layout': 'normal',
 		'name': row['Card Title'].replace('\u2019', "'"),
-		'manaCost': cleancost(row.get('Mana', '')),
+		'manaCost': cleancost(row['Mana']),
 		'text': cleantext(row['Rules Text']),
 		'type': typeline,
 		'number': row['Collector Number'],
 		'power': row['Power'],
 		'toughness': row['Toughness'],
-		'loyalty': row.get('Loyalty', ''),
+		'loyalty': row['Loyalty'],
 	}
 	card = dict((k, v.strip()) for k, v in card.items() if v is not None and v != "")
 	yield card
