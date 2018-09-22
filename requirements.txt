@@ -37,7 +37,7 @@ multidict==4.4.1
 packaging==17.1
 peony-twitter==1.1.1
 psycopg2==2.7.5
-pubnub==4.1.0
+pubnub==4.1.2
 pycparser==2.18
 pycryptodomex==3.6.6
 pyparsing==2.2.1
