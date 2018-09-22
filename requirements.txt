@@ -33,11 +33,11 @@ Jinja2==2.10
 Mako==1.0.7
 MarkupSafe==1.0
 more-itertools==4.3.0
-multidict==4.4.1
+multidict==4.4.2
 packaging==17.1
 peony-twitter==1.1.1
 psycopg2==2.7.5
-pubnub==4.1.0
+pubnub==4.1.2
 pycparser==2.19
 pycryptodomex==3.6.6
 pyparsing==2.2.1
@@ -47,7 +47,7 @@ python-mimeparse==1.6.0
 pytz==2018.5
 requests==2.19.1
 six==1.11.0
-SQLAlchemy==1.2.11
+SQLAlchemy==1.2.12
 tempora==1.13
 timelib==0.2.4
 urllib3==1.22
