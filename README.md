@@ -79,3 +79,6 @@ Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon
    * (optional) Server-sent events server: `python eventserver.py`
  6. Go to `http://localhost:5000/login` and log in with the bot account (name in `username` config key) and the channel account (name in `channel` config key).
  7. Restart the bot.
+
+## The Discord bot
+The Discord bot is written in Rust and lives in its [own repository](https://github.com/andreasots/eris).

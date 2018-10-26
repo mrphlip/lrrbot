@@ -8,13 +8,11 @@ alembic
 async_timeout
 blinker
 cryptography
-discord.py
 flask
 flask-csrf
 flask-sqlalchemy
 irc
 jinja2
-peony-twitter
 psycopg2
 pubnub
 python-dateutil
