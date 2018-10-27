@@ -244,10 +244,15 @@ class TwitchSubs:
 		del self.multi_gifts[multi_gift['login']]
 
 		names = [i['name'] for i in multi_gift['subscribers']]
-		if len(names) == 2:
+		if len(names) == 0:
+			# fallback just in case, I guess?
+			names = "all %d recipients" % multi_gift['subcount']
+		elif len(names) == 1:
+			names = names[0]
+		elif len(names) == 2:
 			names = " and ".join(names)
-		elif len(names) > 2:
-			names[-1] = " and " + names[-1]
+		else:
+			names[-1] = "and " + names[-1]
 			names = ", ".join(names)
 
 		storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
