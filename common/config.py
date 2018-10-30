@@ -53,8 +53,6 @@ config['notifyuser'] = config.get('notifyuser', 'twitchnotify').lower()
 config.setdefault('commandprefix', '!')
 # siteurl - root of web site
 config.setdefault('siteurl', 'https://lrrbot.mrphlip.com/')
-# apipass - secret string needed to communicate with web site
-config["apipass"] = apipass.get(config["username"])
 
 # datafile - file to store save data to
 config.setdefault('datafile', 'data.json')
@@ -113,37 +111,6 @@ config.setdefault('patreon_clientid', '')
 
 # patreon_clientsecret - Patreon API secret key
 config.setdefault('patreon_clientsecret', '')
-
-# Discord:
-# discord_clientid - Discord API client ID
-config.setdefault('discord_clientid', '')
-
-# discord_clientsecret - Discord API secret key
-config.setdefault('discord_clientsecret', '')
-
-# discord_botsecret - Discord bot secret key
-config.setdefault('discord_botsecret', '')
-
-# discord_serverid - ID of the LRR Discord server
-config.setdefault('discord_serverid', '288920509272555520')
-
-# discord_temp_channel_prefix - prefix of a temporary channel
-config['discord_temp_channel_prefix'] = config.get('discord_temp_channel_prefix', '[TEMP]').strip() + ' '
-
-# discord_channel_announcements - ID of #stream-announcements
-config.setdefault('discord_channel_announcements', "322643668831961088")
-
-# discord_category_voice - ID of the voice channel category
-config.setdefault('discord_category_voice', "360796352357072896")
-
-# twitter_api_key - Twitter API key
-config.setdefault('twitter_api_key', '')
-
-# twitter_api_secret - Twitter API secret
-config.setdefault('twitter_api_secret', '')
-
-# twitter_users - Twitter users to monitor for tweets
-config['twitter_users'] = [user.strip() for user in config.get('twitter_users_to_monitor', "loadingreadyrun").split(',')]
 
 # log_desertbus_moderator_actions - log moderator actions in #desertbus
 config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_moderator_actions', 'true')).lower() != 'false'
