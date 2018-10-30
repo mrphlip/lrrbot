@@ -24,7 +24,7 @@ itsdangerous==1.1.0
 jaraco.classes==1.5
 jaraco.collections==1.6.0
 jaraco.functools==1.20
-jaraco.itertools==2.5.2
+jaraco.itertools==3.0.0
 jaraco.logging==1.5.2
 jaraco.stream==1.2
 jaraco.text==1.10.1
@@ -37,10 +37,10 @@ psycopg2==2.7.5
 pubnub==4.1.2
 pycparser==2.19
 pycryptodomex==3.7.0
-python-dateutil==2.7.4
+python-dateutil==2.7.5
 python-editor==1.0.3
 python-mimeparse==1.6.0
-pytz==2018.6
+pytz==2018.7
 regex==2018.8.29
 requests==2.20.0
 six==1.11.0
