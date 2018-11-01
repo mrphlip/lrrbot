@@ -44,7 +44,7 @@ pytz==2018.7
 regex==2018.8.29
 requests==2.20.0
 six==1.11.0
-SQLAlchemy==1.2.12
+SQLAlchemy==1.2.13
 tempora==1.13
 timelib==0.2.4
 urllib3==1.24
