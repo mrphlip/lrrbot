@@ -60,7 +60,7 @@ def static_response(lrrbot, conn, event, respond_to, command):
 	response = response_data["response"]
 	if isinstance(response, (tuple, list)):
 		response = random.choice(response)
-	conn.privmsg(respond_to, response)
+	conn.privmsg(respond_to, response.format(user=event.tags.get('display-name') or source.nick))
 
 @aiomas.expose
 def modify_commands(commands):
