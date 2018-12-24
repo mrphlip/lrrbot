@@ -75,7 +75,7 @@ async def patreon_index(session):
 		is_patron=is_patron,
 		client_id=config['patreon_clientid'],
 		channel_patreon_name=channel_patreon_name,
-		redirect_url=flask.url_for('patreon_login', _external=True),
+		redirect_url=config['patreon_redirect_uri'],
 		state=state,
 		scope=SCOPE,
 		pledge_url=pledge_url,
