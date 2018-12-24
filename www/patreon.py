@@ -97,7 +97,7 @@ async def patreon_login(session):
 
 	access_token, refresh_token, expiry = await patreon.request_token('authorization_code',
 		code=code,
-		redirect_uri=flask.url_for('patreon_login', _external=True),
+		redirect_uri=config['patreon_redirect_uri'],
 	)
 
 	user = await patreon.current_user(access_token)

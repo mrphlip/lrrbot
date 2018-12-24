@@ -112,6 +112,9 @@ config.setdefault('patreon_clientid', '')
 # patreon_clientsecret - Patreon API secret key
 config.setdefault('patreon_clientsecret', '')
 
+# patreon_redirect_uri - Redirect URI set up for Patreon login
+config.setdefault('patreon_redirect_uri', 'https://lrrbot.mrphlip.com/patreon/login')
+
 # log_desertbus_moderator_actions - log moderator actions in #desertbus
 config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_moderator_actions', 'true')).lower() != 'false'
 
