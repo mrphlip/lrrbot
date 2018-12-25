@@ -52,7 +52,7 @@ config['notifyuser'] = config.get('notifyuser', 'twitchnotify').lower()
 # commandprefix - symbol to prefix all bot commands
 config.setdefault('commandprefix', '!')
 # siteurl - root of web site
-config.setdefault('siteurl', 'https://lrrbot.mrphlip.com/')
+config.setdefault('siteurl', 'https://lrrbot.com/')
 
 # datafile - file to store save data to
 config.setdefault('datafile', 'data.json')
@@ -83,7 +83,7 @@ config.setdefault('twitch_clientid', '')
 config.setdefault('twitch_clientsecret', '')
 
 # twitch_redirect_uri - Redirect URI set up for Twitch login
-config.setdefault('twitch_redirect_uri', 'https://lrrbot.mrphlip.com/login')
+config.setdefault('twitch_redirect_uri', 'https://lrrbot.com/login')
 
 # session_secret - Secret key for signing session cookies
 config.setdefault('session_secret', '')
@@ -113,7 +113,7 @@ config.setdefault('patreon_clientid', '')
 config.setdefault('patreon_clientsecret', '')
 
 # patreon_redirect_uri - Redirect URI set up for Patreon login
-config.setdefault('patreon_redirect_uri', 'https://lrrbot.mrphlip.com/patreon/login')
+config.setdefault('patreon_redirect_uri', 'https://lrrbot.com/patreon/login')
 
 # log_desertbus_moderator_actions - log moderator actions in #desertbus
 config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_moderator_actions', 'true')).lower() != 'false'

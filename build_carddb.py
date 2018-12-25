@@ -135,7 +135,7 @@ def do_download_file(url, fn):
 	# Much of this code cribbed from urllib.request.urlretrieve, with If-Modified-Since logic added
 
 	req = urllib.request.Request(url, headers={
-		'User-Agent': "LRRbot/2.0 (https://lrrbot.mrphlip.com/)",
+		'User-Agent': "LRRbot/2.0 (https://lrrbot.com/)",
 	})
 	try:
 		stat = os.stat(fn)

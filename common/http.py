@@ -29,7 +29,7 @@ def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, 
 	if headers is None:
 		headers = {}
 	# Let's be nice.
-	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
+	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.com/)"
 
 	if 'api.twitch.tv' in url and headers.get('Accept') != 'application/vnd.twitchtv.v5+json':
 		log.warning("Non-v5 request to: %r", url)
@@ -73,7 +73,7 @@ atexit.register(lambda: asyncio.get_event_loop().run_until_complete(http_request
 async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, allow_redirects=True, asjson=False):
 	if headers is None:
 		headers = {}
-	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.mrphlip.com/)"
+	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.com/)"
 
 	if 'api.twitch.tv' in url and headers.get('Accept') != 'application/vnd.twitchtv.v5+json':
 		log.warning("Non-v5 request to: %r", url)
