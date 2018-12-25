@@ -68,10 +68,11 @@ def main():
 		conn.execute(card_collector.delete())
 		conn.execute(cards.delete())
 		cardid = 0
-		for setid, expansion in mtgjson.items():
+		for setid, expansion in sorted(mtgjson.items()):
 			# Allow only importing individual sets for faster testing
 			if len(sys.argv) > 1 and setid not in sys.argv[1:]:
 				continue
+			#print("%s - %s" % (setid, expansion.get('name')))
 
 			release_date = dateutil.parser.parse(expansion.get('releaseDate', '1970-01-01')).date()
 			for filteredname, cardname, description, multiverseids, collectors, hidden in process_set(setid, expansion):
@@ -189,6 +190,7 @@ re_mana = re.compile(r"\{(.)\}")
 re_newlines = re.compile(r"[\r\n]+")
 re_multiplespaces = re.compile(r"\s{2,}")
 re_remindertext = re.compile(r"( *)\([^()]*\)( *)")
+re_minuses = re.compile(r"(?:^|(?<=[\s/]))-(?=[\dXY])")
 def process_card(card, expansion, include_reminder=False):
 	if card['layout'] in ('token', ):  # don't care about these special cards for now
 		return
@@ -248,7 +250,7 @@ def process_single_card(card, expansion, include_reminder=False):
 				yield ' (unflip: '
 				yield card['names'][0]
 				yield ')'
-		elif card.get('layout') == 'double-faced':
+		elif card.get('layout') == 'transform':
 			if card['name'] == card['names'][0]:
 				yield ' (back: '
 				yield card['names'][1]
@@ -258,21 +260,28 @@ def process_single_card(card, expansion, include_reminder=False):
 				yield card['names'][0]
 				yield ')'
 		elif card.get('layout') == 'meld':
-			top_card, bottom_card, melded_card = card['names']
-			if card['name'] == top_card:
-				# The names of what this melds with and into are in the card text
-				pass
-			elif card['name'] == bottom_card:
-				yield ' (melds with: '
-				yield top_card
-				yield '; into: '
-				yield melded_card
-				yield ')'
+			card_a, melded_card, card_b = card['names']
+			if card['name'] in (card_a, card_b):
+				# mtgjson is inconsistent as to which of these is which
+				# check if "melds with cardname" is in the card text
+				if card['name'] == card_a:
+					other_card = card_b
+				else:
+					other_card = card_a
+				if '(Melds with %s.)' % other_card in card['text']:
+					yield ' (melds with: '
+					yield other_card
+					yield '; into: '
+					yield melded_card
+					yield ')'
+				else:
+					# The names of what this melds with and into are in the rules text
+					pass
 			elif card['name'] == melded_card:
 				yield ' (melds from: '
-				yield top_card
+				yield card_a
 				yield '; '
-				yield bottom_card
+				yield card_b
 				yield ')'
 		yield ' | '
 		yield card.get('type', '?Type missing?')
@@ -300,11 +309,7 @@ def process_single_card(card, expansion, include_reminder=False):
 			yield ']'
 		if 'text' in card:
 			yield ' | '
-			text = card['text']
-			# Let Un-set cards keep their reminder text, since there's joeks in there
-			if not include_reminder:
-				text = re_remindertext.sub(lambda match: ' ' if match.group(1) and match.group(2) else '', text)
-			yield re_newlines.sub(' / ', text.strip())
+			yield process_text(card['text'], include_reminder)
 
 	desc = ''.join(build_description())
 	desc = re_multiplespaces.sub(' ', desc).strip()
@@ -313,9 +318,20 @@ def process_single_card(card, expansion, include_reminder=False):
 	if card.get('layout') == 'flip' and card['name'] != card['names'][0]:
 		multiverseids = numbers = []
 	else:
-		multiverseids = [card['multiverseid']] if card.get('multiverseid') else []
-		if card.get('variations'):
-			multiverseids.extend(card['variations'])
+		if card.get('layout') == 'transform':
+			if card['name'] == card['names'][0]:
+				if card.get('number') and 'a' not in card['number'] and 'b' not in card['number']:
+					card['number'] = [card['number'], card['number'] + 'a']
+			else:
+				if card.get('number') and 'a' not in card['number'] and 'b' not in card['number']:
+					card['number'] = card['number'] + 'b'
+				card['foreignData'] = []  # mtgjson doesn't seem to have accurate foreign multiverse ids for back faces
+		multiverseids = [card['multiverseId']] if card.get('multiverseId') else []
+		# disabling adding foreign multiverse ids unless we decide we want them for some reason
+		# they add a lot of time to the running of this script
+		#for lang in card.get('foreignData', []):
+		#	if lang.get('multiverseId'):
+		#		multiverseids.append(lang['multiverseId'])
 		numbers = card['number'] if card.get('number') else []
 		if not isinstance(numbers, list):
 			numbers = [numbers]
@@ -331,6 +347,14 @@ def process_single_card(card, expansion, include_reminder=False):
 	numbers = [(expansion['code'].lower(), i) for i in numbers]
 
 	return filtered, card['name'], desc, multiverseids, numbers, hidden
+
+def process_text(text, include_reminder):
+	text = re_minuses.sub('\u2212', text) # replace hyphens with real minus signs
+	# Let Un-set cards keep their reminder text, since there's joeks in there
+	if not include_reminder:
+		text = re_remindertext.sub(lambda match: ' ' if match.group(1) and match.group(2) else '', text)
+	text = re_newlines.sub(' / ', text.strip())
+	return text
 
 
 SPECIAL_SETS = {}
@@ -363,7 +387,8 @@ def process_set_amonkhet(expansion):
 			make_type(card)
 			del card['manaCost']
 			del card['number']
-			del card['multiverseid']
+			del card['multiverseId']
+			del card['foreignData']
 			if match.group(1) == "Eternalize":
 				card['power'] = card['toughness'] = '4'
 			yield from process_card(card, expansion)
@@ -371,7 +396,7 @@ def process_set_amonkhet(expansion):
 @special_set('UGL')
 def process_set_unglued(expansion):
 	for card in expansion['cards']:
-		if card['name'] in {'B.F.M. (Big Furry Monster)', 'B.F.M. (Big Furry Monster, Right Side)'}:  # do this card special
+		if card['name'] in {'B.F.M. (Big Furry Monster)', 'B.F.M. (Big Furry Monster) (b)'}:  # do this card special
 			continue
 		yield from process_card(card, expansion, include_reminder=True)
 
@@ -384,62 +409,25 @@ def process_set_unglued(expansion):
 		False,
 	)
 
-@special_set('UNH')
-def process_set_unhinged(expansion):
-	for card in expansion['cards']:
-		if card['name'] == 'Curse of the Fire Penguin Creature':
-			card['internalname'] = card['name']
-			del card['multiverseid']
-		yield from process_card(card, expansion, include_reminder=True)
-
-re_ust_variant = re.compile(r"^(.*) \(([a-z])\)$", re.IGNORECASE)
-ust_killbots = {"Curious Killbot": 'a', "Delighted Killbot": 'b', "Despondent Killbot": 'c', "Enraged Killbot": 'd'}
-def check_unstable_variant(card):
-	match = re_ust_variant.match(card['name'])
-	if match:
-		name, variant = match.groups()
-		return name, variant.lower(), True
-	if card['name'] in ust_killbots:
-		return card['name'], ust_killbots[card['name']], False
-	# Don't need to worry about the art-only variants, they have "variations" in
-	# the mtgjson already, which is handled by process_single_card
-	return None, None, None
-
 @special_set('UST')
 def process_set_unstable(expansion):
 	hosts = []
 	augments = []
 	re_augment = re.compile(r"(?:^|\n|,)\s*Augment\b", re.IGNORECASE)
 	for card in expansion['cards']:
-		# Fix a typo from Gatherer
-		if card['name'] == "Rhino-":
-			card['toughness'] = "+4"
-
-		variantname, variant, hidden = check_unstable_variant(card)
-		if variantname:
-			# Generate a "general" version of variant cards
-			if variant == 'a':
-				generic = dict(card)
-				generic['name'] = variantname
-				del generic['multiverseid']
-				yield from process_card(generic, expansion, include_reminder=True)
-			# Tag the individual variant
-			card['number'] += variant
-			if hidden:
-				card['internalname'] = variantname + "_" + variant
 		yield from process_card(card, expansion, include_reminder=True)
 
-		if 'Host' in card['types']:
+		if 'Host' in card['supertypes']:
 			hosts.append(card)
 			# for the benefit of the overlay
 			card['internalname'] = card['name'] + "_HOST"
-			del card['multiverseid']
+			del card['multiverseId']
 			del card['number']
 			yield from process_card(card, expansion, include_reminder=True)
 		elif re_augment.search(card.get('text', '')):
 			augments.append(card)
 			card['internalname'] = card['name'] + "_AUG"
-			del card['multiverseid']
+			del card['multiverseId']
 			del card['number']
 			yield from process_card(card, expansion, include_reminder=True)
 
@@ -463,8 +451,8 @@ def gen_augment(augment, host, expansion):
 		augment_part += ' '
 	combined['name'] = augment_part + host_part
 
-	combined['supertypes'] = host.get('supertypes', []) + augment.get('supertypes', [])
-	combined['types'] = [i for i in host['types'] if i not in {'Host', 'Creature'}] + augment['types']
+	combined['supertypes'] = [i for i in host.get('supertypes', []) if i != 'Host'] + augment.get('supertypes', [])
+	combined['types'] = [i for i in host['types'] if i != 'Creature'] + augment['types']
 	combined['subtypes'] = augment['subtypes'] + host['subtypes']
 	make_type(combined)
 
@@ -491,11 +479,6 @@ def gen_augment(augment, host, expansion):
 	combined['text'] = "\n".join(combined_lines)
 
 	return process_single_card(combined, expansion, include_reminder=True)
-
-@special_set('V17') # just reprints, and the meld cards aren't formatted properly
-def skip_set(expansion):
-	if False:
-		yield
 
 @special_set('PO2')
 def process_set_portal2(expansion):
