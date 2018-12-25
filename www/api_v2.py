@@ -14,6 +14,8 @@ import urllib.parse
 from common import cardname
 from common.postgres import escape_like
 from flaskext.csrf import csrf_exempt
+import logging
+log = logging.getLogger("api_v2")
 
 def require_mod(func):
 	@functools.wraps(func)
@@ -161,6 +163,7 @@ async def cardviewer_announce(session):
 		return flask.jsonify(message="Request not JSON"), 400
 	
 	req = flask.request.get_json()
+	log.debug("Received cardviewer: %r", req)
 
 	cards = server.db.metadata.tables['cards']
 	card_multiverse = server.db.metadata.tables['card_multiverse']
