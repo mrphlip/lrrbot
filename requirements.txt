@@ -24,7 +24,7 @@ itsdangerous==1.1.0
 jaraco.classes==1.5
 jaraco.collections==1.6.0
 jaraco.functools==1.20
-jaraco.itertools==3.0.0
+jaraco.itertools==4.1
 jaraco.logging==1.5.2
 jaraco.stream==1.2
 jaraco.text==1.10.1
