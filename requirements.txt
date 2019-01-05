@@ -22,7 +22,7 @@ inflect==2.1.0
 irc==17.0
 itsdangerous==1.1.0
 jaraco.classes==2.0
-jaraco.collections==1.6.0
+jaraco.collections==2.0
 jaraco.functools==2.0
 jaraco.itertools==4.1
 jaraco.logging==2.0
