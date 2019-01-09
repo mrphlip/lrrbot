@@ -17,7 +17,7 @@ Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon
 
  1. These commands assume Ubuntu 16.10 and that you're using Bash as your shell. Adapt as needed.
 	
-	Currently LRRbot works with PostgreSQL >= 9.5 and Python >= 3.5 and < 3.7, if the exact versions in the command below are unavailable on your operating system.
+	Currently LRRbot works with PostgreSQL >= 9.5 (recommended version: 10.6) and Python >= 3.5 (recommended version: 3.7), if the exact versions in the command below are unavailable on your operating system.
     ```
     sudo apt-get install git postgresql-9.5 postgresql-server-dev-9.5 python3.5-dev virtualenv build-essential
     git clone git@github.com:mrphlip/lrrbot
