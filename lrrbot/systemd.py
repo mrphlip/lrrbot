@@ -10,7 +10,7 @@ try:
 	libsystemd.sd_notify.argtypes = [ctypes.c_int, ctypes.c_char_p]
 	
 	def notify(status):
-		libsystemd.sd_notify(0, status)
+		libsystemd.sd_notify(0, status.encode('utf-8'))
 except OSError as e:
 	log.warning("failed to load libsystemd: {}", e)
 
