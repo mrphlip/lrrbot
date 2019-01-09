@@ -237,7 +237,7 @@ def check_exception(future):
 	Log any exceptions that occurred while processing this Future.
 
 	Usage:
-	asyncio.async(coro(), loop=loop).add_done_callback(check_exception)
+	asyncio.ensure_future(coro(), loop=loop).add_done_callback(check_exception)
 
 	Apply this to any Future that is not passed to loop.run_until_complete or similar
 	"""

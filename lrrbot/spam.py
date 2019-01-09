@@ -44,6 +44,6 @@ class Spam:
 				log.info("Detected spam from %s - %r matches %s" % (source.nick, message, re.pattern))
 				groups = {str(i+1):v for i,v in enumerate(matches.groups())}
 				desc = desc % groups
-				asyncio.async(self.lrrbot.ban(conn, event, desc, type), loop=self.loop).add_done_callback(utils.check_exception)
+				asyncio.ensure_future(self.lrrbot.ban(conn, event, desc, type), loop=self.loop).add_done_callback(utils.check_exception)
 				# Halt message handling
 				return "NO MORE"

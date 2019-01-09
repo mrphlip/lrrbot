@@ -36,4 +36,4 @@ class CommandParser(command_parser.CommandParser):
 		if match is not None:
 			log.info("Command from %s: %s " % (source.nick, event.arguments[0]))
 			proc, params = match
-			asyncio.async(proc(self.lrrbot, conn, event, respond_to, *params), loop=self.loop).add_done_callback(utils.check_exception)
+			asyncio.ensure_future(proc(self.lrrbot, conn, event, respond_to, *params), loop=self.loop).add_done_callback(utils.check_exception)

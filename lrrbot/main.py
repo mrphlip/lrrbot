@@ -161,7 +161,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.loop.run_until_complete(self.rpc_server.start(config['socket_filename'], config['socket_port']))
 
 		# Start background tasks
-		chatlogtask = asyncio.async(chatlog.run_task(), loop=self.loop)
+		chatlogtask = asyncio.ensure_future(chatlog.run_task(), loop=self.loop)
 
 		self._connect()
 		self.cardviewer.start()

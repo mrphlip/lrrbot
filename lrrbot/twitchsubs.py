@@ -33,7 +33,7 @@ class TwitchSubs:
 
 		self.lrrbot.reactor.add_global_handler('usernotice', self.on_usernotice, 90)
 
-		self.cleanup_loop = asyncio.async(self.cleanup(), loop=loop)
+		self.cleanup_loop = asyncio.ensure_future(self.cleanup(), loop=loop)
 
 	def stop_task(self):
 		self.cleanup_loop.cancel()

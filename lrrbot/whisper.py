@@ -9,7 +9,7 @@ class TwitchWhisper:
 		self.lrrbot = lrrbot
 		self.loop = loop
 		self.message_queue = asyncio.Queue(loop=loop)
-		self.message_pump_task = asyncio.async(self.message_pump(), loop=loop)
+		self.message_pump_task = asyncio.ensure_future(self.message_pump(), loop=loop)
 
 	def stop_task(self):
 		self.message_pump_task.cancel()

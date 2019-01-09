@@ -42,7 +42,7 @@ class LinkSpam:
 		]
 
 	def check_link_spam(self, conn, event):
-		asyncio.async(self.check_urls(conn, event, event.arguments[0])).add_done_callback(utils.check_exception)
+		asyncio.ensure_future(self.check_urls(conn, event, event.arguments[0])).add_done_callback(utils.check_exception)
 
 	async def check_urls(self, conn, event, message):
 		urls = []

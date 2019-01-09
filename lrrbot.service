@@ -2,12 +2,8 @@
 Description=LoadingReadyLive chatbot
 
 [Service]
-Type=notify
 KillSignal=SIGINT
-TimeoutStartSec=15s
-WatchdogSec=120s
 Restart=always
-NotifyAccess=main
 WorkingDirectory=%h/lrrbot
 ExecStart=/bin/sh -c "exec %h/lrrbot/venv/bin/python3 start_bot.py"
 
