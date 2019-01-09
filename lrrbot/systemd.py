@@ -1,15 +1,21 @@
 import logging
 import os
+import ctypes
+import ctypes.util
 
 log = logging.getLogger("lrrbot.systemd")
 
 try:
-	from systemd.daemon import notify
-except ImportError:
-	log.warning("`python-systemd` not installed")
+	libsystemd = ctypes.CDLL(ctypes.util.find_library("systemd"))
+	libsystemd.sd_notify.argtypes = [ctypes.c_int, ctypes.c_char_p]
+	
+	def notify(status):
+		libsystemd.sd_notify(0, status)
+except OSError as e:
+	log.warning("failed to load libsystemd: {}", e)
 
-	def notify(status, unset_environment=False, pid=0, fds=None):
-		return False
+	def notify(status):
+		pass
 
 class Service:
 	def __init__(self, loop):
