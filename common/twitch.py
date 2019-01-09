@@ -102,7 +102,7 @@ class get_paginated_by_offset:
 		self.offset = 0
 		self.buffer = None
 
-	async def __aiter__(self):
+	def __aiter__(self):
 		return self
 
 	async def __anext__(self):
@@ -153,7 +153,7 @@ class get_paginated_by_cursor:
 		self.cursor = True
 		self.buffer = None
 
-	async def __aiter__(self):
+	def __aiter__(self):
 		return self
 
 	async def __anext__(self):
