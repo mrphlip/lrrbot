@@ -119,6 +119,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.reactor.add_global_handler('action', self.on_message_action, 99)
 		self.reactor.add_global_handler('clearchat', self.on_clearchat)
+		self.reactor.add_global_handler('clearmsg', self.on_clearmsg)
 		if self.whisperconn:
 			self.whisperconn.add_whisper_handler(self.on_whisper_received)
 
@@ -234,6 +235,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			'emotes': event.tags.get('emotes'),
 			'display-name': event.tags.get('display-name') or source.nick,
 			'specialuser': set(),
+			'id': event.tags.get('id'),
 		}
 		if event.tags.get('subscriber'):
 			metadata['specialuser'].add('subscriber')
@@ -333,6 +335,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		# or "CLEARCHAT :someuser" to purge a single user
 		if len(event.arguments) >= 1:
 			chatlog.clear_chat_log(event.arguments[0])
+
+	@utils.swallow_errors
+	def on_clearmsg(self, conn, event):
+		# This message is sent when a single message is purged
+		self.check_message_tags(conn, event)
+		chatlog.clear_chat_log_msg(event.tags.get('target-msg-id'))
 
 	@utils.cache(twitch.GAME_CHECK_INTERVAL)
 	def get_game_id(self):

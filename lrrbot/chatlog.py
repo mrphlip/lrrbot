@@ -17,7 +17,7 @@ from common import space
 from common.config import config
 import lrrbot.main
 
-__all__ = ["log_chat", "clear_chat_log", "exitthread"]
+__all__ = ["log_chat", "clear_chat_log", "clear_chat_log_msg", "exitthread"]
 
 log = logging.getLogger('chatlog')
 
@@ -41,6 +41,8 @@ async def run_task():
 			await do_log_chat(*params)
 		elif ev == "clear_chat_log":
 			await do_clear_chat_log(*params)
+		elif ev == "clear_chat_log_msg":
+			await do_clear_chat_log_msg(*params)
 		elif ev == "rebuild_all":
 			await do_rebuild_all(*params)
 		elif ev == "exit":
@@ -51,6 +53,9 @@ def log_chat(event, metadata):
 
 def clear_chat_log(nick):
 	queue.put_nowait(("clear_chat_log", (datetime.datetime.now(pytz.utc), nick)))
+
+def clear_chat_log_msg(msgid):
+	queue.put_nowait(("clear_chat_log_msg", (msgid,)))
 
 def rebuild_all(period=7):
 	queue.put_nowait(("rebuild_all", (period,)))
@@ -82,6 +87,7 @@ async def do_log_chat(time, event, metadata):
 			emotes=metadata.get('emotes'),
 			displayname=metadata.get('display-name'),
 			messagehtml=html,
+			msgid=metadata.get('id'),
 		)
 
 @utils.swallow_errors
@@ -90,11 +96,23 @@ async def do_clear_chat_log(time, nick):
 	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
 	"""
 	log = lrrbot.main.bot.metadata.tables["log"]
+	await _delete_messages((log.c.source == nick) & (log.c.time >= time - PURGE_PERIOD))
+
+@utils.swallow_errors
+async def do_clear_chat_log_msg(msgid):
+	"""
+	Mark a user's earlier posts as "deleted" in the chat log, for when a user is banned/timed out.
+	"""
+	log = lrrbot.main.bot.metadata.tables["log"]
+	await _delete_messages((log.c.msgid == msgid))
+
+async def _delete_messages(condition, undelete=False):
+	log = lrrbot.main.bot.metadata.tables["log"]
 	with lrrbot.main.bot.engine.begin() as conn:
 		query = sqlalchemy.select([
 			log.c.id, log.c.time, log.c.source, log.c.target, log.c.message, log.c.specialuser,
 			log.c.usercolor, log.c.emoteset, log.c.emotes, log.c.displayname
-		]).where((log.c.source == nick) & (log.c.time >= time - PURGE_PERIOD))
+		]).where(condition)
 		rows = conn.execute(query).fetchall()
 	if len(rows) == 0:
 		return
@@ -103,7 +121,10 @@ async def do_clear_chat_log(time, nick):
 		specialuser = set(specialuser) if specialuser else set()
 		emoteset = set(emoteset) if emoteset else set()
 
-		specialuser.add("cleared")
+		if undelete:
+			specialuser.discard("cleared")
+		else:
+			specialuser.add("cleared")
 
 		html = await build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
 		new_rows.append({

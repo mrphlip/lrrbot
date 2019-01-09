@@ -68,6 +68,13 @@ class ModeratorActions:
 		elif action == 'untimeout':
 			user = args[0]
 			text = "%s was untimed-out by %s." % (slack.escape(user), slack.escape(mod))
+		elif action == 'delete':
+			user = args[0]
+			message = args[1]
+			text = "%s had a message deleted by %s." % (slack.escape(user), slack.escape(mod))
+			attachments.append({
+				'text': slack.escape(message)
+			})
 
 		elif action in ('twitchbot_rejected', 'automod_rejected'):
 			msg_id = message['data']['msg_id']
