@@ -54,9 +54,7 @@ def main():
 	except IOError:
 		pass
 	else:
-		# If the set is in both mtgjson and the extra data, use the one from mtgjson
-		extracards.update(mtgjson)
-		mtgjson = extracards
+		mtgjson.update(extracards)
 		del extracards
 
 	print("Processing...")
