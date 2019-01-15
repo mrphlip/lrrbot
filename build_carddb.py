@@ -296,12 +296,12 @@ def process_single_card(card, expansion, include_reminder=False):
 		if 'hand' in card or 'life' in card:
 			yield ' [hand: '
 			if 'hand' in card:
-				yield "%+d" % card['hand']
+				yield card['hand']
 			else:
 				yield "?"
 			yield ', life: '
 			if 'life' in card:
-				yield "%+d" % card['life']
+				yield card['life']
 			else:
 				yield "?"
 			yield ']'
