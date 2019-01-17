@@ -32,17 +32,9 @@ TIMESTAMPS_RELATIVE = 1
 TIMESTAMPS_MOONBASE = 2
 TIMESTAMPS_LOCAL = 3
 
-@utils.cache(CACHE_TIMEOUT, params=[0, 1, 2])
-async def archive_feed_data(channel, broadcasts, extravids=None):
+@utils.cache(CACHE_TIMEOUT, params=[0, 1])
+async def archive_feed_data(channel, broadcasts):
 	videos = await twitch.get_videos(channel, broadcasts=broadcasts, limit=100)
-	if extravids:
-		for vid in extravids:
-			try:
-				video = await twitch.get_video(vid)
-			except urllib.error.HTTPError:
-				pass
-			else:
-				videos.append(video)
 
 	for video in videos:
 		if video.get('created_at'):

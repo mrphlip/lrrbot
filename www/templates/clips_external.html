@@ -1,0 +1,78 @@
+{%extends "master.html"%}
+{%block title%}External Videos{%endblock%}
+{%block header%}External Videos{%endblock%}
+{%block headextra%}
+<script type="text/javascript">
+$(function(){
+	$(".tabs").tabs({
+		beforeActivate: tabsBeforeActivate,
+	});
+
+	$(".tabs .remove").click(removeChannel);
+});
+
+function tabsBeforeActivate(event, ui) {
+	console.log(ui.newTab);
+	if (ui.newTab.hasClass('add-button')) {
+		event.preventDefault();
+		addChannel();
+	}
+}
+
+function addChannel() {
+	var newchannel = prompt("What is the new channel to add?\n\n" +
+		"(Note that no clips will be available for this channel's videos until the next scraper run.)");
+	if (newchannel) {
+		$('#action').val('add');
+		$('#channel').val(newchannel);
+		$('form').submit();
+	}
+}
+
+function removeChannel(event) {
+	event.preventDefault();
+	var button = $(this);
+	if (confirm("Are you sure you want to stop watching the channel " + button.data('channelname') + "?\n\n" +
+			"This will remove all vods from this channel from the clip list.")) {
+		$('#action').val('remove');
+		$('#channel').val(button.data('channelid'));
+		$('form').submit();
+	}
+}
+</script>
+{%endblock%}
+{%block content%}
+<form action="{{url_for('external_clips_save')|e}}" method="POST">
+<input name="_csrf_token" type="hidden" value="{{csrf_token()|e}}">
+<input name="action" id="action" type="hidden" value="videos"> <input name="channel" id="channel" type="hidden">
+<p><input type="submit" value="Save"></p>
+<div class="tabs">
+	<ul>
+		{%for channel in channels%}
+		<li><a href="#tabs-{{channel['id']|e}}">{{channel['channel'].display_name|e}}</a> <a href="#" class="remove" data-channelid="{{channel['id']|e}}" data-channelname="{{channel['channel'].display_name|e}}">x</a></li>
+		{%endfor%}
+		<li class="add-button"><a href="#tabs-add">Add...</a></li>
+	</ul>
+	{%for channel in channels%}
+	<div id="tabs-{{channel['id']|e}}">
+		<table class="nicetable clips">
+		{%for video in channel['videos']%}
+		<tr class="{{loop.cycle('even','odd')}}">
+			<td class="checkbox">
+				<input type="checkbox" name="selected" value="{{channel['id']|e}}-{{video['_id']|e}}" {%if video['_id'] in channel['selected']%}checked{%endif%}>
+			</td>
+			<td class="thumbnail">
+				<img src="{{video['preview']['small']|e}}" alt="">
+			</td>
+			<td class="main">
+				{{video['title']|e}}
+			</td>
+		</tr>
+		{%endfor%}
+		</table>
+	</div>
+	{%endfor%}
+	<div id="tabs-add"></div>
+</div>
+</form>
+{%endblock%}

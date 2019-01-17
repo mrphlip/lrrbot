@@ -68,7 +68,7 @@ def get_user(id=None, name=None, get_missing=True):
 				"display_name": user["display_name"],
 			})
 
-			return User(user["_id"], user["name"], user['display_name'], None)
+			return User(int(user["_id"]), user["name"], user['display_name'], None)
 
 class get_paginated_by_offset:
 	"""
