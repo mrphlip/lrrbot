@@ -59,8 +59,7 @@
 						<div class="message-container">
 							<p class="system-message">
 								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a>
-								subscribed for {{ event['data']['monthcount'] }} month{% if event['data']['monthcount'] != 1%}s{% endif %}
-								{% if event['data']['benefactor'] %}, thanks to {{ event['data']['benefactor'] | e }}{% endif %}!
+								subscribed for {{ event['data']['monthcount'] }} month{% if event['data']['monthcount'] != 1%}s{% endif %}{% if event['data']['benefactor'] %}, thanks to {{ event['data']['benefactor'] | e }}{% endif %}!
 							</p>
 							{% if event['data']['messagehtml'] %}
 								<p class="message"><q>{{ event['data']['messagehtml'] | safe }}</q></p>
