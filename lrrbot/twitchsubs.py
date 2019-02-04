@@ -47,11 +47,17 @@ class TwitchSubs:
 			else:
 				message = None
 
-			monthcount = event.tags.get('msg-param-months')
+			monthcount = event.tags.get('msg-param-cumulative-months')
 			if monthcount is not None:
 				monthcount = int(monthcount)
 			else:
 				monthcount = 1
+
+			streak = event.tags.get('msg-param-streak-months')
+			if streak:
+				streak = int(streak)
+			else:
+				streak = None
 
 			name = event.tags['login']
 			display_name = event.tags.get('display-name') or name
@@ -82,6 +88,7 @@ class TwitchSubs:
 				emotes=event.tags.get('emotes'),
 				benefactor_login=benefactor_name,
 				benefactor=benefactor_display_name,
+				streak=streak,
 			)).add_done_callback(utils.check_exception)
 
 			# Make fake chat messages for this resub in the chat log
