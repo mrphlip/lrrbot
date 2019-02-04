@@ -159,7 +159,7 @@ class TwitchSubs:
 				)).add_done_callback(utils.check_exception)
 				event = 'twitch-message'
 
-	async def on_subscriber(self, conn, channel, login, user, eventtime, logo=None, monthcount=None, message=None, emotes=None, benefactor_login=None, benefactor=None):
+	async def on_subscriber(self, conn, channel, login, user, eventtime, logo=None, monthcount=None, message=None, emotes=None, benefactor_login=None, benefactor=None, streak=None):
 		log.info('New subscriber: %r at %r', user, eventtime)
 
 		now = time.time()
@@ -173,6 +173,7 @@ class TwitchSubs:
 		data = {
 			'name': user,
 			'benefactor': benefactor,
+			'streak': streak,
 		}
 		if logo is None:
 			try:
