@@ -7,7 +7,7 @@ alembic==1.0.7
 arrow==0.13.1
 asn1crypto==0.24.0
 async-timeout==3.0.1
-attrs==18.2.0
+attrs==19.1.0
 blinker==1.4
 certifi==2018.11.29
 cffi==1.12.2
