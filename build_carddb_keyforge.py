@@ -88,10 +88,6 @@ def main():
 						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (csetid, collector, cardname, rows2[0][0]))
 
 def fetch_card_data():
-	with open("kfdata.json") as fp:
-		a = json.load(fp)
-		a[0] = {int(k):v for k,v in a[0].items()}
-		return a
 	# KeyForge does not appear to have an API for directly downloading card data
 	# however, it _does_ have an API for downloading _decks_, and then that has
 	# an option for downloading the data for the cards that appear in those decks.
