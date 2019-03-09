@@ -23,14 +23,12 @@ import sqlalchemy
 
 from common import utils
 import common.postgres
-from common.cardname import clean_text
+from common.card import clean_text, CARD_GAME_MTG
 
 URL = 'http://mtgjson.com/json/AllSets.json.zip'
 ZIP_FILENAME = 'AllSets.json.zip'
 SOURCE_FILENAME = 'AllSets.json'
 EXTRAS_FILENAME = 'extracards.json'
-
-CARD_GAME_MTG = 1
 
 engine, metadata = common.postgres.get_engine_and_metadata()
 

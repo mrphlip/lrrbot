@@ -4,10 +4,7 @@ import lrrbot.decorators
 from lrrbot.main import bot
 import common.postgres
 import common.time
-from common.cardname import clean_text
-
-CARD_GAME_MTG = 1
-CARD_GAME_KEYFORGE = 2
+from common.card import clean_text, CARD_GAME_MTG, CARD_GAME_KEYFORGE
 
 @bot.command("cardview (on|off)")
 @lrrbot.decorators.mod_only
@@ -46,7 +43,7 @@ def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_KEYFORGE)
 
-def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, includehidden=False, game=None):
+def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, includehidden=False, game=CARD_GAME_MTG):
 	cards = find_card(lrrbot, search, includehidden, game)
 
 	if noerror and len(cards) != 1:
@@ -61,7 +58,7 @@ def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, inc
 	else:
 		conn.privmsg(respond_to, "Found %d cards you could be referring to - please enter more of the name" % len(cards))
 
-def find_card(lrrbot, search, includehidden=False, game=None):
+def find_card(lrrbot, search, includehidden=False, game=CARD_GAME_MTG):
 	cards = lrrbot.metadata.tables["cards"]
 	card_multiverse = lrrbot.metadata.tables["card_multiverse"]
 	card_collector = lrrbot.metadata.tables["card_collector"]

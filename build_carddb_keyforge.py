@@ -15,11 +15,10 @@ import sqlalchemy
 
 from common import utils
 import common.postgres
-from common.cardname import clean_text
+from common.card import clean_text, CARD_GAME_KEYFORGE
 from common.http import request
 
 URL = 'https://www.keyforgegame.com/api/decks/?page={page}&page_size=25&links=cards'
-CARD_GAME_KEYFORGE = 2
 
 EXPANSIONS = {
 	341: {
