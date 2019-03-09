@@ -2,7 +2,7 @@ import re
 
 from common.postgres import escape_like
 
-re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/\u2019]")
+re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/\u2019\u201c\u201d]")
 LETTERS_MAP = {
 	'\u00e0': 'a',
 	'\u00e1': 'a',

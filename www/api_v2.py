@@ -155,6 +155,10 @@ async def get_polls():
 	data = await common.rpc.bot.get_polls()
 	return flask.jsonify(data)
 
+CARD_GAME_CODE_MAPPING = {
+	'mtg': 1,
+	'keyforge': 2,
+}
 @blueprint.route("/cardviewer", methods=["POST"])
 @csrf_exempt
 @require_mod
@@ -168,7 +172,11 @@ async def cardviewer_announce(session):
 	cards = server.db.metadata.tables['cards']
 	card_multiverse = server.db.metadata.tables['card_multiverse']
 
-	query = sqlalchemy.select([cards.c.id, cards.c.name, cards.c.text])
+	try:
+		game = CARD_GAME_CODE_MAPPING[req.get('game', 'mtg')]
+	except KeyError:
+		return flask.jsonify(message="Unrecognised game code"), 400
+	query = sqlalchemy.select([cards.c.id, cards.c.name, cards.c.text]).where(cards.c.game == game)
 
 	if 'multiverseid' in req:
 		query = query.select_from(cards.join(card_multiverse)).where(card_multiverse.c.id == req['multiverseid'])

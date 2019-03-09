@@ -6,6 +6,9 @@ import common.postgres
 import common.time
 from common.cardname import clean_text
 
+CARD_GAME_MTG = 1
+CARD_GAME_KEYFORGE = 2
+
 @bot.command("cardview (on|off)")
 @lrrbot.decorators.mod_only
 def set_cardview(lrrbot, conn, event, respond_to, setting):
@@ -19,19 +22,32 @@ def set_cardview(lrrbot, conn, event, respond_to, setting):
 	lrrbot.cardview = (setting == "on")
 	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if lrrbot.cardview else "disabled"))
 
-@bot.command("card (.+)")
+@bot.command("(?:card|mtg) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
-def card_lookup(lrrbot, conn, event, respond_to, search):
+def mtg_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	Command: !card card-name
+	Command: !mtg card-name
 	Section: misc
 
-	Show the details of a given Magic: the Gathering card.
+	Show the details of a given Magic: The Gathering card.
 	"""
-	real_card_lookup(lrrbot, conn, event, respond_to, search)
+	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_MTG)
 
-def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, includehidden=False):
-	cards = find_card(lrrbot, search, includehidden)
+@bot.command("(?:kf|keyforge) (.+)")
+@lrrbot.decorators.throttle(60, count=3)
+def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
+	"""
+	Command: !keyforge card-name
+	Command: !kf card-name
+	Section: misc
+
+	Show the details of a given KeyForge card.
+	"""
+	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_KEYFORGE)
+
+def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, includehidden=False, game=None):
+	cards = find_card(lrrbot, search, includehidden, game)
 
 	if noerror and len(cards) != 1:
 		return
@@ -45,7 +61,7 @@ def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, inc
 	else:
 		conn.privmsg(respond_to, "Found %d cards you could be referring to - please enter more of the name" % len(cards))
 
-def find_card(lrrbot, search, includehidden=False):
+def find_card(lrrbot, search, includehidden=False, game=None):
 	cards = lrrbot.metadata.tables["cards"]
 	card_multiverse = lrrbot.metadata.tables["card_multiverse"]
 	card_collector = lrrbot.metadata.tables["card_collector"]
@@ -56,6 +72,8 @@ def find_card(lrrbot, search, includehidden=False):
 						.where(card_multiverse.c.id == search))
 		if not includehidden:
 			query = query.where(cards.c.hidden == False)
+		if game is not None:
+			query = query.where(cards.c.game == game)
 		with lrrbot.engine.begin() as conn:
 			return conn.execute(query).fetchall()
 
@@ -65,14 +83,19 @@ def find_card(lrrbot, search, includehidden=False):
 						.where((card_collector.c.setid == search[0].lower()) & (card_collector.c.collector == search[1])))
 		if not includehidden:
 			query = query.where(cards.c.hidden == False)
+		if game is not None:
+			query = query.where(cards.c.game == game)
 		with lrrbot.engine.begin() as conn:
 			return conn.execute(query).fetchall()
 
 	cleansearch = clean_text(search)
 	with lrrbot.engine.begin() as conn:
-		query = sqlalchemy.select([cards.c.name, cards.c.text]).where(cards.c.filteredname == cleansearch)
+		query = (sqlalchemy.select([cards.c.name, cards.c.text])
+						.where(cards.c.filteredname == cleansearch))
 		if not includehidden:
 			query = query.where(cards.c.hidden == False)
+		if game is not None:
+			query = query.where(cards.c.game == game)
 		rows = conn.execute(query).fetchall()
 		if rows:
 			return rows
@@ -80,7 +103,10 @@ def find_card(lrrbot, search, includehidden=False):
 		searchwords = search.split()
 		searchwords = [clean_text(i) for i in searchwords]
 		searchlike = "%" + "%".join(common.postgres.escape_like(i) for i in searchwords) + "%"
-		query = sqlalchemy.select([cards.c.name, cards.c.text]).where(cards.c.filteredname.like(searchlike))
+		query = (sqlalchemy.select([cards.c.name, cards.c.text])
+						.where(cards.c.filteredname.like(searchlike)))
 		if not includehidden:
 			query = query.where(cards.c.hidden == False)
+		if game is not None:
+			query = query.where(cards.c.game == game)
 		return conn.execute(query).fetchall()

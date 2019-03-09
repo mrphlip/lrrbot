@@ -167,4 +167,5 @@ class CardViewer:
 			"#" + config['channel'],
 			card_id,
 			noerror=True,
-			includehidden=True)
+			includehidden=True,
+			game=lrrbot.commands.card.CARD_GAME_MTG)

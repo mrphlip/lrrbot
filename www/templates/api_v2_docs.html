@@ -51,6 +51,24 @@
 <h4>Example</h4>
 <pre>{"augment": "Half-Kitten, Half-", "host": "Adorable Kitten"}</pre>
 
+<h3>Game selection</h3>
+<p>
+	Different card games can be selected by the <code>game</code> parameter.
+	If not present, it defaults to Magic: The Gathering. It must be provided to
+	select cards from other games.
+</p>
+<p>
+	Some selection methods (eg: multiverse ID) may not apply for certain games.
+</p>
+<p>Available game codes:</p>
+<dl>
+	<dt><code>mtg</code></dt><dd>Magic: The Gathering</dd>
+	<dt><code>keyforge</code></dt><dd>KeyForge</dd>
+</dl>
+<h4>Examples</h4>
+<pre>{"name": "<a href="http://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=446183">Vigor</a>", "game": "mtg"}</pre>
+<pre>{"name": "<a href="https://keyforge-compendium.com/cards/338-vigor">Vigor</a>", "game": "keyforge"}</pre>
+
 <h3>Response</h3>
 On success it will respond with the name and the text of the card.
 <pre>{
