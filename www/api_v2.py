@@ -11,7 +11,7 @@ import common.storm
 from common import googlecalendar
 import functools
 import urllib.parse
-from common import cardname
+from common import card
 from common.postgres import escape_like
 from flaskext.csrf import csrf_exempt
 import logging
@@ -155,6 +155,10 @@ async def get_polls():
 	data = await common.rpc.bot.get_polls()
 	return flask.jsonify(data)
 
+CARD_GAME_CODE_MAPPING = {
+	'mtg': 1,
+	'keyforge': 2,
+}
 @blueprint.route("/cardviewer", methods=["POST"])
 @csrf_exempt
 @require_mod
@@ -168,13 +172,17 @@ async def cardviewer_announce(session):
 	cards = server.db.metadata.tables['cards']
 	card_multiverse = server.db.metadata.tables['card_multiverse']
 
-	query = sqlalchemy.select([cards.c.id, cards.c.name, cards.c.text])
+	try:
+		game = CARD_GAME_CODE_MAPPING[req.get('game', 'mtg')]
+	except KeyError:
+		return flask.jsonify(message="Unrecognised game code"), 400
+	query = sqlalchemy.select([cards.c.id, cards.c.name, cards.c.text]).where(cards.c.game == game)
 
 	if 'multiverseid' in req:
 		query = query.select_from(cards.join(card_multiverse)).where(card_multiverse.c.id == req['multiverseid'])
 	elif 'name' in req:
-		name = cardname.to_query(req['name'])
-		exact = cardname.clean_text(req['name'])
+		name = card.to_query(req['name'])
+		exact = card.clean_text(req['name'])
 		hidden = False
 		if 'variant' in req:
 			name += escape_like("_" + req['variant'])
@@ -193,9 +201,9 @@ async def cardviewer_announce(session):
 	elif 'host' in req or 'augment' in req:
 		name = ""
 		if 'augment' in req:
-			name += cardname.to_query(req['augment']) + escape_like("_aug")
+			name += card.to_query(req['augment']) + escape_like("_aug")
 		if 'host' in req:
-			name += ("_" if name != "" else "") + cardname.to_query(req['host']) + escape_like("_host")
+			name += ("_" if name != "" else "") + card.to_query(req['host']) + escape_like("_host")
 		query = query.where(cards.c.filteredname.ilike(name))
 	else:
 		return flask.jsonify(message=""), 400

@@ -155,6 +155,7 @@ class CardViewer:
 	async def _card_debounce(self, card_id):
 		# Delayed import so this module can be imported before the bot object exists
 		import lrrbot.commands.card
+		from common.card import CARD_GAME_MTG
 
 		log.info("Got card from pubnub: %r", card_id)
 
@@ -167,4 +168,5 @@ class CardViewer:
 			"#" + config['channel'],
 			card_id,
 			noerror=True,
-			includehidden=True)
+			includehidden=True,
+			game=CARD_GAME_MTG)

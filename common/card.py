@@ -2,7 +2,10 @@ import re
 
 from common.postgres import escape_like
 
-re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/\u2019]")
+CARD_GAME_MTG = 1
+CARD_GAME_KEYFORGE = 2
+
+re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/\u2019\u201c\u201d]")
 LETTERS_MAP = {
 	'\u00e0': 'a',
 	'\u00e1': 'a',

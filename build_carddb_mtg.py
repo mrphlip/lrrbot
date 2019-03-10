@@ -23,7 +23,7 @@ import sqlalchemy
 
 from common import utils
 import common.postgres
-from common.cardname import clean_text
+from common.card import clean_text, CARD_GAME_MTG
 
 URL = 'http://mtgjson.com/json/AllSets.json.zip'
 ZIP_FILENAME = 'AllSets.json.zip'
@@ -61,11 +61,8 @@ def main():
 	cards = metadata.tables["cards"]
 	card_multiverse = metadata.tables["card_multiverse"]
 	card_collector = metadata.tables["card_collector"]
-	with engine.begin() as conn:
-		conn.execute(card_multiverse.delete())
-		conn.execute(card_collector.delete())
-		conn.execute(cards.delete())
-		cardid = 0
+	with engine.begin() as conn, conn.begin() as trans:
+		conn.execute(cards.delete().where(cards.c.game == CARD_GAME_MTG))
 		for setid, expansion in sorted(mtgjson.items()):
 			# Allow only importing individual sets for faster testing
 			if len(sys.argv) > 1 and setid not in sys.argv[1:]:
@@ -74,32 +71,30 @@ def main():
 
 			release_date = dateutil.parser.parse(expansion.get('releaseDate', '1970-01-01')).date()
 			for filteredname, cardname, description, multiverseids, collectors, hidden in process_set(setid, expansion):
-				cardid += 1
-
 				# Check if there's already a row for this card in the DB
 				# (keep the one with the latest release date - it's more likely to have the accurate text in mtgjson)
 				rows = conn.execute(sqlalchemy.select([cards.c.id, cards.c.lastprinted])
-					.where(cards.c.filteredname == filteredname)).fetchall()
+					.where(cards.c.filteredname == filteredname)
+					.where(cards.c.game == CARD_GAME_MTG)).fetchall()
 				if not rows:
-					real_cardid = cardid
-					conn.execute(cards.insert(),
-						id=real_cardid,
+					cardid, = conn.execute(cards.insert().returning(cards.c.id),
+						game=CARD_GAME_MTG,
 						filteredname=filteredname,
 						name=cardname,
 						text=description,
 						lastprinted=release_date,
 						hidden=hidden,
-					)
+					).first()
 				elif rows[0][1] < release_date:
-					real_cardid = rows[0][0]
-					conn.execute(cards.update().where(cards.c.id == real_cardid),
+					cardid = rows[0][0]
+					conn.execute(cards.update().where(cards.c.id == cardid),
 						name=cardname,
 						text=description,
 						lastprinted=release_date,
 						hidden=hidden,
 					)
 				else:
-					real_cardid = rows[0][0]
+					cardid = rows[0][0]
 
 				for mid in multiverseids:
 					rows = conn.execute(sqlalchemy.select([card_multiverse.c.cardid])
@@ -107,9 +102,9 @@ def main():
 					if not rows:
 						conn.execute(card_multiverse.insert(),
 							id=mid,
-							cardid=real_cardid,
+							cardid=cardid,
 						)
-					elif rows[0][0] != real_cardid and setid not in {'CPK'}:
+					elif rows[0][0] != cardid and setid not in {'CPK'}:
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, cardname, rows2[0][0]))
 
@@ -120,9 +115,9 @@ def main():
 						conn.execute(card_collector.insert(),
 							setid=csetid,
 							collector=collector,
-							cardid=real_cardid,
+							cardid=cardid,
 						)
-					elif rows[0][0] != real_cardid and setid not in {'CPK'}:
+					elif rows[0][0] != cardid and setid not in {'CPK'}:
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (csetid, collector, cardname, rows2[0][0]))
 
@@ -403,9 +398,14 @@ def process_set_unglued(expansion):
 		"B.F.M. (Big Furry Monster)",
 		"B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
 		[9780, 9844],
-		['28', '29'],
+		[('ugl', '28'), ('ugl', '29')],
 		False,
 	)
+
+@special_set('UNH')
+def process_set_general(expansion):
+	for card in expansion['cards']:
+		yield from process_card(card, expansion, include_reminder=True)
 
 @special_set('UST')
 def process_set_unstable(expansion):
