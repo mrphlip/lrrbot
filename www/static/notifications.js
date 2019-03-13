@@ -144,25 +144,19 @@ function twitch_subscription(data) {
 		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
 		container.appendChild(user);
 
-		var link = document.createElement("a");
-		link.href = "https://www.twitch.tv/" + data.name;
-		link.rel = "noopener nofollow";
-
 		if (data.avatar) {
-			var avatar_link = link.cloneNode();
-			user.appendChild(avatar_link);
-
 			var avatar = createElementWithClass("img", "avatar");
 			avatar.src = data.avatar;
-			avatar_link.appendChild(avatar);
+			user.appendChild(avatar);
 		}
 
 		var message_container = createElementWithClass("div", "message-container");
 		user.appendChild(message_container);
 
 		var message = createElementWithClass("p", "system-message");
-		link.appendChild(document.createTextNode(data.name));
-		message.appendChild(link);
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
 		message.appendChild(document.createTextNode(" just subscribed"));
 		if (data.benefactor)
 			message.appendChild(document.createTextNode(", thanks to " + data.benefactor));
@@ -190,25 +184,19 @@ function twitch_resubscription(data) {
 		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
 		container.appendChild(user);
 
-		var link = document.createElement("a");
-		link.href = "https://www.twitch.tv/" + data.name;
-		link.rel = "noopener nofollow";
-
 		if (data.avatar) {
-			var avatar_link = link.cloneNode();
-			user.appendChild(avatar_link);
-
 			var avatar = createElementWithClass("img", "avatar");
 			avatar.src = data.avatar;
-			avatar_link.appendChild(avatar);
+			user.appendChild(avatar);
 		}
 
 		var message_container = createElementWithClass("div", "message-container");
 		user.appendChild(message_container);
 
 		var message = createElementWithClass("p", "system-message");
-		link.appendChild(document.createTextNode(data.name));
-		message.appendChild(link);
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
 		message.appendChild(document.createTextNode(" subscribed for " + data.monthcount + " month" + (data.monthcount != 1 ? 's' : '')));
 		if (data.benefactor)
 			message.appendChild(document.createTextNode(", thanks to " + data.benefactor));
@@ -234,25 +222,19 @@ function twitch_subscription_mysterygift(data) {
 		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
 		container.appendChild(user);
 
-		var link = document.createElement("a");
-		link.href = "https://www.twitch.tv/" + data.name;
-		link.rel = "noopener nofollow";
-
 		if (data.avatar) {
-			var avatar_link = link.cloneNode();
-			user.appendChild(avatar_link);
-
 			var avatar = createElementWithClass("img", "avatar");
 			avatar.src = data.avatar;
-			avatar_link.appendChild(avatar);
+			user.appendChild(avatar);
 		}
 
 		var message_container = createElementWithClass("div", "message-container");
 		user.appendChild(message_container);
 
 		var message = createElementWithClass("p", "system-message");
-		link.appendChild(document.createTextNode(data.name));
-		message.appendChild(link);
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
 		message.appendChild(document.createTextNode(" has gifted " + data.subcount + " sub" + (data.subcount != 1 ? 's' : '') + " in the channel!"));
 		message_container.appendChild(message);
 
@@ -260,22 +242,16 @@ function twitch_subscription_mysterygift(data) {
 			var sub = data.subscribers[i];
 			var sublist = createElementWithClass("div", "sublist" + (sub.avatar ? " with-avatar" : ""));
 
-			var link = document.createElement("a");
-			link.href = "https://www.twitch.tv/" + sub.name;
-			link.rel = "noopener nofollow";
-
 			if (sub.avatar) {
-				var avatar_link = link.cloneNode();
-				sublist.appendChild(avatar_link);
-
 				var avatar = createElementWithClass("img", "avatar");
 				avatar.src = sub.avatar;
-				avatar_link.appendChild(avatar);
+				sublist.appendChild(avatar);
 			}
 
 			var sub_message = createElementWithClass("p", "message");
-			link.appendChild(document.createTextNode(sub.name));
-			sub_message.appendChild(link);
+			var nickname = createElementWithClass("span", "nickname");
+			nickname.appendChild(document.createTextNode(sub.name));
+			sub_message.appendChild(nickname);
 			if (sub.monthcount)
 				sub_message.appendChild(document.createTextNode(" for " + sub.monthcount + " month" + (sub.monthcount != 1 ? 's' : '') + "!"));
 			else
@@ -292,10 +268,6 @@ function twitch_cheer(data) {
 		var user = createElementWithClass("div", "user with-avatar");
 		container.appendChild(user);
 
-		var link = document.createElement("a");
-		link.href = "https://www.twitch.tv/" + data.name;
-		link.rel = "noopener nofollow";
-
 		var avatar = createElementWithClass("img", "avatar");
 		avatar.src = "https://static-cdn.jtvnw.net/bits/light/static/" + data.level + "/3";
 		user.appendChild(avatar);
@@ -304,8 +276,9 @@ function twitch_cheer(data) {
 		user.appendChild(message_container);
 
 		var message = createElementWithClass("p", "system-message");
-		link.appendChild(document.createTextNode(data.name));
-		message.appendChild(link);
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
 		message.appendChild(document.createTextNode(" has cheered with "));
 		var bits = createElementWithClass("span", "cheer " + data.level);
 		bits.appendChild(document.createTextNode(data.bits));
@@ -340,25 +313,19 @@ function patreon_pledge(data) {
 		var user = createElementWithClass("div", "user" + (data.patreon.avatar ? " with-avatar" : ""));
 		container.appendChild(user);
 
-		var link = document.createElement("a");
-		link.href = data.patreon.url;
-		link.rel = "noopener nofollow";
-
-		if (data.avatar) {
-			var avatar_link = link.cloneNode();
-			user.appendChild(avatar_link);
-
+		if (data.patreon.avatar) {
 			var avatar = createElementWithClass("img", "avatar");
 			avatar.src = data.patreon.avatar;
-			avatar_link.appendChild(avatar);
+			user.appendChild(avatar);
 		}
 
 		var message_container = createElementWithClass("div", "message-container");
 		user.appendChild(message_container);
 
 		var message = createElementWithClass("p", "system-message");
-		link.appendChild(document.createTextNode(data.twitch ? data.twitch.name : data.patreon.full_name));
-		message.appendChild(link);
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.twitch ? data.twitch.name : data.patreon.full_name));
+		message.appendChild(nickname);
 		message.appendChild(document.createTextNode(" is now supporting " + window.PATREON_CREATOR_NAME + " on Patreon!"));
 		message_container.appendChild(message);
 	});

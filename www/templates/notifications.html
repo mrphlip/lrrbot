@@ -33,13 +33,11 @@
 				{% if event['event'] == 'twitch-subscription' %}
 					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
 						{% if event['data']['avatar'] %}
-							<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">
-								<img class="avatar" src="{{ event['data']['avatar'] | https }}">
-							</a>
+							<img class="avatar" src="{{ event['data']['avatar'] | https }}">
 						{% endif %}
 						<div class="message-container">
 							<p class="system-message">
-								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a> just
+								<span class="nickname">{{ event['data']['name'] }}</span> just
 								subscribed{% if event['data']['benefactor'] %}, thanks to {{ event['data']['benefactor'] | e }}{% endif %}!
 							</p>
 							{% if event['data']['messagehtml'] %}
@@ -52,13 +50,11 @@
 				{% elif event['event'] == 'twitch-resubscription' %}
 					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
 						{% if event['data']['avatar'] %}
-							<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">
-								<img class="avatar" src="{{ event['data']['avatar'] | https }}">
-							</a>
+							<img class="avatar" src="{{ event['data']['avatar'] | https }}">
 						{% endif %}
 						<div class="message-container">
 							<p class="system-message">
-								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a>
+								<span class="nickname">{{ event['data']['name'] }}</span>
 								subscribed for {{ event['data']['monthcount'] }} month{% if event['data']['monthcount'] != 1%}s{% endif %}{% if event['data']['benefactor'] %}, thanks to {{ event['data']['benefactor'] | e }}{% endif %}!
 							</p>
 							{% if event['data']['messagehtml'] %}
@@ -71,24 +67,20 @@
 				{% elif event['event'] == 'twitch-subscription-mysterygift' %}
 					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
 						{% if event['data']['avatar'] %}
-							<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">
-								<img class="avatar" src="{{ event['data']['avatar'] | https }}">
-							</a>
+							<img class="avatar" src="{{ event['data']['avatar'] | https }}">
 						{% endif %}
 						<div class="message-container">
 							<p class="system-message">
-								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a>
+								<span class="nickname">{{ event['data']['name'] }}</span>
 								has gifted {{ event['data']['subcount'] }} sub{% if event['data']['subcount'] != 1%}s{% endif %} in the channel!
 							</p>
 							{% for sub in event['data']['subscribers'] %}
 								<div class="sublist{% if sub['avatar'] %} with-avatar{% endif %}">
 									{% if sub['avatar'] %}
-										<a href="https://www.twitch.tv/{{ sub['name'] }}" rel="noopener nofollow">
-											<img class="avatar" src="{{ sub['avatar'] | https }}">
-										</a>
+										<img class="avatar" src="{{ sub['avatar'] | https }}">
 									{% endif %}
 									<p class="message">
-										<a href="https://www.twitch.tv/{{ sub['name'] }}" rel="noopener nofollow">{{ sub['name'] }}</a>
+										<span class="nickname">{{ sub['name'] }}</span>
 										{% if sub['monthcount'] %}
 											for {{ sub['monthcount'] }} month{% if sub['monthcount'] != 1%}s{% endif %}!
 										{% else %}
@@ -104,7 +96,7 @@
 						<img class="avatar" src="https://static-cdn.jtvnw.net/bits/light/static/{{ event['data']['level'] }}/3">
 						<div class="message-container">
 							<p class="system-message">
-								<a href="https://www.twitch.tv/{{ event['data']['name'] }}" rel="noopener nofollow">{{ event['data']['name'] }}</a> has cheered with
+								<span class="nickname">{{ event['data']['name'] }}</span> has cheered with
 									<span class="cheer {{ event['data']['level'] }}">{{ event['data']['bits'] }}</span> bits!
 							</p>
 							{% if event['data']['messagehtml'] %}
@@ -119,12 +111,10 @@
 				{% elif event['event'] == 'patreon-pledge' %}
 					<div class="user{% if event['data']['patreon']['avatar'] %} with-avatar{% endif %}">
 						{% if event['data']['patreon']['avatar'] %}
-							<a href="{{ event['data']['patreon']['url'] }}" rel="noopener nofollow">
-								<img class="avatar" src="{{ event['data']['patreon']['avatar'] | https }}">
-							</a>
+							<img class="avatar" src="{{ event['data']['patreon']['avatar'] | https }}">
 						{% endif %}
 						<div class="message-container">
-							<p class="system-message"><a href="{{ event['data']['patreon']['url'] }}" rel="noopener nofollow">{{ event['data']['twitch']['name'] or event['data']['patreon']['full_name'] }}</a> is now supporting {{ patreon_creator_name }} on Patreon!</p>
+							<p class="system-message"><span class="nickname">{{ event['data']['twitch']['name'] or event['data']['patreon']['full_name'] }}</span> is now supporting {{ patreon_creator_name }} on Patreon!</p>
 						</div>
 					</div>
 				{% endif %}

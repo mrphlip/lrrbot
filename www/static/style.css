@@ -293,7 +293,7 @@ ul.pagination li :visited {
 	align-items: center;
 }
 
-#notificationlist .user a {
+#notificationlist .user .nickname {
 	color: black;
 	font-weight: bold;
 	text-decoration: none;
