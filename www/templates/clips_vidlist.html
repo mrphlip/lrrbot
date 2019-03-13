@@ -10,6 +10,7 @@
 		<a href="{{url_for("clips_vid", videoid=video['_id'])|e}}"><img src="{{video['preview']['small']|e}}" alt=""></a>
 	</td>
 	<td class="main">
+		{{ video['recorded_at'] | timestamp('timestamp-duration') }}
 		<a href="{{url_for("clips_vid", videoid=video['_id'])|e}}">{{video['title']|e}}</a>
 		{% if video['channel']['name'] != main_channel %}
 			<span class="external_channel">[{{video['channel']['display_name']|e}}]</span>

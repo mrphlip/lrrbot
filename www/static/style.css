@@ -764,6 +764,11 @@ table.quote-search select {
 {
 	padding: 0.25em;
 }
+.clips .timestamp-duration {
+	color: #666;
+	font: italic 80% sans-serif;
+	float: right;
+}
 .clips .stat
 {
 	width: 5em;

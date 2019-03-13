@@ -65,6 +65,7 @@ function removeChannel(event) {
 				<img src="{{video['preview']['small']|e}}" alt="">
 			</td>
 			<td class="main">
+				{{ video['recorded_at'] | timestamp('timestamp-duration') }}
 				{{video['title']|e}}
 			</td>
 		</tr>
