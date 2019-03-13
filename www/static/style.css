@@ -272,7 +272,7 @@ ul.pagination li :visited {
 	margin: 0 auto;
 }
 
-#notificationlist .duration {
+#notificationlist .timestamp-duration {
 	color: #666;
 	font: italic 80% sans-serif;
 	float: right;

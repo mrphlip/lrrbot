@@ -27,8 +27,8 @@
 </div>
 <ol id="notificationlist" data-last-event-id="{{ last_event_id }}">
 	{% for event in events %}
-		<li data-timestamp="{{ event['data']['time'].isoformat() }}" class="{{ loop.cycle('even', 'odd') }}">
-			<div class="duration">{{ event['duration'] }}</div>
+		<li class="{{ loop.cycle('even', 'odd') }}">
+			<div class="timestamp-duration" data-timestamp="{{ event['data']['time'].timestamp() }}">{{ event['duration'] }}</div>
 			<div class="container">
 				{% if event['event'] == 'twitch-subscription' %}
 					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">

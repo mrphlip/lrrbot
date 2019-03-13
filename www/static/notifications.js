@@ -1,12 +1,6 @@
 window.addEventListener('DOMContentLoaded', function (event) {
 	window.original_title = document.title;
 
-	var events = document.querySelectorAll('#notificationlist li');
-	for (var i = 0; i < events.length; i++) {
-		var event = events[i];
-		event.querySelector(".duration").setAttribute('title', new Date(event.dataset.timestamp).toLocaleString());
-	}
-
 	if (window.EventSource) {
 		var stream = new EventSource("/api/v2/events?last-event-id=" + window.last_event_id);
 		stream.addEventListener("twitch-subscription", function (event) {
@@ -84,14 +78,14 @@ function ajax_poll() {
 window.MAXIMUM_AGE = 2 * 24 * 60 * 60;
 
 function update_dates() {
-	var rows = document.querySelectorAll("#notificationlist li");
-	for (var i = 0; i < rows.length; i++) {
-		var row = rows[i];
-		var duration = (Date.now() - Date.parse(row.dataset.timestamp)) / 1000;
+	var nodes = document.querySelectorAll("#notificationlist li .timestamp-duration");
+	for (var i = 0; i < nodes.length; i++) {
+		var node = nodes[i];
+		var duration = (Date.now() - new Date(node.dataset.timestamp * 1000)) / 1000;
 		if (duration > window.MAXIMUM_AGE) {
-			row.parentNode.removeChild(row);
+			node.parentNode.parentNode.removeChild(node.parentNode);
 		} else {
-			row.querySelector(".duration").textContent = niceduration(duration);
+			node.textContent = niceduration(duration);
 		}
 	}
 
@@ -118,7 +112,6 @@ function createElementWithClass(element, className) {
 
 function create_row(data, callback) {
 	var row = document.createElement("li");
-	row.dataset.timestamp = data.time;
 	if (window.even) {
 		row.className = "even new";
 	} else {
@@ -133,8 +126,9 @@ function create_row(data, callback) {
 	var list = document.getElementById("notificationlist");
 	list.insertBefore(row, list.firstChild);
 
-	var duration = createElementWithClass("div", "duration");
-	duration.appendChild(document.createTextNode(niceduration((Date.now() - Date.parse(data.time)) / 1000)));
+	var duration = createElementWithClass("div", "timestamp-duration");
+	duration.dataset.timestamp = Date.parse(data.time) / 1000;
+	display_duration($(duration));
 	row.appendChild(duration);
 
 	var container = createElementWithClass("div", "container");

@@ -1,5 +1,4 @@
-function niceduration(duration)
-{
+function niceduration(duration) {
 	// Should match the code in utils.niceduration in the Python side
 	if (duration < 0)
 		return "-" + niceduration(-duration);
@@ -15,13 +14,30 @@ function niceduration(duration)
 	return Math.floor(duration / 24) + "d, " + (duration % 24) + "h";
 }
 
+function display_timestamp(node) {
+	var timestamp = new Date(node.data('timestamp') * 1000);
+	node.text(timestamp.toLocaleString());
+}
+
+function display_timeonly(node) {
+	var timestamp = new Date(node.data('timestamp') * 1000);
+	node.text(timestamp.toLocaleTimeString());
+}
+
+function display_duration(node) {
+	var timestamp = new Date(node.data('timestamp') * 1000);
+	node.text(niceduration((Date.now() - timestamp) / 1000));
+	node.attr('title', timestamp.toLocaleString());
+}
+
 $(function(){
 	$(".timestamp").each(function(){
-		var timestamp = new Date($(this).data('timestamp') * 1000);
-		$(this).text(timestamp.toLocaleString());
+		display_timestamp($(this));
 	});
 	$(".timestamp-time").each(function(){
-		var timestamp = new Date($(this).data('timestamp') * 1000);
-		$(this).text(timestamp.toLocaleTimeString());
+		display_timeonly($(this));
+	});
+	$(".timestamp-duration").each(function(){
+		display_duration($(this));
 	});
 });
