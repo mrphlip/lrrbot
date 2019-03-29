@@ -19,7 +19,7 @@ flask-csrf==0.9.2
 Flask-SQLAlchemy==2.3.2
 idna==2.8
 inflect==2.1.0
-irc==17.0
+irc==17.1
 itsdangerous==1.1.0
 jaraco.classes==2.0
 jaraco.collections==2.0
