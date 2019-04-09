@@ -4,6 +4,7 @@ import common.storm
 from common import twitch
 from common import utils
 from lrrbot import chatlog
+import re
 
 import irc.client
 
@@ -23,6 +24,7 @@ class TwitchCheer:
 		if event.tags.get('bits'):
 			asyncio.ensure_future(self.on_cheer(event)).add_done_callback(utils.check_exception)
 
+	re_teambattle = re.compile(r"#\s*team[\W_]*(James|Serge)\b", re.IGNORECASE)
 	async def on_cheer(self, event):
 		log.info("Got %d bits from %s", event.tags['bits'], event.tags['display-name'])
 		eventname = 'twitch-cheer'
@@ -36,6 +38,17 @@ class TwitchCheer:
 		}
 
 		await common.rpc.eventserver.event(eventname, data, None)
+
+		match = self.re_teambattle.search(event.arguments[0])
+		if match:
+			log.info("Got a cheer for team %s" % match.group(1).lower())
+			team = "team-" + match.group(1).lower()
+			common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, team, event.tags['bits'])
+			data = {
+				'team-james': common.storm.get(self.lrrbot.engine, self.lrrbot.metadata, 'team-james'),
+				'team-serge': common.storm.get(self.lrrbot.engine, self.lrrbot.metadata, 'team-serge'),
+			}
+			await common.rpc.eventserver.event('team-battle', data, None)
 
 	@classmethod
 	def get_level(cls, bits):

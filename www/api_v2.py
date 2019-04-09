@@ -52,6 +52,8 @@ def stormcount():
 		'twitch-follow': common.storm.get(server.db.engine, server.db.metadata, 'twitch-follow'),
 		'twitch-cheer': common.storm.get(server.db.engine, server.db.metadata, 'twitch-cheer'),
 		'patreon-pledge': common.storm.get(server.db.engine, server.db.metadata, 'patreon-pledge'),
+		'team-james': common.storm.get(server.db.engine, server.db.metadata, 'team-james'),
+		'team-serge': common.storm.get(server.db.engine, server.db.metadata, 'team-serge'),
 	})
 
 @blueprint.route("/stormcount/all")
