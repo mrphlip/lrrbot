@@ -40,7 +40,7 @@ pycryptodomex==3.8.1
 python-dateutil==2.8.0
 python-editor==1.0.4
 python-mimeparse==1.6.0
-pytz==2018.9
+pytz==2019.1
 regex==2019.03.12
 requests==2.21.0
 six==1.12.0
