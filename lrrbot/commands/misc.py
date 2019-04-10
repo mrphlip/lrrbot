@@ -52,6 +52,27 @@ def stormcount(lrrbot, conn, event, respond_to):
 		twitch_follow,
 	))
 
+@bot.command("teams?(?:battle)?")
+@lrrbot.decorators.throttle()
+def stormcount(lrrbot, conn, event, respond_to):
+	"""
+	Command: !teams
+	Command: !teambattle
+	Section: info
+
+	Show the team battle scores
+	"""
+	team_james = common.storm.get(lrrbot.engine, lrrbot.metadata, 'team-james')
+	team_serge = common.storm.get(lrrbot.engine, lrrbot.metadata, 'team-serge')
+	standings = [
+		(team_james, "James: %d" % team_james),
+		(team_serge, "Serge: %d" % team_serge),
+	]
+	standings.sort(reverse=True)
+	conn.privmsg(respond_to, "Current standings: %s" % (
+		", ".join(disp for bits, disp in standings)
+	))
+
 @bot.command("spam(?:count)?")
 @lrrbot.decorators.throttle()
 def spamcount(lrrbot, conn, event, respond_to):
