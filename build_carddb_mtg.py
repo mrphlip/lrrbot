@@ -403,7 +403,7 @@ def process_set_unglued(expansion):
 	)
 
 @special_set('UNH')
-def process_set_general(expansion):
+def process_set_unhinged(expansion):
 	for card in expansion['cards']:
 		yield from process_card(card, expansion, include_reminder=True)
 
