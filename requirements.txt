@@ -4,7 +4,7 @@
 aiohttp==3.5.4
 aiomas==2.0.1
 alembic==1.0.10
-arrow==0.14.0
+arrow==0.14.2
 asn1crypto==0.24.0
 async-timeout==3.0.1
 attrs==19.1.0
