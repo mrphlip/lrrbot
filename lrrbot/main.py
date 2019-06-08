@@ -131,7 +131,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.rpc_server = rpc.Server(self, loop)
 
-		# create pubnub listener
 		self.cardviewer = cardviewer.CardViewer(self, self.loop)
 
 		self.commands = command_parser.CommandParser(self, loop)
@@ -164,7 +163,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		chatlogtask = asyncio.ensure_future(chatlog.run_task(), loop=self.loop)
 
 		self._connect()
-		self.cardviewer.start()
 
 		# Don't fall over if the server sends something that's not real UTF-8
 		self.connection.buffer.errors = "replace"
@@ -179,7 +177,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			tasks_waiting = [chatlogtask]
 			if self.whisperconn:
 				tasks_waiting.append(self.whisperconn.stop_task())
-			tasks_waiting.append(self.cardviewer.stop())
 			tasks_waiting.append(self.subs.stop_task())
 			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
 
