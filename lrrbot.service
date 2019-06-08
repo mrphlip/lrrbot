@@ -9,7 +9,7 @@ WatchdogSec=120s
 Restart=always
 NotifyAccess=main
 WorkingDirectory=%h/lrrbot
-ExecStart=/bin/sh -c "exec %h/lrrbot/venv/bin/python3 start_bot.py"
+ExecStart=/usr/bin/env pipenv run ./start_bot.py
 
 [Install]
 WantedBy=default.target

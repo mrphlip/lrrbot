@@ -3,7 +3,7 @@ Description=asyncio server-sent events server
 
 [Service]
 WorkingDirectory=%h/lrrbot
-ExecStart=/bin/sh -c "%h/lrrbot/venv/bin/python3 eventserver.py"
+ExecStart=/usr/bin/env pipenv run ./eventserver.py
 
 [Install]
 WantedBy=default.target

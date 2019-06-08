@@ -1,4 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+
 import sys
 argv = sys.argv[1:]
 sys.argv = sys.argv[:1]
