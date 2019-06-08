@@ -95,12 +95,6 @@ config.setdefault('preferred_url_scheme', 'https')
 config.setdefault('whispers', False)
 config['whispers'] = str(config['whispers']).lower() != 'false'
 
-# cardviewersubkey - Pubnub subscribe key for xsplit card viewer channel
-config.setdefault('cardsubkey', None)
-
-# cardviewerchannel - Pubnub channel for xsplit card viewer
-config.setdefault('cardviewerchannel', 'xsplit_image')
-
 # Slack:
 # slack_webhook_url - URL to post messages to
 config.setdefault('slack_webhook_url', None)
