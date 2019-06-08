@@ -8,7 +8,7 @@ TimeoutStartSec=15s
 Restart=always
 NotifyAccess=main
 WorkingDirectory=%h/lrrbot
-ExecStart=/usr/bin/env uwsgi --ini uwsgi.ini --socket /tmp/uwsgi-lrrbot.sock
+ExecStart=/bin/sh -c 'uwsgi --ini uwsgi.ini --socket /tmp/uwsgi-lrrbot.sock --virtualenv "$(pipenv --venv)"'
 
 [Install]
 WantedBy=default.target
