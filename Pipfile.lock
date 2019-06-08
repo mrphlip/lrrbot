@@ -464,20 +464,19 @@
         },
         "regex": {
             "hashes": [
-                "sha256:2d42791c45853bd6344be2f9ee6ad4ea41112d613a68de86adf11fbd1b9b1f0c",
-                "sha256:30b5cd76b9e079425a3f4871c627428d512c2e557721e2e8a2f98ea884de6a3a",
-                "sha256:5a6e1bba27a438f4dce6d4cd6595f9bb2e5dfa5bded392cf46a77c4a96edb198",
-                "sha256:7474114ab3ae76f2f0261c81345cb09a1eb656d3158eed76743a78ddf4346c02",
-                "sha256:76dbada396d1aa84ba69e83e7bdb49342d7295f2c871332de58ca9b42684583a",
-                "sha256:7e951b0737182d3581a994a056fb825498ec443e236a65623e43415e20ed1e6e",
-                "sha256:a32f5755c5d74349d4e839a45cb0f5919b3fceb7ff9071f8610956839e30375d",
-                "sha256:bfaffc8d4083369a90db796d298d2b0d4553658043e5ffa8a36f8c21a79a9285",
-                "sha256:c5ed448cfa8a51faa6cc3eee59ea6f0da44df699bb5302b36a0f4489977e4f78",
-                "sha256:e33aa03c2866449004de03de877662fb2756a18d64f8b12d6e5608eb851efb7a",
-                "sha256:f58884d0f422c3a02c152f4bd6ed514e9134fc09181556b55280966152ccb02a"
+                "sha256:1c70ccb8bf4ded0cbe53092e9f56dcc9d6b0efcf6e80b6ef9b0ece8a557d6635",
+                "sha256:2948310c01535ccb29bb600dd033b07b91f36e471953889b7f3a1e66b39d0c19",
+                "sha256:2ab13db0411cb308aa590d33c909ea4efeced40188d8a4a7d3d5970657fe73bc",
+                "sha256:38e6486c7e14683cd1b17a4218760f0ea4c015633cf1b06f7c190fb882a51ba7",
+                "sha256:80dde4ff10b73b823da451687363cac93dd3549e059d2dc19b72a02d048ba5aa",
+                "sha256:84daedefaa56320765e9c4d43912226d324ef3cc929f4d75fa95f8c579a08211",
+                "sha256:b98e5876ca1e63b41c4aa38d7d5cc04a736415d4e240e9ae7ebc4f780083c7d5",
+                "sha256:ca4f47131af28ef168ff7c80d4b4cad019cb4cabb5fa26143f43aa3dbd60389c",
+                "sha256:cf7838110d3052d359da527372666429b9485ab739286aa1a11ed482f037a88c",
+                "sha256:dd4e8924915fa748e128864352875d3d0be5f4597ab1b1d475988b8e3da10dd7",
+                "sha256:f2c65530255e4010a5029eb11138f5ecd5aa70363f57a3444d83b3253b0891be"
             ],
-            "index": "pypi",
-            "version": "==2019.6.5"
+            "version": "==2019.06.08"
         },
         "requests": {
             "hashes": [
