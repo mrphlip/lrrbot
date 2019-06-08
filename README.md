@@ -13,7 +13,7 @@ LRRbot contains modules that aren't licensed under Apache-2.0:
 ## Setup instructions
 
 ### Linux (Ubuntu 19.04)
-Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon integration, Slack integration.
+Things not covered: tokens and secrets for Patreon integration, Slack integration, `keys.json` for Google Docs
 
  1. These commands assume Ubuntu 19.04 and that you're using Bash as your shell. Adapt as needed.
 	
