@@ -12,19 +12,17 @@ LRRbot contains modules that aren't licensed under Apache-2.0:
 
 ## Setup instructions
 
-### Linux (Ubuntu 16.10)
+### Linux (Ubuntu 19.04)
 Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon integration, Slack integration.
 
- 1. These commands assume Ubuntu 16.10 and that you're using Bash as your shell. Adapt as needed.
+ 1. These commands assume Ubuntu 19.04 and that you're using Bash as your shell. Adapt as needed.
 	
 	Currently LRRbot works with PostgreSQL >= 9.5 (recommended version: 10.6) and Python >= 3.5 (recommended version: 3.7), if the exact versions in the command below are unavailable on your operating system.
     ```
-    sudo apt-get install git postgresql-9.5 postgresql-server-dev-9.5 python3.5-dev virtualenv build-essential
+    sudo apt install git postgresql libpq-dev python3.7-dev build-essential pipenv
     git clone git@github.com:mrphlip/lrrbot
     cd lrrbot
-    virtualenv -p python3.5 venv
-    . venv/bin/activate
-    pip install -r requirements.txt
+    pipenv sync --dev
     sudo -u postgres psql -c "CREATE USER \"$USER\";"
     sudo -u postgres psql -c "CREATE DATABASE lrrbot;"
     sudo -u postgres psql -c "GRANT ALL ON DATABASE lrrbot TO \"$USER\";"
@@ -71,12 +69,12 @@ Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon
 
  4. Populate the database:
     ```
-    alembic -c lrrbot.conf upgrade head
+    pipenv run alembic -c lrrbot.conf upgrade head
     ```
  5. Start LRRbot components:
-   * IRC bot: `python start_bot.py`
-   * Webserver: `python webserver.py`
-   * (optional) Server-sent events server: `python eventserver.py`
+   * IRC bot: `pipenv run ./start_bot.py`
+   * Webserver: `pipenv run ./ webserver.py`
+   * (optional) Server-sent events server: `pipenv run ./eventserver.py`
  6. Go to `http://localhost:5000/login` and log in with the bot account (name in `username` config key) and the channel account (name in `channel` config key).
  7. Restart the bot.
 
