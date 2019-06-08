@@ -14,8 +14,8 @@ def get_data(filename):
 				row['SubType'] = row.pop('Subtype')
 			yield row
 
-re_cost = regex.compile(r"^(?:o([WUBRGTXC]|\d+|cT|\([wubrg]/[wubrg]\)))*$")
-code_map = {'cT': "T"}
+re_cost = regex.compile(r"^(?:o([WUBRGTXCQ]|\d+|Si|cT|\([wubrg]/[wubrg]\)))*$")
+code_map = {'cT': "T", 'Si': 'S'}
 def cleancost(cost):
 	parts = re_cost.match(cost)
 	if not parts:
