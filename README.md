@@ -17,7 +17,8 @@ Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon
 
  1. These commands assume Ubuntu 19.04 and that you're using Bash as your shell. Adapt as needed.
 	
-	Currently LRRbot works with PostgreSQL >= 9.5 (recommended version: 10.6) and Python >= 3.5 (recommended version: 3.7), if the exact versions in the command below are unavailable on your operating system.
+    Currently LRRbot works with PostgreSQL >= 9.5 (recommended version: 10.8) and Python >= 3.5 (recommended version: 3.7), if the exact versions in the command below are unavailable on your operating system.
+
     ```
     sudo apt install git postgresql libpq-dev python3.7-dev build-essential pipenv
     git clone git@github.com:mrphlip/lrrbot
@@ -73,7 +74,7 @@ Things not covered: `keys.json` for `!highlight`, tokens and secrets for Patreon
     ```
  5. Start LRRbot components:
    * IRC bot: `pipenv run ./start_bot.py`
-   * Webserver: `pipenv run ./ webserver.py`
+   * Webserver: `pipenv run ./webserver.py`
    * (optional) Server-sent events server: `pipenv run ./eventserver.py`
  6. Go to `http://localhost:5000/login` and log in with the bot account (name in `username` config key) and the channel account (name in `channel` config key).
  7. Restart the bot.
