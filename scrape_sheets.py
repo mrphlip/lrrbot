@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import sys
 sys.argv, args = sys.argv[:1], sys.argv[1:]
 from common import gdata, http
