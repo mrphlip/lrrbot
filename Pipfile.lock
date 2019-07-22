@@ -494,10 +494,9 @@
         },
         "sqlalchemy": {
             "hashes": [
-                "sha256:c7fef198b43ef31dfd783d094fd5ee435ce8717592e6784c45ba337254998017"
+                "sha256:217e7fc52199a05851eee9b6a0883190743c4fb9c8ac4313ccfceaffd852b0ff"
             ],
-            "index": "pypi",
-            "version": "==1.3.4"
+            "version": "==1.3.6"
         },
         "tempora": {
             "hashes": [
