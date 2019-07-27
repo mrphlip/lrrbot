@@ -10,6 +10,8 @@ common.FRAMEWORK_ONLY = True
 import sys
 import json
 import re
+import os
+import math
 import dateutil.parser
 import sqlalchemy
 
@@ -18,15 +20,20 @@ import common.postgres
 from common.card import clean_text, CARD_GAME_KEYFORGE
 from common.http import request
 
-URL = 'https://www.keyforgegame.com/api/decks/?page={page}&page_size=25&links=cards'
+PAGE_SIZE = 25
+URL = 'https://www.keyforgegame.com/api/decks/?page={{page}}&page_size={page_size}&links=cards'.format(page_size=PAGE_SIZE)
 
 EXPANSIONS = {
 	341: {
 		'code': 'KF02',
 		'name': 'Call of the Archons',
-		'count': 370,
 		'releaseDate': '2018-11-15',
 	},
+	435: {
+		'code': 'KF04',
+		'name': 'Age of Ascension',
+		'releaseDate': '2019-05-30',
+	}
 }
 
 engine, metadata = common.postgres.get_engine_and_metadata()
@@ -86,47 +93,62 @@ def main():
 						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
 						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (csetid, collector, cardname, rows2[0][0]))
 
+def getpage(page):
+	fn = ".kfcache/{}.json".format(page)
+	if os.path.exists(fn):
+		with open(fn, 'r') as fp:
+			return fp.read()
+	else:
+		dat = request(URL.format(page=page))
+		with open(fn, 'w') as fp:
+			fp.write(dat)
+		return dat
+
 def fetch_card_data():
 	# KeyForge does not appear to have an API for directly downloading card data
 	# however, it _does_ have an API for downloading _decks_, and then that has
 	# an option for downloading the data for the cards that appear in those decks.
 	# So we can just keep downloading until we see all the cards. Though this does
 	# require hard-coding how many cards we expect to see.
-	complete = False
 	cards = {}
 	houses = {}
-	pagenum = 0
-	lastcount = 0
-	noopcount = 0
-	while True:
-		pagenum += 1
-		page = request(URL.format(page=pagenum))
+	pagenum = 1
+	pagetotal = 1
+	pagestep = 1.0
+	while pagenum <= pagetotal:
+		#print("%d/%d (+%.02f)" % (pagenum, pagetotal, pagestep))
+		page = getpage(pagenum)
 		page = json.loads(page)
+
+		pagetotal = math.ceil(page['count'] / PAGE_SIZE)
+
+		foundnew = False
 		for card in page['_linked']['cards']:
 			# Mavericks are copies of existing cards in a different house
 			# Don't need them for the DB, and they're rare enough that it takes a lot
 			# of pageloads to find them all
-			if not card['is_maverick']:
-				if card['expansion'] not in cards:
-					cards[card['expansion']] = {}
-				cards[card['expansion']][card['id']] = card
+			if card['is_maverick']:
+				continue
+			if card['expansion'] not in cards:
+				cards[card['expansion']] = {}
+			if card['id'] not in cards[card['expansion']]:
+				foundnew = True
+			cards[card['expansion']][card['id']] = card
 		for house in page['_linked']['houses']:
 			houses[house['id']] = house
 
-		# count our cards to see if we've gotten them all
-		if all(len(cards[k]) >= v['count'] for k,v in EXPANSIONS.items()):
-			break
-
-		# as a safety catch, if we go a bunch of pages without seeing any new cards
-		# then bail out, in case our expected count is incorrect
-		count = sum(len(i) for i in cards.values())
-		if count == lastcount:
-			noopcount += 1
-			if noopcount >= 10:
-				break
+		# The decks are grouped by expansion, so there'll be a bunch of new cards
+		# at the start, then a long run of duplicates, then a bunch of new cards at
+		# the next expansion, etc. So load every page while we're still seeing new
+		# cards, but then jump forward to try to find the next section.
+		if foundnew:
+			pagestep = 1.0
 		else:
-			noopcount = 0
-		lastcount = count
+			pagestep *= 1.2
+		pagenum += math.floor(pagestep)
+
+	#print({k:len(v) for k,v in cards.items()})
+
 	return {k: list(v.values()) for k,v in cards.items()}, houses
 
 re_check = re.compile(r"^[a-z0-9_]+$")
