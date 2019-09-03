@@ -23,7 +23,7 @@ CLIP_URL = "https://api.twitch.tv/kraken/clips/%s"
 CLIPS_URL = "https://api.twitch.tv/kraken/clips/top"
 VIDEO_URL = "https://api.twitch.tv/kraken/videos/%s"
 
-def get_clips_page(channel, period="day", limit=10, cursor=None):
+def get_clips_page(channel, period="day", limit=100, cursor=None):
 	"""
 	https://dev.twitch.tv/docs/v5/reference/clips/#get-top-clips
 	"""
@@ -59,7 +59,7 @@ def get_clip_info(slug, check_missing=False):
 	else:
 		return json.loads(data)
 
-def process_clips(channel, period="day", per_page=10):
+def process_clips(channel, period="day", per_page=100):
 	cursor = None
 	slugs = []
 	while True:
