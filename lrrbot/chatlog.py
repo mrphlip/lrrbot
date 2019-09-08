@@ -5,6 +5,7 @@ import pytz
 import datetime
 import logging
 import asyncio
+import urllib.parse
 
 import irc.client
 from jinja2.utils import Markup, escape, urlize as real_urlize
@@ -203,7 +204,6 @@ async def format_message_explicit_emotes(message, emotes, size="1", cheer=False)
 	parsed_emotes = []
 	for emote in emotes.split('/'):
 		emoteid, positions = emote.split(':')
-		emoteid = int(emoteid)
 		for position in positions.split(','):
 			start, end = position.split('-')
 			start = int(start)
@@ -216,7 +216,8 @@ async def format_message_explicit_emotes(message, emotes, size="1", cheer=False)
 	for start, end, emoteid in parsed_emotes:
 		if prev < start:
 			bits.append(await format_message_cheer(message[prev:start], cheer=cheer))
-		url = escape("https://static-cdn.jtvnw.net/emoticons/v1/%d/%s.0" % (emoteid, size))
+		url = escape("https://static-cdn.jtvnw.net/emoticons/v1/%s/%s.0" % (
+			urllib.parse.quote(emoteid), size))
 		command = escape(message[start:end])
 		bits.append('<img src="%s" alt="%s" title="%s">' % (url, command, command))
 		prev = end
