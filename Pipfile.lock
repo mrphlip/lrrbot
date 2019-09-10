@@ -51,10 +51,10 @@
         },
         "arrow": {
             "hashes": [
-                "sha256:704f5403299fe092c69479e0a2516a434003e82d37439a9e47c31285faf3947b",
-                "sha256:9b92a8e151e168b742a36b622deadf860d1686af8c5bbe46eca8da04b10fe92f"
+                "sha256:7954440e7621629a3e4c30dfd2038362d153e1e2b50424c7a6f10e1cdf211a7b",
+                "sha256:c65ea9214403c77b09bd676cba3dcf1e0a396f5dfb316b811bb7f7e10d99e955"
             ],
-            "version": "==0.15.0"
+            "version": "==0.15.1"
         },
         "asn1crypto": {
             "hashes": [
