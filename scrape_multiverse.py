@@ -14,7 +14,7 @@ def get_data(filename):
 				row['SubType'] = row.pop('Subtype')
 			yield row
 
-re_cost = regex.compile(r"^(?:o([WUBRGTXCQ]|\d+|Si|cT|\([wubrg]/[wubrg]\)))*$")
+re_cost = regex.compile(r"^\{?(?:o([WUBRGTXCQ]|\d+|Si|cT|\([wubrg]/[wubrg]\)))*\}?$")
 code_map = {'cT': "T", 'Si': 'S'}
 def cleancost(cost):
 	parts = re_cost.match(cost)
@@ -55,19 +55,17 @@ def getcard(row, setid):
 def getsplitcard(row, setid):
 	# Format:
 	#  Card Title is set to "Lefthalf /// Righthalf"
-	#  Rules Text is set to "Left half rules///\nRighthalf\nRightcost\nRighttype\nRight half rules"
-	names = regex.split('//+', row['Card Title'])
-	if len(names) != 2:
+	#  Rules Text is set to "Left half rules\n///\nRighthalf\nRightcost\nRighttype\nRight half rules"
+	# Alternate format (for Adventures):
+	#  Card Title is set to "Lefthalf"
+	#  Rules Text is set to "Left half rules\n//ADV//\nRighthalf\nRightcost\nRighttype\nRight half rules"
+	names = regex.split('//+(?:ADV//+)?', row['Card Title'])
+	if len(names) > 2:
 		raise ValueError("Card has more than 2 names: %r" % row['Card Title'])
 	names = [i.strip() for i in names]
-	text = regex.split('//+', row['Rules Text'])
-	if len(names) != 2:
+	text = regex.split('//+(?:ADV//+)?', row['Rules Text'])
+	if len(text) != 2:
 		raise ValueError("Card has more than 2 texts: %r" % row['Card Title'])
-
-	# We don't know where these would come from for the second card
-	# Shouldn't exist anyway, these are all instants/sorceries
-	if row.get('Power') or row.get('Toughness') or row.get('Loyalty'):
-		raise ValueError("Split card has P/T or Loyalty box: %r" % row['Card Title'])
 
 	subrow = dict(row)
 	subrow['Card Title'] = names[0]
@@ -77,16 +75,21 @@ def getsplitcard(row, setid):
 	carddata = text[1].replace('\r\n', '\n').split("\n")
 	if not carddata[0]:
 		carddata = carddata[1:]
-	if carddata[0] != names[1]:
+	if len(names) == 1:
+		names.append(carddata[0])
+	elif carddata[0] != names[1]:
 		raise ValueError("Names don't match for %r vs %r" % (row['Card Title'], carddata[0]))
 	subrow['Card Title'] = names[1]
 	subrow['Mana'] = carddata[1]
 	subrow['Card Type'] = carddata[2]
+	subrow['SuperType'] = subrow['SubType'] = subrow['Power'] = subrow['Toughness'] = subrow['Loyalty'] = ''
 	subrow['Rules Text'] = "\n".join(carddata[3:])
 	right = next(getcard(subrow, setid))
 
 	if setid in ('AKH', 'HOU'):
 		left['layout'] = right['layout'] = "aftermath"
+	elif setid in ('ELD'):
+		left['layout'] = right['layout'] = "adventure"
 	else:
 		left['layout'] = right['layout'] = "split"
 	left['names'] = right['names'] = names
@@ -134,7 +137,7 @@ def getcards(data, setid):
 	for row in data:
 		if isinstance(row, tuple):
 			yield from getdfc(row[0], row[1], setid)
-		elif '//' in row['Card Title']:
+		elif '//' in row['Card Title'] or '//' in row['Rules Text']:
 			yield from getsplitcard(row, setid)
 		else:
 			yield from getcard(row, setid)

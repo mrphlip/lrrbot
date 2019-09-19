@@ -187,7 +187,7 @@ re_minuses = re.compile(r"(?:^|(?<=[\s/]))-(?=[\dXY])")
 def process_card(card, expansion, include_reminder=False):
 	if card['layout'] in ('token', ):  # don't care about these special cards for now
 		return
-	if card.get('layout') in ('split', 'aftermath'):
+	if card.get('layout') in ('split', 'aftermath', 'adventure'):
 		# Return split cards as a single card... for all the other pieces, return nothing
 		if card['name'] != card['names'][0]:
 			return
