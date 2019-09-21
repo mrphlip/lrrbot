@@ -31,6 +31,9 @@ def cleantext(text):
 	text = re_textcost.sub(lambda match:cleancost(match.group(1)), text)
 	return text
 
+def cleantitle(text):
+	return text.replace('\u2019', "'")
+
 re_embalm = regex.compile(r"(?:^|\n|,)\s*(Embalm|Eternalize)\b", regex.IGNORECASE)
 def getcard(row, setid):
 	typeline = row['Card Type']
@@ -40,7 +43,7 @@ def getcard(row, setid):
 		typeline = "%s \u2014 %s" % (typeline, row['SubType'])
 	card = {
 		'layout': 'normal',
-		'name': row['Card Title'].replace('\u2019', "'"),
+		'name': cleantitle(row['Card Title']),
 		'manaCost': cleancost(row['Mana']),
 		'text': cleantext(row['Rules Text']),
 		'type': typeline,
@@ -92,7 +95,7 @@ def getsplitcard(row, setid):
 		left['layout'] = right['layout'] = "adventure"
 	else:
 		left['layout'] = right['layout'] = "split"
-	left['names'] = right['names'] = names
+	left['names'] = right['names'] = [cleantitle(n) for n in names]
 	return left, right
 
 def getdfc(frontrow, backrow, setid):
