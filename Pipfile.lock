@@ -262,10 +262,10 @@
         },
         "jaraco.text": {
             "hashes": [
-                "sha256:a415e7b954ac09356bb6ceac5ee8d2c84e7215b136aa9bad4b0063c41993c565",
-                "sha256:ddebeab77d3c144e1782b75313e2cda873b40b728230af5401b2a7bfa5c0b0d0"
+                "sha256:49140861c70adbf36554f6a434544b10de6fc91e6097c8dcf86584ba1ddaeb08",
+                "sha256:ec258bb3654c88e489358c07f32b2ba93981d9ba81ce1565da8365e5ec24c122"
             ],
-            "version": "==3.0"
+            "version": "==3.0.1"
         },
         "jinja2": {
             "hashes": [
