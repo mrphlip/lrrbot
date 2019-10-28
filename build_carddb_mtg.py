@@ -27,7 +27,7 @@ from common.card import clean_text, CARD_GAME_MTG
 
 URL = 'http://mtgjson.com/json/AllSets.json.zip'
 ZIP_FILENAME = 'AllSets.json.zip'
-SOURCE_FILENAME = 'AllSets.json'
+SOURCE_FILENAME = 'AllPrintings.json'
 EXTRAS_FILENAME = 'extracards.json'
 
 engine, metadata = common.postgres.get_engine_and_metadata()
