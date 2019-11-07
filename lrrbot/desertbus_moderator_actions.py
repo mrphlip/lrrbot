@@ -78,6 +78,11 @@ class ModeratorActions:
 			action = "Untimeout"
 			reason = ''
 			last = ''
+		elif action == 'delete':
+			user = args[0]
+			action = "Delete message"
+			reason = ''
+			last = args[1]
 		else:
 			user = ''
 			reason = repr(args)
