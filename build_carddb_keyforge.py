@@ -182,7 +182,9 @@ def process_card(card, expansion, houses, include_reminder=False):
 	def build_description():
 		yield card['card_title']
 		yield ' ['
-		if card['house'] in houses:
+		if card.get('is_anomaly'):
+			yield "Anomaly"
+		elif card['house'] in houses:
 			yield houses[card['house']]['name']
 		else:
 			yield card['house']
