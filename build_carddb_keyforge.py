@@ -24,16 +24,31 @@ PAGE_SIZE = 25
 URL = 'https://www.keyforgegame.com/api/decks/?page={{page}}&page_size={page_size}&links=cards'.format(page_size=PAGE_SIZE)
 
 EXPANSIONS = {
+	# KF01 = CotA Starter Set
 	341: {
 		'code': 'KF02',
 		'name': 'Call of the Archons',
 		'releaseDate': '2018-11-15',
 	},
 	435: {
-		'code': 'KF04',
+		'code': 'KF03',
 		'name': 'Age of Ascension',
 		'releaseDate': '2019-05-30',
-	}
+	},
+	# KF04 = AoA Starter Set
+	452: {
+		'code': 'KF05',
+		'name': 'Worlds Collide',
+		'releaseDate': '2019-11-08',
+	},
+	453: {
+		'code': 'KF05A',
+		'name': 'Worlds Collide Anomolies',
+		'releaseDate': '2019-11-08',
+	},
+	# KF06 = WC Deluxe Deck
+	# KF07 = WC Starter Set
+	# KF08 = WC Premium Box
 }
 
 engine, metadata = common.postgres.get_engine_and_metadata()
@@ -180,7 +195,7 @@ def process_card(card, expansion, houses, include_reminder=False):
 		if card.get('traits'):
 			yield ' \u2014 '
 			yield card['traits']
-		if card.get('power') or card.get('armor') or card['card_type'] == "Creature":
+		if card['card_type'] == "Creature":
 			yield ' ['
 			yield str(card['power'])
 			if card.get('armor'):
