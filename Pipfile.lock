@@ -440,10 +440,10 @@
         },
         "tempora": {
             "hashes": [
-                "sha256:cb60b1d2b1664104e307f8e5269d7f4acdb077c82e35cd57246ae14a3427d2d6",
-                "sha256:d28a03d2f64ee81aec6e6bff374127ef306fe00c1b7e27c7ff1618344221a699"
+                "sha256:10f8c1299a7cf5392101eaac57f59048dfec126fa31d33761fad939762ed535d",
+                "sha256:f11df59b34b9a87d395cce031274f6ff3d2be2171dd1db32dff9ab1fcb5352fa"
             ],
-            "version": "==1.14.1"
+            "version": "==2.0.0"
         },
         "timelib": {
             "hashes": [
