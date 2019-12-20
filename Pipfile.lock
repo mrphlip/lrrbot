@@ -248,10 +248,10 @@
         },
         "jaraco.itertools": {
             "hashes": [
-                "sha256:6ac7fcd4af4a37c1751512d52e4e57b8d532457fd2b32b6a1fd3ab5a194921f5",
-                "sha256:fdc00c2755a5abac65484d431098e44e163af57fae05d284bf8af9329d43bd7f"
+                "sha256:6447d567f57efe5efea386265c7864652e9530830a1b80f43e60b4f222b9ab84",
+                "sha256:a9c91fe1a1026904e86e4ff8f7c1a65c851983afe273d0e6263f38408d6b9f37"
             ],
-            "version": "==4.4.2"
+            "version": "==5.0.0"
         },
         "jaraco.logging": {
             "hashes": [
