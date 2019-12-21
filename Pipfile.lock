@@ -205,10 +205,10 @@
         },
         "inflect": {
             "hashes": [
-                "sha256:48a35748cd695881722699d074a61166a2b591cc8c65d5c95d00e59c847b01c2",
-                "sha256:ee7c9b7c3376d06828b205460afb3c447b5d25dd653171db249a238f3fc2c18a"
+                "sha256:4bafdc6bcfd83ee1e5874607577f7388cd3492cbdb06fc875979c6398ad41ab0",
+                "sha256:b7043603072911713f0c82ca0942078d5d53d8ac249ca2e1c25586d9cfb866d4"
             ],
-            "version": "==3.0.2"
+            "version": "==4.0.0"
         },
         "irc": {
             "hashes": [
