@@ -227,10 +227,10 @@
         },
         "jaraco.classes": {
             "hashes": [
-                "sha256:d43d73bc8e4ed67c45b540fc7ea171444ff05779710104a120926ba517327df6",
-                "sha256:dcc2c4a8ca4b344cdbf2e1be7124a5c4f192574cdbb453b62350ae8240a2caf5"
+                "sha256:116429c2047953f525afdcae165475c4589c7b14870e78b2d068ecb01018827e",
+                "sha256:c38698ff8ef932eb33d91c0e8fc192ad7c44ecee03f7f585afd4f35aeaef7aab"
             ],
-            "version": "==2.0"
+            "version": "==3.1.0"
         },
         "jaraco.collections": {
             "hashes": [
