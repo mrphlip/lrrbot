@@ -234,10 +234,10 @@
         },
         "jaraco.collections": {
             "hashes": [
-                "sha256:0e4c278310a5e1ecd565f09555b89ed923cac100b2525797201d2a89dcab337c",
-                "sha256:327b3d13a750ed9676c31288fb25a151ab5b9a5a805925032914003aa6128290"
+                "sha256:a7889f28c80c4875bd6256d9924e8526dacfef22cd7b80ff8469b4d312f9f144",
+                "sha256:be570ef4f2e7290b757449395238fa63d70a9255574624e73c5ff9f1ee554721"
             ],
-            "version": "==2.1"
+            "version": "==3.0.0"
         },
         "jaraco.functools": {
             "hashes": [
