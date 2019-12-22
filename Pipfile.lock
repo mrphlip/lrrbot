@@ -255,10 +255,10 @@
         },
         "jaraco.logging": {
             "hashes": [
-                "sha256:2b534a6d9ce544f5e1d8e81d76f12aa95e0dc2ad0232e49f481d0ee35213a4f1",
-                "sha256:8f7dbf01b75e4d9bac479312b66a94c80d0a6d28db453f397e30687ca42168d1"
+                "sha256:31716fe84d3d5df39d95572942513bd4bf8ae0a478f64031eff4c2ea9e83434e",
+                "sha256:b05ed07101883997a30e05c2472798d86129803d9961a0d1081a3236ad37c52a"
             ],
-            "version": "==2.0"
+            "version": "==3.0.0"
         },
         "jaraco.stream": {
             "hashes": [
