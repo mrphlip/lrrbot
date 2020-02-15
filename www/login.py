@@ -27,8 +27,25 @@ for key, name in from_apipass.items():
 REQUEST_SCOPES = []
 
 SPECIAL_USERS = {}
-SPECIAL_USERS.setdefault(config["username"], list(REQUEST_SCOPES)).extend(['chat_login', 'user_read', 'user_follows_edit'])
-SPECIAL_USERS.setdefault(config["channel"], list(REQUEST_SCOPES)).extend(['channel_subscriptions'])
+SPECIAL_USERS.setdefault(config["username"], list(REQUEST_SCOPES)).extend([
+	'chat_login',
+	'user_read',
+	'user_follows_edit',
+	'channel:moderate',
+	'chat:edit',
+	'chat:read',
+	'whispers:edit',
+	'whispers:read',
+])
+SPECIAL_USERS.setdefault(config["channel"], list(REQUEST_SCOPES)).extend([
+	'channel_subscriptions',
+	'channel:read:subscriptions',
+])
+# hard-coded user for accessing Desert Bus mod actions
+# cf lrrbot.desertbus_moderator_actions
+SPECIAL_USERS.setdefault('mrphlip', list(REQUEST_SCOPES)).extend([
+	'channel:moderate',
+])
 
 def with_session(func):
 	"""
