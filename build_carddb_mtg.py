@@ -408,6 +408,7 @@ def process_set_unhinged(expansion):
 		yield from process_card(card, expansion, include_reminder=True)
 
 @special_set('UST')
+@special_set('UND')
 def process_set_unstable(expansion):
 	hosts = []
 	augments = []
@@ -419,14 +420,14 @@ def process_set_unstable(expansion):
 			hosts.append(card)
 			# for the benefit of the overlay
 			card['internalname'] = card['name'] + "_HOST"
-			del card['multiverseId']
-			del card['number']
+			card.pop('multiverseId', None)
+			card.pop('number', None)
 			yield from process_card(card, expansion, include_reminder=True)
 		elif re_augment.search(card.get('text', '')):
 			augments.append(card)
 			card['internalname'] = card['name'] + "_AUG"
-			del card['multiverseId']
-			del card['number']
+			card.pop('multiverseId', None)
+			card.pop('number', None)
 			yield from process_card(card, expansion, include_reminder=True)
 
 	for augment in augments:
