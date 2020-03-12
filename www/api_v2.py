@@ -30,6 +30,11 @@ def require_mod(func):
 
 blueprint = flask.Blueprint("api_v2", __name__)
 
+@blueprint.after_request
+def add_cors_headers(request):
+	request.headers['Access-Control-Allow-Origin'] = '*'
+	return request
+
 @blueprint.route("/")
 @login.with_session
 async def docs(session):
