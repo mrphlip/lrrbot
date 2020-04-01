@@ -62,11 +62,11 @@ class TwitchSubs:
 			name = event.tags['login']
 			display_name = event.tags.get('display-name') or name
 
-			if event.tags.get('msg-param-recipient-user-name') or event.tags.get('msg-param-recipient-user-name'):
+			if event.tags.get('msg-param-recipient-user-name'):
 				benefactor_name = name
 				benefactor_display_name = display_name
 				name = event.tags.get('msg-param-recipient-user-name')
-				display_name = event.tags.get('msg-param-recipient-user-name') or recipient_name
+				display_name = event.tags.get('msg-param-recipient-display-name') or name
 			else:
 				benefactor_name = benefactor_display_name = None
 
