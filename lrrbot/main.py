@@ -265,16 +265,25 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if tags.get("display-name") == '':
 			del tags["display-name"]
 
-		tags["subscriber"] = is_sub = bool(int(tags.get("subscriber", 0)))
+		badges = set(badge.split('/')[0] for badge in tags.get("badges", "").split(','))
 
-		# Either:
-		#  * has sword
+		# User is a subscriber if they:
+		#  * Are marked as a subscriber (in a deprecated tag)
+		is_sub = bool(int(tags.get("subscriber", 0)))
+		#  * Have the subscriber or founder badge
+		is_sub = is_sub or bool(badges & {'subscriber', 'founder'})
+		tags["subscriber"] = is_sub
+
+		# User is a moderator if they:
+		#  * Are marked as a moderator (in a deprecated tag)
 		is_mod = bool(int(tags.get('mod', 0)))
-		#  * is some sort of Twitchsm'n
+		#  * Is some sort of Twitchsm'n (another deprecated tag)
 		is_mod = is_mod or tags.get('user-type', '') in {'mod', 'global_mod', 'admin', 'staff'}
-		#  * is broadcaster
+		#  * Has one of the relevant badges
+		is_mod = is_mod or bool(badges & {'moderator', 'global_mod', 'admin', 'staff', 'broadcaster'})
+		#  * Is broadcaster
 		is_mod = is_mod or nick.lower() == config['channel']
-		#  * is in list of extra mods
+		#  * Is in list of extra mods
 		is_mod = is_mod or nick.lower() in config['mods']
 		tags["mod"] = is_mod
 
