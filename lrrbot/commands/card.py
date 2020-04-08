@@ -60,30 +60,6 @@ def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, inc
 
 def find_card(lrrbot, search, includehidden=False, game=CARD_GAME_MTG):
 	cards = lrrbot.metadata.tables["cards"]
-	card_multiverse = lrrbot.metadata.tables["card_multiverse"]
-	card_collector = lrrbot.metadata.tables["card_collector"]
-
-	if isinstance(search, int):
-		query = (sqlalchemy.select([cards.c.name, cards.c.text])
-						.select_from(card_multiverse.join(cards, cards.c.id == card_multiverse.c.cardid))
-						.where(card_multiverse.c.id == search))
-		if not includehidden:
-			query = query.where(cards.c.hidden == False)
-		if game is not None:
-			query = query.where(cards.c.game == game)
-		with lrrbot.engine.begin() as conn:
-			return conn.execute(query).fetchall()
-
-	if isinstance(search, tuple):
-		query = (sqlalchemy.select([cards.c.name, cards.c.text])
-						.select_from(card_collector.join(cards, cards.c.id == card_collector.c.cardid))
-						.where((card_collector.c.setid == search[0].lower()) & (card_collector.c.collector == search[1])))
-		if not includehidden:
-			query = query.where(cards.c.hidden == False)
-		if game is not None:
-			query = query.where(cards.c.game == game)
-		with lrrbot.engine.begin() as conn:
-			return conn.execute(query).fetchall()
 
 	cleansearch = clean_text(search)
 	with lrrbot.engine.begin() as conn:

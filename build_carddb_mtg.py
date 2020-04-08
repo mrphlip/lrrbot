@@ -11,42 +11,62 @@ import sys
 import os
 import urllib.request
 import urllib.error
+import urllib.parse
 import contextlib
 import time
-import zipfile
-import io
 import json
 import re
-import datetime
 import dateutil.parser
-import sqlalchemy
 
 from common import utils
 import common.postgres
 from common.card import clean_text, CARD_GAME_MTG
 
-URL = 'https://mtgjson.com/json/AllPrintings.json.zip'
-ZIP_FILENAME = 'AllPrintings.json.zip'
-SOURCE_FILENAME = 'AllPrintings.json'
 EXTRAS_FILENAME = 'extracards.json'
+
+URLS = [
+	('https://mtgjson.com/json/AllPrintings.json.xz', lambda: __import__('lzma').open, lambda f: f),
+	('https://mtgjson.com/json/AllPrintings.json.bz2', lambda: __import__('bz2').open, lambda f: f),
+	('https://mtgjson.com/json/AllPrintings.json.gz', lambda: __import__('gzip').open, lambda f: f),
+	('https://mtgjson.com/json/AllPrintings.json.zip', lambda: __import__('zipfile').ZipFile, lambda zip: zip.open('AllPrintings.json')),
+	('https://mtgjson.com/json/AllPrintings.json', lambda: open, lambda f: f),
+]
+
+def determine_best_file_format():
+	for url, loader_factory, member_loader in URLS:
+		try:
+			loader = loader_factory()
+
+			filename = os.path.basename(urllib.parse.urlparse(url).path)
+
+			def read_mtgjson():
+				with loader(filename) as f:
+					return json.load(member_loader(f))
+
+			return url, filename, read_mtgjson
+		except ImportError:
+			continue
+	else:
+		raise Exception("failed to discover a working file format")
+URL, ZIP_FILENAME, read_mtgjson = determine_best_file_format()
 
 engine, metadata = common.postgres.get_engine_and_metadata()
 
 def main():
 	force_run = False
+	progress = False
 	if '-f' in sys.argv:
 		sys.argv.remove('-f')
 		force_run = True
+	if '-p' in sys.argv:
+		sys.argv.remove('-p')
+		progress = True
 	if not do_download_file(URL, ZIP_FILENAME) and not os.access(EXTRAS_FILENAME, os.F_OK) and not force_run:
 		print("No new version of mtgjson data file")
 		return
 
 	print("Reading card data...")
-	with zipfile.ZipFile(ZIP_FILENAME) as zfp:
-		fp = io.TextIOWrapper(zfp.open(SOURCE_FILENAME))
-		mtgjson = json.load(fp)
-
-	get_scryfall_numbers(mtgjson)
+	mtgjson = read_mtgjson()
 
 	try:
 		with open(EXTRAS_FILENAME) as fp:
@@ -60,66 +80,41 @@ def main():
 	print("Processing...")
 	cards = metadata.tables["cards"]
 	card_multiverse = metadata.tables["card_multiverse"]
-	card_collector = metadata.tables["card_collector"]
+
+	processed_cards = {}
+
 	with engine.begin() as conn, conn.begin() as trans:
 		conn.execute(cards.delete().where(cards.c.game == CARD_GAME_MTG))
-		for setid, expansion in sorted(mtgjson.items()):
+		for setid, expansion in sorted(mtgjson.items(), key=lambda e: e[1]['releaseDate'], reverse=True):
 			# Allow only importing individual sets for faster testing
 			if len(sys.argv) > 1 and setid not in sys.argv[1:]:
 				continue
-			#print("%s - %s" % (setid, expansion.get('name')))
 
-			release_date = dateutil.parser.parse(expansion.get('releaseDate', '1970-01-01')).date()
-			for filteredname, cardname, description, multiverseids, collectors, hidden in process_set(setid, expansion):
-				# Check if there's already a row for this card in the DB
-				# (keep the one with the latest release date - it's more likely to have the accurate text in mtgjson)
-				rows = conn.execute(sqlalchemy.select([cards.c.id, cards.c.lastprinted])
-					.where(cards.c.filteredname == filteredname)
-					.where(cards.c.game == CARD_GAME_MTG)).fetchall()
-				if not rows:
-					cardid, = conn.execute(cards.insert().returning(cards.c.id),
+			if progress:
+				print("[%s]: %s - %s" % (expansion['releaseDate'], setid, expansion['name']))
+
+			processed_multiverseids = {}
+
+			for filteredname, cardname, description, multiverseids, hidden in process_set(setid, expansion):
+				if filteredname not in processed_cards:
+					card_id, = conn.execute(cards.insert().returning(cards.c.id),
 						game=CARD_GAME_MTG,
 						filteredname=filteredname,
 						name=cardname,
 						text=description,
-						lastprinted=release_date,
 						hidden=hidden,
 					).first()
-				elif rows[0][1] < release_date:
-					cardid = rows[0][0]
-					conn.execute(cards.update().where(cards.c.id == cardid),
-						name=cardname,
-						text=description,
-						lastprinted=release_date,
-						hidden=hidden,
-					)
+					processed_cards[filteredname] = card_id
 				else:
-					cardid = rows[0][0]
+					card_id = processed_cards[filteredname]
 
-				for mid in multiverseids:
-					rows = conn.execute(sqlalchemy.select([card_multiverse.c.cardid])
-						.where(card_multiverse.c.id == mid)).fetchall()
-					if not rows:
-						conn.execute(card_multiverse.insert(),
-							id=mid,
-							cardid=cardid,
-						)
-					elif rows[0][0] != cardid and setid not in {'CPK'}:
-						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
-						print("Different names for multiverseid %d: \"%s\" and \"%s\"" % (mid, cardname, rows2[0][0]))
-
-				for csetid, collector in collectors:
-					rows = conn.execute(sqlalchemy.select([card_collector.c.cardid])
-						.where((card_collector.c.setid == csetid) & (card_collector.c.collector == collector))).fetchall()
-					if not rows:
-						conn.execute(card_collector.insert(),
-							setid=csetid,
-							collector=collector,
-							cardid=cardid,
-						)
-					elif rows[0][0] != cardid and setid not in {'CPK'}:
-						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
-						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (csetid, collector, cardname, rows2[0][0]))
+				multiverseids = set(multiverseids) - processed_multiverseids.get(card_id, set())
+				if multiverseids:
+					conn.execute(card_multiverse.insert(), [
+						{'id': id, 'cardid': card_id}
+						for id in multiverseids
+					])
+					processed_multiverseids.setdefault(card_id, set()).update(multiverseids)
 
 def do_download_file(url, fn):
 	"""
@@ -202,21 +197,19 @@ def process_card(card, expansion, include_reminder=False):
 		nameparts = []
 		descparts = []
 		allmultiverseids = []
-		allnumbers = []
 		anyhidden = False
 		for s in splits:
-			filtered, name, desc, multiverseids, numbers, hidden = process_single_card(s, expansion, include_reminder)
+			filtered, name, desc, multiverseids, hidden = process_single_card(s, expansion, include_reminder)
 			filteredparts.append(filtered)
 			nameparts.append(name)
 			descparts.append(desc)
 			allmultiverseids.extend(multiverseids)
-			allnumbers.extend(numbers)
 			anyhidden = anyhidden or hidden
 
 		filteredname = ''.join(filteredparts)
 		cardname = " // ".join(nameparts)
 		description = "%s | %s" % (" // ".join(card['names']), " // ".join(descparts))
-		yield filteredname, cardname, description, allmultiverseids, allnumbers, anyhidden
+		yield filteredname, cardname, description, allmultiverseids, anyhidden
 	else:
 		yield process_single_card(card, expansion, include_reminder)
 
@@ -309,15 +302,10 @@ def process_single_card(card, expansion, include_reminder=False):
 	desc = utils.trim_length(desc)
 
 	if card.get('layout') == 'flip' and card['name'] != card['names'][0]:
-		multiverseids = numbers = []
+		multiverseids = []
 	else:
 		if card.get('layout') == 'transform':
-			if card['name'] == card['names'][0]:
-				if card.get('number') and 'a' not in card['number'] and 'b' not in card['number']:
-					card['number'] = [card['number'], card['number'] + 'a']
-			else:
-				if card.get('number') and 'a' not in card['number'] and 'b' not in card['number']:
-					card['number'] = card['number'] + 'b'
+			if card['name'] != card['names'][0]:
 				card['foreignData'] = []  # mtgjson doesn't seem to have accurate foreign multiverse ids for back faces
 		multiverseids = [card['multiverseId']] if card.get('multiverseId') else []
 		# disabling adding foreign multiverse ids unless we decide we want them for some reason
@@ -325,21 +313,9 @@ def process_single_card(card, expansion, include_reminder=False):
 		#for lang in card.get('foreignData', []):
 		#	if lang.get('multiverseId'):
 		#		multiverseids.append(lang['multiverseId'])
-		numbers = card['number'] if card.get('number') else []
-		if not isinstance(numbers, list):
-			numbers = [numbers]
 	hidden = 'internalname' in card
 
-	# if a card has multiple variants, make "number" entries for the variants
-	# to match what sort of thing we'd be seeing on scryfall
-	if len(multiverseids) > 1 and len(numbers) == 1:
-		orig_number = numbers[0]
-		for i in range(len(multiverseids)):
-			numbers.append(orig_number + chr(ord('a') + i))
-
-	numbers = [(expansion['code'].lower(), i) for i in numbers]
-
-	return filtered, card['name'], desc, multiverseids, numbers, hidden
+	return filtered, card['name'], desc, multiverseids, hidden
 
 def process_text(text, include_reminder):
 	text = re_minuses.sub('\u2212', text) # replace hyphens with real minus signs
@@ -398,7 +374,6 @@ def process_set_unglued(expansion):
 		"B.F.M. (Big Furry Monster)",
 		"B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
 		[9780, 9844],
-		[('ugl', '28'), ('ugl', '29')],
 		False,
 	)
 
@@ -478,59 +453,6 @@ def gen_augment(augment, host, expansion):
 	combined['text'] = "\n".join(combined_lines)
 
 	return process_single_card(combined, expansion, include_reminder=True)
-
-@special_set('PO2')
-def process_set_portal2(expansion):
-	# This set is PO2 in mtgjson but P02 in Scryfall...
-	for filtered, name, desc, multiverseids, numbers, hidden in process_set_general(expansion):
-		numbers.extend([('p02', i[1]) for i in numbers])
-		yield filtered, name, desc, multiverseids, numbers, hidden
-
-def get_scryfall_numbers(mtgjson):
-	"""
-	Find sets that don't have collector numbers, and get the numbers that scryfall uses.
-	"""
-	try:
-		with open("scryfall.json") as fp:
-			scryfall = json.load(fp)
-	except IOError:
-		scryfall = {}
-	for setid, expansion in mtgjson.items():
-		if len(sys.argv) > 1 and setid not in sys.argv[1:]:
-			continue
-		if any('number' in card for card in expansion['cards']):
-			continue
-
-		if setid not in scryfall:
-			scryfall[setid] = download_scryfall_numbers(setid)
-			# Save after downloading each set, so if we have an error we've still saved
-			# all the downloading we've done already
-			with open("scryfall.json", "w") as fp:
-				json.dump(scryfall, fp, indent=2, sort_keys=True)
-
-		for card in expansion['cards']:
-			if card['name'] not in scryfall[setid]:
-				raise ValueError("Couldn't find any matching scryfall cards for %s (%s)" % (card['name'], setid))
-			card['number'] = scryfall[setid][card['name']]
-
-def download_scryfall_numbers(setid):
-	print("Downloading scryfall data for %s..." % setid)
-	if setid == 'PO2': # scryfall uses a slightly different code here
-		setid = 'P02'
-	url = "https://api.scryfall.com/cards/search?q=%s" % urllib.parse.quote("++e:%s" % setid)
-	mapping = {}
-	while url is not None:
-		fp = io.TextIOWrapper(urllib.request.urlopen(url))
-		data = json.load(fp)
-		fp.close()
-		time.sleep(0.1) # rate limit
-		for card in data['data']:
-			mapping.setdefault(card['name'], []).append(card['collector_number'])
-		if data['has_more']:
-			url = data['next_page']
-		else:
-			url = None
-	return mapping
 
 def make_type(card):
 	types = card['types']
