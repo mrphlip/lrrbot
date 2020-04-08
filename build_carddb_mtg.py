@@ -17,9 +17,10 @@ import time
 import json
 import re
 import dateutil.parser
+import psycopg2
 
 from common import utils
-import common.postgres
+from common.config import config
 from common.card import clean_text, CARD_GAME_MTG
 
 EXTRAS_FILENAME = 'extracards.json'
@@ -50,8 +51,6 @@ def determine_best_file_format():
 		raise Exception("failed to discover a working file format")
 URL, ZIP_FILENAME, read_mtgjson = determine_best_file_format()
 
-engine, metadata = common.postgres.get_engine_and_metadata()
-
 def main():
 	force_run = False
 	progress = False
@@ -78,13 +77,13 @@ def main():
 		del extracards
 
 	print("Processing...")
-	cards = metadata.tables["cards"]
-	card_multiverse = metadata.tables["card_multiverse"]
 
 	processed_cards = {}
 
-	with engine.begin() as conn, conn.begin() as trans:
-		conn.execute(cards.delete().where(cards.c.game == CARD_GAME_MTG))
+	# Use raw `psycopg2` because in this case SQLAlchemy has significant overhead (about 60% of the total script runtime)
+	# without much of a benefit.
+	with psycopg2.connect(config['postgres']) as conn, conn.cursor() as cur:
+		cur.execute("DELETE FROM cards WHERE game = %s", (CARD_GAME_MTG, ))
 		for setid, expansion in sorted(mtgjson.items(), key=lambda e: e[1]['releaseDate'], reverse=True):
 			# Allow only importing individual sets for faster testing
 			if len(sys.argv) > 1 and setid not in sys.argv[1:]:
@@ -97,21 +96,22 @@ def main():
 
 			for filteredname, cardname, description, multiverseids, hidden in process_set(setid, expansion):
 				if filteredname not in processed_cards:
-					card_id, = conn.execute(cards.insert().returning(cards.c.id),
-						game=CARD_GAME_MTG,
-						filteredname=filteredname,
-						name=cardname,
-						text=description,
-						hidden=hidden,
-					).first()
+					cur.execute("INSERT INTO cards (game, filteredname, name, text, hidden) VALUES (%s, %s, %s, %s, %s) RETURNING id", (
+						CARD_GAME_MTG,
+						filteredname,
+						cardname,
+						description,
+						hidden,
+					))
+					card_id, = cur.fetchone()
 					processed_cards[filteredname] = card_id
 				else:
 					card_id = processed_cards[filteredname]
 
 				multiverseids = set(multiverseids) - processed_multiverseids.get(card_id, set())
 				if multiverseids:
-					conn.execute(card_multiverse.insert(), [
-						{'id': id, 'cardid': card_id}
+					cur.executemany("INSERT INTO card_multiverse (id, cardid) VALUES (%s, %s)", [
+						(id, card_id)
 						for id in multiverseids
 					])
 					processed_multiverseids.setdefault(card_id, set()).update(multiverseids)
