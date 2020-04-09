@@ -150,7 +150,7 @@ def build_headdata(fromkey, tokey, section, user, time):
 		prevkey = conn.execute(sqlalchemy.select([sqlalchemy.func.max(history.c.id)])
 			.where((history.c.id < fromkey) & (history.c.section == section))).first()
 		nextkey = conn.execute(sqlalchemy.select([sqlalchemy.func.min(history.c.id)])
-			.where((history.c.id > fromkey) & (history.c.section == section))).first()
+			.where((history.c.id > tokey) & (history.c.section == section))).first()
 
 	if prevkey is not None:
 		prevkey = prevkey[0]
