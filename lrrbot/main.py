@@ -265,7 +265,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if tags.get("display-name") == '':
 			del tags["display-name"]
 
-		badges = set(badge.split('/')[0] for badge in tags.get("badges", "").split(','))
+		if tags.get("badges"):
+			badges = set(badge.split('/')[0] for badge in tags["badges"].split(','))
+		else:
+			badges = set()
 
 		# User is a subscriber if they:
 		#  * Are marked as a subscriber (in a deprecated tag)
