@@ -13,6 +13,8 @@ from common import utils
 
 log = logging.getLogger("common.http")
 
+USER_AGENT = "LRRbot/2.0 (https://lrrbot.com/)"
+
 class Request(urllib.request.Request):
 	"""Override the get_method method of Request, adding the "method" field that doesn't exist until Python 3.3"""
 	def __init__(self, *args, method=None, **kwargs):
@@ -29,7 +31,7 @@ def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, 
 	if headers is None:
 		headers = {}
 	# Let's be nice.
-	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.com/)"
+	headers["User-Agent"] = USER_AGENT
 
 	if 'api.twitch.tv' in url and headers.get('Accept') != 'application/vnd.twitchtv.v5+json':
 		log.warning("Non-v5 request to: %r", url)
@@ -73,7 +75,7 @@ atexit.register(lambda: asyncio.get_event_loop().run_until_complete(http_request
 async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, allow_redirects=True, asjson=False):
 	if headers is None:
 		headers = {}
-	headers["User-Agent"] = "LRRbot/2.0 (https://lrrbot.com/)"
+	headers["User-Agent"] = USER_AGENT
 
 	if 'api.twitch.tv' in url and headers.get('Accept') != 'application/vnd.twitchtv.v5+json':
 		log.warning("Non-v5 request to: %r", url)

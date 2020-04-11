@@ -12,16 +12,21 @@ import json
 import re
 import os
 import math
-import dateutil.parser
-import sqlalchemy
+import time
+import requests
 
 from common import utils
 import common.postgres
 from common.card import clean_text, CARD_GAME_KEYFORGE
-from common.http import request
+from common.http import USER_AGENT
 
 PAGE_SIZE = 25
-URL = 'https://www.keyforgegame.com/api/decks/?page={{page}}&page_size={page_size}&links=cards'.format(page_size=PAGE_SIZE)
+URL = 'https://www.keyforgegame.com/api/decks/'
+THROTTLED_ADDITIONAL_WAIT_TIME = 5.0
+SUCCESSFUL_REQUEST_WAIT_TIME = 2.0
+
+session = requests.Session()
+session.headers['User-Agent'] = USER_AGENT
 
 EXPANSIONS = {
 	# KF01 = CotA Starter Set
@@ -59,65 +64,51 @@ def main():
 
 	print("Processing...")
 	cards = metadata.tables["cards"]
-	card_collector = metadata.tables["card_collector"]
+	processed_cards = set()
 	with engine.begin() as conn, conn.begin() as trans:
 		conn.execute(cards.delete().where(cards.c.game == CARD_GAME_KEYFORGE))
-		for setid, cardset in sorted(carddata.items()):
+		for setid, cardset in sorted(carddata.items(), key=lambda e: EXPANSIONS[e[0]]['releaseDate'], reverse=True):
 			expansion = EXPANSIONS[setid]
 			# Allow only importing individual sets for faster testing
 			if len(sys.argv) > 1 and expansion['code'] not in sys.argv[1:]:
 				continue
 
-			release_date = dateutil.parser.parse(expansion.get('releaseDate', '1970-01-01')).date()
-			for filteredname, cardname, description, collectors, hidden in process_set(expansion, cardset, houses):
-				# Check if there's already a row for this card in the DB
-				# (keep the one with the latest release date - it's more likely to have the accurate text)
-				rows = conn.execute(sqlalchemy.select([cards.c.id, cards.c.lastprinted])
-					.where(cards.c.filteredname == filteredname)
-					.where(cards.c.game == CARD_GAME_KEYFORGE)).fetchall()
-				if not rows:
-					cardid, = conn.execute(cards.insert().returning(cards.c.id),
+			for filteredname, cardname, description, hidden in process_set(expansion, cardset, houses):
+				if filteredname not in processed_cards:
+					conn.execute(cards.insert(),
 						game=CARD_GAME_KEYFORGE,
 						filteredname=filteredname,
 						name=cardname,
 						text=description,
-						lastprinted=release_date,
-						hidden=hidden,
-					).first()
-				elif rows[0][1] < release_date:
-					cardid = rows[0][0]
-					conn.execute(cards.update().where(cards.c.id == cardid),
-						name=cardname,
-						text=description,
-						lastprinted=release_date,
 						hidden=hidden,
 					)
-				else:
-					cardid = rows[0][0]
+					processed_cards.add(filteredname)
 
-				for csetid, collector in collectors:
-					rows = conn.execute(sqlalchemy.select([card_collector.c.cardid])
-						.where((card_collector.c.setid == csetid) & (card_collector.c.collector == collector))).fetchall()
-					if not rows:
-						conn.execute(card_collector.insert(),
-							setid=csetid,
-							collector=collector,
-							cardid=cardid,
-						)
-					elif rows[0][0] != cardid:
-						rows2 = conn.execute(sqlalchemy.select([cards.c.name]).where(cards.c.id == rows[0][0])).fetchall()
-						print("Different names for set %s collector number %s: \"%s\" and \"%s\"" % (csetid, collector, cardname, rows2[0][0]))
-
+re_429_detail = re.compile("This endpoint is currently disabled due to too many requests\\. Please, try again in (\d+) seconds\\.")
 def getpage(page):
 	fn = ".kfcache/{}.json".format(page)
 	if os.path.exists(fn):
 		with open(fn, 'r') as fp:
 			return fp.read()
 	else:
-		dat = request(URL.format(page=page))
-		with open(fn, 'w') as fp:
-			fp.write(dat)
-		return dat
+		while True:
+			print("Fetching page", page)
+			res = session.get(URL, params={'page': page, 'page_size': PAGE_SIZE, 'links': 'cards'})
+			if res.status_code == 429:
+				error = res.json()
+				match = re_429_detail.fullmatch(error['detail'])
+				if match:
+					wait_time = float(match.group(1)) + THROTTLED_ADDITIONAL_WAIT_TIME
+					print("Request was throttled. Waiting %.2f seconds before retrying..." % wait_time)
+					time.sleep(wait_time)
+					continue
+			res.raise_for_status()
+
+			dat = res.text
+			with open(fn, 'w') as fp:
+				fp.write(dat)
+			time.sleep(SUCCESSFUL_REQUEST_WAIT_TIME)
+			return dat
 
 def fetch_card_data():
 	# KeyForge does not appear to have an API for directly downloading card data
@@ -212,13 +203,9 @@ def process_card(card, expansion, houses, include_reminder=False):
 	desc = re_multiplespaces.sub(' ', desc).strip()
 	desc = utils.trim_length(desc)
 
-	numbers = card['card_number'] if card.get('card_number') else []
-	if not isinstance(numbers, list):
-		numbers = [numbers]
-	numbers = [(expansion['code'].lower(), str(i)) for i in numbers]
 	hidden = 'internalname' in card
 
-	return filtered, card['card_title'], desc, numbers, hidden
+	return filtered, card['card_title'], desc, hidden
 
 def process_text(text, include_reminder):
 	text = re_minuses.sub('\u2212', text) # replace hyphens with real minus signs
