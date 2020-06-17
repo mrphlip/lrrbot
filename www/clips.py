@@ -74,7 +74,6 @@ async def clips_vid(session, videoid):
 			"endtime": time - video['start'] + datetime.timedelta(seconds=clip['duration']),
 			"start": nice_duration(time - video['start'], 0),
 			"duration": nice_duration(clip['duration'], 0),
-			"embed_html": clip['embed_html'],
 			"game": clip['game'],
 			"thumbnail": clip['thumbnails']['small'],
 			"rating": rating,
@@ -90,7 +89,10 @@ async def clips_vid(session, videoid):
 		if lastend is None or lastend < clip['endtime']:
 			lastend = clip['endtime']
 
-	return flask.render_template("clips_vid.html", video=video, clips=clip_data, session=session)
+	parent = flask.request.host
+	if ':' in parent:
+		parent = parent.split(':', 1)[0]
+	return flask.render_template("clips_vid.html", video=video, clips=clip_data, session=session, parent=parent)
 
 @server.app.route('/clips/submit', methods=['POST'])
 @login.require_mod

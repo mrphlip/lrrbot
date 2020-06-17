@@ -17,7 +17,8 @@
 	{%if not loop.last and clips[loop.index0 + 1]['overlap']%}
 		{%set rowclass = rowclass + " nextoverlap"%}
 	{%endif%}
-<tr class="{{rowclass}} {%if clip['rating'] == None%}incomplete{%else%}complete{%endif%}" data-slug="{{clip['slug']|e}}" data-embed="{{clip['embed_html']|e}}" data-currentrating="{{clip['rating']|tojson}}">
+<tr class="{{rowclass}} {%if clip['rating'] == None%}incomplete{%else%}complete{%endif%}" data-slug="{{clip['slug']|e}}" data-currentrating="{{clip['rating']|tojson}}"
+    data-embed="&lt;iframe src=&quot;https://clips.twitch.tv/embed?clip={{clip['slug']|urlencode|e|forceescape}}&amp;autoplay=true&amp;parent={{parent|urlencode|e|forceescape}}&quot; width=&quot;640&quot; height=&quot;360&quot; frameborder=&quot;0&quot; scrolling=&quot;no&quot; allowfullscreen=&quot;true&quot;&gt;&lt;/iframe&gt;">
 	<td class="thumbnail"><img src="{{clip['thumbnail']|e}}"></td>
 	<td class="main">
 		<div class="title">{{clip['title']|e}}</div>
