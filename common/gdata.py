@@ -40,7 +40,7 @@ async def get_oauth_token(scopes):
 
 	data = {"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer", "assertion": jwt}
 
-	ret = json.loads((await common.http.request_coro("https://accounts.google.com/o/oauth2/token", data, "POST")))
+	ret = json.loads((await common.http.request_coro("https://oauth2.googleapis.com/token", data, "POST")))
 	if "error" in ret:
 		raise Exception(ret["error"])
 	return ret

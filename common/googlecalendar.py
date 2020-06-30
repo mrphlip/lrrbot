@@ -10,6 +10,7 @@ import pytz.exceptions
 
 import common.http
 import common.time
+from common import gdata
 from common import utils
 from common.config import config
 from common import space
@@ -28,7 +29,7 @@ HISTORY_PERIOD = datetime.timedelta(hours=1) # How long ago can an event have st
 LOOKAHEAD_PERIOD = datetime.timedelta(hours=1) # How close together to events have to be to count as "the same time"?
 
 @utils.cache(CACHE_EXPIRY, params=[0])
-def get_upcoming_events(calendar, after=None):
+async def get_upcoming_events(calendar, after=None):
 	"""
 	Get the next several events from the calendar. Will include the currently-happening
 	events (if any) and a number of following events.
@@ -43,6 +44,8 @@ def get_upcoming_events(calendar, after=None):
 	"""
 	if after is None:
 		after = datetime.datetime.now(datetime.timezone.utc)
+	token = await gdata.get_oauth_token(["https://www.googleapis.com/auth/calendar.events.readonly"])
+	headers = {"Authorization": "%(token_type)s %(access_token)s" % token}
 	url = EVENTS_URL % urllib.parse.quote(calendar)
 	data = {
 		"maxResults": EVENT_COUNT,
@@ -50,9 +53,8 @@ def get_upcoming_events(calendar, after=None):
 		"singleEvents": "true",
 		"timeMin": after.strftime(DATE_FORMAT),
 		"timeZone": config['timezone'].zone,
-		"key": config['google_key'],
 	}
-	res = common.http.request(url, data)
+	res = await common.http.request_coro(url, data, headers=headers)
 	res = json.loads(res)
 	if 'error' in res:
 		raise Exception(res['error']['message'])
@@ -69,7 +71,7 @@ def get_upcoming_events(calendar, after=None):
 		})
 	return formatted_items
 
-def get_next_event(calendar, after=None, include_current=False):
+async def get_next_event(calendar, after=None, include_current=False):
 	"""
 	Get the list of events that should be shown by the !next command.
 
@@ -92,7 +94,7 @@ def get_next_event(calendar, after=None, include_current=False):
 	"""
 	if after is None:
 		after = datetime.datetime.now(datetime.timezone.utc)
-	events = get_upcoming_events(calendar, after=after)
+	events = await get_upcoming_events(calendar, after=after)
 
 	first_future_event = None
 	for i, ev in enumerate(events):
@@ -123,7 +125,7 @@ def process_description(description):
 	else:
 		return "; ".join(lines)
 
-def get_next_event_text(calendar, after=None, include_current=None, tz=None, verbose=True):
+async def get_next_event_text(calendar, after=None, include_current=None, tz=None, verbose=True):
 	"""
 	Build the actual human-readable response to the !next command.
 
@@ -142,7 +144,7 @@ def get_next_event_text(calendar, after=None, include_current=None, tz=None, ver
 		except pytz.exceptions.UnknownTimeZoneError:
 			return "Unknown timezone: %s" % tz
 
-	events = get_next_event(calendar, after=after, include_current=include_current)
+	events = await get_next_event(calendar, after=after, include_current=include_current)
 	if not events:
 		return "There don't seem to be any upcoming scheduled streams"
 

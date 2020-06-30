@@ -2,6 +2,7 @@ import common.http
 import lrrbot.decorators
 from lrrbot.main import bot
 from common import googlecalendar
+from common import gdata
 from common import space
 from common import twitch
 from common import utils
@@ -16,10 +17,11 @@ import textwrap
 
 @utils.cache(24 * 60 * 60)
 async def extract_new_channels(loop):
+	token = await gdata.get_oauth_token(["https://www.googleapis.com/auth/calendar.events.readonly"])
+	headers = {"Authorization": "%(token_type)s %(access_token)s" % token}
 	data = await common.http.request_coro(googlecalendar.EVENTS_URL % urllib.parse.quote(googlecalendar.CALENDAR_FAN), {
-		"key": config["google_key"],
 		"maxResults": "25000",
-	})
+	}, headers=headers)
 	data = json.loads(data)
 
 	channels = set()
