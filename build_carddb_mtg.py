@@ -26,11 +26,11 @@ from common.card import clean_text, CARD_GAME_MTG
 EXTRAS_FILENAME = 'extracards.json'
 
 URLS = [
-	('https://mtgjson.com/json/AllPrintings.json.xz', lambda: __import__('lzma').open, lambda f: f),
-	('https://mtgjson.com/json/AllPrintings.json.bz2', lambda: __import__('bz2').open, lambda f: f),
-	('https://mtgjson.com/json/AllPrintings.json.gz', lambda: __import__('gzip').open, lambda f: f),
-	('https://mtgjson.com/json/AllPrintings.json.zip', lambda: __import__('zipfile').ZipFile, lambda zip: zip.open('AllPrintings.json')),
-	('https://mtgjson.com/json/AllPrintings.json', lambda: open, lambda f: f),
+	('https://mtgjson.com/api/v5/AllPrintings.json.xz', lambda: __import__('lzma').open, lambda f: f),
+	('https://mtgjson.com/api/v5/AllPrintings.json.bz2', lambda: __import__('bz2').open, lambda f: f),
+	('https://mtgjson.com/api/v5/AllPrintings.json.gz', lambda: __import__('gzip').open, lambda f: f),
+	('https://mtgjson.com/api/v5/AllPrintings.json.zip', lambda: __import__('zipfile').ZipFile, lambda zip: zip.open('AllPrintings.json')),
+	('https://mtgjson.com/api/v5/AllPrintings.json', lambda: open, lambda f: f),
 ]
 
 def determine_best_file_format():
@@ -65,7 +65,7 @@ def main():
 		return
 
 	print("Reading card data...")
-	mtgjson = read_mtgjson()
+	mtgjson = read_mtgjson()['data']
 
 	try:
 		with open(EXTRAS_FILENAME) as fp:
@@ -184,15 +184,14 @@ def process_card(card, expansion, include_reminder=False):
 		return
 	if card.get('layout') in ('split', 'aftermath', 'adventure'):
 		# Return split cards as a single card... for all the other pieces, return nothing
-		if card['name'] != card['names'][0]:
+		if card['side'] != 'a':
 			return
-		splits = []
-		for splitname in card['names']:
-			candidates = [i for i in expansion['cards'] if i['name'] == splitname]
-			if not candidates:
-				print("Can't find split card piece: %s" % splitname)
+		splits = [card]
+		for faceid in card['otherFaceIds']:
+			if faceid not in expansion['by_uuid']:
+				print("Can't find split card piece: %s" % faceid)
 				sys.exit(1)
-			splits.append(candidates[0])
+			splits.append(expansion['by_uuid'][faceid])
 		filteredparts = []
 		nameparts = []
 		descparts = []
@@ -208,74 +207,85 @@ def process_card(card, expansion, include_reminder=False):
 
 		filteredname = ''.join(filteredparts)
 		cardname = " // ".join(nameparts)
-		description = "%s | %s" % (" // ".join(card['names']), " // ".join(descparts))
+		description = "%s | %s" % (card['name'], " // ".join(descparts))
 		yield filteredname, cardname, description, allmultiverseids, anyhidden
 	else:
 		yield process_single_card(card, expansion, include_reminder)
 
+def try_process_card(card, expansion, include_reminder=False):
+	try:
+		yield from process_card(card, expansion, include_reminder)
+	except:
+		print("Error processing card %s [%s] %s" % (card['name'], expansion['code'], card['uuid']))
+		raise
+
 def process_single_card(card, expansion, include_reminder=False):
 	# sanitise card name
-	filtered = clean_text(card.get('internalname', card["name"]))
+	cardname = card.get('faceName', card['name'])
+	filtered = clean_text(card.get('internalname', cardname))
 	if not re_check.match(filtered):
-		print("Still some junk left in name %s (%s)" % (card.get('internalname', card["name"]), json.dumps(filtered)))
+		print("Still some junk left in name %s (%s)" % (card.get('internalname', cardname), json.dumps(filtered)))
 		print(json.dumps(card))
 		sys.exit(1)
 
 	def build_description():
-		yield card['name']
+		yield cardname
 		if 'manaCost' in card:
 			yield ' ['
 			yield re_mana.sub(r"\1", card['manaCost'])
 			yield ']'
 		if card.get('layout') == 'flip':
-			if card['name'] == card['names'][0]:
+			if card['side'] == 'a':
 				yield ' (flip: '
-				yield card['names'][1]
-				yield ')'
 			else:
 				yield ' (unflip: '
-				yield card['names'][0]
-				yield ')'
+			yield expansion['by_uuid'][card['otherFaceIds'][0]]['faceName']
+			yield ')'
 		elif card.get('layout') == 'transform':
-			if card['name'] == card['names'][0]:
+			if card['side'] == 'a':
 				yield ' (back: '
-				yield card['names'][1]
-				yield ')'
 			else:
 				yield ' (front: '
-				yield card['names'][0]
-				yield ')'
+			yield expansion['by_uuid'][card['otherFaceIds'][0]]['faceName']
+			yield ')'
 		elif card.get('layout') == 'meld':
-			card_a, melded_card, card_b = card['names']
-			if card['name'] in (card_a, card_b):
+			# otherFaceIds on front faces points only to the back face
+			# otherFaceIds on the back face points to both front faces
+			if card['side'] == 'a':
+				melded_card = expansion['by_uuid'][card['otherFaceIds'][0]]
+			else:
+				melded_card = card
+			card_a = expansion['by_uuid'][melded_card['otherFaceIds'][0]]
+			card_b = expansion['by_uuid'][melded_card['otherFaceIds'][1]]
+			if card['side'] == 'a':
 				# mtgjson is inconsistent as to which of these is which
 				# check if "melds with cardname" is in the card text
-				if card['name'] == card_a:
+				if card is card_a:
 					other_card = card_b
 				else:
 					other_card = card_a
-				if '(Melds with %s.)' % other_card in card['text']:
+				if '(Melds with %s.)' % other_card['faceName'] in card['text']:
 					yield ' (melds with: '
-					yield other_card
+					yield other_card['faceName']
 					yield '; into: '
-					yield melded_card
+					yield melded_card['faceName']
 					yield ')'
 				else:
 					# The names of what this melds with and into are in the rules text
 					pass
-			elif card['name'] == melded_card:
+			elif card is melded_card:
 				yield ' (melds from: '
-				yield card_a
+				yield card_a['faceName']
 				yield '; '
-				yield card_b
+				yield card_b['faceName']
 				yield ')'
 		yield ' | '
 		yield card.get('type', '?Type missing?')
 		if 'power' in card or 'toughness' in card:
 			yield ' ['
-			yield card.get('power', '?')
+			yield shownum(card.get('power', '?'))
 			yield '/'
-			yield card.get('toughness', '?')
+			yield shownum(card.get('toughness', '?'))
 			yield ']'
 		if 'loyalty' in card:
 			yield ' ['
@@ -301,13 +311,13 @@ def process_single_card(card, expansion, include_reminder=False):
 	desc = re_multiplespaces.sub(' ', desc).strip()
 	desc = utils.trim_length(desc)
 
-	if card.get('layout') == 'flip' and card['name'] != card['names'][0]:
+	if card.get('layout') == 'flip' and card['side'] != 'a':
 		multiverseids = []
 	else:
 		if card.get('layout') == 'transform':
-			if card['name'] != card['names'][0]:
+			if card['side'] == 'b':
 				card['foreignData'] = []  # mtgjson doesn't seem to have accurate foreign multiverse ids for back faces
-		multiverseids = [card['multiverseId']] if card.get('multiverseId') else []
+		multiverseids = [card['identifiers']['multiverseId']] if card.get('identifiers', {}).get('multiverseId') else []
 		# disabling adding foreign multiverse ids unless we decide we want them for some reason
 		# they add a lot of time to the running of this script
 		#for lang in card.get('foreignData', []):
@@ -315,7 +325,7 @@ def process_single_card(card, expansion, include_reminder=False):
 		#		multiverseids.append(lang['multiverseId'])
 	hidden = 'internalname' in card
 
-	return filtered, card['name'], desc, multiverseids, hidden
+	return filtered, cardname, desc, multiverseids, hidden
 
 def process_text(text, include_reminder):
 	text = re_minuses.sub('\u2212', text) # replace hyphens with real minus signs
@@ -334,45 +344,49 @@ def special_set(setid):
 	return decorator
 
 def process_set(setid, expansion):
+	expansion['by_uuid'] = {
+		card['uuid']: card
+		for card in expansion['cards']
+		if card.get('uuid')
+	}
+
 	handler = SPECIAL_SETS.get(setid, process_set_general)
 	yield from handler(expansion)
 
 def process_set_general(expansion):
 	for card in expansion['cards']:
-		yield from process_card(card, expansion)
+		yield from try_process_card(card, expansion)
 
 @special_set('AKH')
 @special_set('HOU')
 def process_set_amonkhet(expansion):
-	re_embalm = re.compile(r"(?:^|\n|,)\s*(Embalm|Eternalize)\b", re.IGNORECASE)
 	for card in expansion['cards']:
-		yield from process_card(card, expansion)
+		yield from try_process_card(card, expansion)
 
-		match = re_embalm.search(card.get('text', ''))
-		if match:
+		if {'Embalm', 'Eternalize'}.intersection(card.get('keywords', [])):
 			card['internalname'] = card['name'] + "_TKN"
 			card['name'] = card['name'] + " token"
 			card['subtypes'] = ["Zombie"] + card['subtypes']
 			make_type(card)
 			del card['manaCost']
 			del card['number']
-			del card['multiverseId']
+			del card['identifiers']
 			del card['foreignData']
-			if match.group(1) == "Eternalize":
+			if "Eternalize" in card['keywords']:
 				card['power'] = card['toughness'] = '4'
-			yield from process_card(card, expansion)
+			yield from try_process_card(card, expansion)
 
 @special_set('UGL')
 def process_set_unglued(expansion):
 	for card in expansion['cards']:
 		if card['name'] in {'B.F.M. (Big Furry Monster)', 'B.F.M. (Big Furry Monster) (b)'}:  # do this card special
 			continue
-		yield from process_card(card, expansion, include_reminder=True)
+		yield from try_process_card(card, expansion, include_reminder=True)
 
 	yield (
 		"bfmbigfurrymonster",
 		"B.F.M. (Big Furry Monster)",
-		"B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Summon \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must play both B.F.M. cards to put B.F.M. into play. If either B.F.M. card leaves play, sacrifice the other. / B.F.M. can only be blocked by three or more creatures.",
+		"B.F.M. (Big Furry Monster) (BBBBBBBBBBBBBBB) | Creature \u2014 The Biggest, Baddest, Nastiest, Scariest Creature You'll Ever See [99/99] | You must cast both B.F.M. cards to put B.F.M. onto the battlefield. If one B.F.M. card leaves the battlefield, sacrifice the other. / B.F.M. can’t be blocked except by three or more creatures.",
 		[9780, 9844],
 		False,
 	)
@@ -380,7 +394,7 @@ def process_set_unglued(expansion):
 @special_set('UNH')
 def process_set_unhinged(expansion):
 	for card in expansion['cards']:
-		yield from process_card(card, expansion, include_reminder=True)
+		yield from try_process_card(card, expansion, include_reminder=True)
 
 @special_set('UST')
 @special_set('UND')
@@ -389,27 +403,34 @@ def process_set_unstable(expansion):
 	augments = []
 	re_augment = re.compile(r"(?:^|\n|,)\s*Augment\b", re.IGNORECASE)
 	for card in expansion['cards']:
-		yield from process_card(card, expansion, include_reminder=True)
+		if card['name'] == 'Who // What // When // Where // Why':
+			# this card in UND in mtgjson is broken
+			# ignore it, rely on the version in UNH
+			continue
+
+		yield from try_process_card(card, expansion, include_reminder=True)
 
 		if 'Host' in card['supertypes']:
 			hosts.append(card)
 			# for the benefit of the overlay
 			card['internalname'] = card['name'] + "_HOST"
-			card.pop('multiverseId', None)
+			card.pop('identifiers', None)
 			card.pop('number', None)
-			yield from process_card(card, expansion, include_reminder=True)
+			yield from try_process_card(card, expansion, include_reminder=True)
 		elif re_augment.search(card.get('text', '')):
+			# unfortunately, mtgjson doesn't put Augment in card['keywords'] so
+			# still need to search the rules text for it
 			augments.append(card)
 			card['internalname'] = card['name'] + "_AUG"
-			card.pop('multiverseId', None)
+			card.pop('identifiers', None)
 			card.pop('number', None)
-			yield from process_card(card, expansion, include_reminder=True)
+			yield from try_process_card(card, expansion, include_reminder=True)
 
 	for augment in augments:
 		for host in hosts:
 			yield gen_augment(augment, host, expansion)
 
-HOST_PREFIX = "When this creature enters the battlefield, "
+HOST_PREFIX = "When this creature enters the battlefield,"
 def gen_augment(augment, host, expansion):
 	combined = {
 		'layout': 'normal',
@@ -436,8 +457,18 @@ def gen_augment(augment, host, expansion):
 			break
 	else:
 		raise ValueError("Card text for host %r not expected" % host['name'])
-	del host_lines[host_ix]
-	host_line = host_line[len(HOST_PREFIX):]
+	host_line = host_line[len(HOST_PREFIX):].strip()
+	if host_line:
+		del host_lines[host_ix]
+	else:
+		# for some cards, the text is formatted as:
+		#   "When this creature ETB, effect"
+		# but for others it's formatted as:
+		#   "When this creature ETB,\neffect"
+		# for the latter, host_line will be empty at this point, and we need to grab
+		# the following line
+		host_line = host_lines[host_ix + 1]
+		del host_lines[host_ix:host_ix + 2]
 
 	augment_lines = augment['text'].split("\n")
 	for augment_ix, augment_line in enumerate(augment_lines):
@@ -452,7 +483,17 @@ def gen_augment(augment, host, expansion):
 	combined_lines = host_lines + [augment_line + ' ' + host_line] + augment_lines
 	combined['text'] = "\n".join(combined_lines)
 
-	return process_single_card(combined, expansion, include_reminder=True)
+	# don't include reminder text on the merged augment - the main reminder text
+	# on these cards is the reminder for Augment, which isn't relevent any more
+	return process_single_card(combined, expansion, include_reminder=False)
+
+@special_set('H17')
+@special_set('PTG')
+@special_set('PREL')
+def noop_set(expansion):
+	# Don't import these sets - they has some broken cards (cf mtgjson #614)
+	# and it seems unlikely LRR will ever play them (prove me wrong, LRR!)
+	yield from []
 
 def make_type(card):
 	types = card['types']
@@ -463,6 +504,13 @@ def make_type(card):
 	typeline = ' '.join(types)
 	card['type'] = typeline
 	return typeline
+
+def shownum(val):
+	# mtgjson gives the power/toughness of Unhinged cards as eg "3.5" rather than "3½"
+	# but it uses the "½" symbol in the rules text, so fix it here to match
+	if val.endswith('.5'):
+		val = val[:-2] + '½'
+	return val
 
 if __name__ == '__main__':
 	main()
