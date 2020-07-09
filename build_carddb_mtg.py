@@ -401,25 +401,17 @@ def process_set_unhinged(expansion):
 def process_set_unstable(expansion):
 	hosts = []
 	augments = []
-	re_augment = re.compile(r"(?:^|\n|,)\s*Augment\b", re.IGNORECASE)
 	for card in expansion['cards']:
-		if card['name'] == 'Who // What // When // Where // Why':
-			# this card in UND in mtgjson is broken
-			# ignore it, rely on the version in UNH
-			continue
-
 		yield from try_process_card(card, expansion, include_reminder=True)
 
-		if 'Host' in card['supertypes']:
+		if card['layout'] == 'host':
 			hosts.append(card)
 			# for the benefit of the overlay
 			card['internalname'] = card['name'] + "_HOST"
 			card.pop('identifiers', None)
 			card.pop('number', None)
 			yield from try_process_card(card, expansion, include_reminder=True)
-		elif re_augment.search(card.get('text', '')):
-			# unfortunately, mtgjson doesn't put Augment in card['keywords'] so
-			# still need to search the rules text for it
+		elif card['layout'] == 'augment':
 			augments.append(card)
 			card['internalname'] = card['name'] + "_AUG"
 			card.pop('identifiers', None)
@@ -486,14 +478,6 @@ def gen_augment(augment, host, expansion):
 	# don't include reminder text on the merged augment - the main reminder text
 	# on these cards is the reminder for Augment, which isn't relevent any more
 	return process_single_card(combined, expansion, include_reminder=False)
-
-@special_set('H17')
-@special_set('PTG')
-@special_set('PREL')
-def noop_set(expansion):
-	# Don't import these sets - they has some broken cards (cf mtgjson #614)
-	# and it seems unlikely LRR will ever play them (prove me wrong, LRR!)
-	yield from []
 
 def make_type(card):
 	types = card['types']
