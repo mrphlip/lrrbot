@@ -28,7 +28,7 @@ $(function(){
 		height: "100%",
 		video: window.video,
 	});
-	window.player.addEventListener("loadedvideo", onPlayerReady);
+	window.player.addEventListener(Twitch.Player.PLAY, onPlayerPlay);
 
 	// Only scroll the chat vertically
 	$("#chat").parent().css("overflow-x", "hidden");
@@ -100,9 +100,10 @@ function scrollChatTo(time) {
 	chatPane.scrollTop(chatPane.scrollTop() + line.position().top - chatPane.height());
 }
 
-function onPlayerReady() {
+function onPlayerPlay() {
 	if (window.initial_time) {
 		window.player.seek(window.initial_time);
+		window.initial_time = false;
 	}
 }
 
