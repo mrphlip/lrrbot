@@ -218,10 +218,10 @@
         },
         "irc": {
             "hashes": [
-                "sha256:101faabfc1080b9567f16a8cb7548d3c893d1abd4abcb9717ece2f07f796fb50",
-                "sha256:29026b1e977dacb621c710ae9531fcab6fa21825b743c616c220da0e58a32233"
+                "sha256:99fd5d1fa1d054dee4fbb81e0d5193dc1e8200db751d5da9a97850a62162b9ab",
+                "sha256:b5179428448947d364edcdcef8cb34a2a7033b4e78e58fec32d092091eab786f"
             ],
-            "version": "==19.0.0"
+            "version": "==19.0.1"
         },
         "itsdangerous": {
             "hashes": [
