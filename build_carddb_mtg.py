@@ -241,7 +241,7 @@ def process_single_card(card, expansion, include_reminder=False):
 				yield ' (unflip: '
 			yield expansion['by_uuid'][card['otherFaceIds'][0]]['faceName']
 			yield ')'
-		elif card.get('layout') == 'transform':
+		elif card.get('layout') in {'transform', 'modal_dfc'}:
 			if card['side'] == 'a':
 				yield ' (back: '
 			else:
@@ -314,7 +314,7 @@ def process_single_card(card, expansion, include_reminder=False):
 	if card.get('layout') == 'flip' and card['side'] != 'a':
 		multiverseids = []
 	else:
-		if card.get('layout') == 'transform':
+		if card.get('layout') in {'transform', 'modal_dfc'}:
 			if card['side'] == 'b':
 				card['foreignData'] = []  # mtgjson doesn't seem to have accurate foreign multiverse ids for back faces
 		multiverseids = [card['identifiers']['multiverseId']] if card.get('identifiers', {}).get('multiverseId') else []
