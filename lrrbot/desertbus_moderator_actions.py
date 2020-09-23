@@ -91,13 +91,13 @@ class ModeratorActions:
 		now = datetime.datetime.now(config["timezone"])
 
 		data = [
-			("Timestamp", now.strftime("%Y-%m-%d %H:%M:%S")),
-			("Timestamp (hours bussed)", self.nice_time(now - DESERTBUS_START)),
-			("Offender's Username", user),
-			("Moderator", mod),
-			("Enforcement option/length", action),
-			("What was the cause of the enforcement action?", reason),
-			("Last Line", last),
+			now.strftime("%Y-%m-%d %H:%M:%S"),  # Timestamp
+			self.nice_time(now - DESERTBUS_START),  # Timestamp (hours bussed)
+			user,  # Offender's Username
+			mod,  # Moderator
+			action,  # Enforcement option/length
+			reason,  # What was the cause of the enforcement action?
+			last,  # Last Line
 		]
 		log.debug("Add row: %r", data)
 		asyncio.ensure_future(gdata.add_rows_to_spreadsheet(SPREADSHEET, [data]), loop=self.loop).add_done_callback(utils.check_exception)

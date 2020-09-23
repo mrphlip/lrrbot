@@ -60,10 +60,5 @@ async def add_rows_to_spreadsheet(spreadsheet, rows, sheetindex=0):
 			'includeValuesInResponse': 'false',
 		})
 	)
-	data = {
-		"values": [
-			[cell[1] for cell in row]
-			for row in rows
-		]
-	}
+	data = {"values": rows}
 	await common.http.request_coro(post_url, headers=headers, data=data, method="POST", asjson=True)
