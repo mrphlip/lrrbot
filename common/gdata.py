@@ -1,6 +1,7 @@
 import time
 
 import common.http
+from urllib.parse import quote, urlencode
 
 import asyncio
 
@@ -11,8 +12,6 @@ from cryptography.hazmat.primitives.hashes import SHA256
 
 import json
 import base64
-import xml.dom
-import xml.dom.minidom
 
 def base64_encode(data):
 	return base64.urlsafe_b64encode(data).strip(b"=")
@@ -45,38 +44,26 @@ async def get_oauth_token(scopes):
 		raise Exception(ret["error"])
 	return ret
 
-def find_schema(root, schema):
-	for link in root.getElementsByTagName("link"):
-		if link.attributes["rel"].value == schema:
-			return link.attributes["href"].value
-
-def new_field(doc, name, value):
-	name = "gsx:"+"".join(filter(str.isalnum, name)).lower()
-	node = doc.createElement(name)
-	node.appendChild(doc.createTextNode(value))
-	return node
-
-async def add_rows_to_spreadsheet(spreadsheet, rows):
+async def add_rows_to_spreadsheet(spreadsheet, rows, sheetindex=0):
 	token = await get_oauth_token(["https://spreadsheets.google.com/feeds"])
 	headers = {"Authorization": "%(token_type)s %(access_token)s" % token}
-	url = "https://spreadsheets.google.com/feeds/worksheets/%s/private/full" % spreadsheet
-	tree = xml.dom.minidom.parseString((await common.http.request_coro(url, headers=headers)))
-	worksheet = next(iter(tree.getElementsByTagName("entry")))
-	list_feed = find_schema(worksheet, "http://schemas.google.com/spreadsheets/2006#listfeed")
-	if list_feed is None:
-		raise Exception("List feed missing.")
-	list_feed = xml.dom.minidom.parseString((await common.http.request_coro(list_feed, headers=headers)))
-	post_url = find_schema(list_feed, "http://schemas.google.com/g/2005#post")
-	if post_url is None:
-		raise Exception("POST URL missing.")
 
-	for row in rows:
-		doc = xml.dom.minidom.getDOMImplementation().createDocument(None, "entry", None)
-		root = doc.documentElement
-		root.setAttribute("xmlns", "http://www.w3.org/2005/Atom")
-		root.setAttribute("xmlns:gsx", "http://schemas.google.com/spreadsheets/2006/extended")
-		for column, value in row:
-			root.appendChild(new_field(doc, column, value))
+	url = "https://sheets.googleapis.com/v4/spreadsheets/%s?includeGridData=false" % quote(spreadsheet)
+	sheetdata = json.loads((await common.http.request_coro(url, headers=headers)))
+	# weird it uses title, not sheetId, but /shrug
+	sheet = sheetdata['sheets'][sheetindex]['properties']['title']
 
-		headers["Content-Type"] = "application/atom+xml"
-		await common.http.request_coro(post_url, headers=headers, data=doc.toxml(), method="POST")
+	post_url = "https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s:append?%s" % (
+		quote(spreadsheet), quote(sheet), urlencode({
+			'valueInputOption': 'USER_ENTERED',
+			'insertDataOption': 'INSERT_ROWS',
+			'includeValuesInResponse': 'false',
+		})
+	)
+	data = {
+		"values": [
+			[cell[1] for cell in row]
+			for row in rows
+		]
+	}
+	await common.http.request_coro(post_url, headers=headers, data=data, method="POST", asjson=True)
