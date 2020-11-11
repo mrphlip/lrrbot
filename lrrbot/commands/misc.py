@@ -75,7 +75,7 @@ def spamcount(lrrbot, conn, event, respond_to):
 # When Desert Bus starts
 DESERTBUS_START = config["timezone"].localize(datetime.datetime(2020, 11, 13, 10, 0))
 # Approximately the last stream before desert bus - when !next should start plugging Desert Bus instead
-DESERTBUS_PRESTART = DESERTBUS_START - datetime.timedelta(days=2)  # If LRR is streaming 2 days before DB, good luck to them
+DESERTBUS_PRESTART = DESERTBUS_START - datetime.timedelta(days=1)  # If LRR is streaming a day before DB, good luck to them
 # When !desertbus should stop claiming the run is still active
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 

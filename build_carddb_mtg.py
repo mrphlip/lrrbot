@@ -92,7 +92,7 @@ def main():
 			if progress:
 				print("[%s]: %s - %s" % (expansion['releaseDate'], setid, expansion['name']))
 
-			processed_multiverseids = {}
+			processed_multiverseids = set()
 
 			for filteredname, cardname, description, multiverseids, hidden in process_set(setid, expansion):
 				if filteredname not in processed_cards:
@@ -108,13 +108,13 @@ def main():
 				else:
 					card_id = processed_cards[filteredname]
 
-				multiverseids = set(multiverseids) - processed_multiverseids.get(card_id, set())
+				multiverseids = set(multiverseids) - processed_multiverseids
 				if multiverseids:
 					cur.executemany("INSERT INTO card_multiverse (id, cardid) VALUES (%s, %s)", [
 						(id, card_id)
 						for id in multiverseids
 					])
-					processed_multiverseids.setdefault(card_id, set()).update(multiverseids)
+					processed_multiverseids.update(multiverseids)
 
 def do_download_file(url, fn):
 	"""
