@@ -232,10 +232,10 @@
         },
         "inflect": {
             "hashes": [
-                "sha256:053dabafaebc41375361cea2cbaea52f91c7d5bd30e079847ee4e4e49739d41b",
-                "sha256:def6f3791be9181f0c01e0bf5949304007ec6e04c6674fbef7cc49c657b8a9a5"
+                "sha256:af3c910cd1c2b7b1471b9d33734d31e3922ea6a7f61b2a23819e04b841ad75b0",
+                "sha256:dace1a7489b3865aebb59b36c6e3d7adf42716a49991f1fcf23292038c38167e"
             ],
-            "version": "==4.1.0"
+            "version": "==5.0.1"
         },
         "irc": {
             "hashes": [
