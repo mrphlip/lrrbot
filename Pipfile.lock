@@ -537,10 +537,10 @@
         },
         "tempora": {
             "hashes": [
-                "sha256:599a3a910b377f2b544c7b221582ecf4cb049b017c994b37f2b1a9ed1099716e",
-                "sha256:9f46de767be7dd21d9602a8a5b0978fd55abc70af3e2a7814c85c00d7a8fffa3"
+                "sha256:9af06854fafb26d3d40d3dd6402e8baefaf57f90e48fdc9a94f6b22827a60fb3",
+                "sha256:e319840007c2913bf2f14ebf1f71b94812335d1ef4ca178e1c65c445a2d63da8"
             ],
-            "version": "==4.0.0"
+            "version": "==4.0.1"
         },
         "timelib": {
             "hashes": [
