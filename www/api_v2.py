@@ -32,7 +32,8 @@ blueprint = flask.Blueprint("api_v2", __name__)
 
 @blueprint.after_request
 def add_cors_headers(request):
-	request.headers['Access-Control-Allow-Origin'] = '*'
+	request.access_control_allow_origin = '*'
+	request.access_control_allow_methods = flask.request.url_rule.methods
 	return request
 
 @blueprint.route("/")
