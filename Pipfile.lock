@@ -69,10 +69,9 @@
         },
         "alembic": {
             "hashes": [
-                "sha256:52d1d48109f17959982779e3c4b5cdeca701e449897bacb75bab173bd6ba984e",
-                "sha256:944f8d541d204f3ae22de17ebcfdd0da9539074f1d2fee4eb42735039b3072d8"
+                "sha256:04608b6904a6e6bd1af83e1a48f73f50ba214aeddef44b92d498df33818654a8"
             ],
-            "version": "==1.5.1"
+            "version": "==1.5.3"
         },
         "arrow": {
             "hashes": [
