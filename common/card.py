@@ -4,6 +4,7 @@ from common.postgres import escape_like
 
 CARD_GAME_MTG = 1
 CARD_GAME_KEYFORGE = 2
+CARD_GAME_PTCG = 3
 
 re_specialchars = re.compile(r"[ \-'\",:!?.()\u00ae&/\u2019\u201c\u201d\[\]~\u2026]")
 LETTERS_MAP = {

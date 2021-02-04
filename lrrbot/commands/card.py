@@ -4,7 +4,7 @@ import lrrbot.decorators
 from lrrbot.main import bot
 import common.postgres
 import common.time
-from common.card import clean_text, CARD_GAME_MTG, CARD_GAME_KEYFORGE
+from common.card import clean_text, CARD_GAME_MTG, CARD_GAME_KEYFORGE, CARD_GAME_PTCG
 
 @bot.command("cardview (on|off)")
 @lrrbot.decorators.mod_only
@@ -42,6 +42,18 @@ def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
 	Show the details of a given KeyForge card.
 	"""
 	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_KEYFORGE)
+
+@bot.command("(?:pok[eé]mon|pok[eé]|pkmn|ptcg) (.+)")
+@lrrbot.decorators.throttle(60, count=3)
+def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
+	"""
+	Command: !pokemon card-name
+	Command: !ptcg card-name
+	Section: misc
+
+	Show the details of a given Pokémon TCG card.
+	"""
+	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_PTCG)
 
 def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, includehidden=False, game=CARD_GAME_MTG):
 	cards = find_card(lrrbot, search, includehidden, game)
