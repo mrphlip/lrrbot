@@ -42,6 +42,7 @@ def main():
 			if skip:
 				continue
 
+			#print(cardname, filteredname)
 			cur.execute("INSERT INTO cards (game, filteredname, name, text, hidden) VALUES (%s, %s, %s, %s, %s)", (
 				CARD_GAME_PTCG,
 				filteredname,
@@ -52,8 +53,7 @@ def main():
 
 def iter_cards():
 	for group in group_cards():
-		for card in group:
-			yield from process_card(card, group)
+		yield from process_group(group)
 
 def fetch_cards():
 	page = 1
@@ -65,6 +65,7 @@ def fetch_cards():
 			'User-Agent': "LRRbot/2.0 (https://lrrbot.com/)",
 		})
 		with urllib.request.urlopen(req) as fp:
+		#with open(f"tmpcards_{page}.json") as fp:
 			dat = json.load(fp)
 		if not dat['data']:
 			break
@@ -108,13 +109,25 @@ def group_other_cards(cards):
 		for group in names.values()
 	]
 
-def process_card(card, group):
-	unique = len(group) <= 1
-	setunique = len([c for c in group if c['set']['id'] == card['set']['id']]) <= 1
-	description = ''.join(gen_text(card))
-	for cardname, hidden in gen_cardnames(card, unique, setunique):
-		filteredname = clean_text(cardname)
-		yield cardname, filteredname, description, hidden, card
+def process_group(group):
+	for card in group:
+		card['fullname'] = ''.join(gen_fullname(card))
+		card['description'] = ''.join(gen_text(card))
+	for card in group:
+		def equiv(c):
+			if c['set']['id'] != card['set']['id']:
+				return False
+			if c['description'] != card['description']:
+				return False
+			if c['number'] < card['number']:
+				return False
+			return True
+		unique = not [c for c in group if not equiv(c)]
+		setunique = not [c for c in group if c['set']['id'] == card['set']['id'] and not equiv(c)]
+		description = f"{card['fullname']} | {card['description']}"
+		for cardname, hidden in gen_cardnames(card, unique, setunique):
+			filteredname = clean_text(cardname)
+			yield cardname, filteredname, description, hidden, card
 
 def gen_cardnames(card, unique, setunique):
 	"""
@@ -136,7 +149,7 @@ def gen_cardnames(card, unique, setunique):
 	else:
 		yield f"{card['name']}", False
 
-def gen_text(card):
+def gen_fullname(card):
 	yield card['name']
 	if card['supertype'] == 'Pokémon':
 		yield ' ('
@@ -144,7 +157,8 @@ def gen_text(card):
 		yield ' '
 		yield str(card['number'])
 		yield ')'
-	yield ' | '
+
+def gen_text(card):
 	yield card['supertype']
 	if card.get('types'):
 		yield ' {'
@@ -230,6 +244,15 @@ def cost(costs, colorlesscount=True):
 		res.append(TYPEABBR[cost])
 	return ''.join(res)
 
+EX_NAMES = {
+	'Chansey ex',
+	'Clefable ex',
+	'Electabuzz ex',
+	'Magmar ex',
+	'Vileplume ex',
+	'Alakazam-EX',
+	'Pidgeot-EX',
+}
 def get_hacks(cardname, filteredname, card):
 	skip = False
 
@@ -241,7 +264,7 @@ def get_hacks(cardname, filteredname, card):
 
 	# Don't generate the un-disambiged names for these "ex" pokemon
 	# that have the same name as pokemon from the "EX" expansion
-	if card['name'] in ('Chansey ex', 'Electabuzz ex', 'Magmar ex') and cardname == card['name']:
+	if card['name'] in EX_NAMES and cardname == card['name']:
 		skip = True
 
 	return cardname, filteredname, skip
