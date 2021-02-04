@@ -77,8 +77,6 @@ def find_card(lrrbot, search, includehidden=False, game=CARD_GAME_MTG):
 	with lrrbot.engine.begin() as conn:
 		query = (sqlalchemy.select([cards.c.name, cards.c.text])
 						.where(cards.c.filteredname == cleansearch))
-		if not includehidden:
-			query = query.where(cards.c.hidden == False)
 		if game is not None:
 			query = query.where(cards.c.game == game)
 		rows = conn.execute(query).fetchall()
