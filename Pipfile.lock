@@ -243,10 +243,10 @@
         },
         "jaraco.functools": {
             "hashes": [
-                "sha256:7de095757115ebd370ddb14659b48ca83fcd075e78e0b3c575041c0edbf718e0",
-                "sha256:9e2caddca5620bb682d29b238d46719d062eb2aeafc0cf63043f04c8cd9fd8a7"
+                "sha256:8f60a00314a5989977ebd38b49ad09e2381ddf4c9340152f9b9a651ff12d5e34",
+                "sha256:e11a692db72f9e03bbfc5eae30e8670d1fc7f8c9610cd1c20ebff03beb0376e1"
             ],
-            "version": "==3.1.0"
+            "version": "==3.2.0"
         },
         "jaraco.logging": {
             "hashes": [
