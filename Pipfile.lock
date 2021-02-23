@@ -232,10 +232,10 @@
         },
         "jaraco.classes": {
             "hashes": [
-                "sha256:2229da0dc3e9f29dd14d9ba7cd86e3f66196acfc91131ede786159fbd794ebd9",
-                "sha256:24ec75e16d91bbae0fe89312c5cbbe4b2407d40629dc80463653d23868965c5c"
+                "sha256:22ac35313cf4b145bf7b217cc51be2d98a3d2db1c8558a30ca259d9f0b9c0b7d",
+                "sha256:ed54b728af1937dc16b7236fbaf34ba561ba1ace572b03fffa5486ed363ecf34"
             ],
-            "version": "==3.2.0"
+            "version": "==3.2.1"
         },
         "jaraco.collections": {
             "hashes": [
