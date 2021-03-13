@@ -315,22 +315,22 @@ async def get_twitch_emotes():
 		"Client-ID": config['twitch_clientid'],
 		'Accept': 'application/vnd.twitchtv.v5+json',
 	}
-	data = await common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticon_images", headers=headers)
-	data = json.loads(data)["emoticons"]
+	data = await common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticon_images?emotesets=0,317", headers=headers)
+	data = json.loads(data)["emoticon_sets"]
 	emotesets = {}
-	for i, emote in enumerate(data, 1):
-		regex = emote["code"]
-		if regex == r"\:-?[\\/]": # Don't match :/ inside URLs
-			regex = r"\:-?[\\/](?![\\/])"
-		regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
-		if re_just_words.match(regex):
-			regex = r"\b%s\b" % regex
-		emotesets.setdefault(emote["emoticon_set"], {})[emote["code"]] = {
-			"regex": re.compile("(%s)" % regex),
-			"html": '<img src="https://static-cdn.jtvnw.net/emoticons/v1/%s/1.0" alt="{0}" title="{0}">' % emote["id"]
-		}
-		if i % 1000 == 0:
-			await asyncio.sleep(0)
+	for emoticon_set, emotes in data.items():
+		emoticon_set = int(emoticon_set)
+		for emote in emotes:
+			regex = emote["code"]
+			if regex == r"\:-?[\\/]": # Don't match :/ inside URLs
+				regex = r"\:-?[\\/](?![\\/])"
+			regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
+			if re_just_words.match(regex):
+				regex = r"\b%s\b" % regex
+			emotesets.setdefault(emoticon_set, {})[emote["code"]] = {
+				"regex": re.compile("(%s)" % regex),
+				"html": '<img src="https://static-cdn.jtvnw.net/emoticons/v1/%s/1.0" alt="{0}" title="{0}">' % emote["id"]
+			}
 	return emotesets
 
 async def get_filtered_emotes(setids):
