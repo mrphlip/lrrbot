@@ -260,10 +260,10 @@
         },
         "jaraco.stream": {
             "hashes": [
-                "sha256:287e1cba9f278e0146fdded6bc40518930813a5584579769aeaa1d0bfd178a73",
-                "sha256:a42357141288bbd55938b9ff464173c078038374ce5ffa1bf31895138acc0f30"
+                "sha256:0ede0988de595d15a72fa95f1eec4dee20fdede30e8d2ddee1b9c2a963eb67ef",
+                "sha256:86c57fedffd4d5a4b18817f99ddf62ac8ed0a1bc31a1c41b9a88df9c6bb56e0b"
             ],
-            "version": "==3.0.0"
+            "version": "==3.0.2"
         },
         "jaraco.text": {
             "hashes": [
