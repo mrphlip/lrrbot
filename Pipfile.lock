@@ -209,10 +209,10 @@
         },
         "importlib-metadata": {
             "hashes": [
-                "sha256:742add720a20d0467df2f444ae41704000f50e1234f46174b51f9c6031a1bd71",
-                "sha256:b74159469b464a99cb8cc3e21973e4d96e05d3024d337313fedb618a6e86e6f4"
+                "sha256:9dd89454add8894cc93619426949a58bdad9c1ef42822e46b884e7fc2d2a901e",
+                "sha256:ce8ae4d781be528001aad74ecfec7512641e36f1272effeea55164e47ae26841"
             ],
-            "version": "==3.7.3"
+            "version": "==3.8.0"
         },
         "irc": {
             "hashes": [
