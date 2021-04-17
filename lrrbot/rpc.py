@@ -127,10 +127,25 @@ class Server(common.rpc.Server):
 
 	def generate_tweet(self):
 		import lrrbot.commands
-		mode = utils.weighted_choice([(0, 10), (1, 4)])
-		if mode == 0: # get random !advice
+		QUOTE = 1
+		ADVICE = 2
+		SECRET = 3
+		SMASH = 4
+		options = [(QUOTE, 5)]
+		if 'advice' in storage.data['responses']:
+			options.append((ADVICE, 10))
+		if 'secret' in storage.data['responses']:
+			options.append((SECRET, 2))
+		if 'smash' in storage.data['responses']:
+			options.append((SMASH, 2))
+		mode = utils.weighted_choice(options)
+		if mode == ADVICE:
 			return random.choice(storage.data['responses']['advice']['response'])
-		elif mode == 1: # get a random !quote
+		elif mode == SECRET:
+			return random.choice(storage.data['responses']['secret']['response'])
+		elif mode == SMASH:
+			return random.choice(storage.data['responses']['smash']['response'])
+		elif mode == QUOTE:
 			quotes = self.lrrbot.metadata.tables["quotes"]
 			with self.lrrbot.engine.begin() as conn:
 				query = sqlalchemy.select([quotes.c.quote, quotes.c.attrib_name, quotes.c.context]).where(~quotes.c.deleted)
@@ -140,11 +155,11 @@ class Server(common.rpc.Server):
 
 			quote, name, context = row
 
-			quote_msg = "\"{quote}\"".format(quote=quote)
+			quote_msg = f'"{quote}"'
 			if name:
-				quote_msg += " —{name}".format(name=name)
+				quote_msg += f" —{name}"
 				if context:
-					quote_msg += ", {context}".format(context=context)
+					quote_msg += f", {context}"
 			return quote_msg
 
 	@aiomas.expose
