@@ -31,7 +31,7 @@ config.setdefault('channel', 'loadingreadyrun')
 
 # postgres - libpg connection string
 # See https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
-config.setdefault('postgres', 'postgres:///lrrbot')
+config.setdefault('postgres', 'postgresql:///lrrbot')
 
 # reconnecttime - seconds to wait before reconnecting after a disconnect
 config['reconnecttime'] = int(config.get('reconnecttime', 15))
