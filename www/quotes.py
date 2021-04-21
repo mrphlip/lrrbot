@@ -17,7 +17,8 @@ def quotes(session, page=1):
 	shows = server.db.metadata.tables["shows"]
 	game_per_show_data = server.db.metadata.tables["game_per_show_data"]
 	with server.db.engine.begin() as conn:
-		count, = conn.execute(quotes.count().where(~quotes.c.deleted)).first()
+		count_query = sqlalchemy.select([sqlalchemy.func.count()]).select_from(quotes).where(~quotes.c.deleted)
+		count, = conn.execute(count_query).first()
 		pages = (count - 1) // QUOTES_PER_PAGE + 1
 
 		page = max(1, min(page, pages))
