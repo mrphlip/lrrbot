@@ -75,10 +75,10 @@
         },
         "arrow": {
             "hashes": [
-                "sha256:3515630f11a15c61dcb4cdd245883270dd334c83f3e639824e65a4b79cc48543",
-                "sha256:399c9c8ae732270e1aa58ead835a79a40d7be8aa109c579898eb41029b5a231d"
+                "sha256:8cbe6a629b1c54ae11b52d6d9e70890089241958f63bc59467e277e34b7a5378",
+                "sha256:b8fe13abf3517abab315e09350c903902d1447bd311afbc17547ba1cb3ff5bd8"
             ],
-            "version": "==1.0.3"
+            "version": "==1.1.0"
         },
         "async-timeout": {
             "hashes": [
