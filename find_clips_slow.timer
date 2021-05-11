@@ -2,7 +2,8 @@
 Description=Timer for the find_clips_slow script
 
 [Timer]
-OnCalendar=daily
+# Twice a day, at half past the hour
+OnCalendar=*/12:30:00
 Persistent=true
 
 [Install]

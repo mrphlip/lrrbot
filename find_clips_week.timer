@@ -2,7 +2,8 @@
 Description=Timer for the find_clips_week script
 
 [Timer]
-OnCalendar=daily
+# Daily, at 15 minutes past the hour
+OnCalendar=00:15:00
 Persistent=true
 
 [Install]

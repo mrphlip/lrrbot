@@ -2,7 +2,8 @@
 Description=Timer for the find_clips script
 
 [Timer]
-OnCalendar=hourly
+# Hourly, on the hour
+OnCalendar=*:00:00
 Persistent=true
 
 [Install]
