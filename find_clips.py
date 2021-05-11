@@ -231,7 +231,7 @@ def parse_args():
 
 def main():
 	args = parse_args()
-	for channel in args.channels:
+	for channel in args.channel:
 		slugs = process_clips(channel, args.period, args.per_page)
 	fix_null_vodids()
 	check_deleted_clips(args.period, slugs)
