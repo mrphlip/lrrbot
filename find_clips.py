@@ -3,6 +3,7 @@
 import sys
 argv = sys.argv[1:]
 sys.argv = sys.argv[:1]
+import argparse
 import json
 import regex
 import datetime
@@ -41,6 +42,17 @@ def get_clips_page(channel, period="day", limit=100, cursor=None):
 	data = common.http.request(CLIPS_URL, params, headers=headers)
 	return json.loads(data)
 
+def get_all_clips(channel, period="day", per_page=100):
+	cursor = None
+	while True:
+		data = get_clips_page(channel, period, per_page, cursor)
+		if not data['clips']:
+			break
+		yield from data['clips']
+		cursor = data['_cursor']
+		if not cursor:
+			break
+
 def get_clip_info(slug, check_missing=False):
 	"""
 	https://dev.twitch.tv/docs/v5/reference/clips/#get-clip
@@ -60,18 +72,10 @@ def get_clip_info(slug, check_missing=False):
 		return json.loads(data)
 
 def process_clips(channel, period="day", per_page=100):
-	cursor = None
 	slugs = []
-	while True:
-		data = get_clips_page(channel, period, per_page, cursor)
-		if not data['clips']:
-			break
-		for clip in data['clips']:
-			process_clip(clip)
-			slugs.append(clip['slug'])
-		cursor = data['_cursor']
-		if not cursor:
-			break
+	for clip in get_all_clips(channel, period, per_page):
+		process_clip(clip)
+		slugs.append(clip['slug'])
 	return slugs
 
 def get_video_info(vodid):
@@ -218,19 +222,19 @@ def get_default_channels():
 			sqlalchemy.select([TBL_EXT_CHANNEL.c.channel])))
 	return channels
 
+def parse_args():
+	parser = argparse.ArgumentParser(description="Fetch clips from Twitch channel")
+	parser.add_argument('-p', '--per_page', default=10, type=int)
+	parser.add_argument('period', choices=['day', 'week', 'month'], nargs='?', default='day')
+	parser.add_argument('channel', nargs='*', default=get_default_channels())
+	return parser.parse_args(argv)
+
 def main():
-	if argv:
-		period = argv[0]
-		if period not in ('day', 'week', 'month'):
-			print("Usage:\n  %s [day|week|month] [channel]" % sys.argv[0])
-			sys.exit(1)
-	else:
-		period = "day"
-	channels = argv[1:] if len(argv) > 1 else get_default_channels()
-	for channel in channels:
-		slugs = process_clips(channel, period)
+	args = parse_args()
+	for channel in args.channels:
+		slugs = process_clips(channel, args.period, args.per_page)
 	fix_null_vodids()
-	check_deleted_clips(period, slugs)
+	check_deleted_clips(args.period, slugs)
 
 if __name__ == '__main__':
 	main()
