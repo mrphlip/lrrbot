@@ -214,10 +214,10 @@
         },
         "importlib-metadata": {
             "hashes": [
-                "sha256:8c501196e49fb9df5df43833bdb1e4328f64847763ec8a50703148b73784d581",
-                "sha256:d7eb1dea6d6a6086f8be21784cc9e3bcfa55872b52309bc5fad53a8ea444465d"
+                "sha256:227b5fae29e4e51343000c1d43e4213f6e3bc6b995c39b6cf6e434dc8026a815",
+                "sha256:daff3ed4f1e4545d7e60d606e989b1727f482de5da7e4fc6b387f4cd5bca8ece"
             ],
-            "version": "==4.0.1"
+            "version": "==4.1.0"
         },
         "irc": {
             "hashes": [
