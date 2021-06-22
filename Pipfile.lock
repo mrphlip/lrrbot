@@ -613,10 +613,10 @@
         },
         "tempora": {
             "hashes": [
-                "sha256:851a7f46736a4c7c5a1a13a440372d52733a591019c173325c2afb4acf0d1d76",
-                "sha256:d2e517102deedc36a77c4d24b6116fb61545dacf17f8adb08a489e155f0a017e"
+                "sha256:c54da0f05405f04eb67abbb1dff4448fd91428b58cb00f0f645ea36f6a927950",
+                "sha256:ef2d8bb35902d5ea7da95df33456685a6d305b97f311725c12e55c13d85c0938"
             ],
-            "version": "==4.1.0"
+            "version": "==4.1.1"
         },
         "timelib": {
             "hashes": [
