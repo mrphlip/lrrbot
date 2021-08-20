@@ -201,7 +201,13 @@ def uptime_msg(stream_info=None, factor=1):
 	elif stream_info and stream_info.get('live'):
 		return "Twitch won't tell me when the stream went live."
 	else:
-		return "The stream is not live."
+		if factor == 7:
+			if random.random() < 0.9:
+				return "Not much. What's up with you, dog?"
+			else:
+				return "Not much. What's !updog with you?"
+		else:
+			return "The stream is not live."
 
 @bot.command("uptime")
 @lrrbot.decorators.throttle()
