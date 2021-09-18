@@ -325,11 +325,13 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
 	<dt><code>benefactor</code></dt>
 	<dd>The name of the user who gifted this subscription. Might be <code>null</code> or missing.</dd>
 	<dt><code>monthcount</code></dt>
-	<dd></dd>
+	<dd>How many months this user has been subscribed.</dd>
 	<dt><code>message</code></dt>
 	<dd>The plaintext subscription message. Might be <code>null</code> or missing.</dd>
 	<dt><code>messagehtml</code></dt>
 	<dd>The subscription message as HTML. Might be <code>null</code> or missing.</dd>
+	<dt><code>isMulti</code></dt>
+	<dd>Whether this subscription is part of a multi-gift drop. If this is <code>true</code>, it will also be part of a <code>twitch-subscription-mysterygift</code> event, afterward.</dd>
 </dl>
 
 <h5>Example payload</h5>
@@ -341,7 +343,8 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
   "count": 30,
   "avatar": "https://static-cdn.jtvnw.net/jtv_user_pictures/qrpth-profile_image-d43b8ad66411f7a4-300x300.png",
   "message": "lrrHORN lrrHORN lrrHEART",
-  "messagehtml": "&lt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/44650/1.0\" alt=\"lrrHORN\" title=\"lrrHORN\"> &lt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/44650/1.0\" alt=\"lrrHORN\" title=\"lrrHORN\"> &lgt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/325892/1.0\" alt=\"lrrHEART\" title=\"lrrHEART\">"
+  "messagehtml": "&lt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/44650/1.0\" alt=\"lrrHORN\" title=\"lrrHORN\"> &lt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/44650/1.0\" alt=\"lrrHORN\" title=\"lrrHORN\"> &lgt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/325892/1.0\" alt=\"lrrHEART\" title=\"lrrHEART\">",
+  "isMulti": false
 }</pre>
 
 <h4><code>twitch-subscription</code></h4>
@@ -354,6 +357,8 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
 	<dd>Avatar. Might be not present or <code>null</code>.</dd>
 	<dt><code>benefactor</code></dt>
 	<dd>The name of the user who gifted this subscription. Might be <code>null</code> or missing.</dd>
+	<dt><code>isMulti</code></dt>
+	<dd>Whether this subscription is part of a multi-gift drop. If this is <code>true</code>, it will also be part of a <code>twitch-subscription-mysterygift</code> event, afterward.</dd>
 </dl>
 
 <h5>Example payload</h5>
@@ -362,7 +367,44 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
   "avatar": "https://static-cdn.jtvnw.net/user-default-pictures/49988c7b-57bc-4dee-bd4f-6df4ad215d3a-profile_image-300x300.jpg",
   "benefactor": "F1SHOR",
   "time": "2018-03-25T03:45:05.509759+02:00",
-  "count": 12
+  "count": 12,
+  "isMulti": false
+}</pre>
+
+<h4><code>twitch-subscription-mysterygift</code></h4>
+<p>A user has gifted multiple subscriptions to the community.</p>
+
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name of the user gifting the subscriptions.</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar. Might be not present or <code>null</code>.</dd>
+	<dt><code>subcount</code></dt>
+	<dd>Count of subscriptions gifted.</dd>
+	<dt><code>subscribers</code></dt>
+	<dd>Data for each subscription given. Each entry on this list will be a <code>twitch-susbscription</code> or <code>twitch-resubscription</code> payload.</dd>
+</dl>
+
+<h5>Example payload</h5>
+<pre>{
+    "name": "F1SHOR",
+    "avatar": "https://static-cdn.jtvnw.net/jtv_user_pictures/2b9c768c-989f-4ab8-acc5-7f94f10d6a50-profile_image-300x300.png",
+    "subcount": 2,
+    "subscribers": [
+        {
+            "name": "dm818"
+            "benefactor": "F1SHOR",
+            "count": 1,
+            "ismulti": true,
+        },
+        {
+            "name": "aziraphalesshop"
+            "benefactor": "F1SHOR",
+            "monthcount": 20,
+            "count": 1,
+            "ismulti": true,
+        }
+    ]
 }</pre>
 
 <h3>Server-sent events mode (default)</h3>
