@@ -326,6 +326,8 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
 	<dd>The name of the user who gifted this subscription. Might be <code>null</code> or missing.</dd>
 	<dt><code>monthcount</code></dt>
 	<dd>How many months this user has been subscribed.</dd>
+	<dt><code>tier</code></dt>
+	<dd>What subscription tier this subscriber is on. Currently known values: <code>"Prime"</code>, <code>"1000"</code>, <code>"2000"</code>, <code>"3000"</code>, for Twitch Prime, Tier 1, Tier 2, Tier 3, respectively. May be missing if unavailable (eg for gift subs).</dd>
 	<dt><code>message</code></dt>
 	<dd>The plaintext subscription message. Might be <code>null</code> or missing.</dd>
 	<dt><code>messagehtml</code></dt>
@@ -342,6 +344,7 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
   "time": "2018-03-16T22:18:43.166609+01:00",
   "count": 30,
   "avatar": "https://static-cdn.jtvnw.net/jtv_user_pictures/qrpth-profile_image-d43b8ad66411f7a4-300x300.png",
+  "tier": "1000",
   "message": "lrrHORN lrrHORN lrrHEART",
   "messagehtml": "&lt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/44650/1.0\" alt=\"lrrHORN\" title=\"lrrHORN\"> &lt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/44650/1.0\" alt=\"lrrHORN\" title=\"lrrHORN\"> &lgt;img src=\"https://static-cdn.jtvnw.net/emoticons/v1/325892/1.0\" alt=\"lrrHEART\" title=\"lrrHEART\">",
   "isMulti": false
@@ -357,6 +360,8 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
 	<dd>Avatar. Might be not present or <code>null</code>.</dd>
 	<dt><code>benefactor</code></dt>
 	<dd>The name of the user who gifted this subscription. Might be <code>null</code> or missing.</dd>
+	<dt><code>tier</code></dt>
+	<dd>What subscription tier this subscriber is on. Currently known values: <code>"Prime"</code>, <code>"1000"</code>, <code>"2000"</code>, <code>"3000"</code>, for Twitch Prime, Tier 1, Tier 2, Tier 3, respectively. May be missing if unavailable (eg for gift subs).</dd>
 	<dt><code>isMulti</code></dt>
 	<dd>Whether this subscription is part of a multi-gift drop. If this is <code>true</code>, it will also be part of a <code>twitch-subscription-mysterygift</code> event, afterward.</dd>
 </dl>
@@ -368,6 +373,7 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
   "benefactor": "F1SHOR",
   "time": "2018-03-25T03:45:05.509759+02:00",
   "count": 12,
+  "tier": "1000",
   "isMulti": false
 }</pre>
 

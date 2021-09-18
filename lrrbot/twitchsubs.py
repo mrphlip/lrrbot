@@ -89,6 +89,7 @@ class TwitchSubs:
 				benefactor_login=benefactor_name,
 				benefactor=benefactor_display_name,
 				streak=streak,
+				tier=event.tags.get('msg-param-sub-plan'),
 			)).add_done_callback(utils.check_exception)
 
 			# Make fake chat messages for this resub in the chat log
@@ -159,7 +160,7 @@ class TwitchSubs:
 				)).add_done_callback(utils.check_exception)
 				event = 'twitch-message'
 
-	async def on_subscriber(self, conn, channel, login, user, eventtime, logo=None, monthcount=None, message=None, emotes=None, benefactor_login=None, benefactor=None, streak=None):
+	async def on_subscriber(self, conn, channel, login, user, eventtime, logo=None, monthcount=None, message=None, emotes=None, benefactor_login=None, benefactor=None, streak=None, tier=None):
 		log.info('New subscriber: %r at %r', user, eventtime)
 
 		now = time.time()
@@ -203,6 +204,9 @@ class TwitchSubs:
 		else:
 			event = "twitch-subscription"
 			data['count'] = common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
+
+		if tier is not None:
+			data['tier'] = tier
 
 		if benefactor_login in self.multi_gifts:
 			multi_gift = self.multi_gifts[benefactor_login]
