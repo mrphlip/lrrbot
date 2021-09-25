@@ -11,6 +11,8 @@ import urllib.request
 import urllib.error
 import urllib.parse
 import json
+import os
+import shutil
 import psycopg2
 from collections import defaultdict
 
@@ -55,18 +57,26 @@ def iter_cards():
 	for group in group_cards():
 		yield from process_group(group)
 
+def fetch_card_page(page):
+	cachefn = f".ptcgcache/{page}.json"
+
+	if not os.path.exists(cachefn):
+		req = urllib.request.Request(URL % page, headers={
+			'User-Agent': "LRRbot/2.0 (https://lrrbot.com/)",
+		})
+		with urllib.request.urlopen(req) as fp:
+			with open(cachefn, "wb") as cachefp:
+				shutil.copyfileobj(fp, cachefp)
+	with open(cachefn) as fp:
+		return json.load(fp)
+
 def fetch_cards():
 	page = 1
 	count = 0
 	total = 0
 	while True:
 		print(f"{count}/{total}")
-		req = urllib.request.Request(URL % page, headers={
-			'User-Agent': "LRRbot/2.0 (https://lrrbot.com/)",
-		})
-		with urllib.request.urlopen(req) as fp:
-		#with open(f"tmpcards_{page}.json") as fp:
-			dat = json.load(fp)
+		dat = fetch_card_page(page)
 		if not dat['data']:
 			break
 		yield from dat['data']
@@ -119,11 +129,19 @@ def process_group(group):
 				return False
 			if c['description'] != card['description']:
 				return False
-			if c['number'] < card['number']:
+			if c['id'] < card['id']:
 				return False
 			return True
-		unique = not [c for c in group if not equiv(c)]
-		setunique = not [c for c in group if c['set']['id'] == card['set']['id'] and not equiv(c)]
+		def identical(c):
+			if not equiv(c):
+				return False
+			if c['number'] != card['number']:
+				return False
+			return True
+		if any(identical(c) for c in group if c is not card):
+			continue
+		unique = all(equiv(c) for c in group)
+		setunique = all(equiv(c) for c in group if setcode(c) == setcode(card))
 		description = f"{card['fullname']} | {card['description']}"
 		for cardname, hidden in gen_cardnames(card, unique, setunique):
 			filteredname = clean_text(cardname)
