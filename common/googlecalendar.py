@@ -28,6 +28,16 @@ DISPLAY_FORMAT_WITH_DATE = "%a %e %b %I:%M %p %Z"
 HISTORY_PERIOD = datetime.timedelta(hours=1) # How long ago can an event have started to count as "recent"?
 LOOKAHEAD_PERIOD = datetime.timedelta(hours=1) # How close together to events have to be to count as "the same time"?
 
+def parse_time(time, tz):
+	if 'dateTime' in time:
+		return dateutil.parser.parse(time['dateTime'])
+	if 'date' in time:
+		date = datetime.date.fromisoformat(time['date'])
+		if 'timeZone' in time:
+			tz = pytz.timezone(time['timeZone'])
+		return tz.localize(datetime.datetime.combine(date, datetime.time()))
+	raise Exception("no 'dateTime' and no 'date'")
+
 @utils.cache(CACHE_EXPIRY, params=[0])
 async def get_upcoming_events(calendar, after=None):
 	"""
@@ -58,14 +68,15 @@ async def get_upcoming_events(calendar, after=None):
 	res = json.loads(res)
 	if 'error' in res:
 		raise Exception(res['error']['message'])
+	tz = pytz.timezone(res['timeZone'])
 	formatted_items = []
 	for item in res['items']:
 		formatted_items.append({
 			"id": item['id'],
 			"url": item['htmlLink'],
 			"title": item['summary'],
-			"start": dateutil.parser.parse(item['start']['dateTime']),
-			"end": dateutil.parser.parse(item['end']['dateTime']),
+			"start": parse_time(item['start'], tz),
+			"end": parse_time(item['end'], tz),
 			"location": item.get('location'),
 			"description": item.get('description'),
 		})
