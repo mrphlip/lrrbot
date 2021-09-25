@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-This script downloads the latest MTG card data from http://mtgjson.com/ and processes
+This script downloads the latest PTCG card data from http://pokemontcg.io/ and processes
 it to turn the highly-structured data there into a flat list of card names to descriptions
 formatted to send down the chat.
 """

@@ -45,7 +45,7 @@ def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
 
 @bot.command("(?:pok[eé]mon|pok[eé]|pkmn|ptcg) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
-def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
+def pokemon_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	Command: !pokemon card-name
 	Command: !ptcg card-name
