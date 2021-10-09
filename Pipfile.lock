@@ -633,10 +633,10 @@
         },
         "tempora": {
             "hashes": [
-                "sha256:c54da0f05405f04eb67abbb1dff4448fd91428b58cb00f0f645ea36f6a927950",
-                "sha256:ef2d8bb35902d5ea7da95df33456685a6d305b97f311725c12e55c13d85c0938"
+                "sha256:746ed6fd3529883d81a811fff41b9910ea57067fa84641aa6ecbefffb8322f6d",
+                "sha256:fd6cafd66b01390d53a760349cf0b3123844ec6ae3d1043d7190473ea9459138"
             ],
-            "version": "==4.1.1"
+            "version": "==4.1.2"
         },
         "timelib": {
             "hashes": [
