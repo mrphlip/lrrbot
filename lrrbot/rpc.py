@@ -136,8 +136,8 @@ class Server(common.rpc.Server):
 			options.append((ADVICE, 10))
 		if 'secret' in storage.data['responses']:
 			options.append((SECRET, 2))
-		if 'smash' in storage.data['responses']:
-			options.append((SMASH, 2))
+		#if 'smash' in storage.data['responses']:
+		#	options.append((SMASH, 2))
 		mode = utils.weighted_choice(options)
 		if mode == ADVICE:
 			return random.choice(storage.data['responses']['advice']['response'])
