@@ -820,9 +820,10 @@
         },
         "typing-extensions": {
             "hashes": [
-                "sha256:829704698b22e13ec9eaf959122315eabb370b0884400e9818334d8b677023d9"
+                "sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e",
+                "sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b"
             ],
-            "version": "==4.0.0"
+            "version": "==4.0.1"
         },
         "urllib3": {
             "hashes": [
