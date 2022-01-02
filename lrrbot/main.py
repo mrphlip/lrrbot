@@ -85,7 +85,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			server_list=[server],
 			realname=config['username'],
 			nickname=config['username'],
-			reconnection_interval=config['reconnecttime'],
+			recon=irc.bot.ExponentialBackoff(
+				min_interval=config['reconnecttime'],
+				max_interval=config['reconnecttime'],
+			),
 			connect_factory=connect_factory,
 		)
 
