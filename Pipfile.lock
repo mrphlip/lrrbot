@@ -126,11 +126,10 @@
         },
         "async-timeout": {
             "hashes": [
-                "sha256:7d87a4e8adba8ededb52e579ce6bc8276985888913620c935094c2276fd83382",
-                "sha256:f3303dddf6cafa748a92747ab6c2ecf60e0aeca769aee4c151adfce243a05d9b"
+                "sha256:2163e1640ddb52b7a8c80d0a67a08587e5d245cc9c553a74a847056bc2976b15",
+                "sha256:8ca1e4fcf50d07413d66d1a5e416e42cfdf5851c981d679a09851a6853383b3c"
             ],
-            "index": "pypi",
-            "version": "==4.0.0"
+            "version": "==4.0.2"
         },
         "attrs": {
             "hashes": [
