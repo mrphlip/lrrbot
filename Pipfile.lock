@@ -438,11 +438,10 @@
         },
         "jaraco.collections": {
             "hashes": [
-                "sha256:344d14769d716e7496af879ac71b3c6ebdd46abc64bd9ec21d15248365aa3ac9",
-                "sha256:6fdf48b6268d44b589a9d7359849f5c4ea6447b59845e489da261996fbc41b79"
+                "sha256:499c1324a2d78abc6922e12804209e49793c573a5154d883dd1dca98f080bf69",
+                "sha256:ecd46aee4cb636f121afa9b3c07a1f749c870b1511df9cf057d6b6fa41659061"
             ],
-            "markers": "python_version >= '3.6'",
-            "version": "==3.4.0"
+            "version": "==3.5.0"
         },
         "jaraco.functools": {
             "hashes": [
