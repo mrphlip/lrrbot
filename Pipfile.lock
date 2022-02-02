@@ -803,10 +803,10 @@
         },
         "tempora": {
             "hashes": [
-                "sha256:8d743059a4ea496d925f35480c6d206a7160cacebcd6a31e147fb495dcb732af",
-                "sha256:aa21dd1956e29559ecb2f2f2e14fcdb950085222fbbf86e6c946b5e1a8c36b26"
+                "sha256:cba0f197a64883bf3e73657efbc0324d5bf17179e7769b1385b4d75d26cd9127",
+                "sha256:fbca6a229af666ea4ea8b2f9f80ac9a074f7cf53a97987855b1d15b6e93fd63b"
             ],
-            "version": "==5.0.0"
+            "version": "==5.0.1"
         },
         "timelib": {
             "hashes": [
