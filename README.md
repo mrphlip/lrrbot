@@ -57,8 +57,8 @@ Things not covered: tokens and secrets for Patreon integration, Slack integratio
     * `session_secret`: A random string. You can generate one with the command `head -c 18 /dev/urandom | base64`
     * `google_key`: API key to Google's services. Create a project on [Google Developer Console](https://console.developers.google.com/),
         enable Google Calendar API, and generate an API key under Credentials.
-    * `twitch_clientid` and `twitch_clientsecret`: In your Twitch settings, under [Connections](https://www.twitch.tv/settings/connections)
-        [register a new application](https://www.twitch.tv/kraken/oauth2/clients/new). Set the redirect URI to `http://localhost:5000/login`. 
+    * `twitch_clientid` and `twitch_clientsecret`: In the [Twitch Dev console](https://dev.twitch.tv/console)
+        [register a new application](https://dev.twitch.tv/console/apps/create). Set the redirect URI to `http://localhost:5000/login`. 
 
 
  3. Write a `data.json` file. Basic template:
