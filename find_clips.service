@@ -3,7 +3,7 @@ Description=Find Twitch clips
 
 [Service]
 WorkingDirectory=%h/lrrbot
-ExecStart=/usr/bin/env pipenv run ./find_clips.py -p 10 day
+ExecStart=/usr/bin/env pipenv run ./find_clips.py -p 10 1
 
 [Install]
 WantedBy=default.target
