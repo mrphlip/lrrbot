@@ -33,8 +33,8 @@ def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, 
 	# Let's be nice.
 	headers["User-Agent"] = USER_AGENT
 
-	if 'api.twitch.tv' in url and headers.get('Accept') != 'application/vnd.twitchtv.v5+json':
-		log.warning("Non-v5 request to: %r", url)
+	if headers.get('Accept') == 'application/vnd.twitchtv.v5+json':
+		log.warning("v5 request to: %r", url)
 
 	if data:
 		if asjson and method != 'GET':
@@ -77,8 +77,8 @@ async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, t
 		headers = {}
 	headers["User-Agent"] = USER_AGENT
 
-	if 'api.twitch.tv' in url and headers.get('Accept') != 'application/vnd.twitchtv.v5+json':
-		log.warning("Non-v5 request to: %r", url)
+	if headers.get('Accept') == 'application/vnd.twitchtv.v5+json':
+		log.warning("v5 request to: %r", url)
 
 	if method == 'GET':
 		params = data
