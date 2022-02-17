@@ -12,6 +12,7 @@ import pytz
 import common.http
 import common.postgres
 from common.config import config
+from common.twitch import get_user
 import sqlalchemy
 from sqlalchemy.dialects import postgresql
 import urllib.error
@@ -20,121 +21,85 @@ engine, metadata = common.postgres.get_engine_and_metadata()
 TBL_CLIPS = metadata.tables['clips']
 TBL_EXT_CHANNEL = metadata.tables['external_channel']
 
-CLIP_URL = "https://api.twitch.tv/kraken/clips/%s"
-CLIPS_URL = "https://api.twitch.tv/kraken/clips/top"
-VIDEO_URL = "https://api.twitch.tv/kraken/videos/%s"
+CLIPS_URL = "https://api.twitch.tv/helix/clips"
 
-def get_clips_page(channel, period="day", limit=100, cursor=None):
+def get_clips_page(channel, period=1, limit=100, cursor=None):
 	"""
-	https://dev.twitch.tv/docs/v5/reference/clips/#get-top-clips
+	https://dev.twitch.tv/docs/api/reference#get-clips
 	"""
+	token = get_user(name=config["channel"]).token
+	channel_id = get_user(name=channel).id
 	headers = {
 		'Client-ID': config['twitch_clientid'],
-		'Accept': 'application/vnd.twitchtv.v5+json',
+		'Authorization': f"Bearer {token}"
 	}
+	start, end = get_period(period)
 	params = {
-		'channel': channel,
-		'limit': str(limit),
-		'period': period,
+		'broadcaster_id': channel_id,
+		'first': str(limit),
+		'started_at': start.isoformat(),
+		'ended_at': end.isoformat(),
 	}
 	if cursor is not None:
-		params['cursor'] = cursor
+		params['after'] = cursor
 	data = common.http.request(CLIPS_URL, params, headers=headers)
 	return json.loads(data)
 
-def get_all_clips(channel, period="day", per_page=100):
+def get_all_clips(channel, period=1, per_page=100):
 	cursor = None
 	while True:
 		data = get_clips_page(channel, period, per_page, cursor)
-		if not data['clips']:
+		if not data['data']:
 			break
-		yield from data['clips']
-		cursor = data['_cursor']
+		yield from data['data']
+		cursor = data.get('pagination', {}).get('cursor')
 		if not cursor:
 			break
 
 def get_clip_info(slug, check_missing=False):
 	"""
-	https://dev.twitch.tv/docs/v5/reference/clips/#get-clip
+	https://dev.twitch.tv/docs/api/reference#get-clips
 	"""
+	token = get_user(name=config["channel"]).token
 	headers = {
 		'Client-ID': config['twitch_clientid'],
-		'Accept': 'application/vnd.twitchtv.v5+json',
+		'Authorization': f"Bearer {token}"
+	}
+	params = {
+		'id': slug,
 	}
 	try:
-		data = common.http.request(CLIP_URL % slug, headers=headers)
+		data = common.http.request(CLIPS_URL, params, headers=headers)
 	except urllib.error.HTTPError as e:
 		if e.code == 404 and check_missing:
 			return None
 		else:
 			raise
 	else:
-		return json.loads(data)
+		data = json.loads(data)
+		if check_missing and not data.get('data'):
+			return None
+		return data['data'][0]
 
-def process_clips(channel, period="day", per_page=100):
+def process_clips(channel, period=1, per_page=100):
 	slugs = []
 	for clip in get_all_clips(channel, period, per_page):
 		process_clip(clip)
-		slugs.append(clip['slug'])
+		slugs.append(clip['id'])
 	return slugs
 
-def get_video_info(vodid):
-	"""
-	https://dev.twitch.tv/docs/v5/reference/videos/#get-video
-	"""
-	if vodid not in get_video_info._cache:
-		headers = {
-			'Client-ID': config['twitch_clientid'],
-			'Accept': 'application/vnd.twitchtv.v5+json',
-		}
-		try:
-			data = common.http.request(VIDEO_URL % vodid, headers=headers)
-			get_video_info._cache[vodid] = json.loads(data)
-		except urllib.error.HTTPError as e:
-			if e.code == 404:
-				get_video_info._cache[vodid] = {'httperror': 404}
-			else:
-				raise
-	return get_video_info._cache[vodid]
-get_video_info._cache = {}
-
-# match a URL like:
-#   https://www.twitch.tv/videos/138124005?t=1h13m7s
-RE_STARTTIME = regex.compile("^.*\?(?:.*&)?t=(\d+[hms])*(?:&.*)?$")
 def process_clip(clip):
-	# I wish there was a better way to get the clip "broadcast time"...
-	# clip['created_at'] exists, but it's the time the clip was created not when
-	# it was broadcast, so it's close when clipped live, but not useful when
-	# clipped from a vod...
-	if clip['vod']:
-		voddata = get_video_info(clip['vod']['id'])
-		if 'httperror' not in voddata:
-			match = RE_STARTTIME.match(clip['vod']['url'])
-			if not match:
-				raise ValueError("Couldn't find start time in %r for %s" % (clip['vod']['url'], clip['slug']))
-			offset = datetime.timedelta(0)
-			for piece in match.captures(1):
-				val, unit = int(piece[:-1]), piece[-1]
-				if unit == 's':
-					offset += datetime.timedelta(seconds=val)
-				elif unit == 'm':
-					offset += datetime.timedelta(minutes=val)
-				elif unit == 'h':
-					offset += datetime.timedelta(hours=val)
-			vod_start = dateutil.parser.parse(voddata['created_at'])
-			clip_start = vod_start + offset
-		else:
-			clip_start = dateutil.parser.parse(clip['created_at'])
-	else:
-		clip_start = dateutil.parser.parse(clip['created_at'])
+	# With the new Twitch API they've gotten rid of even the janky way to know when a clip happened
+	# all we have is clip['created_at'], which is the time it was clipped
+	# which can be wildly different, especially if it's clipped from a vod
 	data = {
-		"slug": clip['slug'],
+		"slug": clip['id'],
 		"title": clip['title'],
-		"vodid": clip['vod']['id'] if clip['vod'] else None,
-		"time": clip_start,
+		"vodid": clip['video_id'],
+		"time": dateutil.parser.parse(clip['created_at']),
 		"data": clip,
 		"deleted": False,
-		"channel": clip['broadcaster']['name'],
+		"channel": clip['broadcaster_name'],
 	}
 	with engine.begin() as conn:
 		query = postgresql.insert(TBL_CLIPS)
@@ -204,8 +169,7 @@ def check_deleted_clips(period, slugs):
 	query, and check if they actually exist (maybe they dropped out of the "last
 	day" early) or if they've been deleted, in which case mark that in the DB.
 	"""
-	period = datetime.timedelta(days={'day': 1, 'week': 7, 'month': 28}[period])
-	start = datetime.datetime.now(pytz.UTC) - period
+	start, _ = get_period(period)
 	with engine.begin() as conn:
 		clips = conn.execute(sqlalchemy.select([TBL_CLIPS.c.id, TBL_CLIPS.c.slug])
 			.where(TBL_CLIPS.c.time >= start)
@@ -214,6 +178,11 @@ def check_deleted_clips(period, slugs):
 		for clipid, slug in clips:
 			if get_clip_info(slug, check_missing=True) is None:
 				conn.execute(TBL_CLIPS.update().values(deleted=True).where(TBL_CLIPS.c.id == clipid))
+
+def get_period(period):
+	end = datetime.datetime.now(pytz.UTC)
+	start = end - datetime.timedelta(days=period)
+	return start, end
 
 def get_default_channels():
 	channels = [config['channel']]
@@ -225,7 +194,7 @@ def get_default_channels():
 def parse_args():
 	parser = argparse.ArgumentParser(description="Fetch clips from Twitch channel")
 	parser.add_argument('-p', '--per_page', default=10, type=int)
-	parser.add_argument('period', choices=['day', 'week', 'month'], nargs='?', default='day')
+	parser.add_argument('period', type=int, nargs='?', default=1)
 	parser.add_argument('channel', nargs='*', default=get_default_channels())
 	return parser.parse_args(argv)
 
