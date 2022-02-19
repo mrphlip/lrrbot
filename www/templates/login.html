@@ -27,7 +27,7 @@ window.onload = init;
 {%else%}
 <p>Logging in to the LRRbot website via Twitch will let us know what your username is in the chat. It also allows moderators access to administrative pages on the site.</p>
 {%endif%}
-<form id="frm" action="https://api.twitch.tv/kraken/oauth2/authorize" method="GET" {%if special_user%}style="display:none"{%endif%}>
+<form id="frm" action="https://id.twitch.tv/oauth2/authorize" method="GET" {%if special_user%}style="display:none"{%endif%}>
 <div id="remember_me_wrapper" style="display: none; margin: 0.25em 0"><label><input id="remember_me" type="checkbox" onclick="update_state()" onchange="update_state()" {%if remember_me%}checked{%endif%}> Remember me</label></div>
 <input type="hidden" name="response_type" value="code">
 <input type="hidden" name="client_id" value="{{clientid|e}}">
