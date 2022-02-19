@@ -12,7 +12,7 @@ import pytz
 import common.http
 import common.postgres
 from common.config import config
-from common.twitch import get_user
+from common.twitch import get_user, get_token
 import sqlalchemy
 from sqlalchemy.dialects import postgresql
 import urllib.error
@@ -27,11 +27,10 @@ def get_clips_page(channel, period=1, limit=100, cursor=None):
 	"""
 	https://dev.twitch.tv/docs/api/reference#get-clips
 	"""
-	token = get_user(name=config["channel"]).token
 	channel_id = get_user(name=channel).id
 	headers = {
 		'Client-ID': config['twitch_clientid'],
-		'Authorization': f"Bearer {token}"
+		'Authorization': f"Bearer {get_token()}",
 	}
 	start, end = get_period(period)
 	params = {
@@ -60,10 +59,9 @@ def get_clip_info(slug, check_missing=False):
 	"""
 	https://dev.twitch.tv/docs/api/reference#get-clips
 	"""
-	token = get_user(name=config["channel"]).token
 	headers = {
 		'Client-ID': config['twitch_clientid'],
-		'Authorization': f"Bearer {token}"
+		'Authorization': f"Bearer {get_token()}",
 	}
 	params = {
 		'id': slug,

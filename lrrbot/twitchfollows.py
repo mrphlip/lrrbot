@@ -25,9 +25,9 @@ class TwitchFollows:
 	async def check_follows(self):
 		if self.last_timestamp is None:
 			async for follower in twitch.get_followers():
-				if self.last_timestamp is None or self.last_timestamp == follower['created_at']:
-					self.last_timestamp = follower['created_at']
-					self.last_users.add(follower['user']['_id'])
+				if self.last_timestamp is None or self.last_timestamp == follower['followed_at']:
+					self.last_timestamp = follower['followed_at']
+					self.last_users.add(follower['from_id'])
 				else:
 					break
 		else:
@@ -36,26 +36,24 @@ class TwitchFollows:
 			events = []
 
 			async for follower in twitch.get_followers():
-				if follower['created_at'] >= self.last_timestamp:
-					if follower['user']['_id'] not in last_users:
+				if follower['followed_at'] >= self.last_timestamp:
+					if follower['from_id'] not in last_users:
 						events.append((
-							follower['user'].get('display_name') or follower['user']['name'],
-							follower['user'].get('logo'),
-							follower['created_at'],
+							follower['from_name'],
+							follower['followed_at'],
 						))
-						self.last_users.add(follower['user']['_id'])
+						self.last_users.add(follower['from_id'])
 				else:
 					break
 
 			if not events:
 				self.last_users = last_users
 
-			for name, avatar, timestamp in events[::-1]:
+			for name, timestamp in events[::-1]:
 				self.last_timestamp = timestamp
 				timestamp = dateutil.parser.parse(timestamp)
 				event = {
 					'name': name,
-					'avatar': avatar,
 					'count': storm.increment(self.lrrbot.engine, self.lrrbot.metadata, 'twitch-follow'),
 				}
 				await rpc.eventserver.event('twitch-follow', event, timestamp)

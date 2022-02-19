@@ -86,10 +86,6 @@ class ModeratorActions:
 			attachments.append({
 				'text': slack.escape(message)
 			})
-
-			# Approve the message because we're unable to turn off Automod.
-			if config['autoautomod']:
-				asyncio.ensure_future(twitch.twitchbot_approve(msg_id), loop=self.loop).add_done_callback(utils.check_exception)
 		elif action in ('approved_twitchbot_message', 'approved_automod_message'):
 			user = args[0]
 			text = "%s approved %s's message." % (slack.escape(mod), slack.escape(user))

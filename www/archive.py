@@ -39,23 +39,19 @@ async def archive_feed_data(channel, broadcasts):
 	for video in videos:
 		if video.get('created_at'):
 			video["created_at"] = dateutil.parser.parse(video["created_at"])
-		if video.get('delete_at'):
-			video["delete_at"] = dateutil.parser.parse(video["delete_at"])
-		if video.get('recorded_at'):
-			video["recorded_at"] = dateutil.parser.parse(video["recorded_at"])
+		if video.get('duration'):
+			try:
+				video['duration'] = utils.parse_duration(video['duration'])
+			except ValueError:
+				video['duration'] = None
 
-	videos.sort(key=lambda v:v.get('recorded_at'), reverse=True)
+	videos.sort(key=lambda v:v.get('created_at'), reverse=True)
 	return videos
 
 async def archive_feed_data_html(channel, broadcasts, rss):
 	# Deep copy so we don't modify the cached data
 	data = copy.deepcopy(await archive_feed_data(channel, broadcasts))
 	for vid in data:
-		# For new vods, sometimes: vid['thumbnails'] == "https://www.twitch.tv/images/xarth/404_processing_320x240.png"
-		if isinstance(vid['thumbnails'], dict) and isinstance(vid['thumbnails'].get('medium'), list):
-			vid['thumbnails'] = [i for i in vid['thumbnails']['medium'] if i['url'] != vid['preview']['medium']]
-		else:
-			vid['thumbnails'] = []
 		vid['html'] = flask.render_template("archive_video.html", vid=vid, rss=rss)
 	return data
 
@@ -121,13 +117,13 @@ def chat_data(starttime, endtime, vidstart, timestamp_mode, twentyfour, secs, ta
 async def get_video_data(videoid):
 	try:
 		video = await twitch.get_video(videoid)
-		start = dateutil.parser.parse(video["recorded_at"])
+		start = dateutil.parser.parse(video["created_at"])
 		return {
 			"start": start,
-			"end": start + datetime.timedelta(seconds=video["length"]),
+			"end": start + datetime.timedelta(seconds=utils.parse_duration(video['duration'])),
 			"title": video["title"],
-			"id": videoid,
-			"channel": video["channel"]["name"]
+			"id": video["id"],
+			"channel": video["user_login"]
 		}
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise

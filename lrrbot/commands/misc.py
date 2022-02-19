@@ -174,7 +174,7 @@ async def viewers(lrrbot, conn, event, respond_to):
 	"""
 	stream_info = twitch.get_info()
 	if stream_info:
-		viewers = stream_info.get("viewers")
+		viewers = viewer_count.get("viewers")
 	else:
 		viewers = None
 
@@ -194,8 +194,8 @@ async def viewers(lrrbot, conn, event, respond_to):
 def uptime_msg(stream_info=None, factor=1):
 	if stream_info is None:
 		stream_info = twitch.get_info()
-	if stream_info and stream_info.get("stream_created_at"):
-		start = dateutil.parser.parse(stream_info["stream_created_at"])
+	if stream_info and stream_info.get("started_at"):
+		start = dateutil.parser.parse(stream_info["started_at"])
 		now = datetime.datetime.now(datetime.timezone.utc)
 		return "The stream has been live for %s." % common.time.nice_duration((now - start) * factor, 0)
 	elif stream_info and stream_info.get('live'):

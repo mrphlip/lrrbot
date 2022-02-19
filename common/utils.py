@@ -12,6 +12,7 @@ import heapq
 import logging.config
 import configparser
 import sqlalchemy
+import re
 
 import werkzeug.datastructures
 
@@ -404,3 +405,11 @@ def trim_length(msg, maxlen=MAX_LEN, do_warn=False):
 		return encmsg[:maxlen - 3].decode("utf-8") + "\u2026"
 	else:
 		return msg
+
+re_duration = re.compile(r"^(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$", re.IGNORECASE)
+def parse_duration(duration):
+	match = re_duration.match(duration)
+	if not match:
+		raise ValueError("Could not parse duration: %r" % duration)
+	d, h, m, s = match.groups()
+	return int(d or 0) * 86400 + int(h or 0) * 3600 + int(m or 0) * 60 + int(s or 0)
