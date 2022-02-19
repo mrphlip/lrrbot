@@ -7,7 +7,6 @@ from lrrbot.main import bot
 
 def set_show(lrrbot, show):
 	lrrbot.set_show(show.lower())
-	twitch.get_game.reset_throttle()
 	lrrbot.get_game_id.reset_throttle()
 
 @bot.command("show")

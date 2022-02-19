@@ -184,8 +184,8 @@ class TwitchSubs:
 			except Exception:
 				pass
 			else:
-				if channel_info.get('logo'):
-					data['avatar'] = channel_info['logo']
+				if channel_info.get('profile_image_url'):
+					data['avatar'] = channel_info['profile_image_url']
 		else:
 			data['avatar'] = logo
 
@@ -241,8 +241,8 @@ class TwitchSubs:
 			except Exception:
 				pass
 			else:
-				if channel_info.get('logo'):
-					data['avatar'] = channel_info['logo']
+				if channel_info.get('profile_image_url'):
+					data['avatar'] = channel_info['profile_image_url']
 		else:
 			data['avatar'] = logo
 

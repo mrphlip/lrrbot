@@ -360,7 +360,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			game = twitch.get_game_playing()
 			if game is None:
 				return None
-			game_id, game_name = game["_id"], game["name"]
+			game_id, game_name = game.id, game.name
 
 			games = self.metadata.tables["games"]
 			with self.engine.begin() as conn:

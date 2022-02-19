@@ -112,8 +112,5 @@ config.setdefault('patreon_redirect_uri', 'https://lrrbot.com/patreon/login')
 # log_desertbus_moderator_actions - log moderator actions in #desertbus
 config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_moderator_actions', 'true')).lower() != 'false'
 
-# autoautomod - automatically approve posts rejected by automod
-config['autoautomod'] = str(config.get('autoautomod', 'false')).lower() != 'false'
-
 # mods - extra users who should be treated as mods by the bot even if they're not +o
 config['mods'] = set(i.lower().strip() for i in config['mods'].split(',')) if config.get('mods') else set()
