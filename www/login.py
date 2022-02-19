@@ -251,9 +251,8 @@ async def login(return_to=None):
 			}
 			headers = {
 				'Client-ID': config['twitch_clientid'],
-				'Accept': 'application/vnd.twitchtv.v5+json',
 			}
-			res_json = await common.http.request_coro("https://api.twitch.tv/kraken/oauth2/token", method="POST", data=oauth_params, headers=headers)
+			res_json = await common.http.request_coro("https://id.twitch.tv/oauth2/token", method="POST", data=oauth_params, headers=headers)
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('access_token'):
 				raise Exception("No access token from Twitch: %s" % res_json)
@@ -261,15 +260,12 @@ async def login(return_to=None):
 			granted_scopes = res_object.get("scope", [])
 
 			# Use that access token to get basic information about the user
-			headers['Authorization'] = "OAuth %s" % access_token
-			res_json = await common.http.request_coro("https://api.twitch.tv/kraken/", headers=headers)
+			headers['Authorization'] = f"Bearer {access_token}"
+			res_json = await common.http.request_coro("https://api.twitch.tv/helix/users", headers=headers)
 			res_object = flask.json.loads(res_json)
-			if not res_object.get('token', {}).get('valid'):
-				raise Exception("User object not valid: %s" % res_json)
-			if not res_object.get('token', {}).get('user_name'):
-				raise Exception("No user name from Twitch: %s" % res_json)
-			user_id = res_object['token']['user_id']
-			user_name = res_object['token']['user_name'].lower()
+			user_id = res_object['data'][0]['id']
+			user_name = res_object['data'][0]['login'].lower()
+			display_name = res_object['data'][0]['display_name']
 
 			# If one of our special users logged in *without* using the "as" flag,
 			# Twitch *might* remember them and give us the same permissions anyway
@@ -288,10 +284,7 @@ async def login(return_to=None):
 				'id': user_id,
 				'name': user_name,
 				'twitch_oauth': access_token,
-				# We don't get the display name from this endpoint, but it's not that important
-				# just set it to lowercase (the same as user_name) but don't overwrite what
-				# we already have, if we have it already
-				'display_name': user_name,
+				'display_name': display_name,
 			}
 			users = server.db.metadata.tables["users"]
 			with server.db.engine.begin() as conn:
@@ -301,6 +294,7 @@ async def login(return_to=None):
 					set_={
 						'name': query.excluded.name,
 						'twitch_oauth': query.excluded.twitch_oauth,
+						'display_name': query.excluded.display_name,
 					},
 				)
 				conn.execute(query, user)
