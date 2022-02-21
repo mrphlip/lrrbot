@@ -140,7 +140,15 @@ async def load_session(include_url=True, include_header=True):
 	else:
 		session['url'] = None
 	if include_header:
-		session['header'] = await common.rpc.bot.get_header_info()
+		try:
+			session['header'] = await common.rpc.bot.get_header_info()
+		except Exception:
+			server.app.logger.exception("Failed to get the header info from the bot")
+			session['header'] = {
+				"is_live": False,
+				"channel": config['channel'],
+			}
+
 		if 'current_game' in session['header']:
 			games = server.db.metadata.tables["games"]
 			shows = server.db.metadata.tables["shows"]
