@@ -309,28 +309,24 @@ re_just_words = re.compile("^\w+$")
 async def get_twitch_emotes():
 	"""
 	See:
-	https://dev.twitch.tv/docs/v5/reference/chat/#get-chat-emoticons-by-set
+	https://dev.twitch.tv/docs/api/reference#get-emote-sets
 	"""
 	headers = {
 		"Client-ID": config['twitch_clientid'],
-		'Accept': 'application/vnd.twitchtv.v5+json',
+		"Authorization": f"Bearer {common.twitch.get_token()}",
 	}
-	data = await common.http.request_coro("https://api.twitch.tv/kraken/chat/emoticon_images?emotesets=0,317", headers=headers)
-	data = json.loads(data)["emoticon_sets"]
+	data = await common.http.request_coro("https://api.twitch.tv/helix/chat/emotes/set", headers=headers, data=[
+		('emote_set_id', '0'), # global emotes
+		('emote_set_id', '317'), # LRR emotes
+	])
+	data = json.loads(data)["data"]
 	emotesets = {}
-	for emoticon_set, emotes in data.items():
-		emoticon_set = int(emoticon_set)
-		for emote in emotes:
-			regex = emote["code"]
-			if regex == r"\:-?[\\/]": # Don't match :/ inside URLs
-				regex = r"\:-?[\\/](?![\\/])"
-			regex = regex.replace(r"\&lt\;", "<").replace(r"\&gt\;", ">").replace(r"\&quot\;", '"').replace(r"\&amp\;", "&")
-			if re_just_words.match(regex):
-				regex = r"\b%s\b" % regex
-			emotesets.setdefault(emoticon_set, {})[emote["code"]] = {
-				"regex": re.compile("(%s)" % regex),
-				"html": '<img src="https://static-cdn.jtvnw.net/emoticons/v1/%s/1.0" alt="{0}" title="{0}">' % emote["id"]
-			}
+	for emote in data:
+		emoticon_set = int(emote['emote_set_id'])
+		emotesets.setdefault(emoticon_set, {})[emote['name']] = {
+			"regex": re.compile("(%s)" % re.escape(emote['name'])),
+			"html": '<img src="%s" alt="{0}" title="{0}">' % emote["images"]['url_1x']
+		}
 	return emotesets
 
 async def get_filtered_emotes(setids):
@@ -348,12 +344,12 @@ async def get_filtered_emotes(setids):
 
 @utils.cache(CACHE_EXPIRY)
 async def get_cheermotes_data():
-	# see: https://discuss.dev.twitch.tv/t/any-update-on-the-cheermotes-docs/9123
+	# see: https://dev.twitch.tv/docs/api/reference#get-cheermotes
 	headers = {
 		'Client-ID': config['twitch_clientid'],
-		'Accept': 'application/vnd.twitchtv.v5+json',
+		'Authorization': f'Bearer {common.twitch.get_token()}',
 	}
-	data = await common.http.request_coro("https://api.twitch.tv/kraken/bits/actions", headers=headers)
+	data = await common.http.request_coro("https://api.twitch.tv/helix/bits/cheermotes", headers=headers)
 	data = json.loads(data)
 	cheermotes = {
 		action['prefix'].lower(): {
@@ -367,7 +363,7 @@ async def get_cheermotes_data():
 				for tier in sorted(action['tiers'], key=lambda tier:tier['min_bits'], reverse=True)
 			],
 		}
-		for action in data['actions']
+		for action in data['data']
 	}
 	re_cheer = r"(?:^|(?<=\s))((%s)0*)([1-9][0-9]*)(?:$|(?=\s))" % "|".join(re.escape(i) for i in cheermotes.keys())
 	re_cheer = re.compile(re_cheer, re.IGNORECASE)
