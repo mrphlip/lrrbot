@@ -59,13 +59,13 @@ function removeChannel(event) {
 		{%for video in channel['videos']%}
 		<tr class="{{loop.cycle('even','odd')}}">
 			<td class="checkbox">
-				<input type="checkbox" name="selected" value="{{channel['id']|e}}-{{video['_id']|e}}" {%if video['_id'] in channel['selected']%}checked{%endif%}>
+				<input type="checkbox" name="selected" value="{{channel['id']|e}}-{{video['id']|e}}" {%if video['id'] in channel['selected']%}checked{%endif%}>
 			</td>
 			<td class="thumbnail">
-				<img src="{{video['preview']['small']|e}}" alt="">
+				<img src="{{video['thumbnail_url']|replace('%{width}', '80')|replace('%{height}', '45')|https|e}}" alt="">
 			</td>
 			<td class="main">
-				{{ video['recorded_at'] | timestamp('timestamp-duration') }}
+				{{ video['created_at'] | timestamp('timestamp-duration') }}
 				{{video['title']|e}}
 			</td>
 		</tr>

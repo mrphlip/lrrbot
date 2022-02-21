@@ -7,13 +7,15 @@
 {%for video in videos%}
 <tr class="{{loop.cycle('even','odd')}} {%if video['clips'][None]>0%}incomplete{%else%}complete{%endif%}">
 	<td class="thumbnail">
-		<a href="{{url_for("clips_vid", videoid=video['_id'])|e}}"><img src="{{video['preview']['small']|e}}" alt=""></a>
+		<a href="{{url_for("clips_vid", videoid=video['id'])|e}}">
+			<img src="{{video['thumbnail_url']|replace('%{width}', '80')|replace('%{height}', '45')|https|e}}" alt="">
+		</a>
 	</td>
 	<td class="main">
-		{{ video['recorded_at'] | timestamp('timestamp-duration') }}
-		<a href="{{url_for("clips_vid", videoid=video['_id'])|e}}">{{video['title']|e}}</a>
-		{% if video['channel']['name'] != main_channel %}
-			<span class="external_channel">[{{video['channel']['display_name']|e}}]</span>
+		{{ video['created_at'] | timestamp('timestamp-duration') }}
+		<a href="{{url_for("clips_vid", videoid=video['id'])|e}}">{{video['title']|e}}</a>
+		{% if video['user_login'] != main_channel %}
+			<span class="external_channel">[{{video['user_name']|e}}]</span>
 		{% endif %}
 	</td>
 	<td class="stat unrated">
