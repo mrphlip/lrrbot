@@ -30,11 +30,11 @@ async def clips_vidlist(session):
 		videos.extend(await archive_feed_data(config['channel'], True))
 		for channel, in conn.execute(sqlalchemy.select([ext_channel.c.channel])):
 			extvideos = await archive_feed_data(channel, True)
-			videos.extend(v for v in extvideos if v['_id'] in extravids)
-		videos.sort(key=lambda v:v.get('recorded_at'), reverse=True)
+			videos.extend(v for v in extvideos if v['id'] in extravids)
+		videos.sort(key=lambda v:v['created_at'], reverse=True)
 
 		# The archive still gives the ids as "v12345" but the clips use just "12345"
-		videoids = [video['_id'].lstrip('v') for video in videos]
+		videoids = [video['id'].lstrip('v') for video in videos]
 
 		clip_counts = defaultdict(lambda:{None: 0, False: 0, True: 0})
 		for vodid, rating, clipcount in conn.execute(
@@ -44,7 +44,7 @@ async def clips_vidlist(session):
 					.group_by(clips.c.vodid, clips.c.rating)):
 			clip_counts[vodid][rating] += clipcount
 	for video in videos:
-		video['clips'] = clip_counts[video['_id'].lstrip('v')]
+		video['clips'] = clip_counts[video['id'].lstrip('v')]
 
 	return flask.render_template("clips_vidlist.html", videos=videos,
 		main_channel=config['channel'], session=session)
