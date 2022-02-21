@@ -27,6 +27,7 @@ def upgrade():
 
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
 	clientid = alembic.context.config.get_section_option("lrrbot", "twitch_clientid")
+	clientsecret = alembic.context.config.get_section_option("lrrbot", "twitch_clientsecret")
 	with open(datafile) as f:
 		data = json.load(f)
 
@@ -38,19 +39,27 @@ def upgrade():
 	names = list(names)
 	users = []
 	with requests.Session() as session:
+		req = session.post('https://id.twitch.tv/oauth/token', params={
+			'client_id': clientid,
+			'client_secret': clientsecret,
+			'grant_type': 'client_credentials',
+		})
+		req.raise_for_status()
+		token = req.json()['access_token']
+
 		for i in range(0, len(names), CHUNK_SIZE):
 			chunk = names[i:i+CHUNK_SIZE]
 			log.info("Fetching %d-%d/%d", i + 1, i + len(chunk), len(names))
 			try:
 				req = session.get(
-					"https://api.twitch.tv/kraken/users?login=%s" % urllib.parse.quote(",".join(chunk)),
-					headers={'Client-ID': clientid, 'Accept': 'application/vnd.twitchtv.v5+json'})
+					"https://api.twitch.tv/helix/users", params={'login': chunk},
+					headers={'Client-ID': clientid, 'Authentication': f'Bearer {token}'})
 				req.raise_for_status()
 				for user in req.json()['users']:
 					nick = user['name'].lower()
 					users.append({
-						"id": user["_id"],
-						"name": user["name"],
+						"id": user["id"],
+						"name": user["login"],
 						"display_name": user.get("display_name"),
 						"twitch_oauth": data.get("twitch_oauth", {}).get(nick),
 						"is_sub": nick in data.get("subs", []),

@@ -81,6 +81,7 @@ def upgrade():
 	# Move data
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
 	clientid = alembic.context.config.get_section_option("lrrbot", "twitch_clientid")
+	clientsecret = alembic.context.config.get_section_option("lrrbot", "twitch_clientsecret")
 	with open(datafile) as f:
 		data = json.load(f)
 
@@ -155,6 +156,14 @@ def upgrade():
 	# game_votes
 	all_votes = []
 	with requests.Session() as session:
+		req = session.post('https://id.twitch.tv/oauth/token', params={
+			'client_id': clientid,
+			'client_secret': clientsecret,
+			'grant_type': 'client_credentials',
+		})
+		req.raise_for_status()
+		token = req.json()['access_token']
+
 		for show_id, show in data.get("shows", {}).items():
 			for game in show.get("games", {}).values():
 				game_id = parse_id(game.get("id")) or all_games[game["name"]]
@@ -162,14 +171,14 @@ def upgrade():
 					if nick not in all_users:
 						try:
 							req = session.get(
-								"https://api.twitch.tv/kraken/users?login=%s" % urllib.parse.quote(nick),
-								headers={'Client-ID': clientid, 'Accept': 'application/vnd.twitchtv.v5+json'})
+								"https://api.twitch.tv/helix/users?login=%s" % urllib.parse.quote(nick),
+								headers={'Client-ID': clientid, 'Authorization': f'Bearer {token}'})
 							req.raise_for_status()
-							user = req.json()['users'][0]
-							all_users[nick] = user["_id"]
+							user = req.json()['data'][0]
+							all_users[nick] = user["id"]
 							alembic.op.bulk_insert(users, [{
-								"id": user["_id"],
-								"name": user["name"],
+								"id": user["id"],
+								"name": user["login"],
 								"display_name": user.get("display_name"),
 							}])
 						except Exception:
