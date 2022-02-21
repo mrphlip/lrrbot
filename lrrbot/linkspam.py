@@ -51,7 +51,7 @@ class LinkSpam:
 				if url is not None:
 					urls.append(url)
 					break
-		canonical_urls = await asyncio.gather(*map(common.url.canonical_url, urls), loop=self.loop)
+		canonical_urls = await asyncio.gather(*map(common.url.canonical_url, urls))
 		for original_url, url_chain in zip(urls, canonical_urls):
 			for url in url_chain:
 				for rule in self.rules:
