@@ -1,5 +1,5 @@
 <div style="font: 100% sans-serif; color: black">
-{%if not rss%}<a href="{{url_for("archive_watch", videoid=vid['id'])|e}}">{%endif%}<img src="{{vid['thumbnail_url']|https|e}}" alt="{{vid['title']|e}}" width="320" height="180" style="float:left; margin: 0 0.5em 0.25em 0">{%if not rss%}</a>{%endif%}
+{%if not rss%}<a href="{{url_for("archive_watch", videoid=vid['id'])|e}}">{%endif%}<img src="{{vid['thumbnail_url']|replace('%{width}', '320')|replace('%{height}', '180')|https|e}}" alt="{{vid['title']|e}}" width="320" height="180" style="float:left; margin: 0 0.5em 0.25em 0">{%if not rss%}</a>{%endif%}
 <p style="font: bold 125% sans-serif">{%if not rss%}<a href="{{url_for("archive_watch", videoid=vid['id'])|e}}">{%endif%}{{vid['title']|e}}{%if not rss%}</a>{%endif%}</p>
 <p>Recorded at: {{vid['created_at']|timestamp}}</p>
 {%if vid['description']%}<p>{{vid['description']|e}}</p>{%endif%}
