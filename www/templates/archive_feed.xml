@@ -1,15 +1,15 @@
 <rss version="2.0">
 <channel>
-<title>{{videos[0]['channel']['display_name']|e}} &#x2013; {{"Past Broadcasts" if broadcasts else "Highlights"}}</title>
-<link>https://twitch.tv/{{videos[0]['channel']['name']|e}}</link>
-<description>{{"Past broadcasts" if broadcasts else "Highlights"}} for the Twitch channel {{videos[0]['channel']['display_name']|e}}</description>
+<title>{{videos[0]['user_name']|e}} &#x2013; {{"Past Broadcasts" if broadcasts else "Highlights"}}</title>
+<link>https://twitch.tv/{{videos[0]['user_login']|e}}</link>
+<description>{{"Past broadcasts" if broadcasts else "Highlights"}} for the Twitch channel {{videos[0]['user_name']|e}}</description>
 <language>en</language>
 {%for vid in videos%}
 <item>
-<title>{{vid['title']|e}} [{{vid['length']|nice_duration(1)}}]</title>
+<title>{{vid['title']|e}} [{{vid['duration']|nice_duration(1)}}]</title>
 <link>{{url_for("archive_watch", videoid=vid['_id'], _external=True)|e}}</link>
 <description>{{vid['html']|e}}</description>
-<pubDate>{{"{:%a, %d %b %Y %H:%M:%S %z}".format(vid['recorded_at'])}}</pubDate>
+<pubDate>{{"{:%a, %d %b %Y %H:%M:%S %z}".format(vid['created_at'])}}</pubDate>
 <guid isPermaLink="true">{{vid['url']|e}}</guid>
 </item>
 {%endfor%}
