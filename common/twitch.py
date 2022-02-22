@@ -287,7 +287,7 @@ def get_game_playing(username=None):
 	if not channel_data or not channel_data['live']:
 		return None
 	if channel_data.get('game_id'):
-		return Game(channel_data['game_id'], channel_data['game_name'])
+		return Game(int(channel_data['game_id']), channel_data['game_name'])
 	return None
 
 def is_stream_live(username=None):
