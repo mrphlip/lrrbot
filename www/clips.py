@@ -8,7 +8,7 @@ from www.archive import archive_feed_data, get_video_data
 import common.rpc
 from common.config import config
 from common.time import nice_duration
-from common.twitch import get_user
+from common.twitch import get_user, get_game
 import dateutil.parser
 import datetime
 
@@ -65,17 +65,19 @@ async def clips_vid(session, videoid):
 	if video is None and clip_data:
 		video = {'start': clip_data[0][1], 'title': 'Unknown video'}
 
+	# Note: need to handle both the v5 and Helix data schemas as both are present
+	# in the database
 	clip_data = [
 		{
-			"slug": clip['slug'],
+			"slug": clip.get('id') or clip('slug'),
 			"title": clip['title'],
-			"curator": clip['curator']['display_name'],
+			"curator": clip.get('creator_name') or clip.get('curator', {}).get('display_name'),
 			"starttime": time - video['start'],
 			"endtime": time - video['start'] + datetime.timedelta(seconds=clip['duration']),
 			"start": nice_duration(time - video['start'], 0),
 			"duration": nice_duration(clip['duration'], 0),
-			"game": clip['game'],
-			"thumbnail": clip['thumbnails']['small'],
+			"game": get_game(id=clip['game_id']).name if 'game_id' in clip else clip.get('game'),
+			"thumbnail": clip.get('thumbnail_url') or clip('thumbnails', {}).get('small'),
 			"rating": rating,
 			"overlap": False,
 		}

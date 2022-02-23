@@ -33,11 +33,9 @@ def get_user(id=None, name=None, get_missing=True):
 		if id is not None:
 			query = query.where(users.c.id == id)
 			data = {'id': id}
-			by_name = False
 		elif name is not None:
 			query = query.where(users.c.name == name)
 			data = {'login': name}
-			by_name = True
 		else:
 			raise ValueError("Pass at least one of name or id")
 
@@ -279,6 +277,51 @@ def get_info(username=None, use_fallback=True):
 	return get_info_uncached(username, use_fallback=use_fallback)
 
 Game = collections.namedtuple('Game', ['id', 'name'])
+def get_game(id=None, name=None, get_missing=True):
+	"""
+	Get game information by id or name (one must be provided).
+
+	If get_missing is set to False, will return None if the game is not
+	already in the database.
+	"""
+	engine, metadata = postgres.get_engine_and_metadata()
+	games = metadata.tables["games"]
+	with engine.begin() as conn:
+		query = sqlalchemy.select([games.c.id, games.c.name])
+		if id is not None:
+			query = query.where(games.c.id == id)
+			data = {'id': id}
+		elif name is not None:
+			query = query.where(users.c.name == name)
+			data = {'name': name}
+		else:
+			raise ValueError("Pass at least one of name or id")
+
+		row = conn.execute(query).first()
+		if row:
+			return Game(*row)
+
+		if get_missing:
+			headers = {
+				'Client-ID': config['twitch_clientid'],
+				'Authorization': f"Bearer {get_token()}",
+			}
+			res = common.http.request("https://api.twitch.tv/helix/games", data=data, headers=headers)
+			game = json.loads(res)['data'][0]
+			insert_query = insert(games)
+			insert_query = insert_query.on_conflict_do_update(
+				index_elements=[games.c.id],
+				set_={
+					'name': insert_query.excluded.name,
+				},
+			)
+			conn.execute(insert_query, {
+				"id": game["id"],
+				"name": game["name"],
+			})
+
+			return User(int(game["id"]), game["name"])
+
 def get_game_playing(username=None):
 	"""
 	Get the game information for the game the stream is currently playing
