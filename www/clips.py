@@ -69,7 +69,7 @@ async def clips_vid(session, videoid):
 	# in the database
 	clip_data = [
 		{
-			"slug": clip.get('id') or clip('slug'),
+			"slug": clip.get('id') or clip.get('slug'),
 			"title": clip['title'],
 			"curator": clip.get('creator_name') or clip.get('curator', {}).get('display_name'),
 			"starttime": time - video['start'],
@@ -77,7 +77,7 @@ async def clips_vid(session, videoid):
 			"start": nice_duration(time - video['start'], 0),
 			"duration": nice_duration(clip['duration'], 0),
 			"game": get_game(id=clip['game_id']).name if 'game_id' in clip else clip.get('game'),
-			"thumbnail": clip.get('thumbnail_url') or clip('thumbnails', {}).get('small'),
+			"thumbnail": clip.get('thumbnail_url') or clip.get('thumbnails', {}).get('small'),
 			"rating": rating,
 			"overlap": False,
 		}
