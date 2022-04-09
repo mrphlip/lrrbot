@@ -324,7 +324,7 @@ async def get_twitch_emotes():
 	for emote in data:
 		emoticon_set = int(emote['emote_set_id'])
 		emotesets.setdefault(emoticon_set, {})[emote['name']] = {
-			"regex": re.compile("(%s)" % re.escape(emote['name'])),
+			"regex": re.compile(r"(\b%s\b)" % re.escape(emote['name'])),
 			"html": '<img src="%s" alt="{0}" title="{0}">' % emote["images"]['url_1x']
 		}
 	return emotesets
