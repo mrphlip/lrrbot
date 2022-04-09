@@ -8,7 +8,8 @@ import asyncio
 import urllib.parse
 
 import irc.client
-from jinja2.utils import Markup, escape, urlize as real_urlize
+from jinja2.utils import urlize as real_urlize
+from markupsafe import Markup, escape
 import sqlalchemy
 
 import common.http
