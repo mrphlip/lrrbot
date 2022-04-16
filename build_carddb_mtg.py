@@ -184,6 +184,10 @@ def process_card(card, expansion, include_reminder=False):
 		return
 	if card['layout'] in ('token', ):  # don't care about these special cards for now
 		return
+	# Temporary bugfix for https://github.com/mtgjson/mtgjson/issues/933
+	if card['layout'] == 'modal_dfc' and 'otherFaceIds' not in card:
+		print("Warning: No otherFaceIds for %s [%s] %s" % (card['name'], expansion['code'], card['uuid']))
+		return
 	if card.get('layout') in ('split', 'aftermath', 'adventure'):
 		# Return split cards as a single card... for all the other pieces, return nothing
 		if card['side'] != 'a':
