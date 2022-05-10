@@ -320,7 +320,7 @@ def get_game(id=None, name=None, get_missing=True):
 				"name": game["name"],
 			})
 
-			return User(int(game["id"]), game["name"])
+			return Game(int(game["id"]), game["name"])
 
 def get_game_playing(username=None):
 	"""
