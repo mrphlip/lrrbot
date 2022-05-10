@@ -173,7 +173,7 @@ def do_download_file(url, fn):
 
 	return True
 
-re_check = re.compile(r"^[a-z0-9_]+$")
+re_check = re.compile(r"^[a-z0-9_]*$")
 re_mana = re.compile(r"\{(.)\}")
 re_newlines = re.compile(r"[\r\n]+")
 re_multiplespaces = re.compile(r"\s{2,}")
