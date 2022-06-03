@@ -486,11 +486,10 @@
         },
         "jaraco.text": {
             "hashes": [
-                "sha256:17b43aa0bd46e97c368ccd8a4c8fef2719ca121b6d39ce4be9d9e0143832479a",
-                "sha256:a7f9cc1b44a5f3096a216cbd130b650c7a6b2c9f8005b000ae97f329239a7c00"
+                "sha256:3f050dc110ba596cf7f5ae9592b3d400e2ce2ba9ca4170616f250baa1e241b0a",
+                "sha256:76c9dd3a140c33e28809e39b05c07276fd97635ee4f4c1b006e40850eadb7570"
             ],
-            "markers": "python_version >= '3.6'",
-            "version": "==3.7.0"
+            "version": "==3.8.0"
         },
         "jinja2": {
             "hashes": [
