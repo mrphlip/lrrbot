@@ -419,12 +419,8 @@
             "version": "==4.12.0"
         },
         "irc": {
-            "hashes": [
-                "sha256:377bf2bdc1e60ba425b4fb91a51f0e9de50f7e1af78b273e518aa6efad553029",
-                "sha256:59acb8d69d61a0cbd290e77e6ff10a8c7f2201fb8c7b7d5a195b5883d0c40b0a"
-            ],
-            "index": "pypi",
-            "version": "==20.0.0"
+            "hashes": [],
+            "version": "==20.1.0"
         },
         "itsdangerous": {
             "hashes": [
