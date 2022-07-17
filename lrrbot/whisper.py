@@ -8,7 +8,7 @@ class TwitchWhisper:
 	def __init__(self, lrrbot, loop):
 		self.lrrbot = lrrbot
 		self.loop = loop
-		self.message_queue = asyncio.Queue(loop=loop)
+		self.message_queue = asyncio.Queue()
 		self.message_pump_task = asyncio.ensure_future(self.message_pump(), loop=loop)
 
 	def stop_task(self):
