@@ -251,12 +251,8 @@
             "version": "==37.0.4"
         },
         "flask": {
-            "hashes": [
-                "sha256:8a4cf32d904cf5621db9f0c9fbcd7efabf3003f22a04e4d0ce790c7137ec5264",
-                "sha256:a8c9bd3e558ec99646d177a9739c41df1ded0629480b4c8d2975412f3c9519c8"
-            ],
-            "index": "pypi",
-            "version": "==2.1.1"
+            "hashes": [],
+            "version": "==2.1.3"
         },
         "flask-csrf": {
             "hashes": [
