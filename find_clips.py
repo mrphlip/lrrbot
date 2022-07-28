@@ -22,6 +22,7 @@ TBL_CLIPS = metadata.tables['clips']
 TBL_EXT_CHANNEL = metadata.tables['external_channel']
 
 CLIPS_URL = "https://api.twitch.tv/helix/clips"
+VIDEO_URL = "https://api.twitch.tv/helix/videos"
 
 def get_clips_page(channel, period=1, limit=100, cursor=None):
 	"""
@@ -86,15 +87,43 @@ def process_clips(channel, period=1, per_page=100):
 		slugs.append(clip['id'])
 	return slugs
 
+def get_video_info(vodid):
+	"""
+	https://dev.twitch.tv/docs/v5/reference/videos/#get-video
+	"""
+	if vodid not in get_video_info._cache:
+		headers = {
+			'Client-ID': config['twitch_clientid'],
+			'Authorization': f"Bearer {get_token()}",
+		}
+		params = {
+			'id': vodid,
+		}
+		try:
+			data = common.http.request(VIDEO_URL, params, headers=headers)
+			get_video_info._cache[vodid] = json.loads(data)['data'][0]
+		except urllib.error.HTTPError as e:
+			if e.code == 404:
+				get_video_info._cache[vodid] = {'httperror': 404}
+			else:
+				raise
+	return get_video_info._cache[vodid]
+get_video_info._cache = {}
+
 def process_clip(clip):
-	# With the new Twitch API they've gotten rid of even the janky way to know when a clip happened
-	# all we have is clip['created_at'], which is the time it was clipped
-	# which can be wildly different, especially if it's clipped from a vod
+	if clip['video_id'] and 'vod_offset' in clip:
+		voddata = get_video_info(clip['video_id'])
+		if voddata.get('created_at'):
+			clip_start = dateutil.parser.parse(voddata['created_at']) + datetime.timedelta(seconds=clip['vod_offset'])
+		else:
+			clip_start = dateutil.parser.parse(clip['created_at'])
+	else:
+		clip_start = dateutil.parser.parse(clip['created_at'])
 	data = {
 		"slug": clip['id'],
 		"title": clip['title'],
 		"vodid": clip['video_id'],
-		"time": dateutil.parser.parse(clip['created_at']),
+		"time": clip_start,
 		"data": clip,
 		"deleted": False,
 		"channel": clip['broadcaster_name'],
