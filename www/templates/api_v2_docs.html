@@ -297,7 +297,7 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
 }</pre>
 
 <h4><code>twitch-message</code></h4>
-<p>New message from Twitch. Used to be sent to say the number of people that subscribed since the last stream.</p>
+<p>New message from Twitch. Sent for messages that are not of some other recognised type.</p>
 
 <dl>
 	<dt><code>message</code></dt>
@@ -408,6 +408,26 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
             "ismulti": true,
         }
     ]
+}</pre>
+
+<h4><code>twitch-raid</code></h4>
+<p>The Twitch channel was raided by another channel.</p>
+
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name of raiding channel</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar. Might be not present or <code>null</code>.</dd>
+	<dt><code>count</code></dt>
+	<dd>Number of raiders</dd>
+</dl>
+
+<h5>Example payload</h5>
+<pre>{
+  "name": "benjamin_wheeler",
+  "avatar": "https://static-cdn.jtvnw.net/jtv_user_pictures/e990fed4-1d57-451e-8dbb-1b4128fec225-profile_image-70x70.png",
+  "time": "2022-04-26T00:23:46.899+02:00",
+  "count": 110
 }</pre>
 
 <h3>Server-sent events mode (default)</h3>

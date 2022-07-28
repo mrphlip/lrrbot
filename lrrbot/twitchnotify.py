@@ -17,12 +17,12 @@ from lrrbot import chatlog
 import common.rpc
 import common.storm
 
-log = logging.getLogger('twitchsubs')
+log = logging.getLogger('twitchnotify')
 
 DEBOUNCE_INTERVAL = 600
 MULTI_GIFT_CLEANUP_INTERVAL = 120
 
-class TwitchSubs:
+class TwitchNotify:
 	def __init__(self, lrrbot, loop):
 		self.lrrbot = lrrbot
 		self.loop = loop
@@ -134,6 +134,32 @@ class TwitchSubs:
 				{},
 			))
 			return "NO MORE"
+		elif event.tags.get('msg-id') == 'raid':
+			raider_name = event.tags['msg-param-login']
+			raider_display_name = event.tags.get('msg-param-displayName') or raider_name
+			count = int(event.tags.get('msg-param-viewerCount', 1))
+			logo = event.tags.get('msg-param-profileImageURL')
+
+			systemmsg = event.tags.get('system-msg')
+			if not systemmsg:
+				systemmsg = "%d raider%s from %s have joined!" % (count, '' if count == 1 else 's', raider_display_name)
+
+			asyncio.ensure_future(self.on_raid(
+				raider_name,
+				raider_display_name,
+				datetime.datetime.now(tz=pytz.utc),
+				count=count,
+				logo=logo,
+			)).add_done_callback(utils.check_exception)
+
+			self.lrrbot.log_chat(conn, irc.client.Event(
+				"pubmsg",
+				"%s!%s@tmi.twitch.tv" % (config['notifyuser'], config['notifyuser']),
+				event.target,
+				[systemmsg],
+				{},
+			))
+			return "NO MORE"
 		else:
 			logging.info("Unrecognised USERNOTICE: %s\n%r %r", event.tags.get('msg-id'), event.tags, event.arguments)
 
@@ -158,7 +184,6 @@ class TwitchSubs:
 					datetime.datetime.now(tz=pytz.utc),
 					message="\u2014".join(messages),
 				)).add_done_callback(utils.check_exception)
-				event = 'twitch-message'
 
 	async def on_subscriber(self, conn, channel, login, user, eventtime, logo=None, monthcount=None, message=None, emotes=None, benefactor_login=None, benefactor=None, streak=None, tier=None):
 		log.info('New subscriber: %r at %r', user, eventtime)
@@ -298,6 +323,32 @@ class TwitchSubs:
 				)
 
 			await asyncio.sleep(MULTI_GIFT_CLEANUP_INTERVAL)
+
+	async def on_raid(self, login, user, eventtime, count, logo=None):
+		event = "twitch-raid"
+		data = {
+			'login': login,
+			'name': user,
+			'count': count,
+			'eventtime': eventtime,
+		}
+
+		if logo is None:
+			try:
+				channel_info = twitch.get_info_uncached(login)
+			except utils.PASSTHROUGH_EXCEPTIONS:
+				raise
+			except Exception:
+				pass
+			else:
+				if channel_info.get('profile_image_url'):
+					data['avatar'] = channel_info['profile_image_url']
+		else:
+			data['avatar'] = logo
+
+		await common.rpc.eventserver.event(event, data, eventtime)
+
+		common.storm.increment(self.lrrbot.engine, self.lrrbot.metadata, event)
 
 	async def on_unknown_message(self, conn, eventtime, message):
 		event = "twitch-message"

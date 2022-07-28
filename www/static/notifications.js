@@ -19,6 +19,10 @@ window.addEventListener('DOMContentLoaded', function (event) {
 			twitch_cheer(JSON.parse(event.data));
 			update_title();
 		});
+		stream.addEventListener("twitch-raid", function (event) {
+			twitch_raid(JSON.parse(event.data));
+			update_title();
+		});
 		stream.addEventListener("twitch-message", function (event) {
 			twitch_message(JSON.parse(event.data));
 			update_title();
@@ -55,6 +59,9 @@ function ajax_poll() {
 					break;
 				case 'twitch-subscription-mysterygift':
 					twitch_subscription_mysterygift(event.data);
+					break;
+				case 'twitch-raid':
+					twitch_raid(event.data);
 					break;
 				case 'twitch-message':
 					twitch_message(event.data);
@@ -297,6 +304,29 @@ function twitch_cheer(data) {
 			}
 			user_message.appendChild(quote);
 		}
+	});
+}
+
+function twitch_raid(data) {
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		if (data.avatar) {
+			var avatar = createElementWithClass("img", "avatar");
+			avatar.src = data.avatar;
+			user.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
+		message.appendChild(document.createTextNode(" just raided with " + data.count + " viewers!"));
+		message_container.appendChild(message);
 	});
 }
 

@@ -38,7 +38,7 @@ from lrrbot import stream_status
 from lrrbot import systemd
 from lrrbot import twitchcheer
 from lrrbot import twitchfollows
-from lrrbot import twitchsubs
+from lrrbot import twitchnotify
 from lrrbot import video_playback
 from lrrbot import whisper
 
@@ -147,7 +147,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.moderator_actions = moderator_actions.ModeratorActions(self, loop)
 		self.spam = spam.Spam(self, loop)
 		self.stream_status = stream_status.StreamStatus(self, loop)
-		self.subs = twitchsubs.TwitchSubs(self, loop)
+		self.twitchnotify = twitchnotify.TwitchNotify(self, loop)
 		self.twitchcheer = twitchcheer.TwitchCheer(self, loop)
 		self.twitchfollows = twitchfollows.TwitchFollows(self, loop)
 		self.video_playback = video_playback.VideoPlayback(self, loop)
@@ -180,7 +180,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			tasks_waiting = [chatlogtask]
 			if self.whisperconn:
 				tasks_waiting.append(self.whisperconn.stop_task())
-			tasks_waiting.append(self.subs.stop_task())
+			tasks_waiting.append(self.twitchnotify.stop_task())
 			self.loop.run_until_complete(asyncio.wait(tasks_waiting))
 
 	def disconnect(self, msg="I'll be back!"):

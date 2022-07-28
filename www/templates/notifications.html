@@ -106,6 +106,18 @@
 							{% endif %}
 						</div>
 					</div>
+				{% elif event['event'] == 'twitch-raid' %}
+					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
+						{% if event['data']['avatar'] %}
+							<img class="avatar" src="{{ event['data']['avatar'] | https }}">
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message">
+								<span class="nickname">{{ event['data']['name'] }}</span> just raided with
+								{{ event['data']['count'] }} viewers!
+							</p>
+						</div>
+					</div>
 				{% elif event['event'] == 'twitch-message' %}
 					<div class="message">{{ event['data']['message'] }}</div>
 				{% elif event['event'] == 'patreon-pledge' %}
