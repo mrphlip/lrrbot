@@ -58,6 +58,7 @@ def stormcount():
 		'twitch-resubscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-resubscription'),
 		'twitch-follow': common.storm.get(server.db.engine, server.db.metadata, 'twitch-follow'),
 		'twitch-cheer': common.storm.get(server.db.engine, server.db.metadata, 'twitch-cheer'),
+		'twitch-raid': common.storm.get(server.db.engine, server.db.metadata, 'twitch-raid'),
 		'patreon-pledge': common.storm.get(server.db.engine, server.db.metadata, 'patreon-pledge'),
 	})
 
@@ -73,6 +74,7 @@ def stormcount_all():
 			storm.c["twitch-message"],
 			storm.c["patreon-pledge"],
 			storm.c["twitch-cheer"],
+			storm.c["twitch-raid"],
 		]).order_by(storm.c.date.desc()))
 
 		return flask.jsonify([
@@ -84,8 +86,9 @@ def stormcount_all():
 				"twitch-message": twitch_message,
 				"patreon-pledge": patreon_pledge,
 				"twitch-cheer": twitch_cheer,
+				"twitch-raid": twitch_raid,
 			}
-			for date, twitch_subscription, twitch_resubscription, twitch_follow, twitch_message, patreon_pledge, twitch_cheer in res
+			for date, twitch_subscription, twitch_resubscription, twitch_follow, twitch_message, patreon_pledge, twitch_cheer, twitch_raid in res
 		])
 
 
