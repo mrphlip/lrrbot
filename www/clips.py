@@ -102,7 +102,10 @@ def clip_submit(session):
 	clips = server.db.metadata.tables["clips"]
 	with server.db.engine.begin() as conn:
 		conn.execute(clips.update()
-			.values(rating=bool(int(flask.request.values['vote'])))
+			.values(
+				rating=bool(int(flask.request.values['vote'])),
+				rater=session['user']['id'],
+			)
 			.where(clips.c.slug == flask.request.values['slug'])
 		)
 	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
