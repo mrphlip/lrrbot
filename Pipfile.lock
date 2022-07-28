@@ -143,11 +143,8 @@
             "version": "==21.4.0"
         },
         "blinker": {
-            "hashes": [
-                "sha256:471aee25f3992bd325afa3772f1063dbdbbca947a041b8b89466dc00d606f8b6"
-            ],
-            "index": "pypi",
-            "version": "==1.4"
+            "hashes": [],
+            "version": "==1.5"
         },
         "certifi": {
             "hashes": [
