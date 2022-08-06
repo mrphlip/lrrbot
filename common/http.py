@@ -69,9 +69,17 @@ def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, 
 				break
 	raise firstex
 
-# Limit the number of parallel HTTP connections to a server.
-http_request_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6))
-atexit.register(lambda: asyncio.get_event_loop().run_until_complete(http_request_session.close()))
+_http_request_sessions = {}
+def get_http_request_session(loop):
+	if loop not in _http_request_sessions:
+		# clean up any closed event loops from the cache
+		to_del = [l for l in _http_request_sessions.keys() if l.is_closed()]
+		for l in to_del:
+			del _http_request_sessions[l]
+
+		_http_request_sessions[loop] = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6, loop=loop))
+	return _http_request_sessions[loop]
+
 async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, allow_redirects=True, asjson=False):
 	if headers is None:
 		headers = {}
@@ -94,7 +102,8 @@ async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, t
 		try:
 			with async_timeout.timeout(timeout):
 				log.debug("%s %r%s...", method, url, repr(params) if params else '')
-				async with http_request_session.request(method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects) as res:
+				session = get_http_request_session(asyncio.get_running_loop())
+				async with session.request(method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects) as res:
 					if method == "HEAD":
 						return res
 					status_class = res.status // 100

@@ -569,6 +569,6 @@ class FakeBot:
 	add_global_handler = add = noop
 
 if FRAMEWORK_ONLY:
-	bot = FakeBot(asyncio.get_event_loop())
+	bot = FakeBot(asyncio.new_event_loop())
 else:
-	bot = LRRBot(asyncio.get_event_loop())
+	bot = LRRBot(asyncio.new_event_loop())

@@ -137,7 +137,8 @@ class PubSub:
 		while True:
 			try:
 				log.debug("Connecting to wss://pubsub-edge.twitch.tv")
-				async with http.http_request_session.ws_connect("wss://pubsub-edge.twitch.tv") as pubsub:
+				session = http.get_http_request_session(asyncio.get_running_loop())
+				async with session.ws_connect("wss://pubsub-edge.twitch.tv") as pubsub:
 					log.debug("Connected to wss://pubsub-edge.twitch.tv")
 					self.stream = pubsub
 					self.ping_task = asyncio.ensure_future(self._ping(), loop=self.loop)

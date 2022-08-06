@@ -52,5 +52,4 @@ async def main(sheetid):
 		json.dump(carddata, fp, indent=2, sort_keys=True)
 
 if __name__ == '__main__':
-	loop = asyncio.get_event_loop()
-	loop.run_until_complete(main(**vars(getargs())))
+	asyncio.run(main(**vars(getargs())))

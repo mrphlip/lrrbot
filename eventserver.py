@@ -155,7 +155,7 @@ async def main(loop):
 	if sys.platform == "win32":
 		# On Windows Ctrl+C doesn't interrupt `select()`.
 		def windows_is_butts():
-			asyncio.get_event_loop().call_later(5, windows_is_butts)
+			loop.call_later(5, windows_is_butts)
 		windows_is_butts()
 
 async def cleanup():
@@ -168,7 +168,7 @@ async def cleanup():
 	await handler.finish_connections(60.0)
 	await app.cleanup()
 
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
 loop.run_until_complete(main(loop))
 try:
 	loop.run_forever()

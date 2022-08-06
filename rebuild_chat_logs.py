@@ -5,7 +5,7 @@ import lrrbot.main
 from lrrbot.chatlog import run_task, rebuild_all, stop_task
 import asyncio
 
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
 task = asyncio.ensure_future(run_task(), loop=loop)
 rebuild_all()
 stop_task()

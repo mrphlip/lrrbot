@@ -20,11 +20,13 @@ regex = "*"
 requests = "*"
 timelib = "*"
 async_timeout = "*"
-Flask = "*"
+Flask = {extras = ["async"], version = "*"}
 Flask-SQLAlchemy = "*"
 Jinja2 = "*"
 SQLAlchemy = "*"
 typing-extensions = "*"
+# Pinning this version of werkzeug until flask-csrf updates to be compatible with the latest ver
+werkzeug = "==2.1.2"
 
 [requires]
 python_version = "3.10"
