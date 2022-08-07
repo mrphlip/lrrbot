@@ -137,7 +137,7 @@ class PubSub:
 		while True:
 			try:
 				log.debug("Connecting to wss://pubsub-edge.twitch.tv")
-				session = http.get_http_request_session(asyncio.get_running_loop())
+				session = await http.get_http_request_session()
 				async with session.ws_connect("wss://pubsub-edge.twitch.tv") as pubsub:
 					log.debug("Connected to wss://pubsub-edge.twitch.tv")
 					self.stream = pubsub

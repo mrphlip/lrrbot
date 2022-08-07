@@ -70,15 +70,22 @@ def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, 
 	raise firstex
 
 _http_request_sessions = {}
-def get_http_request_session(loop):
+async def get_http_request_session():
+	loop = asyncio.get_running_loop()
 	if loop not in _http_request_sessions:
 		# clean up any closed event loops from the cache
-		to_del = [l for l in _http_request_sessions.keys() if l.is_closed()]
-		for l in to_del:
+		to_del = [(l, s) for l, s in _http_request_sessions.items() if l.is_closed()]
+		for l, s in to_del:
+			await s.close()
 			del _http_request_sessions[l]
 
 		_http_request_sessions[loop] = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6, loop=loop))
 	return _http_request_sessions[loop]
+async def _cleanup_sessions():
+	for l, s in _http_request_sessions.items():
+		await s.close()
+	_http_request_sessions.clear()
+atexit.register(asyncio.run, _cleanup_sessions())
 
 async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, allow_redirects=True, asjson=False):
 	if headers is None:
@@ -102,7 +109,7 @@ async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, t
 		try:
 			with async_timeout.timeout(timeout):
 				log.debug("%s %r%s...", method, url, repr(params) if params else '')
-				session = get_http_request_session(asyncio.get_running_loop())
+				session = await get_http_request_session()
 				async with session.request(method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects) as res:
 					if method == "HEAD":
 						return res
