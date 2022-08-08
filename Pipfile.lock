@@ -863,12 +863,8 @@
             "version": "==1.26.11"
         },
         "werkzeug": {
-            "hashes": [
-                "sha256:1ce08e8093ed67d638d63879fd1ba3735817f7a80de3674d293f5984f25fb6e6",
-                "sha256:72a4b735692dd3135217911cbeaa1be5fa3f62bffb8745c5215420a03dc55255"
-            ],
-            "index": "pypi",
-            "version": "==2.1.2"
+            "hashes": [],
+            "version": "==2.2.1"
         },
         "yarl": {
             "hashes": [
