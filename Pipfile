@@ -6,9 +6,13 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+Flask-SQLAlchemy = "*"
+Jinja2 = "*"
+SQLAlchemy = "*"
 aiohttp = "*"
 aiomas = "*"
 alembic = "*"
+async_timeout = "*"
 blinker = "*"
 cryptography = "*"
 flask-csrf = "*"
@@ -19,14 +23,9 @@ python-mimeparse = "*"
 regex = "*"
 requests = "*"
 timelib = "*"
-async_timeout = "*"
-Flask = {extras = ["async"], version = "*"}
-Flask-SQLAlchemy = "*"
-Jinja2 = "*"
-SQLAlchemy = "*"
 typing-extensions = "*"
-# Pinning this version of werkzeug until flask-csrf updates to be compatible with the latest ver
-werkzeug = "==2.1.2"
+werkzeug = "==2.2.1"
+Flask = {extras = ["async"],version = "*"}
 
 [requires]
 python_version = "3.10"
