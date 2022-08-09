@@ -1,5 +1,6 @@
 import asyncio
 import atexit
+import gc
 import json
 import logging
 import urllib.parse
@@ -74,17 +75,28 @@ async def get_http_request_session():
 	loop = asyncio.get_running_loop()
 	if loop not in _http_request_sessions:
 		# clean up any closed event loops from the cache
+		# just doing this when making new sessions, so we don't do it too much for performance
+		# but still do it often enough that the cache can't just grow forever
+		
+		# first make sure any lingering network transports have been cleaned up
+		# because apparently something in asyncio or aiohttp is leaking these things
+		gc.collect()
+		# now close down the sessions
 		to_del = [(l, s) for l, s in _http_request_sessions.items() if l.is_closed()]
 		for l, s in to_del:
 			await s.close()
 			del _http_request_sessions[l]
+		# again for good measure
+		gc.collect()
 
 		_http_request_sessions[loop] = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=6, loop=loop))
 	return _http_request_sessions[loop]
 async def _cleanup_sessions():
+	gc.collect()
 	for l, s in _http_request_sessions.items():
 		await s.close()
 	_http_request_sessions.clear()
+	gc.collect()
 atexit.register(asyncio.run, _cleanup_sessions())
 
 async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, allow_redirects=True, asjson=False):
