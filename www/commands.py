@@ -57,4 +57,4 @@ async def commands_submit(session):
 			raise ValueError("Invalid access level")
 	await common.rpc.bot.static.modify_commands(data)
 	history.store('responses', session['user']['id'], data)
-	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
+	return flask.json.jsonify(success='OK')

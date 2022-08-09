@@ -3,7 +3,6 @@ import pytz
 
 import flask
 import flask.json
-from flaskext.csrf import csrf_exempt
 import sqlalchemy
 
 import common.time

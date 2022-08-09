@@ -4,7 +4,6 @@ import datetime
 import dateutil.parser
 import pytz
 import flask
-from flaskext.csrf import csrf_exempt
 import hmac
 import os
 import sqlalchemy
@@ -155,7 +154,7 @@ class HmacRequestStream:
 		return data
 
 @server.app.route('/patreon/webhooks', methods=["POST"])
-@csrf_exempt
+@server.csrf.exempt
 async def patreon_webhooks():
 	stream = HmacRequestStream(flask.request.environ['wsgi.input'])
 	flask.request.environ['wsgi.input'] = stream

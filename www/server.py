@@ -1,6 +1,5 @@
 from flask import Flask
-from flaskext.csrf import csrf
-import flaskext.csrf
+from flask_seasurf import SeaSurf
 from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy
 import warnings
@@ -21,7 +20,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=sqlalchemy.exc.SAWarning)
     db.reflect()
 postgres.set_engine_and_metadata(db.engine, db.metadata)
-csrf(app)
+csrf = SeaSurf(app)
 space.monkey_patch_urlize()
 
-__all__ = ['app', 'db']
+__all__ = ['app', 'db', 'csrf']

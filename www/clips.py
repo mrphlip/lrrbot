@@ -108,7 +108,7 @@ def clip_submit(session):
 			)
 			.where(clips.c.slug == flask.request.values['slug'])
 		)
-	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
+	return flask.json.jsonify(success='OK')
 
 @server.app.route('/clips/external')
 @login.require_mod

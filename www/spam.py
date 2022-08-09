@@ -46,14 +46,14 @@ async def spam_submit(session):
 	# Validation checks
 	error = verify_rules(data)
 	if error:
-		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
+		return flask.json.jsonify(error=error)
 
 	if link_spam:
 		await common.rpc.bot.link_spam.modify_link_spam_rules(data)
 	else:
 		await common.rpc.bot.spam.modify_spam_rules(data)
 	history.store("link_spam" if link_spam else "spam", session['user']['id'], data)
-	return flask.json.jsonify(success='OK', csrf_token=server.app.csrf_token())
+	return flask.json.jsonify(success='OK')
 
 def do_check(line, rules):
 	for rule in rules:
@@ -83,7 +83,7 @@ async def do_check_links(message, rules):
 @login.require_mod
 async def spam_redirects(session):
 	redirects = await common.url.canonical_url(flask.request.values["url"].strip())
-	return flask.json.jsonify(redirects=redirects, csrf_token=server.app.csrf_token())
+	return flask.json.jsonify(redirects=redirects)
 
 @server.app.route('/spam/test', methods=['POST'])
 @login.require_mod
@@ -95,7 +95,7 @@ async def spam_test(session):
 	# Validation checks
 	error = verify_rules(rules)
 	if error:
-		return flask.json.jsonify(error=error, csrf_token=server.app.csrf_token())
+		return flask.json.jsonify(error=error)
 
 	for rule in rules:
 		rule['re'] = re.compile(rule['re'])
@@ -128,7 +128,7 @@ async def spam_test(session):
 				'line': line,
 				'spam': False,
 			})
-	return flask.json.jsonify(result=result, csrf_token=server.app.csrf_token())
+	return flask.json.jsonify(result=result)
 
 @server.app.route('/spam/find')
 @login.require_mod

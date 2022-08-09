@@ -187,7 +187,6 @@ function getAsJSON()
 
 function saveSuccess(data)
 {
-	window.csrf_token = data["csrf_token"];
 	$('div.loading').hide();
 	$('button.save').show();
 	alert("Saved");

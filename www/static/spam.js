@@ -128,7 +128,6 @@ function redirects()
 		'dataType': 'json',
 		'async': true,
 		'success': function(data) {
-			window.csrf_token = data["csrf_token"];
 			var urls = data["redirects"];
 			var container = $("ol.redirects");
 			container.empty();
@@ -158,7 +157,6 @@ function getAsJSON()
 
 function saveSuccess(data)
 {
-	window.csrf_token = data["csrf_token"];
 	$('div.save.loading').hide();
 	$('button.save').show();
 	if (saveFailure(data))
@@ -168,7 +166,6 @@ function saveSuccess(data)
 
 function testSuccess(data)
 {
-	window.csrf_token = data["csrf_token"];
 	$('div.test.loading').hide();
 	$('button.test').show();
 	if (saveFailure(data))

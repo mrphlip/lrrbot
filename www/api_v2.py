@@ -13,7 +13,6 @@ import functools
 import urllib.parse
 from common import card
 from common.postgres import escape_like
-from flaskext.csrf import csrf_exempt
 import logging
 log = logging.getLogger("api_v2")
 
@@ -114,7 +113,7 @@ async def get_tweet():
 	return await common.rpc.bot.get_tweet()
 
 @blueprint.route("/disconnect", methods=["POST"])
-@csrf_exempt
+@server.csrf.exempt
 @require_mod
 async def disconnect(session):
 	await common.rpc.bot.disconnect_from_chat()
@@ -170,7 +169,7 @@ CARD_GAME_CODE_MAPPING = {
 	'keyforge': 2,
 }
 @blueprint.route("/cardviewer", methods=["POST"])
-@csrf_exempt
+@server.csrf.exempt
 @require_mod
 async def cardviewer_announce(session):
 	if not flask.request.is_json:

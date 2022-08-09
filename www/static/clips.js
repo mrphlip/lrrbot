@@ -45,7 +45,6 @@ function clickVote(row, vote)
 
 function voteSuccess(row, vote, data)
 {
-	window.csrf_token = data["csrf_token"];
 	row.data('currentvote', vote);
 	row.find('div.votes').show();
 	row.find('div.loading').hide();
