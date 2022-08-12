@@ -23,7 +23,7 @@ log = logging.getLogger("desertbus_moderator_actions")
 SPREADSHEET = "1KEEcv-hGEIwkHARpK-X6TBWUT3x8HpgG0i4tk16_Ysw"
 WATCHCHANNEL = 'desertbus'
 WATCHAS = 'mrphlip'  # because lrrbot isn't a mod in the channel
-DESERTBUS_START = config["timezone"].localize(datetime.datetime(2021, 11, 12, 18, 0))
+DESERTBUS_START = config["timezone"].localize(datetime.datetime(2022, 11, 12, 14, 0))
 
 class ModeratorActions:
 	def __init__(self, lrrbot, loop):
