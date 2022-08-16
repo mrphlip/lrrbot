@@ -53,6 +53,7 @@ class Proxy:
 					node = getattr(node, key)
 				return await node(*args, **kwargs)
 			except ConnectionResetError:
+				self.__client._connection = None
 				await asyncio.sleep(1)
 		raise ConnectionResetError
 
