@@ -520,12 +520,8 @@
             "version": "==3.1.2"
         },
         "mako": {
-            "hashes": [
-                "sha256:df3921c3081b013c8a2d5ff03c18375651684921ae83fd12e64800b7da923257",
-                "sha256:f054a5ff4743492f1aa9ecc47172cb33b42b9d993cffcc146c9de17e717b0307"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==1.2.1"
+            "hashes": [],
+            "version": "==1.2.2"
         },
         "markupsafe": {
             "hashes": [
