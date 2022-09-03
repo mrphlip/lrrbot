@@ -119,12 +119,8 @@
             "version": "==1.8.1"
         },
         "arrow": {
-            "hashes": [
-                "sha256:05caf1fd3d9a11a1135b2b6f09887421153b94558e5ef4d090b567b47173ac2b",
-                "sha256:d622c46ca681b5b3e3574fcb60a04e5cc81b9625112d5fb2b44220c36c892177"
-            ],
-            "markers": "python_version >= '3.6'",
-            "version": "==1.2.2"
+            "hashes": [],
+            "version": "==1.2.3"
         },
         "asgiref": {
             "hashes": [
