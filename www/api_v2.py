@@ -194,9 +194,9 @@ async def cardviewer_announce(session):
 		exact = card.clean_text(req['name'])
 		hidden = False
 		if 'variant' in req:
-			name += escape_like("_" + req['variant'])
-			exact += "_" + req['variant']
-			hidden = True
+			#name += escape_like("_" + req['variant'])
+			#exact += "_" + req['variant']
+			#hidden = True
 
 		exact_query = sqlalchemy.exists().where(cards.c.filteredname == exact)
 		if not hidden:
