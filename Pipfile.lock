@@ -203,12 +203,8 @@
             "version": "==1.1.1"
         },
         "flask-sqlalchemy": {
-            "hashes": [
-                "sha256:2bda44b43e7cacb15d4e05ff3cc1f8bc97936cc464623424102bfc2c35e95912",
-                "sha256:f12c3d4cc5cc7fdcc148b9527ea05671718c3ea45d50c7e732cceb33f574b390"
-            ],
-            "index": "pypi",
-            "version": "==2.5.1"
+            "hashes": [],
+            "version": "==3.0.2"
         },
         "frozenlist": {
             "hashes": [
