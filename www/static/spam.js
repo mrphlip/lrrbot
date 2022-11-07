@@ -19,6 +19,13 @@ function addRow()
 			"<td class='action'>" +
 				"<div class='button icon remove'></div>" +
 			"</td>" +
+			"<td class='pattern-type'>" +
+				"<select>" +
+					"<option value='text'>Text</option>" +
+					"<option value='confusables'>Confusables</option>" +
+					"<option value='regex'>Regular expression</option>" +
+				"</select>" +
+			"</td>" +
 			"<td class='re'>" +
 				"<input type='text'>" +
 			"</td>" +
@@ -55,30 +62,6 @@ function fixRows()
 		alternate = !alternate;
 		$(this).removeClass("odd even").addClass(alternate ? "odd" : "even");
 	});
-}
-
-function addText()
-{
-	var field = $(
-		"<div>" +
-			"<div class='button icon remove'></div>" +
-			"<div class='input'><input type='text'></div>" +
-		"</div>"
-	);
-	field.find('div.button.remove').click(deleteText);
-	$(this).parent().before(field);
-	$(this).closest('td').find('div.button.remove').removeClass('disabled');
-}
-
-function deleteText()
-{
-	var td = $(this).closest('td');
-	var inputCount = td.find('input').length;
-	if (inputCount <= 1)
-		return;
-	$(this).parent().remove();
-	if (inputCount <= 2)
-		td.find('div.button.remove').addClass('disabled');
 }
 
 function save()
@@ -147,6 +130,7 @@ function getAsJSON()
 	$('table.spam tbody tr').each(function() {
 		var row = $(this);
 		data.push({
+			'pattern_type': row.find('td.pattern-type select').val(),
 			're': row.find('td.re input').val(),
 			'message': row.find('td.response input').val(),
 			'type': row.find('td.type select').val(),
@@ -195,7 +179,7 @@ function saveFailure(data)
 	if (data.error)
 	{
 		var row = $('table.spam tr').eq(data.error.row + 1);
-		var cell = row.find(["td.response input", "td.re input", "td.type select"][data.error.col]);
+		var cell = row.find(["td.pattern-type input", "td.response input", "td.re input", "td.type select"][data.error.col]);
 		cell.addClass("error");
 		alert(data.error.msg);
 		return true;

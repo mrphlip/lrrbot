@@ -1,16 +1,18 @@
+import asyncio
+import confusables
+import datetime
 import flask
 import flask.json
+import pytz
+import re
+import sqlalchemy
 
 import common.url
 import common.rpc
+import common.spam
 from www import server
 from www import login
 from www import history
-import re
-import datetime
-import pytz
-import asyncio
-import sqlalchemy
 
 @server.app.route('/spam')
 @login.require_mod
@@ -21,21 +23,24 @@ async def spam(session):
 
 def verify_rules(rules):
 	for ix, rule in enumerate(rules):
+		# Check the pattern type
+		if rule['pattern_type'] not in ('text', 'confusables', 'regex'):
+			return {"msg": "Incorrect pattern type", "row": ix, "col": 0}
 		# Test the regular expression is valid
 		try:
 			re_rule = re.compile(rule['re'])
 		except re.error as ex:
-			return {"msg": str(ex), "row": ix, "col": 0}
+			return {"msg": str(ex), "row": ix, "col": 1}
 		# Test the response message uses the right groups
 		try:
 			rule['message'] % {str(i + 1): "" for i in range(re_rule.groups)}
 		except KeyError as ex:
-			return {"msg": "No group %s" % ex, "row": ix, "col": 1}
+			return {"msg": "No group %s" % ex, "row": ix, "col": 2}
 		except TypeError:
-			return {"msg": "Must use named placeholders", "row": ix, "col": 1}
+			return {"msg": "Must use named placeholders", "row": ix, "col": 2}
 		# Check the type setting
 		if rule['type'] not in ('spam', 'censor'):
-			return {"msg": "Incorrect type", "row": ix, "col": 2}
+			return {"msg": "Incorrect type", "row": ix, "col": 3}
 
 @server.app.route('/spam/submit', methods=['POST'])
 @login.require_mod
@@ -98,7 +103,7 @@ async def spam_test(session):
 		return flask.json.jsonify(error=error)
 
 	for rule in rules:
-		rule['re'] = re.compile(rule['re'])
+		rule['re'] = common.spam.compile_rule(rule)
 
 	result = []
 

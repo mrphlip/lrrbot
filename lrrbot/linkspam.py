@@ -19,7 +19,7 @@ class LinkSpam:
 		self.re_url = loop.run_until_complete(common.url.url_regex())
 		self.rules = [
 			{
-				"re": re.compile(rule["re"], re.IGNORECASE),
+				"re": common.spam.compile_rule(rule),
 				"message": rule["message"],
 				"type": rule.get('type', 'spam'),
 			}
@@ -34,7 +34,7 @@ class LinkSpam:
 		storage.save()
 		self.rules = [
 			{
-				"re": re.compile(rule['re'], re.IGNORECASE),
+				"re": common.spam.compile_rule(rule),
 				"message": rule['message'],
 				"type": rule.get('type', 'spam'),
 			}
