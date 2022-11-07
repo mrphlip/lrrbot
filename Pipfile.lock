@@ -273,7 +273,7 @@
         },
         "greenlet": {
             "hashes": [],
-            "version": "==2.0.0.post0"
+            "version": "==2.0.1"
         },
         "idna": {
             "hashes": [
