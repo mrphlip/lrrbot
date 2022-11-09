@@ -128,19 +128,19 @@ def history_diff(session, fromkey, tokey):
 		data = list(data.items())
 		data.sort(key=lambda a:a[0].lower())
 	elif tosection in ('spam', 'link_spam'):
-		fromdata = [(i['re'], i['message']) for i in fromdata]
-		todata = [(i['re'], i['message']) for i in todata]
+		fromdata = [(i.get('pattern_type', 'regex'), i['re'], i['message']) for i in fromdata]
+		todata = [(i.get('pattern_type', 'regex'), i['re'], i['message']) for i in todata]
 		data = []
 		differ = difflib.SequenceMatcher(a=fromdata, b=todata)
 		for op, i1, j1, i2, j2 in differ.get_opcodes():
 			if op == "equal":
 				for i in range(i1, j1):
-					data.append({'re': fromdata[i][0], 'message': fromdata[i][1], 'mode': 'both nochange'})
+					data.append({'pattern_type': fromdata[i][0], 're': fromdata[i][1], 'message': fromdata[i][2], 'mode': 'both nochange'})
 			else:
 				for i in range(i1, j1):
-					data.append({'re': fromdata[i][0], 'message': fromdata[i][1], 'mode': 'from'})
+					data.append({'pattern_type': fromdata[i][0], 're': fromdata[i][1], 'message': fromdata[i][2], 'mode': 'from'})
 				for i in range(i2, j2):
-					data.append({'re': todata[i][0], 'message': todata[i][1], 'mode': 'to'})
+					data.append({'pattern_type': todata[i][0], 're': todata[i][1], 'message': todata[i][2], 'mode': 'to'})
 	headdata = build_headdata(fromkey, tokey, tosection, touser, totime)
 	return flask.render_template("historyshow.html", data=data, headdata=headdata, session=session)
 

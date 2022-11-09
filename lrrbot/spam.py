@@ -1,9 +1,8 @@
 import aiomas
 import asyncio
-import re
 import logging
 
-import common.url
+import common.spam
 from common import utils
 from lrrbot import storage
 import irc.client
@@ -17,7 +16,7 @@ class Spam:
 		self.loop = loop
 		self.lrrbot = lrrbot
 		self.rules = [
-			(re.compile(rule["re"]), rule["message"], rule.get('type', 'spam'))
+			(common.spam.compile_rule(rule), rule["message"], rule.get('type', 'spam'))
 			for rule in storage.data.get("spam_rules", [])
 		]
 		self.lrrbot.rpc_server.spam = self
@@ -29,7 +28,7 @@ class Spam:
 		storage.data['spam_rules'] = data
 		storage.save()
 		self.rules = [
-			(re.compile(rule['re']), rule['message'], rule.get('type', 'spam'))
+			(common.spam.compile_rule(rule), rule['message'], rule.get('type', 'spam'))
 			for rule in storage.data['spam_rules']
 		]
 

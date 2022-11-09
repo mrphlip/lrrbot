@@ -25,6 +25,7 @@ Flask-SQLAlchemy = "*"
 Jinja2 = "*"
 SQLAlchemy = "*"
 typing-extensions = "*"
+confusables = "*"
 
 [requires]
 python_version = "3.10"

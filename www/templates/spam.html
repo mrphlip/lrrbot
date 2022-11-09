@@ -9,10 +9,17 @@
 <script type="text/javascript" src="{{static_url('spam.js')|e}}"></script>
 <script type="text/javascript">
 $(function(){
-	$(".tooltip").tooltip({
+	$("th.type .tooltip").tooltip({
 		'items': '.tooltip',
 		'content': function() {
 			return "<dl><dt>Spam</dt><dd>Intended for spam bots. First instance is just a purge, in case of a false positive, but second strike is a timeout, and third strike is a ban.</dd><dt>Censor</dt><dd>Inteneded for no-no words actual humans say, but we don't want them to. Will only purge, no escalation, and the whispered warning is more gentle.</dd></dl>";
+		}
+	});
+
+	$("th.pattern-type .tooltip").tooltip({
+		'items': '.tooltip',
+		'content': function() {
+			return "<dl><dt>Text</dt><dd>Match text as written. Case sensitive.</dd><dt>Confusables</dt><dd>Match text but also consider look-alike symbols.</dd><dt>Regular expression</dt><dd>Match using regular expressions.</dd></dl>";
 		}
 	});
 })
@@ -28,6 +35,7 @@ $(function(){
 		{% endif %}
 	</li>
 	<li><a href="{{url_for('spam_find')|e}}">Find potential spambots</a></li>
+	<li><a href='https://docs.python.org/3/library/re.html#regular-expression-syntax'>Regular expression syntax</a></li>
 </ol>
 <div style="text-align:right; margin: 1em">
 	<button class="save">Save</button>
@@ -37,6 +45,7 @@ $(function(){
 <thead>
 <tr>
 	<th class="action"></th>
+	<th class="pattern-type">Pattern type <span class="tooltip" title="Text: Match text as written. Case sensitive. // Confusables: Match text but also consider look-alike symbols. // Regular expression: Match using regular expressions.">[?]</span></th>
 	<th class="re">Expression</th>
 	<th class="message">Message</th>
 	<th class="type">Type <span class="tooltip" title="Spam: Intended for spam bots. First instance is just a purge, in case of a false positive, but second strike is a timeout, and third strike is a ban. // Censor: Inteneded for no-no words actual humans say, but we don't want them to. Will only purge, no escalation, and the whispered warning is more gentle.">[?]</span></th>
@@ -47,6 +56,13 @@ $(function(){
 <tr class="{{loop.cycle('odd', 'even')}}">
 	<td class="action">
 		<div class="button icon remove"></div>
+	</td>
+	<td class="pattern-type">
+		<select>
+			<option value="text" {% if rule.get('pattern_type', 'regex') == 'text' %}selected{% endif %}>Text</option>
+			<option value="confusables" {% if rule.get('pattern_type', 'regex') == 'confusables' %}selected{% endif %}>Confusables</option>
+			<option value="regex" {% if rule.get('pattern_type', 'regex') == 'regex' %}selected{% endif %}>Regular expression</option>
+		</select>
 	</td>
 	<td class="re">
 		<input type="text" value="{{rule['re']|e}}">
@@ -68,6 +84,7 @@ $(function(){
 	<td class="action">
 		<div class="button icon add"></div>
 	</td>
+	<td class="pattern-type"></td>
 	<td class="re"></td>
 	<td class="response"></td>
 	<td class="type"></td>

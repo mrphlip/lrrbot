@@ -47,6 +47,7 @@ $(function(){
 <table class="historyshow nicetable">
 <thead>
 	<tr>
+		<th class="pattern-type">Pattern type</th>
 		<th class="expression">Expression</th>
 		<th class="message">Message</th>
 	</tr>
@@ -54,6 +55,7 @@ $(function(){
 <tbody>
 	{%for row in data%}
 		<tr class="{{row['mode']|e}}">
+			<td class="pattern-type">{{row['pattern_type']|e}}</td>
 			<td class="expression">{{row['re']|e}}</td>
 			<td class="message">{{row['message']|e}}</td>
 		</tr>
