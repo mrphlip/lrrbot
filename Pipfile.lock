@@ -165,11 +165,8 @@
             "version": "==22.1.0"
         },
         "autocommand": {
-            "hashes": [
-                "sha256:85d03044c2a1fc1c7844ac41545045927aecde0cbaf8ea28b88e0cd8588ce5d3",
-                "sha256:fed420e9d02745821a782971b583c6970259ee0b229be2a0a401e1467a4f170f"
-            ],
-            "version": "==2.2.1"
+            "hashes": [],
+            "version": "==2.2.2"
         },
         "blinker": {
             "hashes": [
