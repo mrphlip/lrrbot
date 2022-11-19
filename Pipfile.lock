@@ -531,12 +531,8 @@
             "version": "==3.8.0"
         },
         "jaraco.context": {
-            "hashes": [
-                "sha256:9327d3e6901923e5a7097aa2df4b9c2bc13f845c7672692e3827ebd1b3d67606",
-                "sha256:a58e94dd67871639abc091b57d32842449b230777570ef2bcec3dc16b912613e"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==4.1.2"
+            "hashes": [],
+            "version": "==4.2.0"
         },
         "jaraco.functools": {
             "hashes": [
