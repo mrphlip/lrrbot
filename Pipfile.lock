@@ -563,12 +563,8 @@
             "version": "==3.0.3"
         },
         "jaraco.text": {
-            "hashes": [
-                "sha256:1c512323b78128126e3eb1343aa7294c7fcfda05634af92b0c31f808a1e71415",
-                "sha256:467ae869cd24d119045593852cc2ac4e910977740162955acfa96f354c1715e9"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==3.10.0"
+            "hashes": [],
+            "version": "==3.11.0"
         },
         "jinja2": {
             "hashes": [
