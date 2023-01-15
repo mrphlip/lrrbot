@@ -806,11 +806,8 @@
             "version": "==1.6.0"
         },
         "pytz": {
-            "hashes": [
-                "sha256:7ccfae7b4b2c067464a6733c6261673fdb8fd1be905460396b97a073e9fa683a",
-                "sha256:93007def75ae22f7cd991c84e02d434876818661f8df9ad5df9e950ff4e52cfd"
-            ],
-            "version": "==2022.7"
+            "hashes": [],
+            "version": "==2022.7.1"
         },
         "regex": {
             "hashes": [
