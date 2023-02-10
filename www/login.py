@@ -167,7 +167,8 @@ async def load_session(include_url=True, include_header=True):
 				]).where(shows.c.id == show_id)).first()
 
 		if not session['header']['is_live']:
-			session['header']['nextstream'] = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
+			message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
+			session['header']['nextstream'] = message
 
 	if user_id is not None:
 		user_id = int(user_id)

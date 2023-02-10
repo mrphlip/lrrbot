@@ -22,7 +22,8 @@ def stormcount():
 
 @server.app.route("/api/next")
 async def nextstream():
-	return await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
+	message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
+	return message
 
 @server.app.route("/api/show/<show>")
 @login.with_minimal_session

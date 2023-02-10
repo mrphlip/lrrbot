@@ -152,6 +152,8 @@ async def get_next_event_text(calendar, after=None, include_current=None, tz=Non
 	The tz parameter can override the timezone used to display the event times.
 	This can be an actual timezone object, or a string timezone name.
 	Defaults to moonbase time.
+
+	Returns the chat message, and the first timestamp of the events shown.
 	"""
 	if after is None:
 		after = datetime.datetime.now(datetime.timezone.utc)
@@ -210,4 +212,5 @@ async def get_next_event_text(calendar, after=None, include_current=None, tz=Non
 	else:
 		response = ", ".join(concise_strs)
 
-	return utils.trim_length(response) # For safety
+	response = utils.trim_length(response) # For safety
+	return response, events[0]['start']

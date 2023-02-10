@@ -74,8 +74,6 @@ def spamcount(lrrbot, conn, event, respond_to):
 
 # When Desert Bus starts
 DESERTBUS_START = config["timezone"].localize(datetime.datetime(2022, 11, 12, 14, 0))
-# Approximately the last stream before desert bus - when !next should start plugging Desert Bus instead
-DESERTBUS_PRESTART = DESERTBUS_START - datetime.timedelta(days=1)  # If LRR is streaming a day before DB, good luck to them
 # When !desertbus should stop claiming the run is still active
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
@@ -92,11 +90,12 @@ async def next(lrrbot, conn, event, respond_to, timezone):
 
 	If no time zone is specified, times will be shown in Moonbase time.
 	"""
-	if DESERTBUS_PRESTART < datetime.datetime.now(datetime.timezone.utc) < DESERTBUS_END:
+	message, eventtime = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone)
+	if datetime.datetime.now(datetime.timezone.utc) < DESERTBUS_END and eventtime > DESERTBUS_START:
 		# If someone says !next before/during Desert Bus, plug that instead
 		desertbus(lrrbot, conn, event, respond_to, timezone)
 	else:
-		conn.privmsg(respond_to, await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone))
+		conn.privmsg(respond_to, message)
 
 @bot.command("(?:db ?count(?: |-)?down|db ?next|next ?db)( .*)?")
 @lrrbot.decorators.throttle()
@@ -137,7 +136,8 @@ async def nextfan(lrrbot, conn, event, respond_to, timezone):
 
 	Gets the next scheduled stream from the fan-streaming calendar
 	"""
-	conn.privmsg(respond_to, await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True))
+	message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True)
+	conn.privmsg(respond_to, message)
 
 @bot.command("time")
 @lrrbot.decorators.throttle()
@@ -263,7 +263,8 @@ async def get_status_msg(lrrbot):
 			messages.append("Currently showing %s." % show)
 		messages.append(uptime_msg(stream_info))
 	else:
-		messages.append(await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL))
+		message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
+		messages.append(message)
 	if 'advice' in storage.data['responses']:
 		messages.append(random.choice(storage.data['responses']['advice']['response']))
 	return ' '.join(messages)
