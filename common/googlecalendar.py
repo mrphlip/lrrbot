@@ -3,10 +3,12 @@ import json
 import urllib.parse
 import textwrap
 import string
+import re
 
 import dateutil.parser
 import pytz
 import pytz.exceptions
+from html2text import html2text
 
 import common.http
 import common.time
@@ -122,8 +124,15 @@ async def get_next_event(calendar, after=None, include_current=False):
 	lookahead_end = events[first_future_event]['start'] + LOOKAHEAD_PERIOD
 	return [ev for i,ev in enumerate(events) if (i >= first_future_event or include_current) and ev['start'] < lookahead_end]
 
+re_linebreak = re.compile(r"<br\s*/?>", re.IGNORECASE)
 def process_description(description):
-	lines = [line.strip() for line in description.splitlines() if len(line) > 0]
+	if re_linebreak.search(description):
+		lines = re_linebreak.split(description)
+		lines = [html2text(line) for line in lines]
+		lines = [line.replace("\n", " ") for line in lines]
+	else:
+		lines = description.splitlines()
+	lines = [line.strip() for line in lines if line]
 
 	if len(lines) == 2:
 		# Show info from LRR (issue #270): line 1 is game, line 2 is show description
