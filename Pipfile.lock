@@ -126,12 +126,8 @@
             "version": "==1.3.1"
         },
         "alembic": {
-            "hashes": [
-                "sha256:8fd6aaea56f5a703a190d25a705dfa91d7c313bb71de2f9c68f5abdcaf5df164",
-                "sha256:ed2f73ea9c986f43af8ad7502c5f60d6bb1400bcd6d29f230e760e08884cb476"
-            ],
-            "index": "pypi",
-            "version": "==1.9.3"
+            "hashes": [],
+            "version": "==1.9.4"
         },
         "arrow": {
             "hashes": [
