@@ -38,7 +38,7 @@
         },
         "alembic": {
             "hashes": [],
-            "version": "==1.9.4"
+            "version": "==1.10.2"
         },
         "arrow": {
             "hashes": [
