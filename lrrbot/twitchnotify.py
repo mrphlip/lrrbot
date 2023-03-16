@@ -330,7 +330,6 @@ class TwitchNotify:
 			'login': login,
 			'name': user,
 			'count': count,
-			'eventtime': eventtime,
 		}
 
 		if logo is None:
