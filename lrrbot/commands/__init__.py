@@ -8,4 +8,3 @@ import lrrbot.commands.static
 import lrrbot.commands.strawpoll
 import lrrbot.commands.quote
 import lrrbot.commands.live
-import lrrbot.commands.host
