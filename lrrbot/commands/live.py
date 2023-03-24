@@ -68,18 +68,18 @@ async def live(lrrbot, conn, event, respond_to):
 	if streams == []:
 		return conn.privmsg(respond_to, "No fanstreamers currently live.")
 
-	streams.sort(key=lambda e: e["channel"]["display_name"])
+	streams.sort(key=lambda e: e["user_name"])
 
 	tag = "Currently live fanstreamers: "
 
 	# Full message
 	message = tag + ", ".join([
-		"%s (%s%s)%s%s" % (
-			data["channel"]["display_name"],
-			data["channel"]["url"],
+		"%s (https://twitch.tv/%s%s)%s%s" % (
+			data["user_name"],
+			data["user_login"],
 			space.SPACE,
-			" is playing %s" % data["game"] if data.get("game") is not None else "",
-			" (%s)" % data["channel"]["status"] if data["channel"].get("status") not in [None, ""] else ""
+			" is playing %s" % data["game_name"] if data.get("game_name") is not None else "",
+			" (%s)" % data["title"] if data.get("title") not in [None, ""] else ""
 		) for data in streams
 	])
 	if utils.check_length(message):
@@ -87,11 +87,11 @@ async def live(lrrbot, conn, event, respond_to):
 
 	# Shorter message
 	message = tag + ", ".join([
-		"%s (%s%s)%s" % (
-			data["channel"]["display_name"],
-			data["channel"]["url"],
+		"%s (https://twitch.tv/%s%s)%s" % (
+			data["user_name"],
+			data["user_login"],
 			space.SPACE,
-			" is playing %s" % data["game"] if data.get("game") is not None else "",
+			" is playing %s" % data["game_name"] if data.get("game_name") is not None else "",
 		) for data in streams
 	])
 	if utils.check_length(message):
@@ -99,9 +99,9 @@ async def live(lrrbot, conn, event, respond_to):
 
 	# Shortest message
 	message = tag + ", ".join([
-		"%s (%s%s)" % (
-			data["channel"]["display_name"],
-			data["channel"]["url"],
+		"%s (https://twitch.tv%s%s)" % (
+			data["user_name"],
+			data["user_login"],
 			space.SPACE
 		) for data in streams
 	])
