@@ -484,6 +484,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	async def ban(self, conn, event, reason, bantype):
 		source = irc.client.NickMask(event.source)
 		display_name = event.tags.get("display-name", source.nick)
+
+		if self.is_mod(event):
+			# Can't time out or ban other moderators, unfortunately.
+			log.info("%s is a moderator, not timing out" % display_name)
+			return
+
 		if bantype == "spam":
 			# Start lenient in case of false positives, but then escalate
 			self.spammers.setdefault(source.nick.lower(), 0)
@@ -491,15 +497,15 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			level = self.spammers[source.nick.lower()]
 			if level <= 1:
 				log.info("First offence, flickering %s" % display_name)
-				conn.privmsg(event.target, ".timeout %s 1 %s" % (source.nick, reason))
+				await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 1)
 				conn.privmsg(source.nick, "Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
 			elif level <= 2:
 				log.info("Second offence, timing out %s" % display_name)
-				conn.privmsg(event.target, ".timeout %s 600 %s" % (source.nick, reason))
+				await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 600)
 				conn.privmsg(source.nick, "Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
 			else:
 				log.info("Third offence, banning %s" % display_name)
-				conn.privmsg(event.target, ".ban %s %s" % (source.nick, reason))
+				await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason)
 				conn.privmsg(source.nick, "Banned for persistent spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
 				level = 3
 			today = datetime.datetime.now(config['timezone']).date().toordinal()
@@ -513,7 +519,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		elif bantype == "censor":
 			# Only purges, no escalation
 			log.info("Censor hit, flickering %s" % display_name)
-			conn.privmsg(event.target, ".timeout %s 1 %s" % (source.nick, reason))
+			await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 1)
 			conn.privmsg(source.nick, "Your message was automatically deleted (%s). You have not been banned or timed out, and are welcome to continue participating in the chat. Please contact mrphlip or any other channel moderator if you feel this is incorrect." % reason)
 
 	@utils.swallow_errors

@@ -1,7 +1,4 @@
 import json
-import random
-import socket
-import dateutil.parser
 import sqlalchemy
 from sqlalchemy.dialects.postgresql import insert
 import collections
@@ -447,3 +444,34 @@ def get_followers(channel=None):
 		'Authorization': f"Bearer {get_token()}",
 	}
 	return get_paginated_helix(url, data={"to_id": channelid}, headers=headers)
+
+async def ban_user(channel_id, user_id, reason=None, duration=None):
+	"""
+	Ban a user from chat.
+
+	See:
+	https://dev.twitch.tv/docs/api/reference/#ban-user
+	"""
+	moderator = get_user(name=config['username'], get_missing=False)
+
+	url = "https://api.twitch.tv/helix/moderation/bans?broadcaster_id=%s&moderator_id=%s" % (
+		channel_id,
+		moderator.id,
+	)
+
+	headers = {
+		'Client-ID': config['twitch_clientid'],
+		'Authorization': f"Bearer {moderator.token}",
+	}
+
+	data = {
+		"user_id": str(user_id),
+	}
+	if reason is not None:
+		data["reason"] = reason
+	if duration is not None:
+		data["duration"] = duration
+
+	data = await common.http.request_coro(url, method="POST", headers=headers, data={"data": data}, asjson=True)
+
+	return json.loads(data)['data']
