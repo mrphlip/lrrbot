@@ -1,7 +1,4 @@
-import asyncio
 import functools
-import urllib.request
-import urllib.parse
 import uuid
 
 import flask
@@ -15,7 +12,6 @@ from common.config import config, from_apipass
 from common import utils
 from common import http
 from common import twitch
-from common import game_data
 from common import googlecalendar
 import common.rpc
 
@@ -62,7 +58,7 @@ def with_session(func):
 	@functools.wraps(func)
 	async def wrapper(*args, **kwargs):
 		kwargs['session'] = await load_session()
-		return await asyncio.coroutine(func)(*args, **kwargs)
+		return await utils.wrap_as_coroutine(func)(*args, **kwargs)
 	return wrapper
 
 def with_minimal_session(func):
@@ -82,7 +78,7 @@ def with_minimal_session(func):
 	@functools.wraps(func)
 	async def wrapper(*args, **kwargs):
 		kwargs['session'] = await load_session(include_url=False, include_header=False)
-		return await asyncio.coroutine(func)(*args, **kwargs)
+		return await utils.wrap_as_coroutine(func)(*args, **kwargs)
 	return wrapper
 
 def require_login(func):
@@ -95,7 +91,7 @@ def require_login(func):
 		session = await load_session()
 		if session['user']['id'] is not None:
 			kwargs['session'] = session
-			return await asyncio.coroutine(func)(*args, **kwargs)
+			return await utils.wrap_as_coroutine(func)(*args, **kwargs)
 		else:
 			return await login(session['url'])
 	return wrapper
@@ -112,7 +108,7 @@ def require_mod(func):
 		if session['user']['id'] is not None:
 			kwargs['session'] = session
 			if session['user']['is_mod']:
-				return await asyncio.coroutine(func)(*args, **kwargs)
+				return await utils.wrap_as_coroutine(func)(*args, **kwargs)
 			else:
 				return flask.render_template('require_mod.html', session=session)
 		else:
@@ -263,7 +259,7 @@ async def login(return_to=None):
 			headers = {
 				'Client-ID': config['twitch_clientid'],
 			}
-			res_json = await common.http.request_coro("https://id.twitch.tv/oauth2/token", method="POST", data=oauth_params, headers=headers)
+			res_json = await http.request_coro("https://id.twitch.tv/oauth2/token", method="POST", data=oauth_params, headers=headers)
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('access_token'):
 				raise Exception("No access token from Twitch: %s" % res_json)
@@ -272,7 +268,7 @@ async def login(return_to=None):
 
 			# Use that access token to get basic information about the user
 			headers['Authorization'] = f"Bearer {access_token}"
-			res_json = await common.http.request_coro("https://api.twitch.tv/helix/users", headers=headers)
+			res_json = await http.request_coro("https://api.twitch.tv/helix/users", headers=headers)
 			res_object = flask.json.loads(res_json)
 			user_id = res_object['data'][0]['id']
 			user_name = res_object['data'][0]['login'].lower()

@@ -11,13 +11,11 @@ import time
 import heapq
 import logging.config
 import configparser
-import sqlalchemy
 import re
 
 import werkzeug.datastructures
 
 from common import config
-from common import postgres
 
 # Need to delay creation of our "log" until init_logging is called
 log = None
@@ -39,6 +37,23 @@ def deindent(s):
 		yield line
 		yield from generator
 	return "\n".join(skipblank())
+
+def wrap_as_coroutine(func):
+	"""
+	Wrap a regular function in a coroutine function. If `func` is already a coroutine function it is
+	returned unmodified.
+
+	Replacement for `asyncio.coroutine()` which got removed in Python 3.11.
+	"""
+
+	if inspect.iscoroutinefunction(func):
+		return func
+
+	@functools.wraps(func)
+	async def wrapper(*args, **kwargs):
+		return func(*args, **kwargs)
+
+	return wrapper
 
 def coro_decorator(decorator):
 	"""
@@ -72,12 +87,9 @@ def coro_decorator(decorator):
 	EXTRA_PARAMS = ('reset_throttle',)
 	@functools.wraps(decorator)
 	def wrapper(func):
-		is_coro = asyncio.iscoroutinefunction(func)
-		if not is_coro:
-			func = asyncio.coroutine(func)
-
-		decorated_coro = decorator(func)
-		assert asyncio.iscoroutinefunction(decorated_coro)
+		is_coro = inspect.iscoroutinefunction(func)
+		decorated_coro = decorator(wrap_as_coroutine(func))
+		assert inspect.iscoroutinefunction(decorated_coro)
 
 		if is_coro:
 			return decorated_coro

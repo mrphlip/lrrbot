@@ -1,6 +1,6 @@
-import asyncio
 import re
 from common.config import config
+from common import utils
 
 class CommandParser:
 	def __init__(self, loop):
@@ -11,8 +11,7 @@ class CommandParser:
 		self.re_botcommand = None
 
 	def add(self, pattern, function):
-		if not asyncio.iscoroutinefunction(function):
-			function = asyncio.coroutine(function)
+		function = utils.wrap_as_coroutine(function)
 		pattern = pattern.replace(" ", r"(?:\s+)")
 		self.commands[pattern] = {
 			"groups": re.compile(pattern, re.IGNORECASE).groups,

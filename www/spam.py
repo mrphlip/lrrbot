@@ -1,5 +1,4 @@
 import asyncio
-import confusables
 import datetime
 import flask
 import flask.json
@@ -60,7 +59,7 @@ async def spam_submit(session):
 	history.store("link_spam" if link_spam else "spam", session['user']['id'], data)
 	return flask.json.jsonify(success='OK')
 
-def do_check(line, rules):
+async def do_check(line, rules):
 	for rule in rules:
 		matches = rule['re'].search(line)
 		if matches:
@@ -107,7 +106,7 @@ async def spam_test(session):
 
 	result = []
 
-	check = do_check_links if link_spam else asyncio.coroutine(do_check)
+	check = do_check_links if link_spam else do_check
 
 	re_twitchchat = re.compile("^\w*:\s*(.*)$")
 	re_irc = re.compile("<[^<>]*>\s*(.*)$")

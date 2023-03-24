@@ -1,19 +1,20 @@
-import asyncio
-import sqlalchemy
-from www import server
-from www import login
-from common.config import config
-import common.rpc
 import datetime
-import pytz
-import flask
-import common.storm
-from common import googlecalendar
 import functools
-import urllib.parse
-from common import card
-from common.postgres import escape_like
 import logging
+import urllib.parse
+
+import flask
+import pytz
+import sqlalchemy
+
+from common import card
+import common.rpc
+import common.storm
+from common import utils
+from common.postgres import escape_like
+from www import login
+from www import server
+
 log = logging.getLogger("api_v2")
 
 def require_mod(func):
@@ -22,7 +23,7 @@ def require_mod(func):
 		session = await login.load_session(include_url=False, include_header=False)
 		kwargs['session'] = session
 		if session['user']['is_mod']:
-			return await asyncio.coroutine(func)(*args, **kwargs)
+			return await utils.wrap_as_coroutine(func)(*args, **kwargs)
 		else:
 			return flask.jsonify(message="%s is not a mod" % (session['user']['display_name'], )), 403
 	return wrapper
