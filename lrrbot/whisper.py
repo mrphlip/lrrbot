@@ -1,6 +1,8 @@
-import irc.client
 import logging
 import asyncio
+
+from common import twitch
+from common import utils
 
 log = logging.getLogger('whisper')
 
@@ -29,9 +31,12 @@ class TwitchWhisper:
 		while True:
 			target, text = await self.message_queue.get()
 			log.debug("Dequeue whisper: %r", (target, text))
-			if self.lrrbot.connection:
-				try:
-					self.lrrbot.connection.privmsg("#jtv", "/w %s %s" % (target, text))
-				except irc.client.ServerNotConnectedError:
-					pass
+
+			try:
+				await twitch.send_whisper(target, text)
+			except utils.PASSTHROUGH_EXCEPTIONS:
+				raise
+			except Exception:
+				log.exception("Failed to send a whisper to %s" % target)
+
 			await asyncio.sleep(2/3)

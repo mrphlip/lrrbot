@@ -475,3 +475,26 @@ async def ban_user(channel_id, user_id, reason=None, duration=None):
 	data = await common.http.request_coro(url, method="POST", headers=headers, data={"data": data}, asjson=True)
 
 	return json.loads(data)['data']
+
+async def send_whisper(target, message):
+	"""
+	Send a whisper message.
+
+	See:
+	https://dev.twitch.tv/docs/api/reference/#send-whisper
+	"""
+
+	from_user = get_user(name=config['username'], get_missing=False)
+	to_user = get_user(name=target)
+
+	url = 'https://api.twitch.tv/helix/whispers?from_user_id=%s&to_user_id=%s' % (
+		from_user.id,
+		to_user.id,
+	)
+
+	headers = {
+		'Client-ID': config['twitch_clientid'],
+		'Authorization': f"Bearer {from_user.token}",
+	}
+
+	await common.http.request_coro(url, method="POST", headers=headers, data={"message": message}, asjson=True)
