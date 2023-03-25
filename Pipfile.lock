@@ -355,29 +355,8 @@
             "version": "==1.2.0"
         },
         "cryptography": {
-            "hashes": [
-                "sha256:14da8c26755ffa5c7863ffa5e8b87cb9596a21b6c34852cb19e0f48c226c64fb",
-                "sha256:168ded448fb5d82dfa911156ab8b13b1716de65bd50ff977f4657643f998fa05",
-                "sha256:22e63fb48e2615cfab5a9c4bb457d35e7ae03ea8593996bfbe257e78244d12d0",
-                "sha256:23c42c59c2b5b9ddc6a85b5c46b8fabc4d63a1714f4dbea4bf20d25690bf2365",
-                "sha256:34f502619964210939bb7ee7cd5df53178534eb08d3526f941695a8f7aa0efe4",
-                "sha256:43089be365c0ca4235c6e4e781f3bc125bc1fff576c9dd22cdfb585309b9bb9d",
-                "sha256:6b36e2864e04c82634879c7e7aad48824b1847fdb06b64cd410d2ec5e51d1b31",
-                "sha256:7162ae4530958114ca2eee30a56eca46527def33493f622f059dc2e825fd0913",
-                "sha256:71cb346b9dd1537102e7466a2d629385b01847f8d96cd7405f0e717d91cebc8e",
-                "sha256:722cfddae79684166840be2cbbae154f44a455519e644b60bf274a50ccb834db",
-                "sha256:754dc5ab648113dc54197f242db43234a04e4d61193fb5d3ebb42bd569dca571",
-                "sha256:7cc9fc3ffcb766c313ed0515d77d0deabb4f36bdcff3a9f115c43e5ec611b82a",
-                "sha256:b05c9f25a1ea42e427085230815bbdebe15a53bb6163c4c06022e5630645046b",
-                "sha256:e5855a80c77565fe2464e88e0095764e25d8ddb2d24df2b1d31773e80be94435",
-                "sha256:e917a07094217edeefe8f6ea960b45d7aab650b982e4209da078332cc9d3ac3a",
-                "sha256:f2c4134d29cdce0735c16abf48fa8435f001a7b0031e68dd9a9ee1c80a29374a",
-                "sha256:f421f6777592eb199ca8abac7c20b9ecef27c50ad63546e6c614b29771b46d0d",
-                "sha256:fafa997b9e6818db333ded4b379f5b7679b48bd88ac878428cea2a1aa6e79fd8",
-                "sha256:fba36ec552794a06a07ac8bdc5ad83a587f6959d98547f373d401975d55c7c9e"
-            ],
-            "index": "pypi",
-            "version": "==40.0.0"
+            "hashes": [],
+            "version": "==40.0.1"
         },
         "flask": {
             "extras": [
