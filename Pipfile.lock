@@ -893,11 +893,8 @@
             "version": "==1.6.0"
         },
         "pytz": {
-            "hashes": [
-                "sha256:01a0681c4b9684a28304615eba55d1ab31ae00bf68ec157ec3708a8182dbbcd0",
-                "sha256:78f4f37d8198e0627c5f1143240bb0206b8691d8d7ac6d78fee88b78733f8c4a"
-            ],
-            "version": "==2022.7.1"
+            "hashes": [],
+            "version": "==2023.3"
         },
         "regex": {
             "hashes": [
