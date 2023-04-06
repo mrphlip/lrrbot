@@ -569,12 +569,8 @@
             "version": "==3.4"
         },
         "inflect": {
-            "hashes": [
-                "sha256:182741ec7e9e4c8f7f55b01fa6d80bcd3c4a183d349dfa6d9abbff0a1279e98f",
-                "sha256:f1a6bcb0105046f89619fde1a7d044c612c614c2d85ef182582d9dc9b86d309a"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==6.0.2"
+            "hashes": [],
+            "version": "==6.0.4"
         },
         "irc": {
             "hashes": [
