@@ -298,6 +298,10 @@ def process_single_card(card, expansion, include_reminder=False):
 			yield '/'
 			yield shownum(card.get('toughness', '?'))
 			yield ']'
+		if 'defense' in card:
+			yield ' ['
+			yield str(card['defense'])
+			yield ']'
 		if 'loyalty' in card:
 			yield ' ['
 			yield str(card['loyalty'])
