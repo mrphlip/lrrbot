@@ -84,6 +84,7 @@ def main():
 	# without much of a benefit.
 	with psycopg2.connect(config['postgres']) as conn, conn.cursor() as cur:
 		cur.execute("DELETE FROM cards WHERE game = %s", (CARD_GAME_MTG, ))
+		processed_multiverseids = set()
 		for setid, expansion in sorted(mtgjson.items(), key=lambda e: e[1]['releaseDate'], reverse=True):
 			# Allow only importing individual sets for faster testing
 			if len(sys.argv) > 1 and setid not in sys.argv[1:]:
@@ -91,8 +92,6 @@ def main():
 
 			if progress:
 				print("[%s]: %s - %s" % (expansion['releaseDate'], setid, expansion['name']))
-
-			processed_multiverseids = set()
 
 			for filteredname, cardname, description, multiverseids, hidden in process_set(setid, expansion):
 				if filteredname not in processed_cards:
