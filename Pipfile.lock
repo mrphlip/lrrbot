@@ -173,12 +173,8 @@
             "version": "==2.2.2"
         },
         "blinker": {
-            "hashes": [
-                "sha256:1eb563df6fdbc39eeddc177d953203f99f097e9bf0e2b8f9f3cf18b6ca425e36",
-                "sha256:923e5e2f69c155f2cc42dafbbd70e16e3fde24d2d4aa2ab72fbe386238892462"
-            ],
-            "index": "pypi",
-            "version": "==1.5"
+            "hashes": [],
+            "version": "==1.6.1"
         },
         "certifi": {
             "hashes": [
