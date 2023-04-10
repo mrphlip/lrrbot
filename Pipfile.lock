@@ -1029,12 +1029,8 @@
             "version": "==1.4.47"
         },
         "tempora": {
-            "hashes": [
-                "sha256:6a04665b35a2e0c3bef2aa71ce15d3d381b912e4fc3340b0b8a73719c2aeeb75",
-                "sha256:b7176486c5948a75201e8d0b21ef2c23ca808474060df47218c92295bdce5276"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==5.2.1"
+            "hashes": [],
+            "version": "==5.2.2"
         },
         "timelib": {
             "hashes": [
