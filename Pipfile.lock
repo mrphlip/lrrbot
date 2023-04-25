@@ -1061,12 +1061,8 @@
             "version": "==1.26.15"
         },
         "werkzeug": {
-            "hashes": [
-                "sha256:2e1ccc9417d4da358b9de6f174e3ac094391ea1d4fbef2d667865d819dfd0afe",
-                "sha256:56433961bc1f12533306c624f3be5e744389ac61d722175d543e1751285da612"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==2.2.3"
+            "hashes": [],
+            "version": "==2.3.0"
         },
         "yarl": {
             "hashes": [
