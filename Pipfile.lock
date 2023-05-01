@@ -380,15 +380,8 @@
             "version": "==40.0.0"
         },
         "flask": {
-            "extras": [
-                "async"
-            ],
-            "hashes": [
-                "sha256:7eb373984bf1c770023fce9db164ed0c3353cd0b53f130f4693da0ca756a2e6d",
-                "sha256:c0bec9477df1cb867e5a67c9e1ab758de9cb4a3e52dd70681f59fa40a62b3f2d"
-            ],
-            "index": "pypi",
-            "version": "==2.2.3"
+            "hashes": [],
+            "version": "==2.3.2"
         },
         "flask-seasurf": {
             "hashes": [
