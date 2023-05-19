@@ -24,7 +24,7 @@ async def get_patreon_info(lrrbot, conn, event, respond_to):
 		campaign["pay_per_name"],
 	)
 	creator_id = campaigns["data"][0]["relationships"]["creator"]["data"]
-	goal_ids = campaigns["data"][0]["relationships"]["goals"]["data"]
+	goal_ids = campaigns["data"][0]["relationships"]["goals"]["data"] or []
 	creator = None
 	goals = [None for goal_id in goal_ids]
 	for resource in campaigns["included"]:
