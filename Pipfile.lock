@@ -954,12 +954,8 @@
             "version": "==2023.3.23"
         },
         "requests": {
-            "hashes": [
-                "sha256:e8f3c9be120d3333921d213eef078af392fba3933ab7ed2d1cba3b56f2568c3b",
-                "sha256:f2e34a75f4749019bb0e3effb66683630e4ffeaf75819fb51bebef1bf5aef059"
-            ],
-            "index": "pypi",
-            "version": "==2.29.0"
+            "hashes": [],
+            "version": "==2.31.0"
         },
         "six": {
             "hashes": [
