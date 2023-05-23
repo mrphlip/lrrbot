@@ -138,11 +138,8 @@
             "version": "==1.2.3"
         },
         "asgiref": {
-            "hashes": [
-                "sha256:71e68008da809b957b7ee4b43dbccff33d1b23519fb8344e33f049897077afac",
-                "sha256:9567dfe7bd8d3c8c892227827c41cce860b368104c3431da67a0c5a65a949506"
-            ],
-            "version": "==3.6.0"
+            "hashes": [],
+            "version": "==3.7.0"
         },
         "async-timeout": {
             "hashes": [
