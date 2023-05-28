@@ -140,7 +140,7 @@ async def patreon_login(session):
 		).first()
 		if row is not None:
 			name, display_name = row
-			flask.flash('Unlinked the Patreon account from %s.' % (name or display_name))
+			flask.flash('Unlinked the Patreon account from %s.' % (display_name or name))
 		conn.execute(users.update().where(users.c.id == session['user']['id']), patreon_user_id=patreon_user_id)
 
 	flask.flash('Patreon account linked.', 'success')
