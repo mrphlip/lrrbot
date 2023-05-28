@@ -132,6 +132,15 @@ async def patreon_login(session):
 			token_expires=expiry,
 			pledge_start=pledge_start,
 		).first()
+		row = conn.execute(
+			users.update()
+				.where(users.c.patreon_user_id == patreon_user_id)
+				.returning(users.c.name, users.c.display_name),
+			patreon_user_id=None,
+		).first()
+		if row is not None:
+			name, display_name = row
+			flask.flash('Unlinked the Patreon account from %s.' % (name or display_name))
 		conn.execute(users.update().where(users.c.id == session['user']['id']), patreon_user_id=patreon_user_id)
 
 	flask.flash('Patreon account linked.', 'success')

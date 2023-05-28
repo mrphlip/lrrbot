@@ -685,6 +685,10 @@ table.quote-search select {
 	border-radius: 0.5em;
 }
 
+.flash-message {
+	background-color: #d8dff0;
+}
+
 .flash-error {
 	background-color: #f2dede;
 }
