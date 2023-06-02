@@ -1065,12 +1065,8 @@
             "version": "==0.3.0"
         },
         "typing-extensions": {
-            "hashes": [
-                "sha256:06006244c70ac8ee83fa8282cb188f697b8db25bc8b4df07be1873c43897060c",
-                "sha256:3a8b36f13dd5fdc5d1b16fe317f5668545de77fa0b8e02006381fd49d731ab98"
-            ],
-            "index": "pypi",
-            "version": "==4.6.2"
+            "hashes": [],
+            "version": "==4.6.3"
         },
         "urllib3": {
             "hashes": [
