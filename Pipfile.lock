@@ -1069,12 +1069,8 @@
             "version": "==4.6.3"
         },
         "urllib3": {
-            "hashes": [
-                "sha256:61717a1095d7e155cdb737ac7bb2f4324a858a1e2e6466f6d03ff630ca68d3cc",
-                "sha256:d055c2f9d38dc53c808f6fdc8eab7360b6fdbbde02340ed25cfbcd817c62469e"
-            ],
-            "markers": "python_version >= '3.7'",
-            "version": "==2.0.2"
+            "hashes": [],
+            "version": "==2.0.3"
         },
         "werkzeug": {
             "hashes": [],
