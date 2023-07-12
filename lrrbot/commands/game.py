@@ -1,11 +1,8 @@
-import irc
 import sqlalchemy
 from sqlalchemy.dialects.postgresql import insert
 
 import lrrbot.decorators
-from common import utils
 from common import twitch
-from lrrbot import storage
 from lrrbot.main import bot
 
 @bot.command("game")

@@ -1,4 +1,3 @@
-import asyncio
 import enum
 import functools
 import logging

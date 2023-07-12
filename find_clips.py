@@ -5,7 +5,6 @@ argv = sys.argv[1:]
 sys.argv = sys.argv[:1]
 import argparse
 import json
-import regex
 import datetime
 import dateutil.parser
 import pytz

@@ -1,7 +1,3 @@
-import urllib.request
-import urllib.parse
-import urllib.error
-import contextlib
 import datetime
 import copy
 import logging
@@ -9,7 +5,6 @@ import logging
 import flask
 import flask.json
 import dateutil.parser
-import asyncio
 import sqlalchemy
 
 import common.time

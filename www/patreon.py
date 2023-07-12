@@ -1,8 +1,5 @@
-import asyncio
 import base64
-import datetime
 import dateutil.parser
-import pytz
 import flask
 import hmac
 import os
@@ -13,7 +10,6 @@ from www import server
 from www import login
 from common.config import config
 from common import patreon
-from common import utils
 import common.rpc
 
 PATREON_BASE_URL = "https://www.patreon.com/"

@@ -4,7 +4,6 @@ import datetime
 import logging
 import pytz
 
-from common import utils
 from common.config import config
 
 log = logging.getLogger('common.rpc')

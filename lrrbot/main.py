@@ -15,7 +15,6 @@ from sqlalchemy.dialects.postgresql import insert
 from common import FRAMEWORK_ONLY
 from common import game_data
 from common import postgres
-from common import slack
 from common import state
 from common import twitch
 from common import utils

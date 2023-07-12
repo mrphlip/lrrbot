@@ -5,11 +5,9 @@ from collections import defaultdict
 from www import server
 from www import login
 from www.archive import archive_feed_data, get_video_data
-import common.rpc
 from common.config import config
 from common.time import nice_duration
 from common.twitch import get_user, get_game
-import dateutil.parser
 import datetime
 
 @server.app.route('/clips')

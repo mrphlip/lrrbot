@@ -1,9 +1,9 @@
 import aiomas
 import asyncio
-import re
 import logging
 
 import common.url
+import common.spam
 from common import utils
 from lrrbot import storage
 import irc.client

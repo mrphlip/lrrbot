@@ -27,10 +27,8 @@ import www.prefs
 app.secret_key = config["session_secret"]
 app.config["PREFERRED_URL_SCHEME"] = config["preferred_url_scheme"],
 app.add_template_filter(common.time.nice_duration)
-app.add_template_filter(utils.ucfirst)
 app.add_template_filter(www.utils.timestamp)
 app.add_template_filter(common.url.https)
-app.add_template_filter(common.url.noproto)
 app.csrf_token = app.jinja_env.globals["csrf_token"]
 app.jinja_env.globals["min"] = min
 app.jinja_env.globals["max"] = max

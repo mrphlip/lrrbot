@@ -1,11 +1,9 @@
 import asyncio
 import logging
-import re
 
 import irc.client
 
 from common import utils
-from common.config import config
 from common import command_parser
 
 log = logging.getLogger('command_parser')

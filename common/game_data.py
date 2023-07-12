@@ -1,6 +1,4 @@
-import contextlib
 import sqlalchemy
-from sqlalchemy.dialects.postgresql import insert
 
 TABLES = [
 	"game_per_show_data",

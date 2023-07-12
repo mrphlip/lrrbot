@@ -73,111 +73,9 @@ def get_token(id=None, name=None):
 		name = config['username']
 	return get_user(id=id, name=name, get_missing=False).token
 
-class get_paginated_by_offset:
+class get_paginated:
 	"""
-	Collect all the results from a paginated query that uses the offset/limit
-	method of pagination.
-
-	See:
-	https://dev.twitch.tv/docs/v5/guides/using-the-twitch-api#paging-through-results-cursor-vs-offset
-
-	Provide the url/data/headers without the offset/limit arguments, and the name
-	of the attribute in the result which contains the list to be collected.
-
-	Optionally can provide a limit to stop the process before the end of the list.
-	The returned list may be longer than limit, but once the limit is reached, no
-	further pages will be requested.
-	"""
-	PAGE_SIZE = 25
-
-	def __init__(self, url, attr, data=None, headers=None, limit=None):
-		self.url = url
-		self.attr = attr
-		if data:
-			self.data = dict(data)
-		else:
-			self.data = {}
-		self.headers = headers
-		self.limit = limit
-
-		self.count = 0
-		self.total = 1
-		self.offset = 0
-		self.buffer = None
-
-	def __aiter__(self):
-		return self
-
-	async def __anext__(self):
-		while True:
-			if self.buffer:
-				self.count += 1
-				return self.buffer.pop(0)
-
-			if self.offset > self.total:
-				raise StopAsyncIteration
-			if self.limit is not None and self.count > self.limit:
-				raise StopAsyncIteration
-
-			self.data['offset'] = self.offset
-			self.data['limit'] = self.PAGE_SIZE
-			res = await common.http.request_coro(self.url, data=self.data, headers=self.headers)
-			res = json.loads(res)
-			self.buffer = res[self.attr]
-			self.total = res['_total']
-			self.offset += self.PAGE_SIZE
-
-class get_paginated_by_cursor:
-	"""
-	Collect all the results from a paginated query that uses the cursor
-	method of pagination.
-
-	See:
-	https://dev.twitch.tv/docs/v5/guides/using-the-twitch-api#paging-through-results-cursor-vs-offset
-
-	Provide the url/data/headers without the cursor argument, and the name
-	of the attribute in the result which contains the list to be collected.
-
-	Optionally can provide a limit to stop the process before the end of the list.
-	The returned list may be longer than limit, but once the limit is reached, no
-	further pages will be requested.
-	"""
-	def __init__(self, url, attr, data=None, headers=None, limit=None):
-		self.url = url
-		self.attr = attr
-		if data:
-			self.data = dict(data)
-		else:
-			self.data = {}
-		self.headers = headers
-		self.limit = limit
-
-		self.count = 0
-		self.cursor = True
-		self.buffer = None
-
-	def __aiter__(self):
-		return self
-
-	async def __anext__(self):
-		while True:
-			if self.buffer:
-				self.count += 1
-				return self.buffer.pop(0)
-
-			if not self.cursor:
-				raise StopAsyncIteration
-			if self.limit is not None and self.count > self.limit:
-				raise StopAsyncIteration
-
-			res = await common.http.request_coro(self.url, data=self.data, headers=self.headers)
-			res = json.loads(res)
-			self.buffer = res[self.attr]
-			self.cursor = self.data['cursor'] = res.get('_cursor')
-
-class get_paginated_helix:
-	"""
-	Collect all the results from a pgainated query that uses the before/after
+	Collect all the results from a paginated query that uses the before/after
 	method of pagination.
 
 	See:
@@ -289,7 +187,7 @@ def get_game(id=None, name=None, get_missing=True):
 			query = query.where(games.c.id == id)
 			data = {'id': id}
 		elif name is not None:
-			query = query.where(users.c.name == name)
+			query = query.where(games.c.name == name)
 			data = {'name': name}
 		else:
 			raise ValueError("Pass at least one of name or id")
@@ -337,23 +235,6 @@ def is_stream_live(username=None):
 	channel_data = get_info(username, use_fallback=False)
 	return channel_data and channel_data['live']
 
-async def get_follows_channels(username=None):
-	"""
-	Get a list of all channels followed by a given user.
-
-	See:
-	https://dev.twitch.tv/docs/api/reference#get-users-follows
-	"""
-	headers = {
-		'Client-ID': config['twitch_clientid'],
-		'Authorization': f"Bearer {get_token()}",
-	}
-	if username is None:
-		username = config["username"]
-	userid = get_user(name=username).id
-	url = "https://api.twitch.tv/helix/users/follows"
-	return await utils.async_to_list(get_paginated_helix(url, data={'from_id': userid}, headers=headers))
-
 async def get_streams_followed():
 	"""
 	Get a list of all currently-live streams on channels followed by us.
@@ -366,33 +247,7 @@ async def get_streams_followed():
 		'Client-ID': config['twitch_clientid'],
 		'Authorization': f"Bearer {token}",
 	}
-	return await utils.async_to_list(get_paginated_helix("https://api.twitch.tv/helix/streams/followed", data={"user_id": userid}, headers=headers))
-
-async def follow_channel(target):
-	raise Exception("Automated following of channels has been disabled by Twitch")
-
-	userid, username, display_name, token = get_user(name=config["username"])
-	targetuserid = get_user(name=target).id
-	headers = {
-		'Authorization': "OAuth %s" % token,
-		'Client-ID': config['twitch_clientid'],
-		'Accept': 'application/vnd.twitchtv.v5+json',
-	}
-	await common.http.request_coro("https://api.twitch.tv/kraken/users/%d/follows/channels/%d" % (userid, targetuserid),
-	                               data={"notifications": "false"}, method="PUT", headers=headers)
-
-async def unfollow_channel(target):
-	raise Exception("Automated unfollowing of channels has been disabled by Twitch")
-
-	userid, username, display_name, token = get_user(name=config["username"])
-	targetuserid = get_user(name=target).id
-	headers = {
-		'Authorization': "OAuth %s" % token,
-		'Client-ID': config['twitch_clientid'],
-		'Accept': 'application/vnd.twitchtv.v5+json',
-	}
-	await common.http.request_coro("https://api.twitch.tv/kraken/users/%s/follows/channels/%s" % (userid, targetuserid),
-	                               method="DELETE", headers=headers)
+	return [stream async for stream in get_paginated("https://api.twitch.tv/helix/streams/followed", data={"user_id": userid}, headers=headers)]
 
 async def get_video(videoid):
 	"""
@@ -443,7 +298,7 @@ def get_followers(channel=None):
 		'Client-ID': config['twitch_clientid'],
 		'Authorization': f"Bearer {get_token()}",
 	}
-	return get_paginated_helix(url, data={"to_id": channelid}, headers=headers)
+	return get_paginated(url, data={"to_id": channelid}, headers=headers)
 
 async def ban_user(channel_id, user_id, reason=None, duration=None):
 	"""

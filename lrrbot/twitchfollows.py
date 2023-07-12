@@ -1,6 +1,5 @@
 import asyncio
 
-from common.config import config
 from common import rpc
 from common import storm
 from common import twitch

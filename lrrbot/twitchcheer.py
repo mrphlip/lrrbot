@@ -1,11 +1,8 @@
 import asyncio
 import common.rpc
 import common.storm
-from common import twitch
 from common import utils
 from lrrbot import chatlog
-
-import irc.client
 
 import logging
 

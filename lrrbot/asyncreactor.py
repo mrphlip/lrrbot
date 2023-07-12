@@ -1,4 +1,3 @@
-import asyncio
 import irc.client
 import irc.schedule
 import time

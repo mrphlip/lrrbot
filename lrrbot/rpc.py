@@ -1,11 +1,6 @@
-import asyncio
 import aiomas
 import random
-import re
-import math
 import logging
-import json
-import traceback
 
 import sqlalchemy
 
@@ -13,7 +8,6 @@ import common.utils
 import common.rpc
 from common import utils
 from common.config import config
-from common import game_data
 from common import twitch
 from lrrbot import storage
 import lrrbot.docstring
@@ -50,7 +44,7 @@ class Server(common.rpc.Server):
 	def set_data(self, key, value):
 		if not isinstance(key, (list, tuple)):
 			key = [key]
-		log.info("Setting storage %s to %r" % (user, '.'.join(key), value))
+		log.info("Setting storage %s to %r" % ('.'.join(key), value))
 		# if key is, eg, ["a", "b", "c"]
 		# then we want to effectively do:
 		# storage.data["a"]["b"]["c"] = value

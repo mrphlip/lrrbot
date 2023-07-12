@@ -1,6 +1,5 @@
 import email.parser
-
-from common.utils import deindent
+import textwrap
 
 DOCSTRING_IMPLICIT_PREFIX = """Content-Type: multipart/message; boundary=command
 
@@ -10,8 +9,8 @@ DOCSTRING_IMPLICIT_SUFFIX = "\n--command--"
 def parse_docstring(docstring):
 	if docstring is None:
 		docstring = ""
-	docstring = DOCSTRING_IMPLICIT_PREFIX + docstring + DOCSTRING_IMPLICIT_SUFFIX
-	return email.parser.Parser().parsestr(deindent(docstring))
+	docstring = DOCSTRING_IMPLICIT_PREFIX + textwrap.dedent(docstring) + DOCSTRING_IMPLICIT_SUFFIX
+	return email.parser.Parser().parsestr(docstring)
 
 def encode_docstring(docstring):
 	docstring = str(docstring).rstrip()

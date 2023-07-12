@@ -1,8 +1,6 @@
 import sqlalchemy
 
-from common import twitch
 import lrrbot.decorators
-from lrrbot import storage
 from lrrbot.main import bot
 
 def set_show(lrrbot, show):

@@ -1,18 +1,12 @@
 import time
-import re
 import logging
 import datetime
-import dateutil
 import asyncio
-import sqlalchemy
-import urllib.error
 import irc.client
 import pytz
 from common import utils
 from common.config import config
 from common import twitch
-from common import http
-from lrrbot import storage
 from lrrbot import chatlog
 import common.rpc
 import common.storm

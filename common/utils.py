@@ -2,18 +2,12 @@ import asyncio
 import functools
 import inspect
 import itertools
-import json
 import logging
-import os.path
 import random
-import socket
 import time
-import heapq
 import logging.config
 import configparser
 import re
-
-import werkzeug.datastructures
 
 from common import config
 
@@ -27,16 +21,6 @@ PASSTHROUGH_EXCEPTIONS = (asyncio.CancelledError, )
 # Maximum length of a chat message - this allows for 32 chars for protocol
 # overhead (ie "PRIVMSG [target]" etc) to fit within 512
 MAX_LEN = 480
-
-def deindent(s):
-	def skipblank():
-		generator = map(lambda s: s.lstrip(), s.splitlines())
-		for line in generator:
-			if line != '':
-				break
-		yield line
-		yield from generator
-	return "\n".join(skipblank())
 
 def wrap_as_coroutine(func):
 	"""
@@ -220,18 +204,6 @@ class cache(throttle_base):
 		super().__init__(period=period, params=params, log=log, count=count)
 
 @coro_decorator
-def log_errors(func):
-	"""Log any errors thrown by a function"""
-	@functools.wraps(func)
-	async def wrapper(*args, **kwargs):
-		try:
-			return await func(*args, **kwargs)
-		except:
-			log.exception("Exception in " + func.__name__)
-			raise
-	return wrapper
-
-@coro_decorator
 def swallow_errors(func):
 	"""Log and absorb any errors thrown by a function"""
 	@functools.wraps(func)
@@ -260,34 +232,6 @@ def check_exception(future):
 		raise
 	except Exception:
 		log.exception("Exception in future")
-
-def immutable(obj):
-	if isinstance(obj, dict):
-		return werkzeug.datastructures.ImmutableDict((k, immutable(v)) for k,v in obj.items())
-	elif isinstance(obj, list):
-		return werkzeug.datastructures.ImmutableList(immutable(v) for v in obj)
-	else:
-		return obj
-
-def sse_send_event(endpoint, event=None, data=None, event_id=None):
-	if not os.path.exists(config.config['eventsocket']):
-		return
-
-	sse_event = {"endpoint": endpoint}
-	if event is not None:
-		sse_event["event"] = event
-	if data is not None:
-		sse_event["data"] = data
-	if event_id is not None:
-		sse_event["id"] = event_id
-
-	sse = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-	sse.connect(config.config['eventsocket'])
-	sse.send(json.dumps(sse_event).encode("utf-8")+b"\n")
-	sse.close()
-
-def ucfirst(s):
-	return s[0].upper() + s[1:]
 
 def weighted_choice(options):
 	"""
@@ -340,18 +284,6 @@ def pick_random_elements(iterable, k):
 
 	return ret
 
-def pick_weighted_random_elements(iterable, k):
-	queue = []
-	for elem, weight in iterable:
-		if not weight:
-			continue
-		r = random.random() ** (1 / weight)
-		if len(queue) < k:
-			heapq.heappush(queue, (r, elem))
-		elif queue[0][0] < r:
-			heapq.heapreplace(queue, (r, elem))
-	return [elem for r, elem in queue]
-
 def merge_config_section(configs, prefix):
 	"""
 	Merge prefixed sections into the real sections, so that different values can
@@ -380,19 +312,6 @@ def init_logging(mode=None):
 	logging.config.fileConfig(logging_conf)
 	global log
 	log = logging.getLogger('utils')
-
-async def async_to_list(aiter):
-	"""
-	Convert an asynchronous generator to a simple list.
-	"""
-	# Can't do this until Python3.6 ...
-	# https://www.python.org/dev/peps/pep-0530/
-	# return [i async for i in aiter]
-
-	res = []
-	async for i in aiter:
-		res.append(i)
-	return res
 
 def check_length(msg, maxlen=MAX_LEN):
 	"""

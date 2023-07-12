@@ -3,8 +3,6 @@ import time
 import common.http
 from urllib.parse import quote, urlencode
 
-import asyncio
-
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.backends import openssl
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15

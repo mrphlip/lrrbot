@@ -6,7 +6,6 @@ from common import pubsub
 from common import utils
 from common import time
 from common import slack
-from common import twitch
 from common.config import config
 import logging
 

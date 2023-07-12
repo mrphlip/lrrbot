@@ -6,7 +6,6 @@ import flask.json
 import sqlalchemy
 
 import common.time
-from common import utils
 from common.config import config
 from www import server
 from www import login

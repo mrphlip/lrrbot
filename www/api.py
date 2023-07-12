@@ -1,7 +1,6 @@
 import sqlalchemy
 from www import server
 from www import login
-from common.config import config
 import common.rpc
 import datetime
 import pytz

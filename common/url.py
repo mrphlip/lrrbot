@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import re
 
@@ -56,6 +55,3 @@ async def url_regex():
 RE_PROTO = re.compile("^https?://")
 def https(uri):
 	return RE_PROTO.sub("https://", uri)
-
-def noproto(uri):
-	return RE_PROTO.sub("//", uri)
