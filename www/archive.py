@@ -1,6 +1,7 @@
 import datetime
 import copy
 import logging
+from urllib.error import HTTPError
 
 import flask
 import flask.json
@@ -122,9 +123,11 @@ async def get_video_data(videoid):
 		}
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
+	except HTTPError as e:
+		log.error("Bad video: %r: %r", videoid, e)
 	except Exception:
 		log.exception("Bad video: %r", videoid)
-		return None
+	return None
 
 @server.app.route('/archive/<videoid>')
 @login.with_session
@@ -134,7 +137,7 @@ async def archive_watch(videoid, session):
 		starttime = int(starttime.total_seconds())
 	video = await get_video_data(videoid)
 	if video is None:
-		return "Unrecognised video"
+		return "Unrecognised video", 404
 	vidstart = video["start"] + datetime.timedelta(seconds=session['user']['stream_delay'])
 	chat = chat_data(
 		video["start"] - BEFORE_BUFFER,
