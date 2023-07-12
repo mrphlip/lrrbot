@@ -57,8 +57,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.engine, self.metadata = postgres.get_engine_and_metadata()
 		users = self.metadata.tables["users"]
 		if config['password'] == "oauth":
-			with self.engine.begin() as conn:
-				row = conn.execute(sqlalchemy.select([users.c.twitch_oauth])
+			with self.engine.connect() as conn:
+				row = conn.execute(sqlalchemy.select(users.c.twitch_oauth)
 					.where(users.c.name == config['username'])).first()
 				if row is not None:
 					password, = row
@@ -302,7 +302,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		users = self.metadata.tables["users"]
 		patreon_users = self.metadata.tables["patreon_users"]
-		with self.engine.begin() as conn:
+		with self.engine.connect() as conn:
 			if event.type == "pubmsg":
 				query = insert(users)
 				query = query.on_conflict_do_update(
@@ -322,14 +322,14 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					"is_mod": is_mod,
 				})
 			else:
-				row = conn.execute(sqlalchemy.select([users.c.is_sub, users.c.is_mod])
+				row = conn.execute(sqlalchemy.select(users.c.is_sub, users.c.is_mod)
 					.where(users.c.id == event.tags['user-id'])).first()
 				if row is not None:
 					tags['subscriber'], tags['mod'] = row
 				else:
 					tags['subscriber'] = False
 					tags['mod'] = False
-			is_patron = conn.execute(sqlalchemy.select([patreon_users.c.pledge_start.isnot(None)])
+			is_patron = conn.execute(sqlalchemy.select(patreon_users.c.pledge_start.isnot(None))
 				.select_from(patreon_users.join(users))
 				.where(users.c.id == tags['user-id'])
 			).first()
@@ -337,6 +337,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				tags['patron'] = is_patron[0]
 			else:
 				tags['patron'] = False
+			conn.commit()
 
 		tags["display-name"] = tags.get("display-name", nick)
 
@@ -362,9 +363,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			game_id, game_name = game.id, game.name
 
 			games = self.metadata.tables["games"]
-			with self.engine.begin() as conn:
+			with self.engine.connect() as conn:
 				game_data.lock_tables(conn, self.metadata)
-				old_id = conn.execute(sqlalchemy.select([games.c.id]).where(games.c.name == game_name)).first()
+				old_id = conn.execute(sqlalchemy.select(games.c.id).where(games.c.name == game_name)).first()
 				if old_id is None:
 					query = insert(games)
 					query = query.on_conflict_do_update(index_elements=[games.c.id], set_={
@@ -384,6 +385,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 					conn.execute(games.update().where(games.c.id == game_id), {
 						"name": game_name,
 					})
+				conn.commit()
 			return game_id
 		return self.game_override
 
@@ -394,11 +396,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		show_id = self.get_show_id()
 		game_per_show_data = self.metadata.tables["game_per_show_data"]
 		games = self.metadata.tables["games"]
-		with self.engine.begin() as conn:
+		with self.engine.connect() as conn:
 			row = conn.execute(
-				sqlalchemy.select([
+				sqlalchemy.select(
 					sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name)
-				]).select_from(
+				).select_from(
 					games.outerjoin(game_per_show_data,
 						(game_per_show_data.c.game_id == games.c.id)
 							& (game_per_show_data.c.show_id == show_id))
@@ -419,7 +421,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.game_override = None
 		else:
 			games = self.metadata.tables["games"]
-			with self.engine.begin() as conn:
+			with self.engine.connect() as conn:
 				query = insert(games).returning(games.c.id)
 				# need to update to get the `id`
 				query = query.on_conflict_do_update(
@@ -431,6 +433,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				self.game_override, = conn.execute(query, {
 					"name": name,
 				}).first()
+				conn.commit()
 		self.get_game_id.reset_throttle()
 
 	def get_show_id(self):
@@ -443,7 +446,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			Set current show.
 		"""
 		shows = self.metadata.tables["shows"]
-		with self.engine.begin() as conn:
+		with self.engine.connect() as conn:
 			# need to update to get the `id`
 			query = insert(shows).returning(shows.c.id)
 			query = query.on_conflict_do_update(
@@ -456,6 +459,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				"name": string_id,
 				"string_id": string_id,
 			}).first()
+			conn.conmmit()
 
 	def override_show(self, string_id):
 		"""
@@ -465,8 +469,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.show_override = None
 		else:
 			shows = self.metadata.tables["shows"]
-			with self.engine.begin() as conn:
-				show_id = conn.execute(sqlalchemy.select([shows.c.id])
+			with self.engine.connect() as conn:
+				show_id = conn.execute(sqlalchemy.select(shows.c.id)
 					.where(shows.c.string_id == string_id)).first()
 				if show_id is None:
 					raise KeyError(string_id)

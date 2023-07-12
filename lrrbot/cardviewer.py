@@ -26,8 +26,8 @@ class CardViewer:
 	@utils.cache(REPEAT_TIMER, params=['card_id'])
 	def announce(self, card_id):
 		cards = self.lrrbot.metadata.tables['cards']
-		with self.lrrbot.engine.begin() as conn:
-			card = conn.execute(sqlalchemy.select([cards.c.name, cards.c.text]).where(cards.c.id == card_id)).first()
+		with self.lrrbot.engine.connect() as conn:
+			card = conn.execute(sqlalchemy.select(cards.c.name, cards.c.text).where(cards.c.id == card_id)).first()
 			if card is not None:
 				name, text = card
 			else:

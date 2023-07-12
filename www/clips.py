@@ -16,9 +16,8 @@ async def clips_vidlist(session):
 	clips = server.db.metadata.tables["clips"]
 	ext_channel = server.db.metadata.tables["external_channel"]
 	ext_vids = server.db.metadata.tables["external_video"]
-	with server.db.engine.begin() as conn:
-		extravids = set(vid for vid, in conn.execute(
-			sqlalchemy.select([ext_vids.c.vodid])))
+	with server.db.engine.connect() as conn:
+		extravids = set(vid for vid, in conn.execute(sqlalchemy.select(ext_vids.c.vodid)))
 
 		# Start with an empty list we add to, so we don't accidentally append to
 		# the list that's cached in archive_feed_data
@@ -26,7 +25,7 @@ async def clips_vidlist(session):
 		# Get all the videos from the main channel, and all the selected videos
 		# from the external channels
 		videos.extend(await archive_feed_data(config['channel'], True))
-		for channel, in conn.execute(sqlalchemy.select([ext_channel.c.channel])):
+		for channel, in conn.execute(sqlalchemy.select(ext_channel.c.channel)):
 			extvideos = await archive_feed_data(channel, True)
 			videos.extend(v for v in extvideos if v['id'] in extravids)
 		videos.sort(key=lambda v:v['created_at'], reverse=True)
@@ -36,7 +35,7 @@ async def clips_vidlist(session):
 
 		clip_counts = defaultdict(lambda:{None: 0, False: 0, True: 0})
 		for vodid, rating, clipcount in conn.execute(
-				sqlalchemy.select([clips.c.vodid, clips.c.rating, sqlalchemy.func.count()])
+				sqlalchemy.select(clips.c.vodid, clips.c.rating, sqlalchemy.func.count())
 					.where(clips.c.vodid.in_(videoids))
 					.where(clips.c.deleted == False)
 					.group_by(clips.c.vodid, clips.c.rating)):
@@ -53,9 +52,9 @@ async def clips_vid(session, videoid):
 	video = await get_video_data(videoid)
 
 	clips = server.db.metadata.tables["clips"]
-	with server.db.engine.begin() as conn:
+	with server.db.engine.connect() as conn:
 		clip_data = conn.execute(
-			sqlalchemy.select([clips.c.data, clips.c.time, clips.c.rating])
+			sqlalchemy.select(clips.c.data, clips.c.time, clips.c.rating)
 				.where(clips.c.vodid == videoid.lstrip('v'))
 				.where(clips.c.deleted == False)
 				.order_by(clips.c.time.asc())).fetchall()
@@ -98,7 +97,7 @@ async def clips_vid(session, videoid):
 @login.require_mod
 def clip_submit(session):
 	clips = server.db.metadata.tables["clips"]
-	with server.db.engine.begin() as conn:
+	with server.db.engine.connect() as conn:
 		conn.execute(clips.update()
 			.values(
 				rating=bool(int(flask.request.values['vote'])),
@@ -106,6 +105,7 @@ def clip_submit(session):
 			)
 			.where(clips.c.slug == flask.request.values['slug'])
 		)
+		conn.commit()
 	return flask.json.jsonify(success='OK')
 
 @server.app.route('/clips/external')
@@ -114,14 +114,13 @@ async def external_clips(session):
 	ext_channel = server.db.metadata.tables["external_channel"]
 	ext_vids = server.db.metadata.tables["external_video"]
 	external_channels = []
-	with server.db.engine.begin() as conn:
-		for chanid, channel in conn.execute(sqlalchemy.select([ext_channel.c.id, ext_channel.c.channel])):
+	with server.db.engine.connect() as conn:
+		for chanid, channel in conn.execute(sqlalchemy.select(ext_channel.c.id, ext_channel.c.channel)):
 			external_channels.append({
 				'id': chanid,
 				'channel': get_user(name=channel),
 				'videos': await archive_feed_data(channel, True),
-				'selected': set(vid for vid, in conn.execute(
-					sqlalchemy.select([ext_vids.c.vodid]).where(ext_vids.c.channel == chanid))),
+				'selected': set(vid for vid, in conn.execute(sqlalchemy.select(ext_vids.c.vodid).where(ext_vids.c.channel == chanid))),
 			})
 
 	return flask.render_template("clips_external.html", session=session, channels=external_channels)
@@ -133,7 +132,7 @@ def external_clips_save(session):
 	ext_vids = server.db.metadata.tables["external_video"]
 	if flask.request.values['action'] == "videos":
 		# Save video selection
-		with server.db.engine.begin() as conn:
+		with server.db.engine.connect() as conn:
 			videos = []
 			for video in flask.request.values.getlist('selected'):
 				chanid, vodid = video.split('-', 1)
@@ -145,18 +144,21 @@ def external_clips_save(session):
 			conn.execute(query, videos)
 
 			conn.execute(ext_vids.delete().where(ext_vids.c.vodid.notin_(v['vodid'] for v in videos)))
+
+			conn.commit()
 		return flask.redirect(flask.url_for('clips_vidlist'), code=303)
 	elif flask.request.values['action'] == "add":
 		# Add a new channel
 		channel = get_user(name=flask.request.values['channel'])
-		with server.db.engine.begin() as conn:
-			conn.execute(ext_channel.insert(),
-				channel=channel.name)
+		with server.db.engine.connect() as conn:
+			conn.execute(ext_channel.insert(), {"channel": channel.name})
+			conn.commit()
 		return flask.redirect(flask.url_for('external_clips'), code=303)
 	elif flask.request.values['action'] == "remove":
 		channel = int(flask.request.values['channel'])
-		with server.db.engine.begin() as conn:
+		with server.db.engine.connect() as conn:
 			conn.execute(ext_channel.delete().where(ext_channel.c.id == channel))
+			conn.commit()
 		return flask.redirect(flask.url_for('external_clips'), code=303)
 	else:
 		raise ValueError("Unexpected mode %r" % flask.request.values['action'])

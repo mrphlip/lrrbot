@@ -143,8 +143,8 @@ async def spam_find(session):
 
 	starttime = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(days=14)
 	log = server.db.metadata.tables["log"]
-	with server.db.engine.begin() as conn:
-		res = conn.execute(sqlalchemy.select([log.c.source, log.c.message, log.c.time])
+	with server.db.engine.connect() as conn:
+		res = conn.execute(sqlalchemy.select(log.c.source, log.c.message, log.c.time)
 			.where((log.c.time >= starttime) & log.c.specialuser.any('cleared'))
 			.order_by(log.c.time.asc()))
 		data = [tuple(row) + (do_check(row[1], rules),) for row in res]

@@ -209,8 +209,9 @@ class TwitchNotify:
 			data['avatar'] = logo
 
 		users = self.lrrbot.metadata.tables["users"]
-		with self.lrrbot.engine.begin() as pg_conn:
-			pg_conn.execute(users.update().where(users.c.name == login), is_sub=True)
+		with self.lrrbot.engine.connect() as pg_conn:
+			pg_conn.execute(users.update().where(users.c.name == login), {"is_sub": True})
+			pg_conn.commit()
 
 		if message is not None:
 			data['message'] = message

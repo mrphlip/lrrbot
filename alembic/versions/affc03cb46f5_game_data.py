@@ -18,7 +18,7 @@ def upgrade():
 	meta = sqlalchemy.MetaData(bind=conn)
 	meta.reflect()
 	users = meta.tables["users"]
-	all_users = dict(conn.execute(sqlalchemy.select([users.c.name, users.c.id])).fetchall())
+	all_users = dict(conn.execute(sqlalchemy.select(users.c.name, users.c.id)).fetchall())
 
 	shows = alembic.op.create_table(
 		"shows",
@@ -92,14 +92,14 @@ def upgrade():
 		"plural": values.get("plural"),
 		"singular": values.get("singular"),
 	} for string_id, values in data.get("stats", {}).items()])
-	all_stats = dict(conn.execute(sqlalchemy.select([stats.c.string_id, stats.c.id])).fetchall())
+	all_stats = dict(conn.execute(sqlalchemy.select(stats.c.string_id, stats.c.id)).fetchall())
 
 	# shows
 	alembic.op.bulk_insert(shows, [{
 		"string_id": show,
 		"name": values["name"],
 	} for show, values in data.get("shows", {}).items()])
-	all_shows = dict(conn.execute(sqlalchemy.select([shows.c.string_id, shows.c.id])).fetchall())
+	all_shows = dict(conn.execute(sqlalchemy.select(shows.c.string_id, shows.c.id)).fetchall())
 
 	# games
 	def parse_id(id):
@@ -125,7 +125,7 @@ def upgrade():
 					) ON CONFLICT (name) DO UPDATE SET
 						id = EXCLUDED.id
 				""", {"id": game_id, "name": game["name"]})
-	all_games = dict(conn.execute(sqlalchemy.select([games.c.name, games.c.id])).fetchall())
+	all_games = dict(conn.execute(sqlalchemy.select(games.c.name, games.c.id)).fetchall())
 
 	# game_per_show_data
 	display_names = []
@@ -256,7 +256,7 @@ def downgrade():
 
 	data["stats"] = {}
 	stats = meta.tables["stats"]
-	for id, singular, plural, emote in conn.execute(sqlalchemy.select([stats.c.string_id, stats.c.singular, stats.c.plural, stats.c.emote])):
+	for id, singular, plural, emote in conn.execute(sqlalchemy.select(stats.c.string_id, stats.c.singular, stats.c.plural, stats.c.emote)):
 		data["stats"][id] = {}
 		if singular is not None:
 			data["stats"][id]["singular"] = singular
@@ -272,9 +272,9 @@ def downgrade():
 	game_votes = meta.tables["game_votes"]
 	game_stats = meta.tables["game_stats"]
 	users = meta.tables["users"]
-	for fkey, id, name in conn.execute(sqlalchemy.select([shows.c.id, shows.c.string_id, shows.c.name])).fetchall():
+	for fkey, id, name in conn.execute(sqlalchemy.select(shows.c.id, shows.c.string_id, shows.c.name)).fetchall():
 		data["shows"][id] = {"name": name, "games": {}}
-		query = sqlalchemy.select([games.c.id, games.c.name, stats.c.string_id, game_stats.c.count])
+		query = sqlalchemy.select(games.c.id, games.c.name, stats.c.string_id, game_stats.c.count)
 		query = query.select_from(
 			game_stats
 				.join(games, game_stats.c.game_id == games.c.id)
@@ -287,7 +287,7 @@ def downgrade():
 			else:
 				game_id = str(game_id)
 			data["shows"][id]["games"].setdefault(game_id, {"id": game_id, "name": name, "stats": {}, "votes": {}})["stats"][stat_id] = count
-		query = sqlalchemy.select([games.c.id, games.c.name, users.c.name, game_votes.c.vote])
+		query = sqlalchemy.select(games.c.id, games.c.name, users.c.name, game_votes.c.vote)
 		query = query.select_from(
 			game_votes
 				.join(games, game_votes.c.game_id == games.c.id)
@@ -300,7 +300,7 @@ def downgrade():
 			else:
 				game_id = str(game_id)
 			data["shows"][id]["games"].setdefault(game_id, {"id": game_id, "name": name, "stats": {}, "votes": {}})["votes"][user] = vote
-		query = sqlalchemy.select([games.c.id, games.c.name, game_per_show_data.c.display_name])
+		query = sqlalchemy.select(games.c.id, games.c.name, game_per_show_data.c.display_name)
 		query = query.select_from(
 			game_per_show_data.join(games, game_per_show_data.c.game_id == games.c.id)
 		)

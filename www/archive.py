@@ -96,8 +96,8 @@ def chat_data(starttime, endtime, vidstart, timestamp_mode, twentyfour, secs, ta
 	gen_timestamps = gen_timestamp_funcs[timestamp_mode]
 	fmt = ("%H" if twentyfour else "%I") + ":%M" + (":%S" if secs else "") + ("" if twentyfour else " %p")
 	log = server.db.metadata.tables["log"]
-	with server.db.engine.begin() as conn:
-		res = conn.execute(sqlalchemy.select([log.c.messagehtml, log.c.time])
+	with server.db.engine.connect() as conn:
+		res = conn.execute(sqlalchemy.select(log.c.messagehtml, log.c.time)
 			.where((log.c.target == target) & log.c.time.between(starttime, endtime))
 			.order_by(log.c.time.asc()))
 		if gen_timestamps:

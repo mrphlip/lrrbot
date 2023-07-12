@@ -19,9 +19,9 @@ class ModeratorActions:
 		self.last_ban = None
 
 		users = self.lrrbot.metadata.tables["users"]
-		with self.lrrbot.engine.begin() as conn:
-			selfrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == config['username'])).first()
-			targetrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == config['channel'])).first()
+		with self.lrrbot.engine.connect() as conn:
+			selfrow = conn.execute(sqlalchemy.select(users.c.id).where(users.c.name == config['username'])).first()
+			targetrow = conn.execute(sqlalchemy.select(users.c.id).where(users.c.name == config['channel'])).first()
 		if selfrow is not None and targetrow is not None:
 			self_channel_id, = selfrow
 			target_channel_id, = targetrow
@@ -128,8 +128,8 @@ class ModeratorActions:
 		now = datetime.datetime.now(config["timezone"])
 
 		log = self.lrrbot.metadata.tables["log"]
-		with self.lrrbot.engine.begin() as conn:
-			rows = conn.execute(sqlalchemy.select([log.c.id, log.c.time, log.c.message])
+		with self.lrrbot.engine.connect() as conn:
+			rows = conn.execute(sqlalchemy.select(log.c.id, log.c.time, log.c.message)
 				.where(log.c.source == user.lower())
 				.where(log.c.time > now - datetime.timedelta(days=1))
 				.limit(3)

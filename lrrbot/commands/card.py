@@ -74,8 +74,8 @@ def find_card(lrrbot, search, includehidden=False, game=CARD_GAME_MTG):
 	cards = lrrbot.metadata.tables["cards"]
 
 	cleansearch = clean_text(search)
-	with lrrbot.engine.begin() as conn:
-		query = (sqlalchemy.select([cards.c.name, cards.c.text])
+	with lrrbot.engine.connect() as conn:
+		query = (sqlalchemy.select(cards.c.name, cards.c.text)
 						.where(cards.c.filteredname == cleansearch))
 		if game is not None:
 			query = query.where(cards.c.game == game)
@@ -86,7 +86,7 @@ def find_card(lrrbot, search, includehidden=False, game=CARD_GAME_MTG):
 		searchwords = search.split()
 		searchwords = [clean_text(i) for i in searchwords]
 		searchlike = "%" + "%".join(common.postgres.escape_like(i) for i in searchwords) + "%"
-		query = (sqlalchemy.select([cards.c.name, cards.c.text])
+		query = (sqlalchemy.select(cards.c.name, cards.c.text)
 						.where(cards.c.filteredname.like(searchlike)))
 		if not includehidden:
 			query = query.where(cards.c.hidden == False)

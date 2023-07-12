@@ -26,11 +26,11 @@ MILESTONES = [
 def get_events():
 	events = server.db.metadata.tables['events']
 	recent_events = []
-	query = sqlalchemy.select([events.c.id, events.c.event, events.c.data, events.c.time, sqlalchemy.func.current_timestamp() - events.c.time]) \
+	query = sqlalchemy.select(events.c.id, events.c.event, events.c.data, events.c.time, sqlalchemy.func.current_timestamp() - events.c.time) \
 		.where(events.c.time > sqlalchemy.func.current_timestamp() - datetime.timedelta(days=2)) \
 		.where(events.c.event.in_({'twitch-subscription', 'twitch-resubscription', 'twitch-subscription-mysterygift', 'twitch-message', 'twitch-cheer', 'patreon-pledge', 'twitch-raid'})) \
 		.order_by(events.c.time.desc())
-	with server.db.engine.begin() as conn:
+	with server.db.engine.connect() as conn:
 		for id, event, data, time, duration in conn.execute(query):
 			if not data.get('ismulti'):
 				data['time'] = time
@@ -40,7 +40,7 @@ def get_events():
 					'data': data,
 					'duration': common.time.nice_duration(duration, 2)
 				})
-		last_event_id = conn.execute(sqlalchemy.select([sqlalchemy.func.max(events.c.id)])).first()
+		last_event_id = conn.execute(sqlalchemy.select(sqlalchemy.func.max(events.c.id))).first()
 		last_event_id = last_event_id[0] if last_event_id is not None else 0
 	return last_event_id, recent_events
 
@@ -59,8 +59,8 @@ def notifications(session):
 
 	patreon_users = server.db.metadata.tables['patreon_users']
 	users = server.db.metadata.tables['users']
-	with server.db.engine.begin() as conn:
-		name = conn.execute(sqlalchemy.select([patreon_users.c.full_name])
+	with server.db.engine.connect() as conn:
+		name = conn.execute(sqlalchemy.select(patreon_users.c.full_name)
 			.select_from(users.join(patreon_users))
 			.where(users.c.name == config['channel'])
 		).first()

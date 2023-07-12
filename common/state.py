@@ -5,8 +5,8 @@ from common import postgres
 
 def get(engine, metadata, key, default=None):
 	state = metadata.tables['state']
-	with engine.begin() as conn:
-		row = conn.execute(sqlalchemy.select([state.c.value])
+	with engine.connect() as conn:
+		row = conn.execute(sqlalchemy.select(state.c.value)
 			.where(state.c.key == key)) \
 			.first()
 	if row is not None:
@@ -15,7 +15,7 @@ def get(engine, metadata, key, default=None):
 
 def set(engine, metadata, key, value):
 	state = metadata.tables['state']
-	with engine.begin() as conn:
+	with engine.connect() as conn:
 		query = insert(state)
 		query = query.on_conflict_do_update(
 			index_elements=[state.c.key],
@@ -27,6 +27,7 @@ def set(engine, metadata, key, value):
 			'key': key,
 			'value': value,
 		})
+		conn.commit()
 
 class Property:
 	"""

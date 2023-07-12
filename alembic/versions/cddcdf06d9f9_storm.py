@@ -38,7 +38,7 @@ def downgrade():
 	meta.reflect()
 
 	storm = meta.tables['storm']
-	row = conn.execute(sqlalchemy.select([storm.c.date, storm.c['twitch-subscription']])).first()
+	row = conn.execute(sqlalchemy.select(storm.c.date, storm.c['twitch-subscription'])).first()
 	if row is not None:
 		date, count = row
 

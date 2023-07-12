@@ -39,9 +39,9 @@ class ModeratorActions:
 			self.lrrbot.reactor.scheduler.execute_every(60, self.clear_chat)
 
 			users = self.lrrbot.metadata.tables["users"]
-			with self.lrrbot.engine.begin() as conn:
-				selfrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == WATCHAS)).first()
-				targetrow = conn.execute(sqlalchemy.select([users.c.id]).where(users.c.name == WATCHCHANNEL)).first()
+			with self.lrrbot.engine.connect() as conn:
+				selfrow = conn.execute(sqlalchemy.select(users.c.id).where(users.c.name == WATCHAS)).first()
+				targetrow = conn.execute(sqlalchemy.select(users.c.id).where(users.c.name == WATCHCHANNEL)).first()
 			if selfrow is not None and targetrow is not None:
 				self_channel_id, = selfrow
 				target_channel_id, = targetrow

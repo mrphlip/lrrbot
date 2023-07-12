@@ -77,20 +77,21 @@ async def do_log_chat(time, event, metadata):
 
 	source = irc.client.NickMask(event.source).nick
 	html = await build_message_html(time, source, event.target, event.arguments[0], metadata.get('specialuser', []), metadata.get('usercolor'), metadata.get('emoteset', []), metadata.get('emotes'), metadata.get('display-name'))
-	with lrrbot.main.bot.engine.begin() as conn:
-		conn.execute(lrrbot.main.bot.metadata.tables["log"].insert(),
-			time=time,
-			source=source,
-			target=event.target,
-			message=event.arguments[0],
-			specialuser=list(metadata.get('specialuser', [])),
-			usercolor=metadata.get('usercolor'),
-			emoteset=list(metadata.get('emoteset', [])),
-			emotes=metadata.get('emotes'),
-			displayname=metadata.get('display-name'),
-			messagehtml=html,
-			msgid=metadata.get('id'),
-		)
+	with lrrbot.main.bot.engine.connect() as conn:
+		conn.execute(lrrbot.main.bot.metadata.tables["log"].insert(), {
+			"time": time,
+			"source": source,
+			"target": event.target,
+			"message": event.arguments[0],
+			"specialuser": list(metadata.get('specialuser', [])),
+			"usercolor": metadata.get('usercolor'),
+			"emoteset": list(metadata.get('emoteset', [])),
+			"emotes": metadata.get('emotes'),
+			"displayname": metadata.get('display-name'),
+			"messagehtml": html,
+			"msgid": metadata.get('id'),
+		})
+		conn.commit()
 
 @utils.swallow_errors
 async def do_clear_chat_log(time, nick):
@@ -110,11 +111,11 @@ async def do_clear_chat_log_msg(msgid):
 
 async def _delete_messages(condition, undelete=False):
 	log = lrrbot.main.bot.metadata.tables["log"]
-	with lrrbot.main.bot.engine.begin() as conn:
-		query = sqlalchemy.select([
+	with lrrbot.main.bot.engine.connect() as conn:
+		query = sqlalchemy.select(
 			log.c.id, log.c.time, log.c.source, log.c.target, log.c.message, log.c.specialuser,
 			log.c.usercolor, log.c.emoteset, log.c.emotes, log.c.displayname
-		]).where(condition)
+		).where(condition)
 		rows = conn.execute(query).fetchall()
 	if len(rows) == 0:
 		return
@@ -134,8 +135,9 @@ async def _delete_messages(condition, undelete=False):
 			"messagehtml": html,
 			"_key": key,
 		})
-	with lrrbot.main.bot.engine.begin() as conn:
-		conn.execute(log.update().where(log.c.id == sqlalchemy.bindparam("_key")), *new_rows)
+	with lrrbot.main.bot.engine.connect() as conn:
+		conn.execute(log.update().where(log.c.id == sqlalchemy.bindparam("_key")), new_rows)
+		conn.commit()
 
 @utils.swallow_errors
 async def do_rebuild_all(period):
@@ -146,13 +148,12 @@ async def do_rebuild_all(period):
 	log = lrrbot.main.bot.metadata.tables["log"]
 	conn_select = lrrbot.main.bot.engine.connect()
 	count, = conn_select.execute(log.count().where(log.c.time >= since)).first()
-	rows = conn_select.execute(sqlalchemy.select([
+	rows = conn_select.execute(sqlalchemy.select(
 		log.c.id, log.c.time, log.c.source, log.c.target, log.c.message, log.c.specialuser,
 		log.c.usercolor, log.c.emoteset, log.c.emotes, log.c.displayname
-	]).where(log.c.time >= since).execution_options(stream_results=True))
+	).where(log.c.time >= since).execution_options(stream_results=True))
 
 	conn_update = lrrbot.main.bot.engine.connect()
-	trans = conn_update.begin()
 
 	try:
 		for i, (key, time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname) in enumerate(rows):
@@ -161,11 +162,11 @@ async def do_rebuild_all(period):
 			specialuser = set(specialuser) if specialuser else set()
 			emoteset = set(emoteset) if emoteset else set()
 			html = await build_message_html(time, source, target, message, specialuser, usercolor, emoteset, emotes, displayname)
-			conn_update.execute(log.update().where(log.c.id == key), messagehtml=html)
+			conn_update.execute(log.update().where(log.c.id == key), {"messagehtml": html})
 		print("\r%d/%d" % (count, count))
-		trans.commit()
+		conn_update.commit()
 	except:
-		trans.rollback()
+		conn_update.rollback()
 		raise
 	finally:
 		conn_select.close()

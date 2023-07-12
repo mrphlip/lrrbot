@@ -18,7 +18,7 @@ def upgrade():
 	# won't have it, so check if it already exists and create if it's missing
 	# to bring everything back into sync
 	if not cards.c.id.server_default or 'cards_id_seq' not in cards.c.id.server_default.arg.text:
-		maxid, = conn.execute(sqlalchemy.select([sqlalchemy.func.max(cards.c.id)])).first()
+		maxid, = conn.execute(sqlalchemy.select(sqlalchemy.func.max(cards.c.id))).first()
 		if maxid is None:
 			maxid = 0
 		alembic.op.execute(CreateSequence(Sequence('cards_id_seq', start=maxid + 1)))

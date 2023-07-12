@@ -35,8 +35,8 @@ class PubSub:
 
 	def _token_for(self, user):
 		users = self.metadata.tables["users"]
-		with self.engine.begin() as conn:
-			row = conn.execute(sqlalchemy.select([users.c.twitch_oauth]).where(users.c.name == user)).first()
+		with self.engine.connect() as conn:
+			row = conn.execute(sqlalchemy.select(users.c.twitch_oauth).where(users.c.name == user)).first()
 			if row is not None:
 				return row[0]
 		raise Exception("User %r not found" % user)

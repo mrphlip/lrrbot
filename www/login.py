@@ -151,18 +151,18 @@ async def load_session(include_url=True, include_header=True):
 			games = server.db.metadata.tables["games"]
 			shows = server.db.metadata.tables["shows"]
 			game_per_show_data = server.db.metadata.tables["game_per_show_data"]
-			with server.db.engine.begin() as conn:
+			with server.db.engine.connect() as conn:
 				game_id = session['header']['current_game']['id']
 				show_id = session['header']['current_show']['id']
-				session['header']['current_game']['display'], = conn.execute(sqlalchemy.select([
+				session['header']['current_game']['display'], = conn.execute(sqlalchemy.select(
 					sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
-				]).select_from(games
+				).select_from(games
 					.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == games.c.id) & (game_per_show_data.c.show_id == show_id))
 				).where(games.c.id == game_id)).first()
 
-				session['header']['current_show']['name'], = conn.execute(sqlalchemy.select([
+				session['header']['current_show']['name'], = conn.execute(sqlalchemy.select(
 					shows.c.name,
-				]).where(shows.c.id == show_id)).first()
+				).where(shows.c.id == show_id)).first()
 
 		if not session['header']['is_live']:
 			message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
@@ -172,12 +172,12 @@ async def load_session(include_url=True, include_header=True):
 		user_id = int(user_id)
 		users = server.db.metadata.tables["users"]
 		patreon_users = server.db.metadata.tables["patreon_users"]
-		with server.db.engine.begin() as conn:
-			query = sqlalchemy.select([
+		with server.db.engine.connect() as conn:
+			query = sqlalchemy.select(
 				users.c.name, sqlalchemy.func.coalesce(users.c.display_name, users.c.name), users.c.twitch_oauth,
 				users.c.is_sub, users.c.is_mod, users.c.autostatus, users.c.patreon_user_id,
 				users.c.stream_delay, users.c.chat_timestamps, users.c.chat_timestamps_24hr, users.c.chat_timestamps_secs
-			]).where(users.c.id == user_id)
+			).where(users.c.id == user_id)
 			name, display_name, token, is_sub, is_mod, autostatus, patreon_user_id, \
 				stream_delay, chat_timestamps, chat_timestamps_24hr, chat_timestamps_secs = conn.execute(query).first()
 			session['user'] = {
@@ -295,7 +295,7 @@ async def login(return_to=None):
 				'display_name': display_name,
 			}
 			users = server.db.metadata.tables["users"]
-			with server.db.engine.begin() as conn:
+			with server.db.engine.connect() as conn:
 				query = insert(users)
 				query = query.on_conflict_do_update(
 					index_elements=[users.c.id],
@@ -306,6 +306,7 @@ async def login(return_to=None):
 					},
 				)
 				conn.execute(query, user)
+				conn.commit()
 
 			# Store the user ID into the session
 			flask.session['id'] = user_id

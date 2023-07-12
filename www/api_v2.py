@@ -41,8 +41,8 @@ def add_cors_headers(request):
 @login.with_session
 async def docs(session):
 	shows = server.db.metadata.tables["shows"]
-	with server.db.engine.begin() as conn:
-		shows = list(conn.execute(sqlalchemy.select([shows.c.string_id, shows.c.name]).where(shows.c.string_id != "").order_by(shows.c.string_id)))
+	with server.db.engine.connect() as conn:
+		shows = list(conn.execute(sqlalchemy.select(shows.c.string_id, shows.c.name).where(shows.c.string_id != "").order_by(shows.c.string_id)))
 
 	return flask.render_template("api_v2_docs.html", session=session,
 		stormcount=stormcount().get_data().decode(),
@@ -65,8 +65,8 @@ def stormcount():
 @blueprint.route("/stormcount/all")
 def stormcount_all():
 	storm = server.db.metadata.tables["storm"]
-	with server.db.engine.begin() as conn:
-		res = conn.execute(sqlalchemy.select([
+	with server.db.engine.connect() as conn:
+		res = conn.execute(sqlalchemy.select(
 			storm.c.date,
 			storm.c["twitch-subscription"],
 			storm.c["twitch-resubscription"],
@@ -75,7 +75,7 @@ def stormcount_all():
 			storm.c["patreon-pledge"],
 			storm.c["twitch-cheer"],
 			storm.c["twitch-raid"],
-		]).order_by(storm.c.date.desc()))
+		).order_by(storm.c.date.desc()))
 
 		return flask.jsonify([
 			{
@@ -102,8 +102,8 @@ async def set_show(session):
 	show_id = await common.rpc.bot.get_show_id()
 
 	shows = server.db.metadata.tables["shows"]
-	with server.db.engine.begin() as conn:
-		code, name = conn.execute(sqlalchemy.select([shows.c.string_id, shows.c.name]).where(shows.c.id == show_id)).first()
+	with server.db.engine.connect() as conn:
+		code, name = conn.execute(sqlalchemy.select(shows.c.string_id, shows.c.name).where(shows.c.id == show_id)).first()
 		return flask.jsonify(
 			code=code,
 			name=name,
@@ -136,10 +136,9 @@ async def get_clips(session):
 	startdt = datetime.datetime.now(pytz.UTC) - datetime.timedelta(days=days)
 	full = int(flask.request.values.get('full', 0))
 	clips = server.db.metadata.tables["clips"]
-	with server.db.engine.begin() as conn:
+	with server.db.engine.connect() as conn:
 		if full:
-			clipdata = conn.execute(sqlalchemy.select(
-				[clips.c.slug, clips.c.title, clips.c.vodid, clips.c.rating])
+			clipdata = conn.execute(sqlalchemy.select(clips.c.slug, clips.c.title, clips.c.vodid, clips.c.rating)
 				.where(clips.c.time >= startdt)
 				.where(clips.c.deleted == False)
 				.order_by(clips.c.time.asc())).fetchall()
@@ -152,7 +151,7 @@ async def get_clips(session):
 			]
 			return flask.jsonify(clipdata)
 		else:
-			clipdata = conn.execute(sqlalchemy.select([clips.c.slug])
+			clipdata = conn.execute(sqlalchemy.select(clips.c.slug)
 				.where(clips.c.rating == True)
 				.where(clips.c.time >= startdt)
 				.where(clips.c.deleted == False)
@@ -186,7 +185,7 @@ async def cardviewer_announce(session):
 		game = CARD_GAME_CODE_MAPPING[req.get('game', 'mtg')]
 	except KeyError:
 		return flask.jsonify(message="Unrecognised game code"), 400
-	query = sqlalchemy.select([cards.c.id, cards.c.name, cards.c.text]).where(cards.c.game == game)
+	query = sqlalchemy.select(cards.c.id, cards.c.name, cards.c.text).where(cards.c.game == game)
 
 	if 'multiverseid' in req:
 		query = query.select_from(cards.join(card_multiverse)).where(card_multiverse.c.id == req['multiverseid'])
@@ -214,7 +213,7 @@ async def cardviewer_announce(session):
 	else:
 		return flask.jsonify(message=""), 400
 
-	with server.db.engine.begin() as conn:
+	with server.db.engine.connect() as conn:
 		cards = conn.execute(query).fetchall()
 
 	if len(cards) == 0:

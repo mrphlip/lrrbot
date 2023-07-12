@@ -35,8 +35,8 @@ class VideoPlayback:
 		self.loop = loop
 
 		users = self.lrrbot.metadata.tables["users"]
-		with self.lrrbot.engine.begin() as conn:
-			row = conn.execute(sqlalchemy.select([users.c.id, users.c.name]).where(users.c.name == config['channel'])).first()
+		with self.lrrbot.engine.connect() as conn:
+			row = conn.execute(sqlalchemy.select(users.c.id, users.c.name).where(users.c.name == config['channel'])).first()
 		if row is not None:
 			channel_id, channel_name = row
 

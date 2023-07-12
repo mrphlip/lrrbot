@@ -65,7 +65,7 @@ def main():
 	print("Processing...")
 	cards = metadata.tables["cards"]
 	processed_cards = set()
-	with engine.begin() as conn, conn.begin() as trans:
+	with engine.connect() as conn:
 		conn.execute(cards.delete().where(cards.c.game == CARD_GAME_KEYFORGE))
 		for setid, cardset in sorted(carddata.items(), key=lambda e: EXPANSIONS[e[0]]['releaseDate'], reverse=True):
 			expansion = EXPANSIONS[setid]
@@ -75,14 +75,15 @@ def main():
 
 			for filteredname, cardname, description, hidden in process_set(expansion, cardset, houses):
 				if filteredname not in processed_cards:
-					conn.execute(cards.insert(),
-						game=CARD_GAME_KEYFORGE,
-						filteredname=filteredname,
-						name=cardname,
-						text=description,
-						hidden=hidden,
-					)
+					conn.execute(cards.insert(), {
+						"game": CARD_GAME_KEYFORGE,
+						"filteredname": filteredname,
+						"name": cardname,
+						"text": description,
+						"hidden": hidden,
+					})
 					processed_cards.add(filteredname)
+		conn.commit()
 
 re_429_detail = re.compile("This endpoint is currently disabled due to too many requests\\. Please, try again in (\d+) seconds\\.")
 def getpage(page):

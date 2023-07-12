@@ -21,10 +21,10 @@ def upgrade():
 	meta.reflect()
 	notification = meta.tables['notification']
 
-	notifications = conn.execute(sqlalchemy.select([
+	notifications = conn.execute(sqlalchemy.select(
 		notification.c.message, notification.c.subuser, notification.c.useravatar,
 		notification.c.eventtime, notification.c.monthcount
-	]).where(~notification.c.test))
+	).where(~notification.c.test))
 
 	all_events = []
 	for message, subuser, useravatar, eventtime, monthcount in notifications:
@@ -77,7 +77,7 @@ def downgrade():
 	meta.reflect()
 	events = meta.tables['events']
 
-	all_events = conn.execute(sqlalchemy.select([events.c.event, events.c.data, events.c.time]).where(events.c.event.in_({'notification', 'twitch-subscriber'})))
+	all_events = conn.execute(sqlalchemy.select(events.c.event, events.c.data, events.c.time).where(events.c.event.in_({'notification', 'twitch-subscriber'})))
 	notifications = []
 	for event, data, time in all_events:
 		if event in {'twitch-subscription', 'twitch-resubscription'}:

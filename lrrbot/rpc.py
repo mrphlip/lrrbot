@@ -141,8 +141,8 @@ class Server(common.rpc.Server):
 			return random.choice(storage.data['responses']['smash']['response'])
 		elif mode == QUOTE:
 			quotes = self.lrrbot.metadata.tables["quotes"]
-			with self.lrrbot.engine.begin() as conn:
-				query = sqlalchemy.select([quotes.c.quote, quotes.c.attrib_name, quotes.c.context]).where(~quotes.c.deleted)
+			with self.lrrbot.engine.connect() as conn:
+				query = sqlalchemy.select(quotes.c.quote, quotes.c.attrib_name, quotes.c.context).where(~quotes.c.deleted)
 				row = common.utils.pick_random_elements(conn.execute(query), 1)[0]
 			if row is None:
 				return None

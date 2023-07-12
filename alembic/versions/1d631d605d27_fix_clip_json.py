@@ -13,7 +13,7 @@ def upgrade():
 	meta.reflect()
 	clips = meta.tables["clips"]
 
-	for clipid, clipjson in conn.execute(sqlalchemy.select([clips.c.id, clips.c.data])):
+	for clipid, clipjson in conn.execute(sqlalchemy.select(clips.c.id, clips.c.data)):
 		conn.execute(clips.update()
 			.values(data=json.loads(clipjson))
 			.where(clips.c.id == clipid)
@@ -25,7 +25,7 @@ def downgrade():
 	meta.reflect()
 	clips = meta.tables["clips"]
 
-	for clipid, clipjson in conn.execute(sqlalchemy.select([clips.c.id, clips.c.data])):
+	for clipid, clipjson in conn.execute(sqlalchemy.select(clips.c.id, clips.c.data)):
 		conn.execute(clips.update()
 			.values(data=json.dumps(clipjson))
 			.where(clips.c.id == clipid)

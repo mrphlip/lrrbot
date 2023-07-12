@@ -127,7 +127,7 @@ def process_clip(clip):
 		"deleted": False,
 		"channel": clip['broadcaster_name'],
 	}
-	with engine.begin() as conn:
+	with engine.connect() as conn:
 		query = postgresql.insert(TBL_CLIPS)
 		query = query.on_conflict_do_update(
 				index_elements=[TBL_CLIPS.c.slug],
@@ -141,6 +141,7 @@ def process_clip(clip):
 				}
 			)
 		conn.execute(query, data)
+		conn.commit()
 
 def fix_null_vodids():
 	"""
@@ -148,9 +149,9 @@ def fix_null_vodids():
 	clip from the same vod that does have the id, so find the closest-by-time clip
 	that has a vodid, and use that.
 	"""
-	with engine.begin() as conn:
+	with engine.connect() as conn:
 		badvods = conn.execute(sqlalchemy
-			.select([TBL_CLIPS.c.id, TBL_CLIPS.c.time, TBL_CLIPS.c.channel])
+			.select(TBL_CLIPS.c.id, TBL_CLIPS.c.time, TBL_CLIPS.c.channel)
 			.where(TBL_CLIPS.c.vodid == None))
 		# Get the updated vodids first, then update them all after, so that we don't
 		# use the vods we're updating as a source for copying to others...
@@ -160,15 +161,16 @@ def fix_null_vodids():
 			updates.append((clipid, vodid))
 		for clipid, vodid in updates:
 			conn.execute(TBL_CLIPS.update().values(vodid=vodid).where(TBL_CLIPS.c.id == clipid))
+		conn.commit()
 
 def get_closest_vodid(conn, cliptime, channel):
-	prevclip = conn.execute(sqlalchemy.select([TBL_CLIPS.c.vodid, TBL_CLIPS.c.time])
+	prevclip = conn.execute(sqlalchemy.select(TBL_CLIPS.c.vodid, TBL_CLIPS.c.time)
 		.where(TBL_CLIPS.c.vodid != None)
 		.where(TBL_CLIPS.c.time < cliptime)
 		.where(TBL_CLIPS.c.channel == channel)
 		.limit(1)
 		.order_by(TBL_CLIPS.c.time.desc())).first()
-	nextclip = conn.execute(sqlalchemy.select([TBL_CLIPS.c.vodid, TBL_CLIPS.c.time])
+	nextclip = conn.execute(sqlalchemy.select(TBL_CLIPS.c.vodid, TBL_CLIPS.c.time)
 		.where(TBL_CLIPS.c.vodid != None)
 		.where(TBL_CLIPS.c.time > cliptime)
 		.where(TBL_CLIPS.c.channel == channel)
@@ -196,14 +198,15 @@ def check_deleted_clips(period, slugs):
 	day" early) or if they've been deleted, in which case mark that in the DB.
 	"""
 	start, _ = get_period(period)
-	with engine.begin() as conn:
-		clips = conn.execute(sqlalchemy.select([TBL_CLIPS.c.id, TBL_CLIPS.c.slug])
+	with engine.connect() as conn:
+		clips = conn.execute(sqlalchemy.select(TBL_CLIPS.c.id, TBL_CLIPS.c.slug)
 			.where(TBL_CLIPS.c.time >= start)
 			.where(TBL_CLIPS.c.slug.notin_(slugs))
 			.where(TBL_CLIPS.c.deleted == False))
 		for clipid, slug in clips:
 			if get_clip_info(slug, check_missing=True) is None:
 				conn.execute(TBL_CLIPS.update().values(deleted=True).where(TBL_CLIPS.c.id == clipid))
+		conn.commit()
 
 def get_period(period):
 	end = datetime.datetime.now(pytz.UTC)
@@ -212,9 +215,9 @@ def get_period(period):
 
 def get_default_channels():
 	channels = [config['channel']]
-	with engine.begin() as conn:
+	with engine.connect() as conn:
 		channels.extend(channel for channel, in conn.execute(
-			sqlalchemy.select([TBL_EXT_CHANNEL.c.channel])))
+			sqlalchemy.select(TBL_EXT_CHANNEL.c.channel)))
 	return channels
 
 def parse_args():

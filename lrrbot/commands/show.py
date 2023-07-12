@@ -21,8 +21,8 @@ def get_show(lrrbot, conn, event, respond_to):
 def print_show(lrrbot, conn, respond_to):
 	show_id = lrrbot.get_show_id()
 	shows = lrrbot.metadata.tables["shows"]
-	with lrrbot.engine.begin() as pg_conn:
-		name, string_id = pg_conn.execute(sqlalchemy.select([shows.c.name, shows.c.string_id])
+	with lrrbot.engine.connect() as pg_conn:
+		name, string_id = pg_conn.execute(sqlalchemy.select(shows.c.name, shows.c.string_id)
 			.where(shows.c.id == show_id)).first()
 	if string_id == "":
 		conn.privmsg(respond_to, "Current show not set.")
@@ -52,8 +52,8 @@ def show_override(lrrbot, conn, event, respond_to, show):
 			lrrbot.override_show(show)
 		except KeyError:
 			shows = lrrbot.metadata.tables["shows"]
-			with lrrbot.engine.begin() as pg_conn:
-				all_shows = pg_conn.execute(sqlalchemy.select([shows.c.string_id])
+			with lrrbot.engine.connect() as pg_conn:
+				all_shows = pg_conn.execute(sqlalchemy.select(shows.c.string_id)
 					.where(shows.c.string_id != "")
 					.order_by(shows.c.string_id))
 				all_shows = [name for name, in all_shows]

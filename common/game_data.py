@@ -8,7 +8,7 @@ TABLES = [
 
 def lock_tables(conn, metadata):
 	" Lock all tables that reference the `games` table "
-	conn.execute("LOCK TABLE " + ", ".join(TABLES) + " IN ACCESS EXCLUSIVE MODE")
+	conn.execute(sqlalchemy.text("LOCK TABLE " + ", ".join(TABLES) + " IN ACCESS EXCLUSIVE MODE"))
 
 def merge_games(conn, metadata, old_id, new_id, result_id):
 	"""
@@ -33,20 +33,20 @@ def merge_games(conn, metadata, old_id, new_id, result_id):
 			})
 	except sqlalchemy.exc.IntegrityError:
 		with conn.begin_nested():
-			res = conn.execute(sqlalchemy.select([
+			res = conn.execute(sqlalchemy.select(
 				game_per_show_data.c.show_id, game_per_show_data.c.display_name,
 				game_per_show_data.c.verified
-			]).where(game_per_show_data.c.game_id == old_id))
+			).where(game_per_show_data.c.game_id == old_id))
 
 			data = {
 				show_id: (display_name, verified)
 				for show_id, display_name, verified in res
 			}
 
-			res = conn.execute(sqlalchemy.select([
+			res = conn.execute(sqlalchemy.select(
 				game_per_show_data.c.show_id, game_per_show_data.c.display_name,
 				game_per_show_data.c.verifed
-			]).where(game_per_show_data.c.game_id == new_id))
+			).where(game_per_show_data.c.game_id == new_id))
 
 			for show_id, new_display_name, new_verified in res:
 				old_display_name, old_verified = data.get(show_id, (None, None))

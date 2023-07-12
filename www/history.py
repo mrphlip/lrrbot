@@ -16,14 +16,14 @@ def history(session):
 	assert page in ('responses', 'explanations', 'spam', 'link_spam', 'all')
 	history = server.db.metadata.tables["history"]
 	users = server.db.metadata.tables["users"]
-	query = sqlalchemy.select([
+	query = sqlalchemy.select(
 			history.c.id, history.c.section, history.c.changetime, users.c.display_name,
 			sqlalchemy.func.length(history.c.jsondata.cast(sqlalchemy.Text))
-		]).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True)) \
+		).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True)) \
 		.order_by(history.c.changetime)
 	if page != 'all':
 		query = query.where(history.c.section == page)
-	with server.db.engine.begin() as conn:
+	with server.db.engine.connect() as conn:
 		data = [
 			{'key': key, 'section': section, 'time': time, 'user': user, 'datalen': datalen}
 			for key, section, time, user, datalen in conn.execute(query).fetchall()
@@ -44,10 +44,10 @@ def history(session):
 def history_show(session, historykey):
 	history = server.db.metadata.tables["history"]
 	users = server.db.metadata.tables["users"]
-	with server.db.engine.begin() as conn:
-		section, time, user, data = conn.execute(sqlalchemy.select([
+	with server.db.engine.connect() as conn:
+		section, time, user, data = conn.execute(sqlalchemy.select(
 				history.c.section, history.c.changetime, users.c.display_name, history.c.jsondata
-			]).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True))
+			).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True))
 			.where(history.c.id == historykey)).first()
 	if section in ('responses', 'explanations'):
 		for row in data.values():
@@ -69,14 +69,14 @@ def history_show(session, historykey):
 def history_diff(session, fromkey, tokey):
 	history = server.db.metadata.tables["history"]
 	users = server.db.metadata.tables["users"]
-	with server.db.engine.begin() as conn:
-		fromsection, fromdata = conn.execute(sqlalchemy.select([
+	with server.db.engine.connect() as conn:
+		fromsection, fromdata = conn.execute(sqlalchemy.select(
 				history.c.section, history.c.jsondata
-			]).where(history.c.id == fromkey)).first()
+			).where(history.c.id == fromkey)).first()
 
-		tosection, totime, touser, todata = conn.execute(sqlalchemy.select([
+		tosection, totime, touser, todata = conn.execute(sqlalchemy.select(
 				history.c.section, history.c.changetime, users.c.display_name, history.c.jsondata
-			]).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True))
+			).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True))
 			.where(history.c.id == tokey)).first()
 	assert fromsection == tosection
 
@@ -146,10 +146,10 @@ def history_diff(session, fromkey, tokey):
 
 def build_headdata(fromkey, tokey, section, user, time):
 	history = server.db.metadata.tables["history"]
-	with server.db.engine.begin() as conn:
-		prevkey = conn.execute(sqlalchemy.select([sqlalchemy.func.max(history.c.id)])
+	with server.db.engine.connect() as conn:
+		prevkey = conn.execute(sqlalchemy.select(sqlalchemy.func.max(history.c.id))
 			.where((history.c.id < fromkey) & (history.c.section == section))).first()
-		nextkey = conn.execute(sqlalchemy.select([sqlalchemy.func.min(history.c.id)])
+		nextkey = conn.execute(sqlalchemy.select(sqlalchemy.func.min(history.c.id))
 			.where((history.c.id > tokey) & (history.c.section == section))).first()
 
 	if prevkey is not None:
@@ -170,10 +170,11 @@ def build_headdata(fromkey, tokey, section, user, time):
 	}
 
 def store(section, user, jsondata):
-	with server.db.engine.begin() as conn:
-		conn.execute(server.db.metadata.tables["history"].insert(),
-			section=section,
-			changetime=datetime.datetime.now(tz=pytz.utc),
-			changeuser=user,
-			jsondata=jsondata,
-		)
+	with server.db.engine.connect() as conn:
+		conn.execute(server.db.metadata.tables["history"].insert(), {
+			"section": section,
+			"changetime": datetime.datetime.now(tz=pytz.utc),
+			"changeuser": user,
+			"jsondata": jsondata,
+		})
+		conn.commit()

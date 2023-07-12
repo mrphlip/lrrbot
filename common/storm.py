@@ -6,7 +6,7 @@ from common.config import config
 
 def increment(engine, metadata, counter, by=1):
 	storm = metadata.tables['storm']
-	with engine.begin() as conn:
+	with engine.connect() as conn:
 		query = insert(storm).returning(storm.c[counter])
 		query = query.on_conflict_do_update(
 			index_elements=[storm.c.date],
@@ -18,12 +18,13 @@ def increment(engine, metadata, counter, by=1):
 			'date': datetime.datetime.now(config['timezone']).date(),
 			counter: by,
 		}).first()
+		conn.commit()
 	return count
 
 def get(engine, metadata, counter):
 	storm = metadata.tables['storm']
-	with engine.begin() as conn:
-		row = conn.execute(sqlalchemy.select([storm.c[counter]])
+	with engine.connect() as conn:
+		row = conn.execute(sqlalchemy.select(storm.c[counter])
 			.where(storm.c.date == datetime.datetime.now(config['timezone']).date())) \
 			.first()
 	if row is not None:
@@ -34,9 +35,9 @@ COMBINED_COUNTERS = ['twitch-subscription', 'twitch-resubscription', 'patreon-pl
 def get_combined(engine, metadata):
 	combined_count = 0
 	storm = metadata.tables['storm']
-	with engine.begin() as conn:
+	with engine.connect() as conn:
 		for counter in COMBINED_COUNTERS:
-			row = conn.execute(sqlalchemy.select([storm.c[counter]])
+			row = conn.execute(sqlalchemy.select(storm.c[counter])
 				.where(storm.c.date == datetime.datetime.now(config['timezone']).date())) \
 				.first()
 			if row is not None:

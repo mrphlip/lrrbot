@@ -25,8 +25,8 @@ SCOPE = "users pledges-to-me"
 async def patreon_index(session):
 	patreon_users = server.db.metadata.tables['patreon_users']
 	users = server.db.metadata.tables['users']
-	with server.db.engine.begin() as conn:
-		channel_patreon_name, = conn.execute(sqlalchemy.select([patreon_users.c.full_name])
+	with server.db.engine.connect() as conn:
+		channel_patreon_name, = conn.execute(sqlalchemy.select(patreon_users.c.full_name)
 			.select_from(users.join(patreon_users))
 			.where(users.c.name == config['channel'])).first()
 
@@ -45,9 +45,11 @@ async def patreon_index(session):
 			for obj in user['included']:
 				if obj['type'] == pledge['type'] and obj['id'] == pledge['id'] and obj['attributes']['amount_cents'] > 0:
 					is_patron = True
-					with server.db.engine.begin() as conn:
-						conn.execute(patreon_users.update().where(patreon_users.c.patreon_id == user['data']['id']),
-							pledge_start=dateutil.parser.parse(obj['attributes']['created_at']))
+					with server.db.engine.connect() as conn:
+						conn.execute(patreon_users.update().where(patreon_users.c.patreon_id == user['data']['id']), {
+							"pledge_start": dateutil.parser.parse(obj['attributes']['created_at']),
+						})
+						conn.commit()
 					break
 			else:
 				continue
@@ -108,7 +110,7 @@ async def patreon_login(session):
 		else:
 			continue
 		break
-	with server.db.engine.begin() as conn:
+	with server.db.engine.connect() as conn:
 		query = insert(patreon_users).returning(patreon_users.c.id)
 		query = query.on_conflict_do_update(
 			index_elements=[patreon_users.c.patreon_id],
@@ -120,24 +122,25 @@ async def patreon_login(session):
 				'pledge_start': query.excluded.pledge_start,
 			}
 		)
-		patreon_user_id, = conn.execute(query,
-			patreon_id=user['data']['id'],
-			full_name=user['data']['attributes']['full_name'],
-			access_token=access_token,
-			refresh_token=refresh_token,
-			token_expires=expiry,
-			pledge_start=pledge_start,
-		).first()
+		patreon_user_id, = conn.execute(query, {
+			"patreon_id": user['data']['id'],
+			"full_name": user['data']['attributes']['full_name'],
+			"access_token": access_token,
+			"refresh_token": refresh_token,
+			"token_expires": expiry,
+			"pledge_start": pledge_start,
+		}).first()
 		row = conn.execute(
 			users.update()
 				.where(users.c.patreon_user_id == patreon_user_id)
 				.returning(users.c.name, users.c.display_name),
-			patreon_user_id=None,
+			{"patreon_user_id": None},
 		).first()
 		if row is not None:
 			name, display_name = row
 			flask.flash('Unlinked the Patreon account from %s.' % (display_name or name))
-		conn.execute(users.update().where(users.c.id == session['user']['id']), patreon_user_id=patreon_user_id)
+		conn.execute(users.update().where(users.c.id == session['user']['id']), {"patreon_user_id": patreon_user_id})
+		conn.commit()
 
 	flask.flash('Patreon account linked.', 'success')
 
@@ -185,7 +188,7 @@ async def patreon_webhooks():
 
 	event = flask.request.headers['X-Patreon-Event']
 	if event == 'pledges:create':
-		with server.db.engine.begin() as conn:
+		with server.db.engine.connect() as conn:
 			query = insert(patreon_users).returning(patreon_users.c.id)
 			query = query.on_conflict_do_update(
 				index_elements=[patreon_users.c.patreon_id],
@@ -194,14 +197,15 @@ async def patreon_webhooks():
 					'pledge_start': query.excluded.pledge_start,
 				}
 			)
-			conn.execute(query,
-				patreon_id=patron['id'],
-				full_name=patron['attributes']['full_name'],
-				pledge_start=pledge_start,
-			).first()
+			conn.execute(query, {
+				"patreon_id": patron['id'],
+				"full_name": patron['attributes']['full_name'],
+				"pledge_start": pledge_start,
+			}).first()
+			conn.commit()
 		common.storm.increment(server.db.engine, server.db.metadata, 'patreon-pledge')
 	elif event == 'pledges:update':
-		with server.db.engine.begin() as conn:
+		with server.db.engine.connect() as conn:
 			query = insert(patreon_users).returning(patreon_users.c.id)
 			query = query.on_conflict_do_update(
 				index_elements=[patreon_users.c.patreon_id],
@@ -210,13 +214,14 @@ async def patreon_webhooks():
 					'pledge_start': query.excluded.pledge_start,
 				}
 			)
-			conn.execute(query,
-				patreon_id=patron['id'],
-				full_name=patron['attributes']['full_name'],
-				pledge_start=pledge_start,
-			)
+			conn.execute(query, {
+				"patreon_id": patron['id'],
+				"full_name": patron['attributes']['full_name'],
+				"pledge_start": pledge_start,
+			})
+			conn.commit()
 	elif event == 'pledges:delete':
-		with server.db.engine.begin() as conn:
+		with server.db.engine.connect() as conn:
 			query = insert(patreon_users).returning(patreon_users.c.id)
 			query = query.on_conflict_do_update(
 				index_elements=[patreon_users.c.patreon_id],
@@ -225,11 +230,12 @@ async def patreon_webhooks():
 					'pledge_start': query.excluded.pledge_start,
 				}
 			)
-			conn.execute(query,
-				patreon_id=patron['id'],
-				full_name=patron['attributes']['full_name'],
-				pledge_start=None,
-			)
+			conn.execute(query, {
+				"patreon_id": patron['id'],
+				"full_name": patron['attributes']['full_name'],
+				"pledge_start": None,
+			})
+			conn.commit()
 	else:
 		raise NotImplementedError(event)
 

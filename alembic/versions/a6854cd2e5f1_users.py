@@ -88,12 +88,12 @@ def downgrade():
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
 	with open(datafile) as f:
 		data = json.load(f)
-	data["autostatus"] = [nick for nick, in conn.execute(sqlalchemy.select([users.c.name]).where(users.c.autostatus))]
-	data["subs"] = [nick for nick, in conn.execute(sqlalchemy.select([users.c.name]).where(users.c.is_sub))]
-	data["mods"] = [nick for nick, in conn.execute(sqlalchemy.select([users.c.name]).where(users.c.is_mod))]
+	data["autostatus"] = [nick for nick, in conn.execute(sqlalchemy.select(users.c.name).where(users.c.autostatus))]
+	data["subs"] = [nick for nick, in conn.execute(sqlalchemy.select(users.c.name).where(users.c.is_sub))]
+	data["mods"] = [nick for nick, in conn.execute(sqlalchemy.select(users.c.name).where(users.c.is_mod))]
 	data["twitch_oauth"] = {
 		name: key
-		for name, key in conn.execute(sqlalchemy.select([users.c.name, users.c.twitch_oauth]).where(users.c.twitch_oauth != None))
+		for name, key in conn.execute(sqlalchemy.select(users.c.name, users.c.twitch_oauth).where(users.c.twitch_oauth != None))
 	}
 	with open(datafile, "w") as f:
 		json.dump(data, f, indent=2, sort_keys=True)

@@ -22,11 +22,11 @@ def current_game(lrrbot, conn, event, respond_to):
 
 	game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
 	games = lrrbot.metadata.tables["games"]
-	with lrrbot.engine.begin() as pg_conn:
+	with lrrbot.engine.connect() as pg_conn:
 		game, = pg_conn.execute(
-			sqlalchemy.select([
+			sqlalchemy.select(
 				sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
-			]).select_from(
+			).select_from(
 				games.outerjoin(game_per_show_data,
 					(game_per_show_data.c.game_id == games.c.id)
 						& (game_per_show_data.c.show_id == show_id))
@@ -56,8 +56,8 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 
 	games = lrrbot.metadata.tables["games"]
 	game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
-	with lrrbot.engine.begin() as pg_conn:
-		name_query = sqlalchemy.select([games.c.name]).where(games.c.id == game_id)
+	with lrrbot.engine.connect() as pg_conn:
+		name_query = sqlalchemy.select(games.c.name).where(games.c.id == game_id)
 		# NULLIF: https://www.postgresql.org/docs/9.6/static/functions-conditional.html#FUNCTIONS-NULLIF
 		query = insert(game_per_show_data).values({
 			"game_id": game_id,
@@ -72,6 +72,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 		)
 		pg_conn.execute(query)
 		real_name, = pg_conn.execute(name_query).first()
+		pg_conn.commit()
 
 		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (real_name, name))
 
@@ -109,8 +110,8 @@ def override_game(lrrbot, conn, event, respond_to, game):
 	else:
 		games = lrrbot.metadata.tables["games"]
 		game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
-		with lrrbot.engine.begin() as pg_conn:
-			name, = pg_conn.execute(sqlalchemy.select([games.c.name])
+		with lrrbot.engine.connect() as pg_conn:
+			name, = pg_conn.execute(sqlalchemy.select(games.c.name)
 				.select_from(
 					games
 						.outerjoin(game_per_show_data,

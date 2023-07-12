@@ -23,7 +23,7 @@ async_timeout = "*"
 Flask = {extras = ["async"], version = "*"}
 Flask-SQLAlchemy = "*"
 Jinja2 = "*"
-SQLAlchemy = "<2.0"
+SQLAlchemy = "*"
 confusables = "*"
 html2text = "*"
 

@@ -26,13 +26,14 @@ def prefs_save(session):
 		session['user']['chat_timestamps_secs'] = bool(int(flask.request.values['chat_timestamps_secs']))
 
 	users = server.db.metadata.tables["users"]
-	with server.db.engine.begin() as conn:
-		conn.execute(users.update()
-			           .where(users.c.id == session['user']['id']),
-			           autostatus=session['user']['autostatus'],
-			           stream_delay=session['user']['stream_delay'],
-			           chat_timestamps=session['user']['chat_timestamps'],
-			           chat_timestamps_24hr=session['user']['chat_timestamps_24hr'],
-			           chat_timestamps_secs=session['user']['chat_timestamps_secs'])
+	with server.db.engine.connect() as conn:
+		conn.execute(users.update().where(users.c.id == session['user']['id']), {
+			"autostatus": session['user']['autostatus'],
+			"stream_delay": session['user']['stream_delay'],
+			"chat_timestamps": session['user']['chat_timestamps'],
+			"chat_timestamps_24hr": session['user']['chat_timestamps_24hr'],
+			"chat_timestamps_secs": session['user']['chat_timestamps_secs'],
+		})
+		conn.commit()
 
 	return flask.render_template('prefs.html', session=session, saved=True)

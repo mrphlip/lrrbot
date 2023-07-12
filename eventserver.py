@@ -48,15 +48,13 @@ class Server(common.rpc.Server):
 			last_event_id = 0
 		if last_event_id is not None:
 			events = self.metadata.tables['events']
-			query = sqlalchemy.select([
-				events.c.id, events.c.event, events.c.data, events.c.time
-			])
+			query = sqlalchemy.select(events.c.id, events.c.event, events.c.data, events.c.time)
 			query = query.where(events.c.id > last_event_id)
 			if interval is not None:
 				query = query.where(events.c.time > sqlalchemy.func.current_timestamp() - sqlalchemy.cast(interval, sqlalchemy.Interval))
 			query = query.order_by(events.c.id)
 			try:
-				with self.engine.begin() as conn:
+				with self.engine.connect() as conn:
 					return [
 						{'id': id, 'event': event, 'data': dict(data, time=time.isoformat())}
 						for id, event, data, time in conn.execute(query)
@@ -113,12 +111,13 @@ class Server(common.rpc.Server):
 		if time is None:
 			time = datetime.datetime.now(tz=pytz.utc)
 		events = self.metadata.tables['events']
-		with self.engine.begin() as conn:
-			id, = conn.execute(events.insert().returning(events.c.id),
-				event=event,
-				data=data,
-				time=time,
-			).first()
+		with self.engine.connect() as conn:
+			id, = conn.execute(events.insert().returning(events.c.id), {
+				"event": event,
+				"data": data,
+				"time": time,
+			}).first()
+			conn.commit()
 		event = {
 			'id': id,
 			'event': event,

@@ -237,17 +237,17 @@ async def get_status_msg(lrrbot):
 		shows = lrrbot.metadata.tables["shows"]
 		games = lrrbot.metadata.tables["games"]
 		game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
-		with lrrbot.engine.begin() as conn:
-			show = conn.execute(sqlalchemy.select([shows.c.name])
+		with lrrbot.engine.connect() as conn:
+			show = conn.execute(sqlalchemy.select(shows.c.name)
 				.where(shows.c.id == show_id)
 				.where(shows.c.string_id != "")).first()
 			if show is not None:
 				show, = show
 
 			if game_id is not None:
-				game, = conn.execute(sqlalchemy.select([
+				game, = conn.execute(sqlalchemy.select(
 					sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name)
-				]).select_from(
+				).select_from(
 					games.outerjoin(game_per_show_data,
 						(game_per_show_data.c.game_id == games.c.id) &
 							(game_per_show_data.c.show_id == show_id))
@@ -295,8 +295,8 @@ def autostatus_check(lrrbot, conn, event, respond_to):
 	"""
 	source = irc.client.NickMask(event.source)
 	users = lrrbot.metadata.tables["users"]
-	with lrrbot.engine.begin() as pg_conn:
-		res = pg_conn.execute(sqlalchemy.select([users.c.autostatus])
+	with lrrbot.engine.connect() as pg_conn:
+		res = pg_conn.execute(sqlalchemy.select(users.c.autostatus)
 			.where(users.c.id == int(event.tags["user-id"]))).first()
 	if res and res[0]:
 		conn.privmsg(source.nick, "Auto-status is enabled. Disable it with: !autostatus off")
@@ -315,8 +315,9 @@ def autostatus_set(lrrbot, conn, event, respond_to, enable):
 	source = irc.client.NickMask(event.source)
 	enable = enable.lower() == "on"
 	users = lrrbot.metadata.tables["users"]
-	with lrrbot.engine.begin() as pg_conn:
-		pg_conn.execute(users.update().where(users.c.id == int(event.tags["user-id"])), autostatus=enable)
+	with lrrbot.engine.connect() as pg_conn:
+		pg_conn.execute(users.update().where(users.c.id == int(event.tags["user-id"])), {"autostatus": enable})
+		pg_conn.commit()
 	if enable:
 		conn.privmsg(source.nick, "Auto-status enabled.")
 	else:
@@ -325,11 +326,10 @@ def autostatus_set(lrrbot, conn, event, respond_to, enable):
 def autostatus_on_join(conn, event):
 	source = irc.client.NickMask(event.source)
 	users = bot.metadata.tables["users"]
-	with bot.engine.begin() as pg_conn:
-		res = pg_conn.execute(sqlalchemy.select([users.c.autostatus])
+	with bot.engine.connect() as pg_conn:
+		res = pg_conn.execute(sqlalchemy.select(users.c.autostatus)
 			.where(users.c.name == source.nick)).first()
 		if res is not None:
-			enabled, = res
 			if res[0]:
 				asyncio.ensure_future(send_status(bot, conn, source.nick), loop=bot.loop)
 bot.reactor.add_global_handler('join', autostatus_on_join, 99)

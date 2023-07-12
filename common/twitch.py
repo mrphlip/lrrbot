@@ -25,8 +25,8 @@ def get_user(id=None, name=None, get_missing=True):
 	"""
 	engine, metadata = postgres.get_engine_and_metadata()
 	users = metadata.tables["users"]
-	with engine.begin() as conn:
-		query = sqlalchemy.select([users.c.id, users.c.name, users.c.display_name, users.c.twitch_oauth])
+	with engine.connect() as conn:
+		query = sqlalchemy.select(users.c.id, users.c.name, users.c.display_name, users.c.twitch_oauth)
 		if id is not None:
 			query = query.where(users.c.id == id)
 			data = {'id': id}
@@ -60,6 +60,7 @@ def get_user(id=None, name=None, get_missing=True):
 				"name": user["login"],
 				"display_name": user["display_name"],
 			})
+			conn.commit()
 
 			return User(int(user["id"]), user["login"], user['display_name'], None)
 
@@ -181,8 +182,8 @@ def get_game(id=None, name=None, get_missing=True):
 	"""
 	engine, metadata = postgres.get_engine_and_metadata()
 	games = metadata.tables["games"]
-	with engine.begin() as conn:
-		query = sqlalchemy.select([games.c.id, games.c.name])
+	with engine.connect() as conn:
+		query = sqlalchemy.select(games.c.id, games.c.name)
 		if id is not None:
 			query = query.where(games.c.id == id)
 			data = {'id': id}
@@ -214,6 +215,7 @@ def get_game(id=None, name=None, get_missing=True):
 				"id": game["id"],
 				"name": game["name"],
 			})
+			conn.commit()
 
 			return Game(int(game["id"]), game["name"])
 

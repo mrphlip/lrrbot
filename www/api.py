@@ -42,16 +42,16 @@ async def get_game():
 	show_id = await common.rpc.bot.get_show_id()
 
 	games = server.db.metadata.tables["games"]
-	with server.db.engine.begin() as conn:
-		return conn.execute(sqlalchemy.select([games.c.name]).where(games.c.id == game_id)).first()[0]
+	with server.db.engine.connect() as conn:
+		return conn.execute(sqlalchemy.select(games.c.name).where(games.c.id == game_id)).first()[0]
 
 @server.app.route("/api/show")
 async def get_show():
 	show_id = await common.rpc.bot.get_show_id()
 
 	shows = server.db.metadata.tables["shows"]
-	with server.db.engine.begin() as conn:
-		show, = conn.execute(sqlalchemy.select([shows.c.string_id]).where(shows.c.id == show_id)).first()
+	with server.db.engine.connect() as conn:
+		show, = conn.execute(sqlalchemy.select(shows.c.string_id).where(shows.c.id == show_id)).first()
 		return show or "-"
 
 @server.app.route("/api/tweet")
@@ -81,10 +81,9 @@ async def get_clips(session):
 	startdt = datetime.datetime.now(pytz.UTC) - datetime.timedelta(days=days)
 	full = int(flask.request.values.get('full', 0))
 	clips = server.db.metadata.tables["clips"]
-	with server.db.engine.begin() as conn:
+	with server.db.engine.connect() as conn:
 		if full:
-			clipdata = conn.execute(sqlalchemy.select(
-				[clips.c.slug, clips.c.title, clips.c.vodid, clips.c.rating])
+			clipdata = conn.execute(sqlalchemy.select(clips.c.slug, clips.c.title, clips.c.vodid, clips.c.rating)
 				.where(clips.c.time >= startdt)
 				.where(clips.c.deleted == False)
 				.order_by(clips.c.time.asc())).fetchall()
@@ -97,7 +96,7 @@ async def get_clips(session):
 			]
 			return flask.jsonify(clipdata)
 		else:
-			clipdata = conn.execute(sqlalchemy.select([clips.c.slug])
+			clipdata = conn.execute(sqlalchemy.select(clips.c.slug)
 				.where(clips.c.rating == True)
 				.where(clips.c.time >= startdt)
 				.where(clips.c.deleted == False)

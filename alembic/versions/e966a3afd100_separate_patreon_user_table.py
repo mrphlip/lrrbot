@@ -36,7 +36,7 @@ def upgrade():
 	meta = sqlalchemy.MetaData(bind=conn)
 	meta.reflect()
 	users = meta.tables["users"]
-	existing_accounts = conn.execute(sqlalchemy.select([users.c.id, users.c.patreon_access_token, users.c.patreon_refresh_token, users.c.patreon_token_expires])
+	existing_accounts = conn.execute(sqlalchemy.select(users.c.id, users.c.patreon_access_token, users.c.patreon_refresh_token, users.c.patreon_token_expires)
 		.where(users.c.patreon_access_token.isnot(None)))
 	all_patreon_users = []
 	all_users = []
