@@ -61,23 +61,16 @@ Things not covered: tokens and secrets for Patreon integration, Slack integratio
         [register a new application](https://dev.twitch.tv/console/apps/create). Set the redirect URI to `http://localhost:5000/login`. 
 
 
- 3. Write a `data.json` file. Basic template:
-    ```
-    {
-        "responses": {}
-    }
-    ```
-
- 4. Populate the database:
+ 3. Populate the database:
     ```
     pipenv run alembic -c lrrbot.conf upgrade head
     ```
- 5. Start LRRbot components:
+ 4. Start LRRbot components:
    * IRC bot: `pipenv run ./start_bot.py`
    * Webserver: `pipenv run ./webserver.py`
    * (optional) Server-sent events server: `pipenv run ./eventserver.py`
- 6. Go to `http://localhost:5000/login` and log in with the bot account (name in `username` config key) and the channel account (name in `channel` config key).
- 7. Restart the bot.
+ 5. Go to `http://localhost:5000/login` and log in with the bot account (name in `username` config key) and the channel account (name in `channel` config key).
+ 6. Restart the bot.
 
 ## The Discord bot
 The Discord bot is written in Rust and lives in its [own repository](https://github.com/andreasots/eris).
