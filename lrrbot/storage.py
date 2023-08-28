@@ -29,8 +29,11 @@ data = {
 def load():
 	"""Read data from storage"""
 	global data
-	with open(config['datafile'], "r") as fp:
-		data = json.load(fp)
+	try:
+		with open(config['datafile'], "r") as fp:
+			data = json.load(fp)
+	except FileNotFoundError:
+		data = {}
 
 def save():
 	"""Save data to storage"""
