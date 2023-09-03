@@ -459,7 +459,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				"name": string_id,
 				"string_id": string_id,
 			}).first()
-			conn.conmmit()
+			conn.commit()
 
 	def override_show(self, string_id):
 		"""
