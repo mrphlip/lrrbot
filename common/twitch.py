@@ -292,15 +292,15 @@ def get_followers(channel=None):
 	Get an asynchronous list of all the followers of a given channel.
 
 	See:
-	https://dev.twitch.tv/docs/v5/reference/channels/#get-channel-followers
+	https://dev.twitch.tv/docs/api/reference/#get-channel-followers
 	"""
 	channelid = get_user(name=channel or config["channel"]).id
-	url = "https://api.twitch.tv/helix/users/follows"
+	url = "https://api.twitch.tv/helix/channels/followers"
 	headers = {
 		'Client-ID': config['twitch_clientid'],
 		'Authorization': f"Bearer {get_token()}",
 	}
-	return get_paginated(url, data={"to_id": channelid}, headers=headers)
+	return get_paginated(url, data={"broadcaster_id": channelid}, headers=headers)
 
 async def ban_user(channel_id, user_id, reason=None, duration=None):
 	"""

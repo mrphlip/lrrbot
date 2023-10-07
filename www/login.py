@@ -31,6 +31,7 @@ SPECIAL_USERS.setdefault(config["username"], list(REQUEST_SCOPES)).extend([
 	'chat:edit',
 	'chat:read',
 	'moderator:manage:banned_users',
+	'moderator:read:followers',
 	'user:read:follows',
 	'user:manage:whispers',
 	'whispers:edit',

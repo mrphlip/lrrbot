@@ -26,7 +26,7 @@ class TwitchFollows:
 			async for follower in twitch.get_followers():
 				if self.last_timestamp is None or self.last_timestamp == follower['followed_at']:
 					self.last_timestamp = follower['followed_at']
-					self.last_users.add(follower['from_id'])
+					self.last_users.add(follower['user_id'])
 				else:
 					break
 		else:
@@ -36,12 +36,12 @@ class TwitchFollows:
 
 			async for follower in twitch.get_followers():
 				if follower['followed_at'] >= self.last_timestamp:
-					if follower['from_id'] not in last_users:
+					if follower['user_id'] not in last_users:
 						events.append((
-							follower['from_name'],
+							follower['user_name'],
 							follower['followed_at'],
 						))
-						self.last_users.add(follower['from_id'])
+						self.last_users.add(follower['user_id'])
 				else:
 					break
 
