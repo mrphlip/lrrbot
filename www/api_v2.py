@@ -167,6 +167,7 @@ async def get_polls():
 CARD_GAME_CODE_MAPPING = {
 	'mtg': 1,
 	'keyforge': 2,
+	'ptcg': 3,
 }
 @blueprint.route("/cardviewer", methods=["POST"])
 @server.csrf.exempt
