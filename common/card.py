@@ -40,6 +40,7 @@ LETTERS_MAP = {
 	'\u00fd': 'y',
 	'\u00fe': 'th',
 	'\u00ff': 'y',
+	'\u0101': 'a',
 }
 
 def clean_text(text):

@@ -15,7 +15,7 @@ import zipfile
 import psycopg2
 
 from common import http
-from common.card import CARD_GAME_LORCANA
+from common.card import clean_text, CARD_GAME_LORCANA
 from common.config import config
 
 def main():
@@ -37,7 +37,7 @@ def main():
 		for card in carddata['cards']:
 			cur.execute("INSERT INTO cards (game, filteredname, name, text, hidden) VALUES (%s, %s, %s, %s, %s)", (
 				CARD_GAME_LORCANA,
-				card['simpleName'],
+				clean_text(card['fullName']),
 				card['fullName'],
 				get_card_description(card),
 				False,
