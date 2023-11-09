@@ -12,14 +12,11 @@ import os
 import urllib.request
 import urllib.error
 import urllib.parse
-import contextlib
-import time
 import json
 import re
-import dateutil.parser
 import psycopg2
 
-from common import utils
+from common import http, utils
 from common.config import config
 from common.card import clean_text, CARD_GAME_MTG
 
@@ -60,7 +57,7 @@ def main():
 	if '-p' in sys.argv:
 		sys.argv.remove('-p')
 		progress = True
-	if not do_download_file(URL, ZIP_FILENAME) and not os.access(EXTRAS_FILENAME, os.F_OK) and not force_run:
+	if not http.download_file(URL, ZIP_FILENAME, True) and not os.access(EXTRAS_FILENAME, os.F_OK) and not force_run:
 		print("No new version of mtgjson data file")
 		return
 
@@ -114,63 +111,6 @@ def main():
 						for id in multiverseids
 					])
 					processed_multiverseids.update(multiverseids)
-
-def do_download_file(url, fn):
-	"""
-	Download a file, checking that there is a new version of the file on the
-	server before doing so. Returns True if a download occurs.
-	"""
-	# Much of this code cribbed from urllib.request.urlretrieve, with If-Modified-Since logic added
-
-	req = urllib.request.Request(url, headers={
-		'User-Agent': "LRRbot/2.0 (https://lrrbot.com/)",
-	})
-	try:
-		stat = os.stat(fn)
-	except FileNotFoundError:
-		pass
-	else:
-		mtime = time.strftime('%a, %d %b %Y %H:%M:%S %z', time.gmtime(stat.st_mtime))
-		req.add_header('If-Modified-Since', mtime)
-
-	try:
-		fp = urllib.request.urlopen(req)
-	except urllib.error.HTTPError as e:
-		if e.code == 304: # Not Modified
-			return False
-		else:
-			raise
-
-	print("Downloading %s..." % url)
-	with contextlib.closing(fp):
-		headers = fp.info()
-
-		with open(fn, 'wb') as tfp:
-			bs = 1024*8
-			size = None
-			read = 0
-			if "content-length" in headers:
-				size = int(headers["Content-Length"])
-
-			while True:
-				block = fp.read(bs)
-				if not block:
-					break
-				read += len(block)
-				tfp.write(block)
-
-	if size is not None and read < size:
-		os.unlink(fn)
-		raise urllib.error.ContentTooShortError(
-			"retrieval incomplete: got only %i out of %i bytes"
-			% (read, size), (fn, headers))
-
-	if "last-modified" in headers:
-		mtime = dateutil.parser.parse(headers['last-modified'])
-		mtime = mtime.timestamp()
-		os.utime(fn, (mtime, mtime))
-
-	return True
 
 re_check = re.compile(r"^[a-z0-9_]*$")
 re_mana = re.compile(r"\{(.)\}")

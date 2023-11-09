@@ -14,6 +14,7 @@ import zipfile
 
 import psycopg2
 
+from common import http
 from common.card import CARD_GAME_LORCANA
 from common.config import config
 import build_carddb_mtg
@@ -21,7 +22,7 @@ import build_carddb_mtg
 def main():
 	forceRun = '-f' in sys.argv
 
-	was_downloaded = build_carddb_mtg.do_download_file("https://lorcanajson.org/files/current/en/allCards.json.zip", "LorcanaCards.json.zip")
+	was_downloaded = http.download_file("https://lorcanajson.org/files/current/en/allCards.json.zip", "LorcanaCards.json.zip", True)
 	if not was_downloaded and not forceRun:
 		print("No Lorcana card update available, stopping update")
 		return
