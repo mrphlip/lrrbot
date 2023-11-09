@@ -1,13 +1,18 @@
 import asyncio
 import atexit
+import contextlib
 import gc
 import json
 import logging
+import os
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
 import aiohttp
 import async_timeout
+import dateutil.parser
 
 from common import config
 from common import utils
@@ -144,3 +149,61 @@ async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, t
 			else:
 				break
 	raise firstex
+
+def download_file(url, fn, only_if_newer=False):
+	"""
+	Download a file, optionally checking that there is a new version of the file on the
+	server before doing so. Returns True if a download occurs.
+	"""
+	# Much of this code cribbed from urllib.request.urlretrieve, with If-Modified-Since logic added
+
+	req = urllib.request.Request(url, headers={
+		'User-Agent': "LRRbot/2.0 (https://lrrbot.com/)",
+	})
+	if only_if_newer:
+		try:
+			stat = os.stat(fn)
+		except FileNotFoundError:
+			pass
+		else:
+			mtime = time.strftime('%a, %d %b %Y %H:%M:%S %z', time.gmtime(stat.st_mtime))
+			req.add_header('If-Modified-Since', mtime)
+
+	try:
+		fp = urllib.request.urlopen(req)
+	except urllib.error.HTTPError as e:
+		if e.code == 304:  # Not Modified
+			return False
+		else:
+			raise
+
+	log.info("Downloading %s..." % url)
+	with contextlib.closing(fp):
+		headers = fp.info()
+
+		with open(fn, 'wb') as tfp:
+			bs = 1024*8
+			size = None
+			read = 0
+			if "content-length" in headers:
+				size = int(headers["Content-Length"])
+
+			while True:
+				block = fp.read(bs)
+				if not block:
+					break
+				read += len(block)
+				tfp.write(block)
+
+	if size is not None and read < size:
+		os.unlink(fn)
+		raise urllib.error.ContentTooShortError(
+			"retrieval incomplete: got only %i out of %i bytes"
+			% (read, size), (fn, headers))
+
+	if "last-modified" in headers:
+		mtime = dateutil.parser.parse(headers['last-modified'])
+		mtime = mtime.timestamp()
+		os.utime(fn, (mtime, mtime))
+
+	return True
