@@ -17,7 +17,6 @@ import psycopg2
 from common import http
 from common.card import CARD_GAME_LORCANA
 from common.config import config
-import build_carddb_mtg
 
 def main():
 	forceRun = '-f' in sys.argv
