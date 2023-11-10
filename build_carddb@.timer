@@ -2,7 +2,7 @@
 Description=Timer for the updating the card database (%i)
 
 [Timer]
-OnCalendar=weekly
+OnCalendar=weekly America/Vancouver
 Persistent=true
 
 [Install]
