@@ -101,7 +101,9 @@ async def next(lrrbot, conn, event, respond_to, timezone):
 @lrrbot.decorators.throttle()
 def desertbus(lrrbot, conn, event, respond_to, timezone):
 	"""
-	Commnand: !desertbus
+	Command: !db countdown
+	Command: !db next
+	Command: !next db
 	Section: info
 
 	Shows the countdown until the next Desert Bus for Hope marathon begins.
