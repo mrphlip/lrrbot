@@ -47,7 +47,7 @@ def main():
 def get_card_description(card):
 	parts = [f"{card['fullName']} [{card['cost']}, {card['color']}, {'Inkable' if card['inkwell'] else 'Non-inkable'}]"]
 	if card['type'] == "Character":
-		parts.append(f"Character [{card['strength']}/{card['willpower']}]")
+		parts.append(f"Character [{card['strength']}/{card['willpower']}, {card['lore']} ◊]")
 	else:
 		parts.append(card['type'])
 	if 'subtypes' in card:
