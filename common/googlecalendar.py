@@ -15,7 +15,6 @@ import common.time
 from common import gdata
 from common import utils
 from common.config import config
-from common import space
 
 CACHE_EXPIRY = 15*60
 CALENDAR_LRL = "loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com"
@@ -175,9 +174,8 @@ async def get_next_event_text(calendar, after=None, include_current=None, tz=Non
 	for i, ev in enumerate(events):
 		title = ev['title']
 		if ev['location'] is not None:
-			title += " (%(location)s%(space)s)" % {
+			title += " (%(location)s)" % {
 				"location": ev["location"],
-				"space": space.SPACE,
 			}
 		concise_title = title
 		if ev['description'] is not None:

@@ -1,6 +1,5 @@
 import lrrbot.decorators
 from lrrbot.main import bot
-from common import space
 from common import twitch
 from common import utils
 
@@ -24,10 +23,9 @@ async def live(lrrbot, conn, event, respond_to):
 
 	# Full message
 	message = tag + ", ".join([
-		"%s (https://twitch.tv/%s%s)%s%s" % (
+		"%s (https://twitch.tv/%s)%s%s" % (
 			data["user_name"],
 			data["user_login"],
-			space.SPACE,
 			" is playing %s" % data["game_name"] if data.get("game_name") is not None else "",
 			" (%s)" % data["title"] if data.get("title") not in [None, ""] else ""
 		) for data in streams
@@ -37,10 +35,9 @@ async def live(lrrbot, conn, event, respond_to):
 
 	# Shorter message
 	message = tag + ", ".join([
-		"%s (https://twitch.tv/%s%s)%s" % (
+		"%s (https://twitch.tv/%s)%s" % (
 			data["user_name"],
 			data["user_login"],
-			space.SPACE,
 			" is playing %s" % data["game_name"] if data.get("game_name") is not None else "",
 		) for data in streams
 	])
@@ -49,10 +46,9 @@ async def live(lrrbot, conn, event, respond_to):
 
 	# Shortest message
 	message = tag + ", ".join([
-		"%s (https://twitch.tv%s%s)" % (
+		"%s (https://twitch.tv%s)" % (
 			data["user_name"],
 			data["user_login"],
-			space.SPACE
 		) for data in streams
 	])
 	return conn.privmsg(respond_to, utils.trim_length(message))
