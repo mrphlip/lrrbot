@@ -159,11 +159,6 @@ async def get_clips(session):
 			clipdata = "\n".join(CLIP_URL.format(slug) for slug, in clipdata)
 			return flask.wrappers.Response(clipdata, mimetype="text/plain")
 
-@blueprint.route("/polls")
-async def get_polls():
-	data = await common.rpc.bot.get_polls()
-	return flask.jsonify(data)
-
 CARD_GAME_CODE_MAPPING = {
 	'mtg': 1,
 	'keyforge': 2,

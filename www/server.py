@@ -5,7 +5,7 @@ import sqlalchemy
 import warnings
 
 from common.config import config
-from common import space, postgres
+from common import postgres
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = config["postgres"]
@@ -22,6 +22,5 @@ with app.app_context():
 		db.reflect()
 	postgres.set_engine_and_metadata(db.engine, db.metadata)
 csrf = SeaSurf(app)
-space.monkey_patch_urlize()
 
 __all__ = ['app', 'db', 'csrf']

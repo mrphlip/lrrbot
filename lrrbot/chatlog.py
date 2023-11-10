@@ -15,7 +15,6 @@ import sqlalchemy
 import common.http
 import common.url
 from common import utils
-from common import space
 from common.config import config
 import lrrbot.main
 
@@ -27,8 +26,6 @@ CACHE_EXPIRY = 7*24*60*60
 PURGE_PERIOD = datetime.timedelta(minutes=5)
 
 queue = asyncio.Queue()
-
-space.monkey_patch_urlize()
 
 def urlize(text):
 	return real_urlize(text).replace('<a ', '<a target="_blank" rel="noopener nofollow" ')

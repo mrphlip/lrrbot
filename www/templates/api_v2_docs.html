@@ -11,7 +11,6 @@
 	<li><a href="#get_clips"><code>GET {{ url_for("api_v2.get_clips") }}</code></a></li>
 	<li><a href="#disconnect"><code>POST {{ url_for("api_v2.disconnect") }}</code></a></li>
 	<li><a href="#events"><code>GET {{ url_for("api_v2.events") }}</code></a></li>
-	<li><a href="#get_polls"><code>GET {{ url_for("api_v2.get_polls") }}</code></a></li>
 	<li><a href="#set_show"><code>PUT {{ url_for("api_v2.set_show") }}</code></a></li>
 	<li><a href="#stormcount"><code>GET {{ url_for("api_v2.stormcount") }}</code></a></li>
 	<li><a href="#stormcount_all"><code>GET {{ url_for("api_v2.stormcount_all") }}</code></a></li>
@@ -457,27 +456,6 @@ data:{"time": "2018-03-27T20:59:04.621308+02:00"}
     }
   ]
 }</pre>
-
-<h2 id="get_polls"><code>GET {{ url_for("api_v2.get_polls") }}</code></h2>
-<p>Get currently active polls.</p>
-
-<dl>
-	<dt><code>id</code></dt>
-	<dd><a href="https://strawpoll.me/">strawpoll.me</a> ID of the poll</dd>
-	<dt><code>title</code></dt>
-	<dd>The name of the poll</dd>
-	<dt><code>tag</code></dt>
-	<dd>If present and equal to <code>"nowkiss"</code> then the poll was created with <kbd>!nowkiss</kbd>.</dd>
-</dl>
-
-<h3>Example response</h3>
-<pre>[
-  {
-    "id": 15346267,
-    "title": "Keep playing Hustle Cat? [2018-03-23]",
-    "tag": "nowkiss"
-  }
-]</pre>
 
 <h2 id="set_show"><code>PUT {{ url_for("api_v2.set_show") }}</code></h2>
 <p>Set the current show. Returns the currently active show which might not be what was set. The user must be a moderator.</p>

@@ -355,3 +355,28 @@ async def send_whisper(target, message):
 	}
 
 	await common.http.request_coro(url, method="POST", headers=headers, data={"message": message}, asjson=True)
+
+async def get_number_of_chatters(channel=None, user=None):
+	"""
+	Get the number of users currently in chat.
+
+	See:
+	https://dev.twitch.tv/docs/api/reference/#get-chatters
+	"""
+	broadcaster = get_user(name=channel or config["channel"])
+	moderator = get_user(name=user or config['username'])
+	url = "https://api.twitch.tv/helix/chat/chatters"
+	data = {
+		"broadcaster_id": broadcaster.id,
+		"moderator_id": moderator.id,
+		# Since we only get the count limit the number of users we fetch
+		"limit": "1",
+	}
+	headers = {
+		'Client-ID': config['twitch_clientid'],
+		'Authorization': f"Bearer {moderator.token}",
+	}
+
+	data = await common.http.request_coro(url, data=data, headers=headers)
+
+	return json.loads(data)["total"]

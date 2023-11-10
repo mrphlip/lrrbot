@@ -14,23 +14,11 @@ import aiohttp
 import async_timeout
 import dateutil.parser
 
-from common import config
 from common import utils
 
 log = logging.getLogger("common.http")
 
 USER_AGENT = "LRRbot/2.0 (https://lrrbot.com/)"
-
-class Request(urllib.request.Request):
-	"""Override the get_method method of Request, adding the "method" field that doesn't exist until Python 3.3"""
-	def __init__(self, *args, method=None, **kwargs):
-		super().__init__(*args, **kwargs)
-		self.method = method
-	def get_method(self):
-		if self.method is not None:
-			return self.method
-		else:
-			return super().get_method()
 
 def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, asjson=False, **kwargs):
 	"""Download a webpage, with retries on failure."""
@@ -50,13 +38,13 @@ def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, 
 			data = urllib.parse.urlencode(data)
 		if method == 'GET':
 			url = '%s?%s' % (url, data)
-			req = Request(url=url, method='GET', headers=headers, **kwargs)
+			req = urllib.request.Request(url=url, method='GET', headers=headers, **kwargs)
 		elif method == 'POST':
-			req = Request(url=url, data=data.encode("utf-8"), method='POST', headers=headers, **kwargs)
+			req = urllib.request.Request(url=url, data=data.encode("utf-8"), method='POST', headers=headers, **kwargs)
 		elif method == 'PUT':
-			req = Request(url=url, data=data.encode("utf-8"), method='PUT', headers=headers, **kwargs)
+			req = urllib.request.Request(url=url, data=data.encode("utf-8"), method='PUT', headers=headers, **kwargs)
 	else:
-		req = Request(url=url, method='GET', headers=headers, **kwargs)
+		req = urllib.request.Request(url=url, method='GET', headers=headers, **kwargs)
 
 	firstex = None
 	while True:

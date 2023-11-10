@@ -174,15 +174,14 @@ async def viewers(lrrbot, conn, event, respond_to):
 	"""
 	stream_info = twitch.get_info()
 	if stream_info:
-		viewers = viewer_count.get("viewers")
+		viewers = stream_info.get("viewer_count")
 	else:
 		viewers = None
 
 	chatters = len(lrrbot.channels["#%s" % config["channel"]].users())
 	# Twitch stops sending JOINs and PARTs at 1000 users. Need to double-check if over.
 	if chatters > 950:
-		data = await common.http.request_coro("https://tmi.twitch.tv/group/user/%s/chatters" % config["channel"])
-		chatters = json.loads(data).get("chatter_count", chatters)
+		chatters = await twitch.get_number_of_chatters()
 
 	if viewers is not None:
 		viewers = "%d %s viewing the stream." % (viewers, "user" if viewers == 1 else "users")
