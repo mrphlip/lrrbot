@@ -24,6 +24,7 @@ PAGE_SIZE = 25
 URL = 'https://www.keyforgegame.com/api/decks/'
 THROTTLED_ADDITIONAL_WAIT_TIME = 5.0
 SUCCESSFUL_REQUEST_WAIT_TIME = 2.0
+CACHE_DIR = ".kfcache"
 
 session = requests.Session()
 session.headers['User-Agent'] = USER_AGENT
@@ -59,6 +60,11 @@ EXPANSIONS = {
 engine, metadata = common.postgres.get_engine_and_metadata()
 
 def main():
+	try:
+		os.mkdir(CACHE_DIR)
+	except FileExistsError:
+		pass
+
 	print("Downloading card data...")
 	carddata, houses = fetch_card_data()
 
@@ -87,7 +93,7 @@ def main():
 
 re_429_detail = re.compile("This endpoint is currently disabled due to too many requests\\. Please, try again in (\d+) seconds\\.")
 def getpage(page):
-	fn = ".kfcache/{}.json".format(page)
+	fn = f"{CACHE_DIR}/{page}.json"
 	if os.path.exists(fn):
 		with open(fn, 'r') as fp:
 			return fp.read()
