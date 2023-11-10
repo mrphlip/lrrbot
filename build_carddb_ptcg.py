@@ -7,12 +7,10 @@ formatted to send down the chat.
 
 import common
 common.FRAMEWORK_ONLY = True
-import urllib.request
-import urllib.error
-import urllib.parse
 import json
 import os
-import shutil
+import subprocess
+import sys
 import psycopg2
 from collections import defaultdict
 
@@ -33,9 +31,19 @@ TYPEABBR = {
 	"Water": "W",
 }
 
-URL = "https://api.pokemontcg.io/v2/cards?pageSize=250&page=%d"
+REPO = "https://github.com/PokemonTCG/pokemon-tcg-data"
+CACHE_DIR = ".ptcgcache"
 
 def main():
+	force_run = False
+	if '-f' in sys.argv:
+		sys.argv.remove('-f')
+		force_run = True
+
+	if not download_data() and not force_run:
+		print("No new version of pokemon-tcg-data")
+		return
+
 	with psycopg2.connect(config['postgres']) as conn, conn.cursor() as cur:
 		cur.execute("DELETE FROM cards WHERE game = %s", (CARD_GAME_PTCG, ))
 
@@ -53,41 +61,38 @@ def main():
 				hidden,
 			))
 
+def download_data():
+	if os.path.isdir(CACHE_DIR):
+		old_revision = subprocess.check_output(['git', '-C', CACHE_DIR, 'rev-parse', 'HEAD'])
+		subprocess.check_call(['git', '-C', CACHE_DIR, 'pull', '-q'])
+		new_revision = subprocess.check_output(['git', '-C', CACHE_DIR, 'rev-parse', 'HEAD'])
+		return old_revision != new_revision
+	else:
+		subprocess.check_call(['git', 'clone', '-q', REPO, CACHE_DIR])
+		return True
+
 def iter_cards():
 	for group in group_cards():
 		yield from process_group(group)
 
-def fetch_card_page(page):
-	cachefn = f".ptcgcache/{page}.json"
+def load_cards():
+	with open(os.path.join(CACHE_DIR, 'sets', 'en.json'), 'r') as f:
+		sets = {set['id']: set for set in json.load(f)}
 
-	if not os.path.exists(cachefn):
-		req = urllib.request.Request(URL % page, headers={
-			'User-Agent': "LRRbot/2.0 (https://lrrbot.com/)",
-		})
-		with urllib.request.urlopen(req) as fp:
-			with open(cachefn, "wb") as cachefp:
-				shutil.copyfileobj(fp, cachefp)
-	with open(cachefn) as fp:
-		return json.load(fp)
-
-def fetch_cards():
-	page = 1
-	count = 0
-	total = 0
-	while True:
-		print(f"{count}/{total}")
-		dat = fetch_card_page(page)
-		if not dat['data']:
-			break
-		yield from dat['data']
-		count += len(dat['data'])
-		total = dat['totalCount']
-		page += 1
+	for entry in os.scandir(os.path.join(CACHE_DIR, 'cards', 'en')):
+		if not entry.is_file():
+			continue
+		(set_id, ext) = os.path.splitext(entry.name)
+		if ext == '.json':
+			with open(entry.path, 'r') as f:
+				for card in json.load(f):
+					card['set'] = sets[set_id]
+					yield card
 
 def group_cards():
 	pkmn_cards = []
 	other_cards = []
-	for card in fetch_cards():
+	for card in load_cards():
 		if card['supertype'] == 'Pokémon':
 			pkmn_cards.append(card)
 		else:
@@ -263,9 +268,11 @@ def cost(costs, colorlesscount=True):
 	return ''.join(res)
 
 EX_NAMES = {
+	'Arbok ex',
 	'Chansey ex',
 	'Clefable ex',
 	'Electabuzz ex',
+	'Jynx ex',
 	'Magmar ex',
 	'Vileplume ex',
 	'Alakazam-EX',
