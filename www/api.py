@@ -103,8 +103,3 @@ async def get_clips(session):
 				.order_by(clips.c.time.asc())).fetchall()
 			clipdata = "\n".join(CLIP_URL.format(slug) for slug, in clipdata)
 			return flask.wrappers.Response(clipdata, mimetype="text/plain")
-
-@server.app.route("/api/polls")
-async def get_polls():
-	data = await common.rpc.bot.get_polls()
-	return flask.jsonify(data)

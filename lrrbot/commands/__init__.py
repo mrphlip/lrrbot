@@ -5,6 +5,5 @@ import lrrbot.commands.misc
 import lrrbot.commands.patreon
 import lrrbot.commands.show
 import lrrbot.commands.static
-import lrrbot.commands.strawpoll
 import lrrbot.commands.quote
 import lrrbot.commands.live

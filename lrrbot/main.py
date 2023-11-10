@@ -50,7 +50,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	show_override = state.Property("lrrbot.main.show_override")
 	access = state.Property("lrrbot.main.access", "all")
 	show_id = state.Property("lrrbot.main.show_id")
-	polls = state.Property("lrrbot.main.polls", [])
 	cardview = state.Property("lrrbot.main.cardview", False)
 
 	def __init__(self, loop):
@@ -99,8 +98,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.missed_pings = 0
 
 		self.reactor.add_global_handler('reconnect', self.disconnect)
-
-		self.reactor.scheduler.execute_every(5, self.check_polls)
 
 		self.service = systemd.Service(loop)
 
@@ -524,11 +521,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			log.info("Censor hit, flickering %s" % display_name)
 			await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 1)
 			conn.privmsg(source.nick, "Your message was automatically deleted (%s). You have not been banned or timed out, and are welcome to continue participating in the chat. Please contact mrphlip or any other channel moderator if you feel this is incorrect." % reason)
-
-	@utils.swallow_errors
-	def check_polls(self):
-		from lrrbot.commands.strawpoll import check_polls
-		check_polls(self, self.connection)
 
 	def check_privmsg_wrapper(self, conn, event):
 		"""

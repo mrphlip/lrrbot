@@ -36,7 +36,7 @@ class Property:
 	## Example:
 	```python
 	class LRRbot:
-		polls = state.Property("lrrbot.main.polls", [])
+		access = state.Property("lrrbot.main.access", "all")
 	```
 	"""
 
