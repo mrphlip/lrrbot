@@ -1,0 +1,6 @@
+[Unit]
+Description=Update card database (%i)
+
+[Service]
+WorkingDirectory=%h/lrrbot
+ExecStart=/usr/bin/env pipenv run ./build_carddb_%i.py

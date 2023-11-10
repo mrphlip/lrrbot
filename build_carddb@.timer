@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer for the updating the card database (%i)
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+
+[Install]
+WantedBy=default.target
