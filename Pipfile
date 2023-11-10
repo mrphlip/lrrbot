@@ -20,7 +20,8 @@ regex = "*"
 requests = "*"
 timelib = "*"
 async_timeout = "*"
-Flask = {extras = ["async"], version = "*"}
+# Flask-SeaSurf does not work with Flask 3.
+Flask = {extras = ["async"], version = "<3.0.0"}
 Flask-SQLAlchemy = "*"
 Jinja2 = "*"
 SQLAlchemy = {extras = ["postgresql"], version = "*"}
