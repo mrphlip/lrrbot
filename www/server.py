@@ -13,6 +13,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = config["debugsql"]
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 	'isolation_level': 'READ COMMITTED',
+	'pool_pre_ping': True,
 }
 db = SQLAlchemy(app)
 with app.app_context():
