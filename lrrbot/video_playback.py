@@ -20,6 +20,7 @@ Sent when stream goes offline.
 Example: '{"type": "stream-down", "server_time": 1497148117.77978}'
 """
 
+import asyncio
 import sqlalchemy
 from common import pubsub
 from common import twitch
@@ -48,13 +49,16 @@ class VideoPlayback:
 				pubsub.signals.signal(topic).connect(self.on_message)
 		self.handle = None
 
-	def flush_caches_until(self, stream_is_live):
+	def start_flush_caches_until(self, stream_is_live):
+		asyncio.ensure_future(self.flush_caches_until(stream_is_live), loop=self.loop).add_done_callback(utils.check_exception)
+
+	async def flush_caches_until(self, stream_is_live):
 		twitch.get_info.reset_throttle()
 		self.lrrbot.get_game_id.reset_throttle()
 
 		log.debug("Checking stream status")
 		try:
-			retry = bool(twitch.is_stream_live()) != stream_is_live
+			retry = bool(await twitch.is_stream_live()) != stream_is_live
 		except utils.PASSTHROUGH_EXCEPTIONS:
 			raise
 		except Exception:
@@ -63,7 +67,7 @@ class VideoPlayback:
 		
 		if retry:
 			log.debug("Stream not in desired state, retrying in 30 seconds")
-			self.handle = self.loop.call_later(30, self.flush_caches_until, stream_is_live)
+			self.handle = self.loop.call_later(30, self.start_flush_caches_until, stream_is_live)
 		else:
 			log.debug("Stream is in the desired state")
 			self.handle = None
@@ -73,4 +77,4 @@ class VideoPlayback:
 		if message["type"] in {"stream-up", "stream-down"}:
 			if self.handle is not None:
 				self.handle.cancel()
-			self.flush_caches_until(stream_is_live=message["type"] == "stream-up")
+			self.start_flush_caches_until(stream_is_live=message["type"] == "stream-up")

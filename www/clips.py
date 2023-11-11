@@ -73,7 +73,7 @@ async def clips_vid(session, videoid):
 			"endtime": time - video['start'] + datetime.timedelta(seconds=clip['duration']),
 			"start": nice_duration(time - video['start'], 0),
 			"duration": nice_duration(clip['duration'], 0),
-			"game": get_game(id=clip['game_id']).name if clip.get('game_id') else clip.get('game'),
+			"game": (await get_game(id=clip['game_id'])).name if clip.get('game_id') else clip.get('game'),
 			"thumbnail": clip.get('thumbnail_url') or clip.get('thumbnails', {}).get('small'),
 			"rating": rating,
 			"overlap": False,
@@ -118,7 +118,7 @@ async def external_clips(session):
 		for chanid, channel in conn.execute(sqlalchemy.select(ext_channel.c.id, ext_channel.c.channel)):
 			external_channels.append({
 				'id': chanid,
-				'channel': get_user(name=channel),
+				'channel': await get_user(name=channel),
 				'videos': await archive_feed_data(channel, True),
 				'selected': set(vid for vid, in conn.execute(sqlalchemy.select(ext_vids.c.vodid).where(ext_vids.c.channel == chanid))),
 			})
@@ -127,7 +127,7 @@ async def external_clips(session):
 
 @server.app.route('/clips/external', methods=['POST'])
 @login.require_mod
-def external_clips_save(session):
+async def external_clips_save(session):
 	ext_channel = server.db.metadata.tables["external_channel"]
 	ext_vids = server.db.metadata.tables["external_video"]
 	if flask.request.values['action'] == "videos":
@@ -149,7 +149,7 @@ def external_clips_save(session):
 		return flask.redirect(flask.url_for('clips_vidlist'), code=303)
 	elif flask.request.values['action'] == "add":
 		# Add a new channel
-		channel = get_user(name=flask.request.values['channel'])
+		channel = await get_user(name=flask.request.values['channel'])
 		with server.db.engine.connect() as conn:
 			conn.execute(ext_channel.insert(), {"channel": channel.name})
 			conn.commit()

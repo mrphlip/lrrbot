@@ -16,7 +16,7 @@ from common import googlecalendar
 import common.rpc
 
 for key, name in from_apipass.items():
-	from_apipass[key] = twitch.get_user(name=name).id
+	from_apipass[key] = name
 
 # See https://dev.twitch.tv/docs/v5/guides/authentication/#scopes
 # We don't actually need, or want, any at present
@@ -128,11 +128,11 @@ async def load_session(include_url=True, include_header=True):
 	user_name = flask.session.get('user')
 	if user_id is None and user_name is not None:
 		# Upgrade old session
-		user_id = flask.session["id"] = twitch.get_user(name=user_name).id
+		user_id = flask.session["id"] = (await twitch.get_user(name=user_name)).id
 	if 'user' in flask.session:
 		del flask.session["user"]
 	if 'apipass' in flask.request.values and flask.request.values['apipass'] in from_apipass:
-		user_id = from_apipass[flask.request.values["apipass"]]
+		user_id = (await twitch.get_user(name=from_apipass[flask.request.values["apipass"]])).id
 
 	session = {}
 	if include_url:
@@ -262,7 +262,7 @@ async def login(return_to=None):
 			headers = {
 				'Client-ID': config['twitch_clientid'],
 			}
-			res_json = await http.request_coro("https://id.twitch.tv/oauth2/token", method="POST", data=oauth_params, headers=headers)
+			res_json = await http.request("https://id.twitch.tv/oauth2/token", method="POST", data=oauth_params, headers=headers)
 			res_object = flask.json.loads(res_json)
 			if not res_object.get('access_token'):
 				raise Exception("No access token from Twitch: %s" % res_json)
@@ -271,7 +271,7 @@ async def login(return_to=None):
 
 			# Use that access token to get basic information about the user
 			headers['Authorization'] = f"Bearer {access_token}"
-			res_json = await http.request_coro("https://api.twitch.tv/helix/users", headers=headers)
+			res_json = await http.request("https://api.twitch.tv/helix/users", headers=headers)
 			res_object = flask.json.loads(res_json)
 			user_id = res_object['data'][0]['id']
 			user_name = res_object['data'][0]['login'].lower()

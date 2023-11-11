@@ -13,7 +13,7 @@ class StreamStatus:
 		self.loop = loop
 
 		self.handle = None
-		self.was_live = bool(twitch.is_stream_live())
+		self.was_live = None
 		self.schedule()
 
 	def reschedule(self):
@@ -32,10 +32,11 @@ class StreamStatus:
 
 	async def check_stream(self):
 		log.debug("Checking stream")
-		data = twitch.get_info(use_fallback=False)
+		data = await twitch.get_info(use_fallback=False)
 		is_live = bool(data and data['live'])
-
-		if is_live and not self.was_live:
+		if self.was_live is None:
+			self.was_live = is_live
+		elif is_live and not self.was_live:
 			log.debug("Stream is now live")
 			self.was_live = True
 			await rpc.eventserver.event('stream-up', {}, None)

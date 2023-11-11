@@ -37,7 +37,7 @@ async def get_oauth_token(scopes):
 
 	data = {"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer", "assertion": jwt}
 
-	ret = json.loads((await common.http.request_coro("https://oauth2.googleapis.com/token", data, "POST")))
+	ret = json.loads((await common.http.request("https://oauth2.googleapis.com/token", data, "POST")))
 	if "error" in ret:
 		raise Exception(ret["error"])
 	return ret
@@ -47,7 +47,7 @@ async def add_rows_to_spreadsheet(spreadsheet, rows, sheetindex=0):
 	headers = {"Authorization": "%(token_type)s %(access_token)s" % token}
 
 	url = "https://sheets.googleapis.com/v4/spreadsheets/%s?includeGridData=false" % quote(spreadsheet)
-	sheetdata = json.loads((await common.http.request_coro(url, headers=headers)))
+	sheetdata = json.loads((await common.http.request(url, headers=headers)))
 	# weird it uses title, not sheetId, but /shrug
 	sheet = sheetdata['sheets'][sheetindex]['properties']['title']
 
@@ -59,4 +59,4 @@ async def add_rows_to_spreadsheet(spreadsheet, rows, sheetindex=0):
 		})
 	)
 	data = {"values": rows}
-	await common.http.request_coro(post_url, headers=headers, data=data, method="POST", asjson=True)
+	await common.http.request(post_url, headers=headers, data=data, method="POST", asjson=True)

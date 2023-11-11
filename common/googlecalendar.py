@@ -65,7 +65,7 @@ async def get_upcoming_events(calendar, after=None):
 		"timeMin": after.strftime(DATE_FORMAT),
 		"timeZone": config['timezone'].zone,
 	}
-	res = await common.http.request_coro(url, data, headers=headers)
+	res = await common.http.request(url, data, headers=headers)
 	res = json.loads(res)
 	if 'error' in res:
 		raise Exception(res['error']['message'])

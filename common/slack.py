@@ -11,7 +11,7 @@ async def send_message(text, **keys):
 	}
 
 	if config['slack_webhook_url'] is not None:
-		await http.request_coro(config['slack_webhook_url'], method="POST", data=json.dumps(keys), headers=headers)
+		await http.request(config['slack_webhook_url'], method="POST", data=json.dumps(keys), headers=headers)
 
 def escape(text):
 	return text \

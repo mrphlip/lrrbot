@@ -106,19 +106,19 @@ class TwitchNotify:
 			return "NO MORE"
 		elif event.tags.get('msg-id') == 'submysterygift':
 			benefactor_name = event.tags['login']
-			benefactor_display_name = event.tags.get('display-name') or name
+			benefactor_display_name = event.tags.get('display-name') or benefactor_name
 			subcount = int(event.tags.get('msg-param-mass-gift-count', 1))
 
 			systemmsg = event.tags.get('system-msg')
 			if not systemmsg:
 				systemmsg = "%s is gifting %d sub%s!" % (benefactor_display_name, subcount, '' if subcount == 1 else 's')
 
-			self.on_multi_gift_start(
+			asyncio.ensure_future(self.on_multi_gift_start(
 				benefactor_name,
 				benefactor_display_name,
 				datetime.datetime.now(tz=pytz.utc),
 				subcount=subcount,
-			)
+			)).add_done_callback(utils.check_exception)
 
 			self.lrrbot.log_chat(conn, irc.client.Event(
 				"pubmsg",
@@ -197,7 +197,7 @@ class TwitchNotify:
 		}
 		if logo is None:
 			try:
-				channel_info = twitch.get_info_uncached(login)
+				channel_info = await twitch.get_info_uncached(login)
 			except utils.PASSTHROUGH_EXCEPTIONS:
 				raise
 			except Exception:
@@ -243,7 +243,7 @@ class TwitchNotify:
 
 		await common.rpc.eventserver.event(event, data, eventtime)
 
-	def on_multi_gift_start(self, login, user, eventtime, subcount, logo=None):
+	async def on_multi_gift_start(self, login, user, eventtime, subcount, logo=None):
 		data = {
 			'login': login,
 			'name': user,
@@ -255,7 +255,7 @@ class TwitchNotify:
 
 		if logo is None:
 			try:
-				channel_info = twitch.get_info_uncached(login)
+				channel_info = await twitch.get_info_uncached(login)
 			except utils.PASSTHROUGH_EXCEPTIONS:
 				raise
 			except Exception:
@@ -329,7 +329,7 @@ class TwitchNotify:
 
 		if logo is None:
 			try:
-				channel_info = twitch.get_info_uncached(login)
+				channel_info = await twitch.get_info_uncached(login)
 			except utils.PASSTHROUGH_EXCEPTIONS:
 				raise
 			except Exception:

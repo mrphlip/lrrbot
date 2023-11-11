@@ -15,7 +15,7 @@ async def get_data(sheetid):
 	token = await gdata.get_oauth_token(["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/spreadsheets.readonly"])
 	headers = {"Authorization": "%(token_type)s %(access_token)s" % token}
 	url = "https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?majorDimension=ROWS" % (sheetid, "A:I")
-	data = await http.request_coro(url, headers=headers)
+	data = await http.request(url, headers=headers)
 	return json.loads(data)
 
 def getcards(data):

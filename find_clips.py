@@ -4,6 +4,7 @@ import sys
 argv = sys.argv[1:]
 sys.argv = sys.argv[:1]
 import argparse
+import asyncio
 import json
 import datetime
 import dateutil.parser
@@ -23,14 +24,14 @@ TBL_EXT_CHANNEL = metadata.tables['external_channel']
 CLIPS_URL = "https://api.twitch.tv/helix/clips"
 VIDEO_URL = "https://api.twitch.tv/helix/videos"
 
-def get_clips_page(channel, period=1, limit=100, cursor=None):
+async def get_clips_page(channel, period=1, limit=100, cursor=None):
 	"""
 	https://dev.twitch.tv/docs/api/reference#get-clips
 	"""
-	channel_id = get_user(name=channel).id
+	channel_id = (await get_user(name=channel)).id
 	headers = {
 		'Client-ID': config['twitch_clientid'],
-		'Authorization': f"Bearer {get_token()}",
+		'Authorization': f"Bearer {await get_token()}",
 	}
 	start, end = get_period(period)
 	params = {
@@ -41,33 +42,34 @@ def get_clips_page(channel, period=1, limit=100, cursor=None):
 	}
 	if cursor is not None:
 		params['after'] = cursor
-	data = common.http.request(CLIPS_URL, params, headers=headers)
+	data = await common.http.request(CLIPS_URL, params, headers=headers)
 	return json.loads(data)
 
-def get_all_clips(channel, period=1, per_page=100):
+async def get_all_clips(channel, period=1, per_page=100):
 	cursor = None
 	while True:
-		data = get_clips_page(channel, period, per_page, cursor)
+		data = await get_clips_page(channel, period, per_page, cursor)
 		if not data['data']:
 			break
-		yield from data['data']
+		for clip in data['data']:
+			yield clip
 		cursor = data.get('pagination', {}).get('cursor')
 		if not cursor:
 			break
 
-def get_clip_info(slug, check_missing=False):
+async def get_clip_info(slug, check_missing=False):
 	"""
 	https://dev.twitch.tv/docs/api/reference#get-clips
 	"""
 	headers = {
 		'Client-ID': config['twitch_clientid'],
-		'Authorization': f"Bearer {get_token()}",
+		'Authorization': f"Bearer {await get_token()}",
 	}
 	params = {
 		'id': slug,
 	}
 	try:
-		data = common.http.request(CLIPS_URL, params, headers=headers)
+		data = await common.http.request(CLIPS_URL, params, headers=headers)
 	except urllib.error.HTTPError as e:
 		if e.code == 404 and check_missing:
 			return None
@@ -79,27 +81,27 @@ def get_clip_info(slug, check_missing=False):
 			return None
 		return data['data'][0]
 
-def process_clips(channel, period=1, per_page=100):
+async def process_clips(channel, period=1, per_page=100):
 	slugs = []
-	for clip in get_all_clips(channel, period, per_page):
-		process_clip(clip)
+	async for clip in get_all_clips(channel, period, per_page):
+		await process_clip(clip)
 		slugs.append(clip['id'])
 	return slugs
 
-def get_video_info(vodid):
+async def get_video_info(vodid):
 	"""
 	https://dev.twitch.tv/docs/v5/reference/videos/#get-video
 	"""
 	if vodid not in get_video_info._cache:
 		headers = {
 			'Client-ID': config['twitch_clientid'],
-			'Authorization': f"Bearer {get_token()}",
+			'Authorization': f"Bearer {await get_token()}",
 		}
 		params = {
 			'id': vodid,
 		}
 		try:
-			data = common.http.request(VIDEO_URL, params, headers=headers)
+			data = await common.http.request(VIDEO_URL, params, headers=headers)
 			get_video_info._cache[vodid] = json.loads(data)['data'][0]
 		except urllib.error.HTTPError as e:
 			if e.code == 404:
@@ -109,9 +111,9 @@ def get_video_info(vodid):
 	return get_video_info._cache[vodid]
 get_video_info._cache = {}
 
-def process_clip(clip):
+async def process_clip(clip):
 	if clip['video_id'] and 'vod_offset' in clip:
-		voddata = get_video_info(clip['video_id'])
+		voddata = await get_video_info(clip['video_id'])
 		if voddata.get('created_at'):
 			clip_start = dateutil.parser.parse(voddata['created_at']) + datetime.timedelta(seconds=clip['vod_offset'])
 		else:
@@ -191,7 +193,7 @@ def get_closest_vodid(conn, cliptime, channel):
 	else:
 		raise ValueError("Can't find any non-null vodids in the DB...")
 
-def check_deleted_clips(period, slugs):
+async def check_deleted_clips(period, slugs):
 	"""
 	Go through any clips we have in the DB that weren't returned from the Twitch
 	query, and check if they actually exist (maybe they dropped out of the "last
@@ -204,7 +206,7 @@ def check_deleted_clips(period, slugs):
 			.where(TBL_CLIPS.c.slug.notin_(slugs))
 			.where(TBL_CLIPS.c.deleted == False))
 		for clipid, slug in clips:
-			if get_clip_info(slug, check_missing=True) is None:
+			if await get_clip_info(slug, check_missing=True) is None:
 				conn.execute(TBL_CLIPS.update().values(deleted=True).where(TBL_CLIPS.c.id == clipid))
 		conn.commit()
 
@@ -227,12 +229,12 @@ def parse_args():
 	parser.add_argument('channel', nargs='*', default=get_default_channels())
 	return parser.parse_args(argv)
 
-def main():
+async def main():
 	args = parse_args()
 	for channel in args.channel:
-		slugs = process_clips(channel, args.period, args.per_page)
+		slugs = await process_clips(channel, args.period, args.per_page)
 	fix_null_vodids()
-	check_deleted_clips(args.period, slugs)
+	await check_deleted_clips(args.period, slugs)
 
 if __name__ == '__main__':
-	main()
+	asyncio.run(main())

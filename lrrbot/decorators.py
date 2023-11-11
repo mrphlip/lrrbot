@@ -142,7 +142,6 @@ class throttle(throttle_base):
 			"Throttled", str(self.period)), "Throttle-Count", str(self.count)))
 		return wrapper
 
-@coro_decorator
 def private_reply_when_live(func):
 	"""Cause command handler to respond with private message when the stream is live.
 
@@ -153,7 +152,7 @@ def private_reply_when_live(func):
 	"""
 	@functools.wraps(func)
 	async def wrapper(self, conn, event, respond_to, *args, **kwargs):
-		if event.type == "pubmsg" and twitch.get_info()["live"]:
+		if event.type == "pubmsg" and await twitch.is_stream_live():
 			source = irc.client.NickMask(event.source)
 			respond_to = source.nick
 		return await func(self, conn, event, respond_to, *args, **kwargs)

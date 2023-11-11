@@ -28,8 +28,8 @@ class Server(common.rpc.Server):
 		self.static = None
 
 	@aiomas.expose
-	def get_game_id(self):
-		return self.lrrbot.get_game_id()
+	async def get_game_id(self):
+		return await self.lrrbot.get_game_id()
 
 	@aiomas.expose
 	def get_data(self, key):
@@ -79,9 +79,9 @@ class Server(common.rpc.Server):
 		return ret
 
 	@aiomas.expose
-	def get_header_info(self):
-		live = twitch.is_stream_live()
-		game_id = self.lrrbot.get_game_id()
+	async def get_header_info(self):
+		live = await twitch.is_stream_live()
+		game_id = await self.lrrbot.get_game_id()
 
 		data = {
 			"is_live": live,

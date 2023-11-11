@@ -1,7 +1,7 @@
 import logging
 import re
 
-from common.http import request_coro
+from common.http import request
 from common import utils
 
 log = logging.getLogger("common.url")
@@ -14,7 +14,7 @@ async def canonical_url(url, depth=10):
 			url = "http://" + url
 		urls.append(url)
 		try:
-			res = await request_coro(url, method="HEAD", allow_redirects=False)
+			res = await request(url, method="HEAD", allow_redirects=False)
 			if res.status in range(300, 400) and "Location" in res.headers:
 				url = res.headers["Location"]
 				depth -= 1
@@ -30,7 +30,7 @@ async def canonical_url(url, depth=10):
 @utils.cache(24 * 60 * 60)
 async def get_tlds():
 	tlds = set()
-	data = await request_coro("https://data.iana.org/TLD/tlds-alpha-by-domain.txt")
+	data = await request("https://data.iana.org/TLD/tlds-alpha-by-domain.txt")
 	for line in data.splitlines():
 		if not line.startswith("#"):
 			line = line.strip().lower()

@@ -83,7 +83,7 @@ def quote(lrrbot, conn, event, respond_to, meta_param, meta_value, qid, attrib):
 
 @bot.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+?)(?: ?\| ?([^\|]*))?")
 @lrrbot.decorators.mod_only
-def addquote(lrrbot, conn, event, respond_to, name, date, quote, context):
+async def addquote(lrrbot, conn, event, respond_to, name, date, quote, context):
 	"""
 	Command: !addquote (NAME) [DATE] QUOTE | CONTEXT
 	Command: !addquote (NAME) [DATE] QUOTE
@@ -100,7 +100,7 @@ def addquote(lrrbot, conn, event, respond_to, name, date, quote, context):
 		except ValueError:
 			return conn.privmsg(respond_to, "Could not add quote due to invalid date.")
 	quotes = lrrbot.metadata.tables["quotes"]
-	game_id = lrrbot.get_game_id()
+	game_id = await lrrbot.get_game_id()
 	show_id = lrrbot.get_show_id()
 	with lrrbot.engine.connect() as pg_conn:
 		qid, = pg_conn.execute(quotes.insert().returning(quotes.c.id), {

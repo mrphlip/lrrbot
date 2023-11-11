@@ -20,49 +20,6 @@ log = logging.getLogger("common.http")
 
 USER_AGENT = "LRRbot/2.0 (https://lrrbot.com/)"
 
-def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, asjson=False, **kwargs):
-	"""Download a webpage, with retries on failure."""
-	if headers is None:
-		headers = {}
-	# Let's be nice.
-	headers["User-Agent"] = USER_AGENT
-
-	if headers.get('Accept') == 'application/vnd.twitchtv.v5+json':
-		log.warning("v5 request to: %r", url)
-
-	if data:
-		if asjson and method != 'GET':
-			headers['Content-Type'] = "application/json"
-			data = json.dumps(data)
-		elif isinstance(data, dict):
-			data = urllib.parse.urlencode(data)
-		if method == 'GET':
-			url = '%s?%s' % (url, data)
-			req = urllib.request.Request(url=url, method='GET', headers=headers, **kwargs)
-		elif method == 'POST':
-			req = urllib.request.Request(url=url, data=data.encode("utf-8"), method='POST', headers=headers, **kwargs)
-		elif method == 'PUT':
-			req = urllib.request.Request(url=url, data=data.encode("utf-8"), method='PUT', headers=headers, **kwargs)
-	else:
-		req = urllib.request.Request(url=url, method='GET', headers=headers, **kwargs)
-
-	firstex = None
-	while True:
-		try:
-			log.debug("%s %r...", req.get_method(), req.get_full_url())
-			return urllib.request.urlopen(req, timeout=timeout).read().decode("utf-8")
-		except utils.PASSTHROUGH_EXCEPTIONS:
-			raise
-		except Exception as e:
-			maxtries -= 1
-			if firstex is None:
-				firstex = e
-			if maxtries > 0:
-				log.info("Downloading %s failed: %s: %s, retrying...", url, e.__class__.__name__, e)
-			else:
-				break
-	raise firstex
-
 _http_request_sessions = {}
 async def get_http_request_session():
 	loop = asyncio.get_running_loop()
@@ -92,7 +49,7 @@ async def _cleanup_sessions():
 	gc.collect()
 atexit.register(asyncio.run, _cleanup_sessions())
 
-async def request_coro(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, allow_redirects=True, asjson=False):
+async def request(url, data=None, method='GET', maxtries=3, headers=None, timeout=30, allow_redirects=True, asjson=False):
 	if headers is None:
 		headers = {}
 	headers["User-Agent"] = USER_AGENT
@@ -146,7 +103,7 @@ def download_file(url, fn, only_if_newer=False):
 	# Much of this code cribbed from urllib.request.urlretrieve, with If-Modified-Since logic added
 
 	req = urllib.request.Request(url, headers={
-		'User-Agent': "LRRbot/2.0 (https://lrrbot.com/)",
+		'User-Agent': USER_AGENT,
 	})
 	if only_if_newer:
 		try:

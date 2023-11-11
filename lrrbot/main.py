@@ -352,9 +352,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		chatlog.clear_chat_log_msg(event.tags.get('target-msg-id'))
 
 	@utils.cache(twitch.GAME_CHECK_INTERVAL)
-	def get_game_id(self):
+	async def get_game_id(self):
 		if self.game_override is None:
-			game = twitch.get_game_playing()
+			game = await twitch.get_game_playing()
 			if game is None:
 				return None
 			game_id, game_name = game.id, game.name
@@ -385,28 +385,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				conn.commit()
 			return game_id
 		return self.game_override
-
-	def get_game_name(self):
-		game_id = self.get_game_id()
-		if game_id is None:
-			return None
-		show_id = self.get_show_id()
-		game_per_show_data = self.metadata.tables["game_per_show_data"]
-		games = self.metadata.tables["games"]
-		with self.engine.connect() as conn:
-			row = conn.execute(
-				sqlalchemy.select(
-					sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name)
-				).select_from(
-					games.outerjoin(game_per_show_data,
-						(game_per_show_data.c.game_id == games.c.id)
-							& (game_per_show_data.c.show_id == show_id))
-				).where(games.c.id == game_id)).first()
-			if row is None:
-				return None
-			else:
-				game, = row
-		return game
 
 	def override_game(self, name):
 		"""

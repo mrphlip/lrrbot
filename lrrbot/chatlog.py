@@ -1,4 +1,3 @@
-import queue
 import json
 import re
 import pytz
@@ -13,12 +12,13 @@ from markupsafe import Markup, escape
 import sqlalchemy
 
 import common.http
+import common.twitch
 import common.url
 from common import utils
 from common.config import config
 import lrrbot.main
 
-__all__ = ["log_chat", "clear_chat_log", "clear_chat_log_msg", "exitthread"]
+__all__ = ["log_chat", "clear_chat_log", "clear_chat_log_msg"]
 
 log = logging.getLogger('chatlog')
 
@@ -270,7 +270,7 @@ async def build_message_html(time, source, target, message, specialuser, usercol
 	ret.append('<span class="nick"')
 	if usercolor:
 		ret.append(' style="color:%s"' % escape(usercolor))
-	ret.append('>%s</span>' % escape(displayname or get_display_name(source)))
+	ret.append('>%s</span>' % escape(displayname or await get_display_name(source)))
 
 	if is_action:
 		ret.append(' <span class="action"')
@@ -295,9 +295,9 @@ async def build_message_html(time, source, target, message, specialuser, usercol
 	return ''.join(ret)
 
 @utils.cache(CACHE_EXPIRY, params=[0])
-def get_display_name(nick):
+async def get_display_name(nick):
 	try:
-		return common.twitch.get_user(name=nick).display_name
+		return (await common.twitch.get_user(name=nick)).display_name
 	except utils.PASSTHROUGH_EXCEPTIONS:
 		raise
 	except Exception:
@@ -312,9 +312,9 @@ async def get_twitch_emotes():
 	"""
 	headers = {
 		"Client-ID": config['twitch_clientid'],
-		"Authorization": f"Bearer {common.twitch.get_token()}",
+		"Authorization": f"Bearer {await common.twitch.get_token()}",
 	}
-	data = await common.http.request_coro("https://api.twitch.tv/helix/chat/emotes/set", headers=headers, data=[
+	data = await common.http.request("https://api.twitch.tv/helix/chat/emotes/set", headers=headers, data=[
 		('emote_set_id', '0'), # global emotes
 		('emote_set_id', '317'), # LRR emotes
 	])
@@ -346,9 +346,9 @@ async def get_cheermotes_data():
 	# see: https://dev.twitch.tv/docs/api/reference#get-cheermotes
 	headers = {
 		'Client-ID': config['twitch_clientid'],
-		'Authorization': f'Bearer {common.twitch.get_token()}',
+		'Authorization': f'Bearer {await common.twitch.get_token()}',
 	}
-	data = await common.http.request_coro("https://api.twitch.tv/helix/bits/cheermotes", headers=headers)
+	data = await common.http.request("https://api.twitch.tv/helix/bits/cheermotes", headers=headers)
 	data = json.loads(data)
 	cheermotes = {
 		action['prefix'].lower(): {

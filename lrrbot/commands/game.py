@@ -7,14 +7,14 @@ from lrrbot.main import bot
 
 @bot.command("game")
 @lrrbot.decorators.throttle()
-def current_game(lrrbot, conn, event, respond_to):
+async def current_game(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game
 	Section: info
 
 	Post the game currently being played.
 	"""
-	game_id = lrrbot.get_game_id()
+	game_id = await lrrbot.get_game_id()
 	if game_id is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
@@ -39,7 +39,7 @@ def current_game(lrrbot, conn, event, respond_to):
 
 @bot.command("game display (.*?)")
 @lrrbot.decorators.mod_only
-def set_game_name(lrrbot, conn, event, respond_to, name):
+async def set_game_name(lrrbot, conn, event, respond_to, name):
 	"""
 	Command: !game display NAME
 	Section: info
@@ -48,7 +48,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 
 	Change the display name of the current game to NAME.
 	"""
-	game_id = lrrbot.get_game_id()
+	game_id = await lrrbot.get_game_id()
 	if game_id is None:
 		conn.privmsg(respond_to, "Not currently playing any game.")
 		return
@@ -78,7 +78,7 @@ def set_game_name(lrrbot, conn, event, respond_to, name):
 
 @bot.command("game override (.*?)")
 @lrrbot.decorators.mod_only
-def override_game(lrrbot, conn, event, respond_to, game):
+async def override_game(lrrbot, conn, event, respond_to, game):
 	"""
 	Command: !game override NAME
 	Section: info
@@ -102,7 +102,7 @@ def override_game(lrrbot, conn, event, respond_to, game):
 		operation = "enabled"
 	twitch.get_info.reset_throttle()
 	current_game.reset_throttle()
-	game_id = lrrbot.get_game_id()
+	game_id = await lrrbot.get_game_id()
 	show_id = lrrbot.get_show_id()
 	message = "Override %s. " % operation
 	if game_id is None:
@@ -123,7 +123,7 @@ def override_game(lrrbot, conn, event, respond_to, game):
 
 @bot.command("game refresh")
 @lrrbot.decorators.mod_only
-def refresh(lrrbot, conn, event, respond_to):
+async def refresh(lrrbot, conn, event, respond_to):
 	"""
 	Command: !game refresh
 	Section: info
@@ -133,4 +133,4 @@ def refresh(lrrbot, conn, event, respond_to):
 	twitch.get_info.reset_throttle()
 	lrrbot.get_game_id.reset_throttle()
 	current_game.reset_throttle()
-	current_game(lrrbot, conn, event, respond_to)
+	await current_game(lrrbot, conn, event, respond_to)

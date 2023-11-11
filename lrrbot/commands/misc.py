@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import json
 import logging
 import random
 
@@ -174,7 +173,7 @@ async def viewers(lrrbot, conn, event, respond_to):
 
 	Post the number of viewers currently watching the stream
 	"""
-	stream_info = twitch.get_info()
+	stream_info = await twitch.get_info()
 	if stream_info:
 		viewers = stream_info.get("viewer_count")
 	else:
@@ -192,9 +191,9 @@ async def viewers(lrrbot, conn, event, respond_to):
 	chatters = "%d %s in the chat." % (chatters, "user" if chatters == 1 else "users")
 	conn.privmsg(respond_to, "%s %s" % (viewers, chatters))
 
-def uptime_msg(stream_info=None, factor=1):
+async def uptime_msg(stream_info=None, factor=1):
 	if stream_info is None:
-		stream_info = twitch.get_info()
+		stream_info = await twitch.get_info()
 	if stream_info and stream_info.get("started_at"):
 		start = dateutil.parser.parse(stream_info["started_at"])
 		now = datetime.datetime.now(datetime.timezone.utc)
@@ -212,27 +211,27 @@ def uptime_msg(stream_info=None, factor=1):
 
 @bot.command("uptime")
 @lrrbot.decorators.throttle()
-def uptime(lrrbot, conn, event, respond_to):
+async def uptime(lrrbot, conn, event, respond_to):
 	"""
 	Command: !uptime
 	Section: info
 
 	Post the duration the stream has been live.
 	"""
-	conn.privmsg(respond_to, uptime_msg())
+	conn.privmsg(respond_to, await uptime_msg())
 
 @bot.command("updog")
 @lrrbot.decorators.throttle()
-def updog(lrrbot, conn, event, respond_to):
+async def updog(lrrbot, conn, event, respond_to):
 	# intentionally not in help
-	conn.privmsg(respond_to, uptime_msg(factor=7) + " lrrSPOT")
+	conn.privmsg(respond_to, await uptime_msg(factor=7) + " lrrSPOT")
 
 @utils.cache(30) # We could easily be sending a bunch of these at once, and the info doesn't change often
 async def get_status_msg(lrrbot):
 	messages = []
-	stream_info = twitch.get_info()
+	stream_info = await twitch.get_info()
 	if stream_info and stream_info.get('live'):
-		game_id = lrrbot.get_game_id()
+		game_id = await lrrbot.get_game_id()
 		show_id = lrrbot.get_show_id()
 
 		shows = lrrbot.metadata.tables["shows"]
@@ -262,7 +261,7 @@ async def get_status_msg(lrrbot):
 			messages.append("Currently playing %s." % game)
 		elif show:
 			messages.append("Currently showing %s." % show)
-		messages.append(uptime_msg(stream_info))
+		messages.append(await uptime_msg(stream_info))
 	else:
 		message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
 		messages.append(message)

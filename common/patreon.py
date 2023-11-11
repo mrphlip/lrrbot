@@ -13,7 +13,7 @@ async def request_token(grant_type, **data):
 		"client_id": config["patreon_clientid"],
 		"client_secret": config["patreon_clientsecret"],
 	})
-	data = await http.request_coro("https://api.patreon.com/oauth2/token", data=data, method="POST")
+	data = await http.request("https://api.patreon.com/oauth2/token", data=data, method="POST")
 	data = json.loads(data)
 	expiry = datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=data["expires_in"])
 	return data["access_token"], data["refresh_token"], expiry
@@ -58,10 +58,10 @@ async def get_token(engine, metadata, user):
 async def get_campaigns(token, include=["creator", "goals", "rewards"]):
 	data = {"include": ",".join(include)}
 	headers = {"Authorization": "Bearer %s" % token}
-	data = await http.request_coro("https://api.patreon.com/oauth2/api/current_user/campaigns", data=data, headers=headers)
+	data = await http.request("https://api.patreon.com/oauth2/api/current_user/campaigns", data=data, headers=headers)
 	return json.loads(data)
 
 async def current_user(token):
 	headers = {"Authorization": "Bearer %s" % token}
-	data = await http.request_coro("https://api.patreon.com/oauth2/api/current_user", headers=headers)
+	data = await http.request("https://api.patreon.com/oauth2/api/current_user", headers=headers)
 	return json.loads(data)
