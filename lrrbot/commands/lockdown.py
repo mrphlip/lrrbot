@@ -1,9 +1,11 @@
 import lrrbot.decorators
-from lrrbot.main import bot
+from lrrbot.command_parser import Blueprint
 
-@bot.command("(mod|sub)only")
+blueprint = Blueprint()
+
+@blueprint.command("(mod|sub)only")
 @lrrbot.decorators.mod_only
-def mod_only(lrrbot, conn, event, respond_to, level):
+def mod_only(bot, conn, event, respond_to, level):
 	"""
 	Command: !modonly
 	Command: !subonly
@@ -11,12 +13,12 @@ def mod_only(lrrbot, conn, event, respond_to, level):
 
 	Ignore all subsequent commands from non-mods or non-subscribers.
 	"""
-	lrrbot.access = level
+	bot.access = level
 	conn.privmsg(respond_to, "Commands from non-%ss are now ignored." % level)
 
-@bot.command("(?:mod|sub)only off")
+@blueprint.command("(?:mod|sub)only off")
 @lrrbot.decorators.mod_only
-def mod_only_off(lrrbot, conn, event, respond_to):
+def mod_only_off(bot, conn, event, respond_to):
 	"""
 	Command: !modonly off
 	Command: !subonly off
@@ -24,5 +26,5 @@ def mod_only_off(lrrbot, conn, event, respond_to):
 
 	Disable lockdown.
 	"""
-	lrrbot.access = "all"
+	bot.access = "all"
 	conn.privmsg(respond_to, "Lockdown disabled.")

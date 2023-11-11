@@ -1,3 +1,4 @@
+import logging
 import aiomas
 import random
 import re
@@ -6,7 +7,10 @@ import irc.client
 import lrrbot.decorators
 from common.config import config
 from lrrbot import storage
-from lrrbot.main import bot, log
+from lrrbot.command_parser import Blueprint
+
+blueprint = Blueprint()
+log = logging.getLogger(__name__)
 
 def generate_docstring():
 	inverse_responses = {}
@@ -42,17 +46,17 @@ def generate_expression():
 	return "(%s)" % "|".join(re.escape(c).replace("\\ ", " ") for c in storage.data["responses"])
 
 @lrrbot.decorators.throttle(30, params=[4], count=2)
-def static_response(lrrbot, conn, event, respond_to, command):
+def static_response(bot, conn, event, respond_to, command):
 	command = " ".join(command.split())
 	response_data = storage.data["responses"][command.lower()]
 	source = irc.client.NickMask(event.source)
 	if response_data["access"] == "sub":
-		if not lrrbot.is_sub(event) and not lrrbot.is_mod(event):
+		if not bot.is_sub(event) and not bot.is_mod(event):
 			log.info("Refusing %s due to inadequate access" % command)
 			conn.privmsg(source.nick, "That is a sub-only command.")
 			return
 	if response_data["access"] == "mod":
-		if not lrrbot.is_mod(event):
+		if not bot.is_mod(event):
 			log.info("Refusing %s due to inadequate access" % command)
 			conn.privmsg(source.nick, "That is a mod-only command.")
 			return
@@ -61,19 +65,8 @@ def static_response(lrrbot, conn, event, respond_to, command):
 		response = random.choice(response)
 	conn.privmsg(respond_to, response.format(user=event.tags.get('display-name') or source.nick))
 
-@aiomas.expose
-def modify_commands(commands):
-	log.info("Setting commands to %r" % commands)
-	storage.data["responses"] = {" ".join(k.lower().split()): v for k, v in commands.items()}
-	storage.save()
-	generate_hook()
-
-bot.rpc_server.static = aiomas.rpc.ServiceDict({
-	'modify_commands': modify_commands,
-})
-
 command_expression = None
-def generate_hook():
+def generate_hook(bot):
 	global command_expression
 	if command_expression is not None:
 		bot.commands.remove(command_expression)
@@ -81,4 +74,17 @@ def generate_hook():
 	command_expression = generate_expression()
 	bot.commands.add(command_expression, static_response)
 
-generate_hook()
+@blueprint.on_init
+def register(bot):
+	@aiomas.expose
+	def modify_commands(commands):
+		log.info("Setting commands to %r" % commands)
+		storage.data["responses"] = {" ".join(k.lower().split()): v for k, v in commands.items()}
+		storage.save()
+		generate_hook(bot)
+
+	bot.rpc_server.static = aiomas.rpc.ServiceDict({
+		'modify_commands': modify_commands,
+	})
+
+	generate_hook(bot)

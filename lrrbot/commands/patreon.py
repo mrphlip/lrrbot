@@ -1,19 +1,21 @@
 from common.config import config
 from common import patreon
+from lrrbot.command_parser import Blueprint
 
-from lrrbot.main import bot
 import lrrbot.decorators
 
-@bot.command("patreon")
+blueprint = Blueprint()
+
+@blueprint.command("patreon")
 @lrrbot.decorators.throttle()
-async def get_patreon_info(lrrbot, conn, event, respond_to):
+async def get_patreon_info(bot, conn, event, respond_to):
 	"""
 	Command: !patreon
 	Section: info
 
 	Post the Patreon total.
 	"""
-	token = await patreon.get_token(lrrbot.engine, lrrbot.metadata, config["channel"])
+	token = await patreon.get_token(bot.engine, bot.metadata, config["channel"])
 	campaigns = await patreon.get_campaigns(token, ["creator", "goals"])
 	campaign = campaigns["data"][0]["attributes"]
 	total = "%d %s for a total of %s per %s." % (

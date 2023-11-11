@@ -17,18 +17,19 @@ from common import utils
 from common.config import config
 from common import twitch
 from lrrbot import storage
-from lrrbot.main import bot
+from lrrbot.command_parser import Blueprint
 
+blueprint = Blueprint()
 log = logging.getLogger('misc')
 
-@bot.command("test")
+@blueprint.command("test")
 @lrrbot.decorators.mod_only
-def test(lrrbot, conn, event, respond_to):
+def test(bot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Test")
 
-@bot.command("storm(?:counts?)?")
+@blueprint.command("storm(?:counts?)?")
 @lrrbot.decorators.throttle()
-def stormcount(lrrbot, conn, event, respond_to):
+def stormcount(bot, conn, event, respond_to):
 	"""
 	Command: !storm
 	Command: !stormcount
@@ -36,12 +37,12 @@ def stormcount(lrrbot, conn, event, respond_to):
 
 	Show the current storm counts.
 	"""
-	twitch_subscription = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-subscription')
-	twitch_resubscription = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-resubscription')
-	twitch_follow = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-follow')
-	twitch_cheer = common.storm.get(lrrbot.engine, lrrbot.metadata, 'twitch-cheer')
-	patreon_pledge = common.storm.get(lrrbot.engine, lrrbot.metadata, 'patreon-pledge')
-	storm_count = common.storm.get_combined(lrrbot.engine, lrrbot.metadata)
+	twitch_subscription = common.storm.get(bot.engine, bot.metadata, 'twitch-subscription')
+	twitch_resubscription = common.storm.get(bot.engine, bot.metadata, 'twitch-resubscription')
+	twitch_follow = common.storm.get(bot.engine, bot.metadata, 'twitch-follow')
+	twitch_cheer = common.storm.get(bot.engine, bot.metadata, 'twitch-cheer')
+	patreon_pledge = common.storm.get(bot.engine, bot.metadata, 'patreon-pledge')
+	storm_count = common.storm.get_combined(bot.engine, bot.metadata)
 	conn.privmsg(respond_to, "Today's storm count: %d (new subscribers: %d, returning subscribers: %d, new patrons: %d), bits cheered: %d, new followers: %d" % (
 		storm_count,
 		twitch_subscription,
@@ -51,9 +52,9 @@ def stormcount(lrrbot, conn, event, respond_to):
 		twitch_follow,
 	))
 
-@bot.command("spam(?:count)?")
+@blueprint.command("spam(?:count)?")
 @lrrbot.decorators.throttle()
-def spamcount(lrrbot, conn, event, respond_to):
+def spamcount(bot, conn, event, respond_to):
 	"""
 	Command: !spam
 	Command: !spamcount
@@ -76,9 +77,9 @@ DESERTBUS_START = config["timezone"].localize(datetime.datetime(2023, 11, 11, 14
 # When !desertbus should stop claiming the run is still active
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
-@bot.command("next( .*)?")
+@blueprint.command("next( .*)?")
 @lrrbot.decorators.throttle()
-async def next(lrrbot, conn, event, respond_to, timezone):
+async def next(bot, conn, event, respond_to, timezone):
 	"""
 	Command: !next
 	Section: info
@@ -92,13 +93,13 @@ async def next(lrrbot, conn, event, respond_to, timezone):
 	message, eventtime = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, tz=timezone)
 	if datetime.datetime.now(datetime.timezone.utc) < DESERTBUS_END and eventtime > DESERTBUS_START:
 		# If someone says !next before/during Desert Bus, plug that instead
-		desertbus(lrrbot, conn, event, respond_to, timezone)
+		desertbus(bot, conn, event, respond_to, timezone)
 	else:
 		conn.privmsg(respond_to, message)
 
-@bot.command("(?:db ?count(?: |-)?down|db ?next|next ?db)( .*)?")
+@blueprint.command("(?:db ?count(?: |-)?down|db ?next|next ?db)( .*)?")
 @lrrbot.decorators.throttle()
-def desertbus(lrrbot, conn, event, respond_to, timezone):
+def desertbus(bot, conn, event, respond_to, timezone):
 	"""
 	Command: !db countdown
 	Command: !db next
@@ -127,10 +128,10 @@ def desertbus(lrrbot, conn, event, respond_to, timezone):
 	else:
 		conn.privmsg(respond_to, "Desert Bus for Hope will return next year, start saving your donation money now!")
 
-@bot.command("nextfan( .*)?")
+@blueprint.command("nextfan( .*)?")
 @lrrbot.decorators.throttle()
 @lrrbot.decorators.private_reply_when_live
-async def nextfan(lrrbot, conn, event, respond_to, timezone):
+async def nextfan(bot, conn, event, respond_to, timezone):
 	"""
 	Command: !nextfan
 	Section: info
@@ -140,9 +141,9 @@ async def nextfan(lrrbot, conn, event, respond_to, timezone):
 	message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True)
 	conn.privmsg(respond_to, message)
 
-@bot.command("time")
+@blueprint.command("time")
 @lrrbot.decorators.throttle()
-def time(lrrbot, conn, event, respond_to):
+def time(bot, conn, event, respond_to):
 	"""
 	Command: !time
 	Section: misc
@@ -152,9 +153,9 @@ def time(lrrbot, conn, event, respond_to):
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
 
-@bot.command("time 24")
+@blueprint.command("time 24")
 @lrrbot.decorators.throttle()
-def time24(lrrbot, conn, event, respond_to):
+def time24(bot, conn, event, respond_to):
 	"""
 	Command: !time 24
 	Section: misc
@@ -164,9 +165,9 @@ def time24(lrrbot, conn, event, respond_to):
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%H:%M"))
 
-@bot.command("viewers")
+@blueprint.command("viewers")
 @lrrbot.decorators.throttle()
-async def viewers(lrrbot, conn, event, respond_to):
+async def viewers(bot, conn, event, respond_to):
 	"""
 	Command: !viewers
 	Section: info
@@ -179,7 +180,7 @@ async def viewers(lrrbot, conn, event, respond_to):
 	else:
 		viewers = None
 
-	chatters = len(lrrbot.channels["#%s" % config["channel"]].users())
+	chatters = len(bot.channels["#%s" % config["channel"]].users())
 	# Twitch stops sending JOINs and PARTs at 1000 users. Need to double-check if over.
 	if chatters > 950:
 		chatters = await twitch.get_number_of_chatters()
@@ -209,9 +210,9 @@ async def uptime_msg(stream_info=None, factor=1):
 		else:
 			return "The stream is not live."
 
-@bot.command("uptime")
+@blueprint.command("uptime")
 @lrrbot.decorators.throttle()
-async def uptime(lrrbot, conn, event, respond_to):
+async def uptime(bot, conn, event, respond_to):
 	"""
 	Command: !uptime
 	Section: info
@@ -220,24 +221,24 @@ async def uptime(lrrbot, conn, event, respond_to):
 	"""
 	conn.privmsg(respond_to, await uptime_msg())
 
-@bot.command("updog")
+@blueprint.command("updog")
 @lrrbot.decorators.throttle()
-async def updog(lrrbot, conn, event, respond_to):
+async def updog(bot, conn, event, respond_to):
 	# intentionally not in help
 	conn.privmsg(respond_to, await uptime_msg(factor=7) + " lrrSPOT")
 
 @utils.cache(30) # We could easily be sending a bunch of these at once, and the info doesn't change often
-async def get_status_msg(lrrbot):
+async def get_status_msg(bot):
 	messages = []
 	stream_info = await twitch.get_info()
 	if stream_info and stream_info.get('live'):
-		game_id = await lrrbot.get_game_id()
-		show_id = lrrbot.get_show_id()
+		game_id = await bot.get_game_id()
+		show_id = bot.get_show_id()
 
-		shows = lrrbot.metadata.tables["shows"]
-		games = lrrbot.metadata.tables["games"]
-		game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
-		with lrrbot.engine.connect() as conn:
+		shows = bot.metadata.tables["shows"]
+		games = bot.metadata.tables["games"]
+		game_per_show_data = bot.metadata.tables["game_per_show_data"]
+		with bot.engine.connect() as conn:
 			show = conn.execute(sqlalchemy.select(shows.c.name)
 				.where(shows.c.id == show_id)
 				.where(shows.c.string_id != "")).first()
@@ -269,11 +270,11 @@ async def get_status_msg(lrrbot):
 		messages.append(random.choice(storage.data['responses']['advice']['response']))
 	return ' '.join(messages)
 
-async def send_status(lrrbot, conn, target):
-	conn.privmsg(target, await get_status_msg(lrrbot))
+async def send_status(bot, conn, target):
+	conn.privmsg(target, await get_status_msg(bot))
 
-@bot.command("status")
-async def status(lrrbot, conn, event, respond_to):
+@blueprint.command("status")
+async def status(bot, conn, event, respond_to):
 	"""
 	Command: !status
 	Section: info
@@ -283,10 +284,10 @@ async def status(lrrbot, conn, event, respond_to):
 	Otherwise, it will tell you about the next scheduled stream.
 	"""
 	source = irc.client.NickMask(event.source)
-	await send_status(lrrbot, conn, source.nick)
+	await send_status(bot, conn, source.nick)
 
-@bot.command("auto(?: |-)?status")
-def autostatus_check(lrrbot, conn, event, respond_to):
+@blueprint.command("auto(?: |-)?status")
+def autostatus_check(bot, conn, event, respond_to):
 	"""
 	Command: !autostatus
 	Section: info
@@ -294,8 +295,8 @@ def autostatus_check(lrrbot, conn, event, respond_to):
 	Check whether you are set to be automatically sent status messages when join join the channel.
 	"""
 	source = irc.client.NickMask(event.source)
-	users = lrrbot.metadata.tables["users"]
-	with lrrbot.engine.connect() as pg_conn:
+	users = bot.metadata.tables["users"]
+	with bot.engine.connect() as pg_conn:
 		res = pg_conn.execute(sqlalchemy.select(users.c.autostatus)
 			.where(users.c.id == int(event.tags["user-id"]))).first()
 	if res and res[0]:
@@ -303,8 +304,8 @@ def autostatus_check(lrrbot, conn, event, respond_to):
 	else:
 		conn.privmsg(source.nick, "Auto-status is disabled. Enable it with: !autostatus on")
 
-@bot.command("auto(?: |-)?status (on|off)")
-def autostatus_set(lrrbot, conn, event, respond_to, enable):
+@blueprint.command("auto(?: |-)?status (on|off)")
+def autostatus_set(bot, conn, event, respond_to, enable):
 	"""
 	Command: !autostatus on
 	Command: !autostatus off
@@ -314,8 +315,8 @@ def autostatus_set(lrrbot, conn, event, respond_to, enable):
 	"""
 	source = irc.client.NickMask(event.source)
 	enable = enable.lower() == "on"
-	users = lrrbot.metadata.tables["users"]
-	with lrrbot.engine.connect() as pg_conn:
+	users = bot.metadata.tables["users"]
+	with bot.engine.connect() as pg_conn:
 		pg_conn.execute(users.update().where(users.c.id == int(event.tags["user-id"])), {"autostatus": enable})
 		pg_conn.commit()
 	if enable:
@@ -323,13 +324,15 @@ def autostatus_set(lrrbot, conn, event, respond_to, enable):
 	else:
 		conn.privmsg(source.nick, "Auto-status disabled.")
 
-def autostatus_on_join(conn, event):
-	source = irc.client.NickMask(event.source)
-	users = bot.metadata.tables["users"]
-	with bot.engine.connect() as pg_conn:
-		res = pg_conn.execute(sqlalchemy.select(users.c.autostatus)
-			.where(users.c.name == source.nick)).first()
-		if res is not None:
-			if res[0]:
-				asyncio.ensure_future(send_status(bot, conn, source.nick), loop=bot.loop)
-bot.reactor.add_global_handler('join', autostatus_on_join, 99)
+@blueprint.on_init
+def register_autostatus_on_join(bot):
+	def autostatus_on_join(conn, event):
+		source = irc.client.NickMask(event.source)
+		users = bot.metadata.tables["users"]
+		with bot.engine.connect() as pg_conn:
+			res = pg_conn.execute(sqlalchemy.select(users.c.autostatus)
+				.where(users.c.name == source.nick)).first()
+			if res is not None:
+				if res[0]:
+					asyncio.ensure_future(send_status(bot, conn, source.nick), loop=bot.loop)
+	bot.reactor.add_global_handler('join', autostatus_on_join, 99)

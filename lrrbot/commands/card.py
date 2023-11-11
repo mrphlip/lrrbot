@@ -1,14 +1,16 @@
 import sqlalchemy
 
 import lrrbot.decorators
-from lrrbot.main import bot
+from lrrbot.command_parser import Blueprint
 import common.postgres
 import common.time
 from common.card import clean_text, CARD_GAME_MTG, CARD_GAME_KEYFORGE, CARD_GAME_PTCG, CARD_GAME_LORCANA
 
-@bot.command("cardview (on|off)")
+blueprint = Blueprint()
+
+@blueprint.command("cardview (on|off)")
 @lrrbot.decorators.mod_only
-def set_cardview(lrrbot, conn, event, respond_to, setting):
+def set_cardview(bot, conn, event, respond_to, setting):
 	"""
 	Command: !cardview on
 	Command: !cardview off
@@ -16,12 +18,12 @@ def set_cardview(lrrbot, conn, event, respond_to, setting):
 
 	Toggle showing details of Magic cards in the chat when they are scanned by the card recogniser (for AFK Magic streams).
 	"""
-	lrrbot.cardview = (setting == "on")
-	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if lrrbot.cardview else "disabled"))
+	bot.cardview = (setting == "on")
+	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if bot.cardview else "disabled"))
 
-@bot.command("(?:card|mtg) (.+)")
+@blueprint.command("(?:card|mtg) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
-def mtg_card_lookup(lrrbot, conn, event, respond_to, search):
+def mtg_card_lookup(bot, conn, event, respond_to, search):
 	"""
 	Command: !card card-name
 	Command: !mtg card-name
@@ -29,9 +31,9 @@ def mtg_card_lookup(lrrbot, conn, event, respond_to, search):
 
 	Show the details of a given Magic: The Gathering card.
 	"""
-	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_MTG)
+	real_card_lookup(bot, conn, event, respond_to, search, game=CARD_GAME_MTG)
 
-@bot.command("(?:kf|keyforge) (.+)")
+@blueprint.command("(?:kf|keyforge) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
 def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
@@ -43,7 +45,7 @@ def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_KEYFORGE)
 
-@bot.command("(?:pok[eé]mon|pok[eé]|pkmn|ptcg) (.+)")
+@blueprint.command("(?:pok[eé]mon|pok[eé]|pkmn|ptcg) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
 def pokemon_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
@@ -55,20 +57,20 @@ def pokemon_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_PTCG)
 
-@bot.command("(?:lorcana) (.+)")
+@blueprint.command("(?:lorcana) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
-def lorcana_card_lookup(lrrbot, conn, event, respond_to, search):
+def lorcana_card_lookup(bot, conn, event, respond_to, search):
 	"""
 	Command: !lorcana card-name
 	Section: misc
 
 	Show the details of a given Disney Lorcana TCG card.
 	"""
-	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_LORCANA)
+	real_card_lookup(bot, conn, event, respond_to, search, game=CARD_GAME_LORCANA)
 
 
-def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, includehidden=False, game=CARD_GAME_MTG):
-	cards = find_card(lrrbot, search, includehidden, game)
+def real_card_lookup(bot, conn, event, respond_to, search, noerror=False, includehidden=False, game=CARD_GAME_MTG):
+	cards = find_card(bot, search, includehidden, game)
 
 	if noerror and len(cards) != 1:
 		return
@@ -82,11 +84,11 @@ def real_card_lookup(lrrbot, conn, event, respond_to, search, noerror=False, inc
 	else:
 		conn.privmsg(respond_to, "Found %d cards you could be referring to - please enter more of the name" % len(cards))
 
-def find_card(lrrbot, search, includehidden=False, game=CARD_GAME_MTG):
-	cards = lrrbot.metadata.tables["cards"]
+def find_card(bot, search, includehidden=False, game=CARD_GAME_MTG):
+	cards = bot.metadata.tables["cards"]
 
 	cleansearch = clean_text(search)
-	with lrrbot.engine.connect() as conn:
+	with bot.engine.connect() as conn:
 		query = (sqlalchemy.select(cards.c.name, cards.c.text)
 						.where(cards.c.filteredname == cleansearch))
 		if game is not None:

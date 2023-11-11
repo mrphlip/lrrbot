@@ -1,12 +1,14 @@
 import lrrbot.decorators
-from lrrbot.main import bot
 from common import twitch
 from common import utils
+from lrrbot.command_parser import Blueprint
 
-@bot.command("live")
+blueprint = Blueprint()
+
+@blueprint.command("live")
 @lrrbot.decorators.throttle()
 @lrrbot.decorators.private_reply_when_live
-async def live(lrrbot, conn, event, respond_to):
+async def live(bot, conn, event, respond_to):
 	"""
 	Command: !live
 
@@ -53,8 +55,8 @@ async def live(lrrbot, conn, event, respond_to):
 	])
 	return conn.privmsg(respond_to, utils.trim_length(message))
 
-@bot.command("live register")
-async def register_self(lrrbot, conn, event, respond_to):
+@blueprint.command("live register")
+async def register_self(bot, conn, event, respond_to):
 	"""
 	Command: !live register
 
@@ -62,8 +64,8 @@ async def register_self(lrrbot, conn, event, respond_to):
 	"""
 	conn.privmsg(respond_to, "Currently the fanlist cannot be edited. Contact mrphlip if you want to be added.")
 
-@bot.command("live unregister")
-async def unregister_self(lrrbot, conn, event, respond_to):
+@blueprint.command("live unregister")
+async def unregister_self(bot, conn, event, respond_to):
 	"""
 	Command: !live unregister
 
@@ -71,9 +73,9 @@ async def unregister_self(lrrbot, conn, event, respond_to):
 	"""
 	conn.privmsg(respond_to, "Currently the fanlist cannot be edited. Contact mrphlip if you want to be removed.")
 
-@bot.command("live register (.*)")
+@blueprint.command("live register (.*)")
 @lrrbot.decorators.mod_only
-async def register(lrrbot, conn, event, respond_to, channel):
+async def register(bot, conn, event, respond_to, channel):
 	"""
 	Command: !live register CHANNEL
 
@@ -81,9 +83,9 @@ async def register(lrrbot, conn, event, respond_to, channel):
 	"""
 	conn.privmsg(respond_to, "Currently the fanlist cannot be edited.")
 
-@bot.command("live unregister (.*)")
+@blueprint.command("live unregister (.*)")
 @lrrbot.decorators.mod_only
-async def unregister(lrrbot, conn, event, respond_to, channel):
+async def unregister(bot, conn, event, respond_to, channel):
 	"""
 	Command: !live unregister CHANNEL
 

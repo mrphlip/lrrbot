@@ -3,26 +3,28 @@ from sqlalchemy.dialects.postgresql import insert
 
 import lrrbot.decorators
 from common import twitch
-from lrrbot.main import bot
+from lrrbot.command_parser import Blueprint
 
-@bot.command("game")
+blueprint = Blueprint()
+
+@blueprint.command("game")
 @lrrbot.decorators.throttle()
-async def current_game(lrrbot, conn, event, respond_to):
+async def current_game(bot, conn, event, respond_to):
 	"""
 	Command: !game
 	Section: info
 
 	Post the game currently being played.
 	"""
-	game_id = await lrrbot.get_game_id()
+	game_id = await bot.get_game_id()
 	if game_id is None:
 		conn.privmsg(respond_to, "Not currently playing any game")
 		return
-	show_id = lrrbot.get_show_id()
+	show_id = bot.get_show_id()
 
-	game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
-	games = lrrbot.metadata.tables["games"]
-	with lrrbot.engine.connect() as pg_conn:
+	game_per_show_data = bot.metadata.tables["game_per_show_data"]
+	games = bot.metadata.tables["games"]
+	with bot.engine.connect() as pg_conn:
 		game, = pg_conn.execute(
 			sqlalchemy.select(
 				sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
@@ -34,12 +36,12 @@ async def current_game(lrrbot, conn, event, respond_to):
 
 		conn.privmsg(respond_to, "Currently playing: %s%s" % (
 			game,
-			" (overridden)" if lrrbot.game_override is not None else ""
+			" (overridden)" if bot.game_override is not None else ""
 		))
 
-@bot.command("game display (.*?)")
+@blueprint.command("game display (.*?)")
 @lrrbot.decorators.mod_only
-async def set_game_name(lrrbot, conn, event, respond_to, name):
+async def set_game_name(bot, conn, event, respond_to, name):
 	"""
 	Command: !game display NAME
 	Section: info
@@ -48,15 +50,15 @@ async def set_game_name(lrrbot, conn, event, respond_to, name):
 
 	Change the display name of the current game to NAME.
 	"""
-	game_id = await lrrbot.get_game_id()
+	game_id = await bot.get_game_id()
 	if game_id is None:
 		conn.privmsg(respond_to, "Not currently playing any game.")
 		return
-	show_id = lrrbot.get_show_id()
+	show_id = bot.get_show_id()
 
-	games = lrrbot.metadata.tables["games"]
-	game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
-	with lrrbot.engine.connect() as pg_conn:
+	games = bot.metadata.tables["games"]
+	game_per_show_data = bot.metadata.tables["game_per_show_data"]
+	with bot.engine.connect() as pg_conn:
 		name_query = sqlalchemy.select(games.c.name).where(games.c.id == game_id)
 		# NULLIF: https://www.postgresql.org/docs/9.6/static/functions-conditional.html#FUNCTIONS-NULLIF
 		query = insert(game_per_show_data).values({
@@ -76,9 +78,9 @@ async def set_game_name(lrrbot, conn, event, respond_to, name):
 
 		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (real_name, name))
 
-@bot.command("game override (.*?)")
+@blueprint.command("game override (.*?)")
 @lrrbot.decorators.mod_only
-async def override_game(lrrbot, conn, event, respond_to, game):
+async def override_game(bot, conn, event, respond_to, game):
 	"""
 	Command: !game override NAME
 	Section: info
@@ -95,22 +97,22 @@ async def override_game(lrrbot, conn, event, respond_to, game):
 	Should the crew start regularly playing a game called "off", I'm sure we'll figure something out.
 	"""
 	if game == "" or game.lower() == "off":
-		lrrbot.override_game(None)
+		bot.override_game(None)
 		operation = "disabled"
 	else:
-		lrrbot.override_game(game)
+		bot.override_game(game)
 		operation = "enabled"
 	twitch.get_info.reset_throttle()
 	current_game.reset_throttle()
-	game_id = await lrrbot.get_game_id()
-	show_id = lrrbot.get_show_id()
+	game_id = await bot.get_game_id()
+	show_id = bot.get_show_id()
 	message = "Override %s. " % operation
 	if game_id is None:
 		message += "Not currently playing any game"
 	else:
-		games = lrrbot.metadata.tables["games"]
-		game_per_show_data = lrrbot.metadata.tables["game_per_show_data"]
-		with lrrbot.engine.connect() as pg_conn:
+		games = bot.metadata.tables["games"]
+		game_per_show_data = bot.metadata.tables["game_per_show_data"]
+		with bot.engine.connect() as pg_conn:
 			name, = pg_conn.execute(sqlalchemy.select(games.c.name)
 				.select_from(
 					games
@@ -121,9 +123,9 @@ async def override_game(lrrbot, conn, event, respond_to, game):
 		message += "Currently playing: %s" % name
 	conn.privmsg(respond_to, message)
 
-@bot.command("game refresh")
+@blueprint.command("game refresh")
 @lrrbot.decorators.mod_only
-async def refresh(lrrbot, conn, event, respond_to):
+async def refresh(bot, conn, event, respond_to):
 	"""
 	Command: !game refresh
 	Section: info
@@ -131,6 +133,6 @@ async def refresh(lrrbot, conn, event, respond_to):
 	Force a refresh of the current Twitch game (normally this is updated at most once every 15 minutes)
 	"""
 	twitch.get_info.reset_throttle()
-	lrrbot.get_game_id.reset_throttle()
+	bot.get_game_id.reset_throttle()
 	current_game.reset_throttle()
-	await current_game(lrrbot, conn, event, respond_to)
+	await current_game(bot, conn, event, respond_to)
