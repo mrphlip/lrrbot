@@ -2,14 +2,16 @@ import flask
 from www import server
 from www import login
 
-@server.app.route('/prefs')
+blueprint = flask.Blueprint('prefs', __name__)
+
+@blueprint.route('/prefs')
 @login.require_login
 def prefs(session):
 	return flask.render_template('prefs.html', session=session, saved=False)
 
-@server.app.route('/prefs', methods=["POST"])
+@blueprint.route('/prefs', methods=["POST"])
 @login.require_login
-def prefs_save(session):
+def save(session):
 	if 'autostatus' in flask.request.values:
 		session['user']['autostatus'] = bool(int(flask.request.values['autostatus']))
 	if 'stream_delay' in flask.request.values:

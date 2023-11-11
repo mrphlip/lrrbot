@@ -9,7 +9,9 @@ import pytz
 from www import server
 from www import login
 
-@server.app.route('/history')
+blueprint = flask.Blueprint('history', __name__)
+
+@blueprint.route('/')
 @login.require_mod
 def history(session):
 	page = flask.request.values.get('page', 'all')
@@ -39,9 +41,9 @@ def history(session):
 	data.reverse()
 	return flask.render_template("historylist.html", page=page, data=data, session=session)
 
-@server.app.route('/history/<int:historykey>')
+@blueprint.route('/<int:historykey>')
 @login.require_mod
-def history_show(session, historykey):
+def show(session, historykey):
 	history = server.db.metadata.tables["history"]
 	users = server.db.metadata.tables["users"]
 	with server.db.engine.connect() as conn:
@@ -64,9 +66,9 @@ def history_show(session, historykey):
 	headdata = build_headdata(historykey, historykey, section, user, time)
 	return flask.render_template("historyshow.html", data=data, headdata=headdata, session=session)
 
-@server.app.route('/history/<int:fromkey>/<int:tokey>')
+@blueprint.route('/<int:fromkey>/<int:tokey>')
 @login.require_mod
-def history_diff(session, fromkey, tokey):
+def diff(session, fromkey, tokey):
 	history = server.db.metadata.tables["history"]
 	users = server.db.metadata.tables["users"]
 	with server.db.engine.connect() as conn:

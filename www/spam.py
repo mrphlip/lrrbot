@@ -13,7 +13,9 @@ from www import server
 from www import login
 from www import history
 
-@server.app.route('/spam')
+blueprint = flask.Blueprint('spam', __name__)
+
+@blueprint.route('/')
 @login.require_mod
 async def spam(session):
 	link_spam = "link_spam" in flask.request.values
@@ -41,9 +43,9 @@ def verify_rules(rules):
 		if rule['type'] not in ('spam', 'censor'):
 			return {"msg": "Incorrect type", "row": ix, "col": 3}
 
-@server.app.route('/spam/submit', methods=['POST'])
+@blueprint.route('/submit', methods=['POST'])
 @login.require_mod
-async def spam_submit(session):
+async def submit(session):
 	link_spam = "link_spam" in flask.request.values
 	data = flask.json.loads(flask.request.values['data'])
 
@@ -83,15 +85,15 @@ async def do_check_links(message, rules):
 				if match is not None:
 					return rule["message"] % {str(i+1): v for i, v in enumerate(match.groups())}
 
-@server.app.route('/spam/redirects')
+@blueprint.route('/redirects')
 @login.require_mod
-async def spam_redirects(session):
+async def redirects(session):
 	redirects = await common.url.canonical_url(flask.request.values["url"].strip())
 	return flask.json.jsonify(redirects=redirects)
 
-@server.app.route('/spam/test', methods=['POST'])
+@blueprint.route('/test', methods=['POST'])
 @login.require_mod
-async def spam_test(session):
+async def test(session):
 	link_spam = "link_spam" in flask.request.values
 	rules = flask.json.loads(flask.request.values['data'])
 	message = flask.request.values['message']
@@ -134,9 +136,9 @@ async def spam_test(session):
 			})
 	return flask.json.jsonify(result=result)
 
-@server.app.route('/spam/find')
+@blueprint.route('/find')
 @login.require_mod
-async def spam_find(session):
+async def find(session):
 	rules = await common.rpc.bot.get_data('spam_rules')
 	for rule in rules:
 		rule['re'] = re.compile(rule['re'])

@@ -15,8 +15,8 @@ $(function(){
 {%endblock%}
 {%block content%}
 <div class="historyhead">
-	{%if headdata['prevkey']%}<div class="prevlink"><a href="{{url_for('history_show', historykey=headdata['prevkey'])|e}}">&larr; Previous</a> (<a href="{{url_for('history_diff', fromkey=headdata['prevkey'], tokey=headdata['fromkey'])|e}}">diff</a>)</div>{%endif%}
-	{%if headdata['nextkey']%}<div class="nextlink"><a href="{{url_for('history_show', historykey=headdata['nextkey'])|e}}">Next &rarr;</a> (<a href="{{url_for('history_diff', fromkey=headdata['tokey'], tokey=headdata['nextkey'])|e}}">diff</a>)</div>{%endif%}
+	{%if headdata['prevkey']%}<div class="prevlink"><a href="{{url_for('history.show', historykey=headdata['prevkey'])|e}}">&larr; Previous</a> (<a href="{{url_for('history.diff', fromkey=headdata['prevkey'], tokey=headdata['fromkey'])|e}}">diff</a>)</div>{%endif%}
+	{%if headdata['nextkey']%}<div class="nextlink"><a href="{{url_for('history.show', historykey=headdata['nextkey'])|e}}">Next &rarr;</a> (<a href="{{url_for('history.diff', fromkey=headdata['tokey'], tokey=headdata['nextkey'])|e}}">diff</a>)</div>{%endif%}
 	Change to {{headdata['page']|e}} by {{headdata['user']|e}} on {{headdata['time']|timestamp}}
 </div>
 <div class="clear"></div>

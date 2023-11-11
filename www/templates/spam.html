@@ -31,10 +31,10 @@ $(function(){
 		{% if link_spam %}
 			<strong>Link spam rules</strong>
 		{% else %}
-			<a href="{{url_for('spam', link_spam='')|e}}">Link spam rules</a>
+			<a href="{{url_for('spam.spam', link_spam='')|e}}">Link spam rules</a>
 		{% endif %}
 	</li>
-	<li><a href="{{url_for('spam_find')|e}}">Find potential spambots</a></li>
+	<li><a href="{{url_for('spam.find')|e}}">Find potential spambots</a></li>
 	<li><a href='https://docs.python.org/3/library/re.html#regular-expression-syntax'>Regular expression syntax</a></li>
 </ol>
 <div style="text-align:right; margin: 1em">

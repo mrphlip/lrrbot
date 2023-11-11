@@ -10,9 +10,11 @@ from common.time import nice_duration
 from common.twitch import get_user, get_game
 import datetime
 
-@server.app.route('/clips')
+blueprint = flask.Blueprint("clips", __name__)
+
+@blueprint.route('/')
 @login.require_mod
-async def clips_vidlist(session):
+async def vidlist(session):
 	clips = server.db.metadata.tables["clips"]
 	ext_channel = server.db.metadata.tables["external_channel"]
 	ext_vids = server.db.metadata.tables["external_video"]
@@ -46,9 +48,9 @@ async def clips_vidlist(session):
 	return flask.render_template("clips_vidlist.html", videos=videos,
 		main_channel=config['channel'], session=session)
 
-@server.app.route('/clips/<videoid>')
+@blueprint.route('/<videoid>')
 @login.require_mod
-async def clips_vid(session, videoid):
+async def vid(session, videoid):
 	video = await get_video_data(videoid)
 
 	clips = server.db.metadata.tables["clips"]
@@ -93,9 +95,9 @@ async def clips_vid(session, videoid):
 		parent = parent.split(':', 1)[0]
 	return flask.render_template("clips_vid.html", video=video, clips=clip_data, session=session, parent=parent)
 
-@server.app.route('/clips/submit', methods=['POST'])
+@blueprint.route('/submit', methods=['POST'])
 @login.require_mod
-def clip_submit(session):
+def submit(session):
 	clips = server.db.metadata.tables["clips"]
 	with server.db.engine.connect() as conn:
 		conn.execute(clips.update()
@@ -108,9 +110,9 @@ def clip_submit(session):
 		conn.commit()
 	return flask.json.jsonify(success='OK')
 
-@server.app.route('/clips/external')
+@blueprint.route('/external')
 @login.require_mod
-async def external_clips(session):
+async def external(session):
 	ext_channel = server.db.metadata.tables["external_channel"]
 	ext_vids = server.db.metadata.tables["external_video"]
 	external_channels = []
@@ -125,9 +127,9 @@ async def external_clips(session):
 
 	return flask.render_template("clips_external.html", session=session, channels=external_channels)
 
-@server.app.route('/clips/external', methods=['POST'])
+@blueprint.route('/external', methods=['POST'])
 @login.require_mod
-async def external_clips_save(session):
+async def external_save(session):
 	ext_channel = server.db.metadata.tables["external_channel"]
 	ext_vids = server.db.metadata.tables["external_video"]
 	if flask.request.values['action'] == "videos":
@@ -146,19 +148,19 @@ async def external_clips_save(session):
 			conn.execute(ext_vids.delete().where(ext_vids.c.vodid.notin_(v['vodid'] for v in videos)))
 
 			conn.commit()
-		return flask.redirect(flask.url_for('clips_vidlist'), code=303)
+		return flask.redirect(flask.url_for('clips.vidlist'), code=303)
 	elif flask.request.values['action'] == "add":
 		# Add a new channel
 		channel = await get_user(name=flask.request.values['channel'])
 		with server.db.engine.connect() as conn:
 			conn.execute(ext_channel.insert(), {"channel": channel.name})
 			conn.commit()
-		return flask.redirect(flask.url_for('external_clips'), code=303)
+		return flask.redirect(flask.url_for('clips.external'), code=303)
 	elif flask.request.values['action'] == "remove":
 		channel = int(flask.request.values['channel'])
 		with server.db.engine.connect() as conn:
 			conn.execute(ext_channel.delete().where(ext_channel.c.id == channel))
 			conn.commit()
-		return flask.redirect(flask.url_for('external_clips'), code=303)
+		return flask.redirect(flask.url_for('clips.external'), code=303)
 	else:
 		raise ValueError("Unexpected mode %r" % flask.request.values['action'])

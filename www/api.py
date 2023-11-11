@@ -8,7 +8,9 @@ import flask
 import common.storm
 from common import googlecalendar
 
-@server.app.route("/api/stormcount")
+blueprint = flask.Blueprint("api", __name__)
+
+@blueprint.route("/stormcount")
 def stormcount():
 	return flask.jsonify({
 		'twitch-subscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-subscription'),
@@ -19,12 +21,12 @@ def stormcount():
 		'patreon-pledge': common.storm.get(server.db.engine, server.db.metadata, 'patreon-pledge'),
 	})
 
-@server.app.route("/api/next")
+@blueprint.route("/next")
 async def nextstream():
 	message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL, verbose=False)
 	return message
 
-@server.app.route("/api/show/<show>")
+@blueprint.route("/show/<show>")
 @login.with_minimal_session
 async def set_show(session, show):
 	if not session['user']['is_mod']:
@@ -34,7 +36,7 @@ async def set_show(session, show):
 	await common.rpc.bot.set_show(show)
 	return ""
 
-@server.app.route("/api/game")
+@blueprint.route("/game")
 async def get_game():
 	game_id = await common.rpc.bot.get_game_id()
 	if game_id is None:
@@ -45,7 +47,7 @@ async def get_game():
 	with server.db.engine.connect() as conn:
 		return conn.execute(sqlalchemy.select(games.c.name).where(games.c.id == game_id)).first()[0]
 
-@server.app.route("/api/show")
+@blueprint.route("/show")
 async def get_show():
 	show_id = await common.rpc.bot.get_show_id()
 
@@ -54,7 +56,7 @@ async def get_show():
 		show, = conn.execute(sqlalchemy.select(shows.c.string_id).where(shows.c.id == show_id)).first()
 		return show or "-"
 
-@server.app.route("/api/tweet")
+@blueprint.route("/tweet")
 @login.with_minimal_session
 async def get_tweet(session):
 	tweet = None
@@ -62,7 +64,7 @@ async def get_tweet(session):
 		tweet = await common.rpc.bot.get_tweet()
 	return tweet or "-"
 
-@server.app.route("/api/disconnect")
+@blueprint.route("/disconnect")
 @login.with_minimal_session
 async def disconnect(session):
 	if session['user']['is_mod']:
@@ -72,7 +74,7 @@ async def disconnect(session):
 		return flask.jsonify(status="ERR")
 
 CLIP_URL = "https://clips.twitch.tv/{}"
-@server.app.route("/api/clips")
+@blueprint.route("/clips")
 @login.with_minimal_session
 async def get_clips(session):
 	if not session['user']['is_mod']:

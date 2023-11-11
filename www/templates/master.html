@@ -14,14 +14,14 @@
 </head>
 <body>
 <div class="header">
-	<h1><a href="{{url_for('index')|e}}"><img src="{{static_url('logo.png')|e}}" alt="LRRbot" width="98" height="100"></a> {%block header%}{%endblock%}</h1>
+	<h1><a href="{{url_for('index.index')|e}}"><img src="{{static_url('logo.png')|e}}" alt="LRRbot" width="98" height="100"></a> {%block header%}{%endblock%}</h1>
 	<div class="login">
 		{%if session['user']['id'] is not none%}
 			Logged in as: <span class="display-name">{{session['user']['display_name']|e}}</span>
-			| <a href="{{url_for('prefs')|e}}">Preferences</a>
-			| <a href="{{url_for('logout')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log out</a>
+			| <a href="{{url_for('prefs.prefs')|e}}">Preferences</a>
+			| <a href="{{url_for('login.logout')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log out</a>
 		{%else%}
-			<a href="{{url_for('login')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log in</a>
+			<a href="{{url_for('login.login')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log in</a>
 		{%endif%}
 	</div>
 </div>
@@ -43,17 +43,17 @@
 </div>
 <div class="menu">
 <ul>
-	<li class="first"><a href="{{url_for('help')|e}}">Commands</a></li>
-	<li><a href="{{url_for('notifications')|e}}">Notifications</a></li>
-	<li><a href="{{url_for('archive')|e}}">Past Broadcasts</a></li>
-	<li><a href="{{url_for('archive')|e}}?highlights=true">Highlights</a></li>
-	<li><a href="{{url_for('quotes')|e}}">Quotes</a></li>
-	<li><a href="{{url_for('patreon_index')|e}}">Patreon</a></li>
+	<li class="first"><a href="{{url_for('help.help')|e}}">Commands</a></li>
+	<li><a href="{{url_for('notifications.notifications')|e}}">Notifications</a></li>
+	<li><a href="{{url_for('archive.archive')|e}}">Past Broadcasts</a></li>
+	<li><a href="{{url_for('archive.archive', highlights="true")|e}}">Highlights</a></li>
+	<li><a href="{{url_for('quotes.quotes')|e}}">Quotes</a></li>
+	<li><a href="{{url_for('patreon.index')|e}}">Patreon</a></li>
 	{%if session['user']['is_mod']%}
-	<li><a href="{{url_for('commands')|e}}">Responses</a></li>
-	<li><a href="{{url_for('spam')|e}}">Spam</a></li>
-	<li><a href="{{url_for('history')|e}}">History</a></li>
-	<li><a href="{{url_for('clips_vidlist')|e}}">Clips</a></li>
+	<li><a href="{{url_for('commands.commands')|e}}">Responses</a></li>
+	<li><a href="{{url_for('spam.spam')|e}}">Spam</a></li>
+	<li><a href="{{url_for('history.history')|e}}">History</a></li>
+	<li><a href="{{url_for('clips.vidlist')|e}}">Clips</a></li>
 	{%endif%}
 </ul>
 </div>

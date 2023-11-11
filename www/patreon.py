@@ -12,6 +12,8 @@ from common.config import config
 from common import patreon
 import common.rpc
 
+blueprint = flask.Blueprint('patreon', __name__)
+
 PATREON_BASE_URL = "https://www.patreon.com/"
 
 # Space separated list of scopes.
@@ -20,9 +22,9 @@ PATREON_BASE_URL = "https://www.patreon.com/"
 #  `my-campaign` - campaign information
 SCOPE = "users pledges-to-me"
 
-@server.app.route('/patreon/')
+@blueprint.route('/')
 @login.require_login
-async def patreon_index(session):
+async def index(session):
 	patreon_users = server.db.metadata.tables['patreon_users']
 	users = server.db.metadata.tables['users']
 	with server.db.engine.connect() as conn:
@@ -62,7 +64,7 @@ async def patreon_index(session):
 			pledge_url = urllib.parse.urlsplit(pledge_url)
 			query_string = urllib.parse.parse_qs(pledge_url.query)
 			query_string['patAmt'] = ["5.0"] # Set the default pledge amount to $5. Defaults to $1.
-			query_string['redirect_uri'] = [flask.url_for('patreon_index', _external=True)]
+			query_string['redirect_uri'] = [flask.url_for('patreon.index', _external=True)]
 			pledge_url = urllib.parse.urlunsplit(urllib.parse.SplitResult(pledge_url.scheme, pledge_url.netloc, pledge_url.path, '', '')), query_string
 		else:
 			pledge_url = None
@@ -78,19 +80,19 @@ async def patreon_index(session):
 		pledge_url=pledge_url,
 	)
 
-@server.app.route('/patreon/login')
+@blueprint.route('/login')
 @login.require_login
-async def patreon_login(session):
+async def login(session):
 	code = flask.request.args.get('code')
 	state_param = flask.request.args.get('state')
 	state_sess = flask.session.pop('patreon_state', None)
 	if code is None or state_param is None or state_sess is None:
 		flask.flash('OAuth parameters missing', 'error')
-		return flask.redirect(flask.url_for('patreon_index'))
+		return flask.redirect(flask.url_for('patreon.index'))
 
 	if state_param != state_sess:
 		flask.flash('Nonce mismatch: %r not equal to %r' % (state_param, state_sess), 'error')
-		return flask.redirect(flask.url_for('patreon_index'))
+		return flask.redirect(flask.url_for('patreon.index'))
 
 	access_token, refresh_token, expiry = await patreon.request_token('authorization_code',
 		code=code,
@@ -144,7 +146,7 @@ async def patreon_login(session):
 
 	flask.flash('Patreon account linked.', 'success')
 
-	return flask.redirect(flask.url_for('patreon_index'))
+	return flask.redirect(flask.url_for('patreon.index'))
 
 class HmacRequestStream:
 	def __init__(self, stream):
@@ -161,9 +163,9 @@ class HmacRequestStream:
 		self.hmac.update(data)
 		return data
 
-@server.app.route('/patreon/webhooks', methods=["POST"])
+@blueprint.route('/webhooks', methods=["POST"])
 @server.csrf.exempt
-async def patreon_webhooks():
+async def webhooks():
 	stream = HmacRequestStream(flask.request.environ['wsgi.input'])
 	flask.request.environ['wsgi.input'] = stream
 

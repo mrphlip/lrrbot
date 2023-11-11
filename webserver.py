@@ -35,7 +35,20 @@ app.jinja_env.globals["max"] = max
 app.jinja_env.globals["static_url"] = www.utils.static_url
 app.jinja_env.globals["cycler"] = www.utils.CyclerExt
 
+app.register_blueprint(www.api.blueprint, url_prefix="/api")
 app.register_blueprint(www.api_v2.blueprint, url_prefix="/api/v2")
+app.register_blueprint(www.archive.blueprint)
+app.register_blueprint(www.clips.blueprint, url_prefix="/clips")
+app.register_blueprint(www.commands.blueprint, url_prefix="/commands")
+app.register_blueprint(www.help.blueprint)
+app.register_blueprint(www.history.blueprint, url_prefix="/history")
+app.register_blueprint(www.index.blueprint)
+app.register_blueprint(www.login.blueprint)
+app.register_blueprint(www.notifications.blueprint)
+app.register_blueprint(www.patreon.blueprint, url_prefix="/patreon")
+app.register_blueprint(www.prefs.blueprint)
+app.register_blueprint(www.quotes.blueprint, url_prefix="/quotes")
+app.register_blueprint(www.spam.blueprint, url_prefix="/spam")
 
 __all__ = ['app']
 

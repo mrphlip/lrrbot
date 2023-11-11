@@ -1,5 +1,4 @@
 import datetime
-import pytz
 
 import flask
 import flask.json
@@ -9,6 +8,8 @@ import common.time
 from common.config import config
 from www import server
 from www import login
+
+blueprint = flask.Blueprint('notifications', __name__)
 
 MILESTONES = [
 	("Multi-Gift Subscriptions", config["timezone"].localize(datetime.datetime(2018, 8, 9, 9, 0))),
@@ -52,7 +53,7 @@ def get_milestones():
 			months += 1
 		yield name, dt.strftime("%Y-%m-%d"), months
 
-@server.app.route('/notifications')
+@blueprint.route('/notifications')
 @login.with_session
 def notifications(session):
 	last_event_id, events = get_events()
@@ -70,6 +71,6 @@ def notifications(session):
 	return flask.render_template('notifications.html', events=events, last_event_id=last_event_id, session=session, patreon_creator_name=name, milestones=get_milestones())
 
 # Compatibility shim
-@server.app.route('/notifications/events')
+@blueprint.route('/notifications/events')
 def events():
 	return flask.redirect(flask.url_for("api_v2.events", **flask.request.args), 301)

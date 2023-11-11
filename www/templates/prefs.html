@@ -27,7 +27,7 @@ function showHideTimestamps() {
 {%if saved%}
 <p class="notice">Preferences saved</p>
 {%endif%}
-<form action="{{url_for('prefs_save')|e}}" method="POST">
+<form action="{{url_for('prefs.save')|e}}" method="POST">
 <input name="_csrf_token" type="hidden" value="{{csrf_token()|e}}">
 <input type="submit" value="Save preferences">
 <h2>Chatbot options</h2>

@@ -28,6 +28,8 @@ TIMESTAMPS_RELATIVE = 1
 TIMESTAMPS_MOONBASE = 2
 TIMESTAMPS_LOCAL = 3
 
+blueprint = flask.Blueprint("archive", __name__)
+
 @utils.cache(CACHE_TIMEOUT, params=[0, 1])
 async def archive_feed_data(channel, broadcasts):
 	videos = await twitch.get_videos(channel, broadcasts=broadcasts, limit=100)
@@ -51,15 +53,15 @@ async def archive_feed_data_html(channel, broadcasts, rss):
 		vid['html'] = flask.render_template("archive_video.html", vid=vid, rss=rss)
 	return data
 
-@server.app.route('/archive')
+@blueprint.route('/archive')
 @login.with_session
 async def archive(session):
 	channel = flask.request.values.get('channel', 'loadingreadyrun')
 	broadcasts = 'highlights' not in flask.request.values
 	return flask.render_template("archive.html", videos=await archive_feed_data_html(channel, broadcasts, False), broadcasts=broadcasts, session=session)
 
-@server.app.route('/archivefeed')
-async def archive_feed():
+@blueprint.route('/archivefeed')
+async def feed():
 	channel = flask.request.values.get('channel', 'loadingreadyrun')
 	broadcasts = 'highlights' not in flask.request.values
 	rss = flask.render_template("archive_feed.xml", videos=await archive_feed_data_html(channel, broadcasts, True), broadcasts=broadcasts)
@@ -129,9 +131,9 @@ async def get_video_data(videoid):
 		log.exception("Bad video: %r", videoid)
 	return None
 
-@server.app.route('/archive/<videoid>')
+@blueprint.route('/archive/<videoid>')
 @login.with_session
-async def archive_watch(videoid, session):
+async def watch(videoid, session):
 	starttime = common.time.parsetime(flask.request.values.get('t'))
 	if starttime:
 		starttime = int(starttime.total_seconds())

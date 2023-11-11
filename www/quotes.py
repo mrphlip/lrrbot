@@ -8,8 +8,10 @@ import common.postgres
 
 QUOTES_PER_PAGE = 25
 
-@server.app.route('/quotes/')
-@server.app.route('/quotes/<int:page>')
+blueprint = flask.Blueprint('quotes', __name__)
+
+@blueprint.route('/')
+@blueprint.route('/<int:page>')
 @login.with_session
 def quotes(session, page=1):
 	quotes = server.db.metadata.tables["quotes"]
@@ -37,9 +39,9 @@ def quotes(session, page=1):
 
 	return flask.render_template('quotes.html', session=session, quotes=quotes, page=page, pages=pages)
 
-@server.app.route('/quotes/search')
+@blueprint.route('/search')
 @login.with_session
-def quote_search(session):
+def search(session):
 	query = flask.request.values["q"]
 	mode = flask.request.values.get('mode', 'text')
 	page = int(flask.request.values.get("page", 1))

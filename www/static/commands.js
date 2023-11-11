@@ -153,7 +153,7 @@ function save()
 	var data = getAsJSON();
 	$.ajax({
 		'type': 'POST',
-		'url': "commands/submit",
+		'url': "submit",
 		'data': "data=" + encodeURIComponent(data) + "&_csrf_token=" + encodeURIComponent(window.csrf_token),
 		'dataType': 'json',
 		'async': true,

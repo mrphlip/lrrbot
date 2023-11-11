@@ -42,7 +42,7 @@ function removeChannel(event) {
 </script>
 {%endblock%}
 {%block content%}
-<form action="{{url_for('external_clips_save')|e}}" method="POST">
+<form action="{{url_for('clips.external_save')|e}}" method="POST">
 <input name="_csrf_token" type="hidden" value="{{csrf_token()|e}}">
 <input name="action" id="action" type="hidden" value="videos"> <input name="channel" id="channel" type="hidden">
 <p><input type="submit" value="Save"></p>

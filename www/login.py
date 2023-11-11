@@ -48,6 +48,8 @@ SPECIAL_USERS.setdefault('mrphlip', list(REQUEST_SCOPES)).extend([
 	'channel:moderate',
 ])
 
+blueprint = flask.Blueprint('login', __name__)
+
 def with_session(func):
 	"""
 	Pass the current login session information to the function
@@ -212,7 +214,7 @@ async def load_session(include_url=True, include_header=True):
 		}
 	return session
 
-@server.app.route('/login')
+@blueprint.route('/login')
 async def login(return_to=None):
 	if 'code' not in flask.request.values:
 		if return_to is None:
@@ -322,7 +324,7 @@ async def login(return_to=None):
 			server.app.logger.exception("Exception in login")
 			return flask.render_template("login_response.html", success=False, session=await load_session(include_url=False))
 
-@server.app.route('/logout')
+@blueprint.route('/logout')
 async def logout():
 	if 'id' in flask.session:
 		del flask.session['id']

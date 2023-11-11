@@ -1,12 +1,13 @@
 import flask
 import flask.json
-from www import server
 from www import login
 from www import history
 import common.rpc
 from common import utils
 
-@server.app.route('/commands')
+blueprint = flask.Blueprint('commands', __name__)
+
+@blueprint.route('/')
 @login.require_mod
 async def commands(session):
 	data = await common.rpc.bot.get_data('responses')
@@ -28,9 +29,9 @@ async def commands(session):
 
 	return flask.render_template("commands.html", commands=data, len=len, session=session)
 
-@server.app.route('/commands/submit', methods=['POST'])
+@blueprint.route('/submit', methods=['POST'])
 @login.require_mod
-async def commands_submit(session):
+async def submit(session):
 	data = flask.json.loads(flask.request.values['data'])
 	# Server-side sanity checking
 	for command, response_data in data.items():
