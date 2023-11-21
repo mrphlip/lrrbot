@@ -7,7 +7,6 @@ import pytz
 from common import utils
 from common.config import config
 from common import twitch
-from lrrbot import chatlog
 import common.rpc
 import common.storm
 
@@ -215,7 +214,7 @@ class TwitchNotify:
 
 		if message is not None:
 			data['message'] = message
-			data['messagehtml'] = await chatlog.format_message(message, emotes, [], cheer=False)
+			data['messagehtml'] = await self.lrrbot.chatlog.format_message(message, emotes, [], cheer=False)
 
 		if monthcount > 1:
 			event = "twitch-resubscription"
