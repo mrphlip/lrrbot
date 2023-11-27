@@ -20,7 +20,6 @@ try:
 	bot.commands.register_blueprint(lrrbot.commands.live.blueprint)
 	bot.commands.register_blueprint(lrrbot.commands.lockdown.blueprint)
 	bot.commands.register_blueprint(lrrbot.commands.misc.blueprint)
-	bot.commands.register_blueprint(lrrbot.commands.patreon.blueprint)
 	bot.commands.register_blueprint(lrrbot.commands.quote.blueprint)
 	bot.commands.register_blueprint(lrrbot.commands.show.blueprint)
 	bot.commands.register_blueprint(lrrbot.commands.static.blueprint)
