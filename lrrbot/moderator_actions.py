@@ -163,7 +163,7 @@ class ModeratorActions:
 		elif message['data']['type'] == 'delete_permitted_term':
 			text = f"{slack.escape(user)} removed '{slack.escape(term)}' as a permitted term"
 		elif message['data']['type'] == 'add_blocked_term':
-			text = f"{slack.escape(user)} added {slack.escape(term)}' as a blocked term"
+			text = f"{slack.escape(user)} added '{slack.escape(term)}' as a blocked term"
 		elif message['data']['type'] == 'delete_blocked_term':
 			text = f"{slack.escape(user)} removed '{slack.escape(term)}' as a blocked term"
 		else:
