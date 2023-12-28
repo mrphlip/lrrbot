@@ -34,7 +34,7 @@ def main():
 	print("Processing and storing card data")
 	with psycopg2.connect(config['postgres']) as conn, conn.cursor() as cur:
 		cur.execute("DELETE FROM cards WHERE game = %s", (CARD_GAME_LORCANA, ))
-		processed_cards = []
+		processed_cards = set()
 		for card in carddata['cards']:
 			if card['fullName'] not in processed_cards:
 				cur.execute("INSERT INTO cards (game, filteredname, name, text, hidden) VALUES (%s, %s, %s, %s, %s)", (
@@ -44,7 +44,7 @@ def main():
 					get_card_description(card),
 					False,
 				))
-				processed_cards.append(card['fullName'])
+				processed_cards.add(card['fullName'])
 	print("Finished updating Lorcana cards")
 
 def get_card_description(card):
