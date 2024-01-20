@@ -149,6 +149,6 @@ async def find(session):
 		res = conn.execute(sqlalchemy.select(log.c.source, log.c.message, log.c.time)
 			.where((log.c.time >= starttime) & log.c.specialuser.any('cleared'))
 			.order_by(log.c.time.asc()))
-		data = [tuple(row) + (do_check(row[1], rules),) for row in res]
+		data = [tuple(row) + (await do_check(row[1], rules),) for row in res]
 
 	return flask.render_template("spam_find.html", data=data, session=session)
