@@ -141,7 +141,7 @@ async def test(session):
 async def find(session):
 	rules = await common.rpc.bot.get_data('spam_rules')
 	for rule in rules:
-		rule['re'] = re.compile(rule['re'])
+		rule['re'] = common.spam.compile_rule(rule['re'])
 
 	starttime = datetime.datetime.now(tz=pytz.utc) - datetime.timedelta(days=14)
 	log = server.db.metadata.tables["log"]
