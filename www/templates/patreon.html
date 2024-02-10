@@ -3,7 +3,7 @@
 {%block header%}Patreon{%endblock%}
 {%block content%}
 
-{% if session['user']['patreon_user_id'] is none %}
+{% if patreon_account is none %}
 <p>You haven't yet linked your Patreon account. Patrons with linked Patreon accounts can use
 	subscriber-only commands even when they're not subscribers. There also might be other
 	effects.</p>
@@ -15,7 +15,7 @@
 	<input type="hidden" name="state" value="{{ state }}">
 	<input type="submit" value="Link Patreon account">
 </form>
-{% elif is_patron %}
+{% elif patreon_account['is_sub'] %}
 <p>You are supporting {{ channel_patreon_name }} on Patreon. As long as you are a patron you can
 	use subscriber-only commands even when you're not a subscriber. There also might be other
 	effects.</p>

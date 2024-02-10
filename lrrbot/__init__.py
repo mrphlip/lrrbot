@@ -18,6 +18,7 @@ from common import state
 from common import twitch
 from common import utils
 from common.config import config
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH, ACCOUNT_PROVIDER_PATREON
 from common.pubsub import PubSub
 
 from lrrbot import asyncreactor
@@ -53,11 +54,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	def __init__(self, loop):
 		self.engine, self.metadata = postgres.get_engine_and_metadata()
-		users = self.metadata.tables["users"]
+		accounts = self.metadata.tables["accounts"]
 		if config['password'] == "oauth":
 			with self.engine.connect() as conn:
-				row = conn.execute(sqlalchemy.select(users.c.twitch_oauth)
-					.where(users.c.name == config['username'])).first()
+				row = conn.execute(sqlalchemy.select(accounts.c.access_token)
+					.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+					.where(accounts.c.name == config['username'])).first()
 				if row is not None:
 					password, = row
 				else:
@@ -295,15 +297,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		if "user-id" not in tags:
 			tags["display-name"] = tags.get("display-name", nick)
 			return
-		tags["user-id"] = int(tags["user-id"])
 
-		users = self.metadata.tables["users"]
-		patreon_users = self.metadata.tables["patreon_users"]
+		accounts = self.metadata.tables["accounts"]
 		with self.engine.connect() as conn:
 			if event.type == "pubmsg":
-				query = insert(users)
+				query = insert(accounts).returning(accounts.c.user_id)
 				query = query.on_conflict_do_update(
-					index_elements=[users.c.id],
+					index_elements=[accounts.c.provider, accounts.c.provider_user_id],
 					set_={
 						'name': query.excluded.name,
 						'display_name': query.excluded.display_name,
@@ -311,27 +311,34 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 						'is_mod': query.excluded.is_mod,
 					},
 				)
-				conn.execute(query, {
-					"id": tags["user-id"],
+				user_id = conn.execute(query, {
+					"provider": ACCOUNT_PROVIDER_TWITCH,
+					"provider_user_id": tags["user-id"],
 					"name": nick,
 					"display_name": tags.get("display-name"),
 					"is_sub": is_sub,
 					"is_mod": is_mod,
-				})
+				}).scalar_one()
 			else:
-				row = conn.execute(sqlalchemy.select(users.c.is_sub, users.c.is_mod)
-					.where(users.c.id == event.tags['user-id'])).first()
+				row = conn.execute(sqlalchemy.select(accounts.c.user_id, accounts.c.is_sub, accounts.c.is_mod)
+					.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+					.where(accounts.c.provider_user_id == event.tags['user-id'])).first()
 				if row is not None:
-					tags['subscriber'], tags['mod'] = row
+					user_id, tags['subscriber'], tags['mod'] = row
 				else:
+					user_id = None
 					tags['subscriber'] = False
 					tags['mod'] = False
-			is_patron = conn.execute(sqlalchemy.select(patreon_users.c.pledge_start.isnot(None))
-				.select_from(patreon_users.join(users))
-				.where(users.c.id == tags['user-id'])
-			).first()
+			if user_id is not None:
+				is_patron = conn.execute(
+					sqlalchemy.select(sqlalchemy.func.bool_or(accounts.c.is_sub))
+					.where(accounts.c.provider == ACCOUNT_PROVIDER_PATREON)
+					.where(accounts.c.user_id == user_id)
+				).scalar_one()
+			else:
+				is_patron = None
 			if is_patron is not None:
-				tags['patron'] = is_patron[0]
+				tags['patron'] = is_patron
 			else:
 				tags['patron'] = False
 			conn.commit()

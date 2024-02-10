@@ -9,6 +9,7 @@ from common.config import config
 from common import twitch
 import common.rpc
 import common.storm
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 
 log = logging.getLogger('twitchnotify')
 
@@ -22,7 +23,6 @@ class TwitchNotify:
 		self.last_subs = None
 		self.recent_announced_subs = {}
 		self.multi_gifts = {}
-		users = self.lrrbot.metadata.tables['users']
 
 		self.lrrbot.reactor.add_global_handler('usernotice', self.on_usernotice, 90)
 
@@ -207,9 +207,9 @@ class TwitchNotify:
 		else:
 			data['avatar'] = logo
 
-		users = self.lrrbot.metadata.tables["users"]
+		accounts = self.lrrbot.metadata.tables["accounts"]
 		with self.lrrbot.engine.connect() as pg_conn:
-			pg_conn.execute(users.update().where(users.c.name == login), {"is_sub": True})
+			pg_conn.execute(accounts.update().where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH).where(accounts.c.name == login), {"is_sub": True})
 			pg_conn.commit()
 
 		if message is not None:

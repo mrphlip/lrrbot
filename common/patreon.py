@@ -6,6 +6,7 @@ import sqlalchemy
 
 from common.config import config
 from common import http
+from common.account_providers import ACCOUNT_PROVIDER_PATREON
 
 async def request_token(grant_type, **data):
 	data.update({
@@ -18,38 +19,30 @@ async def request_token(grant_type, **data):
 	expiry = datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=data["expires_in"])
 	return data["access_token"], data["refresh_token"], expiry
 
-async def get_token(engine, metadata, user):
-	def filter_by_user(query, user):
-		if isinstance(user, int):
-			return query.where(users.c.id == user)
-		elif isinstance(user, str):
-			return query.where(users.c.name == user)
-		else:
-			raise Exception("`user` not an ID nor a name")
-
-	users = metadata.tables["users"]
-	patreon_users = metadata.tables["patreon_users"]
+async def get_token(engine, metadata, patreon_id):
+	accounts = metadata.tables["accounts"]
 	with engine.connect() as conn:
-		query = sqlalchemy.select(
-			patreon_users.c.id,
-			patreon_users.c.access_token,
-			patreon_users.c.refresh_token,
-			patreon_users.c.token_expires,
-		)
-		query = filter_by_user(query, user)
-		row = conn.execute(query.select_from(users.join(patreon_users, users.c.patreon_user_id == patreon_users.c.id))).first()
+		row = conn.execute(
+			sqlalchemy.select(
+				accounts.c.id,
+				accounts.c.access_token,
+				accounts.c.refresh_token,
+				accounts.c.token_expires_at,
+			).where(accounts.c.provider == ACCOUNT_PROVIDER_PATREON)
+			.where(accounts.c.provider_user_id == patreon_id)
+		).first()
 		if row is None:
 			raise Exception("User not logged in")
-		patreon_id, access_token, refresh_token, expiry = row
+		account_id, access_token, refresh_token, expiry = row
 		if access_token is None:
 			raise Exception("User not logged in")
 	if expiry < datetime.datetime.now(pytz.utc):
 		access_token, refresh_token, expiry = await request_token("refresh_token", refresh_token=refresh_token)
 		with engine.connect() as conn:
-			conn.execute(patreon_users.update().where(patreon_users.c.id == patreon_id), {
+			conn.execute(accounts.update().where(accounts.c.id == account_id), {
 				"access_token": access_token,
 				"refresh_token": refresh_token,
-				"token_expires": expiry,
+				"token_expires_at": expiry,
 			})
 			conn.commit()
 

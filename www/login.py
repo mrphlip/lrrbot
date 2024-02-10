@@ -1,22 +1,21 @@
+import datetime
 import functools
 import uuid
 
 import flask
 import flask.json
+import pytz
 import sqlalchemy
 from sqlalchemy.dialects.postgresql import insert
 
 import www.utils
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 from www import server
 from common.config import config, from_apipass
 from common import utils
 from common import http
-from common import twitch
 from common import googlecalendar
 import common.rpc
-
-for key, name in from_apipass.items():
-	from_apipass[key] = name
 
 # See https://dev.twitch.tv/docs/v5/guides/authentication/#scopes
 # We don't actually need, or want, any at present
@@ -112,10 +111,11 @@ def require_mod(func):
 		session = await load_session()
 		if session['user']['id'] is not None:
 			kwargs['session'] = session
-			if session['user']['is_mod']:
+			if session['active_account']['is_mod']:
 				return await utils.wrap_as_coroutine(func)(*args, **kwargs)
 			else:
-				return flask.render_template('require_mod.html', session=session)
+				mod_accounts = [account for account in session['accounts'] if account['is_mod']]
+				return flask.render_template('require_mod.html', session=session, mod_accounts=mod_accounts)
 		else:
 			return await login(session['url'])
 	return wrapper
@@ -126,16 +126,6 @@ async def load_session(include_url=True, include_header=True):
 
 	Includes all the information needed by the master.html template.
 	"""
-	user_id = flask.session.get('id')
-	user_name = flask.session.get('user')
-	if user_id is None and user_name is not None:
-		# Upgrade old session
-		user_id = flask.session["id"] = (await twitch.get_user(name=user_name)).id
-	if 'user' in flask.session:
-		del flask.session["user"]
-	if 'apipass' in flask.request.values and flask.request.values['apipass'] in from_apipass:
-		user_id = (await twitch.get_user(name=from_apipass[flask.request.values["apipass"]])).id
-
 	session = {}
 	if include_url:
 		session['url'] = flask.request.url
@@ -172,46 +162,86 @@ async def load_session(include_url=True, include_header=True):
 			message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
 			session['header']['nextstream'] = message
 
-	if user_id is not None:
-		user_id = int(user_id)
-		users = server.db.metadata.tables["users"]
-		patreon_users = server.db.metadata.tables["patreon_users"]
-		with server.db.engine.connect() as conn:
-			query = sqlalchemy.select(
-				users.c.name, sqlalchemy.func.coalesce(users.c.display_name, users.c.name), users.c.twitch_oauth,
-				users.c.is_sub, users.c.is_mod, users.c.autostatus, users.c.patreon_user_id,
-				users.c.stream_delay, users.c.chat_timestamps, users.c.chat_timestamps_24hr, users.c.chat_timestamps_secs
-			).where(users.c.id == user_id)
-			name, display_name, token, is_sub, is_mod, autostatus, patreon_user_id, \
-				stream_delay, chat_timestamps, chat_timestamps_24hr, chat_timestamps_secs = conn.execute(query).first()
+	users = server.db.metadata.tables["users"]
+	accounts = server.db.metadata.tables["accounts"]
+	with server.db.engine.connect() as conn:
+		if 'apipass' in flask.request.values and (twitch_name := from_apipass[flask.request.values['apipass']]):
+			account = conn.execute(
+				sqlalchemy.select(accounts.c.id, accounts.c.user_id)
+					.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+					.where(accounts.c.name == twitch_name)
+			).one_or_none()
+			if account and account.user_id:
+				user_id = account.user_id
+				active_account_id = account.id
+			else:
+				user_id = None
+				active_account_id = None
+		else:
+			user_id = flask.session.get('user_id')
+			active_account_id = flask.session.get('active_account_id')
+
+		user = conn.execute(sqlalchemy.select(
+			users.c.id,
+			users.c.stream_delay,
+			users.c.chat_timestamps,
+			users.c.chat_timestamps_24hr,
+			users.c.chat_timestamps_secs,
+		).where(users.c.id == user_id)).one_or_none()
+
+		if user:
 			session['user'] = {
-				"id": user_id,
-				"name": name,
-				"display_name": display_name,
-				"twitch_oauth": token,
-				"is_sub": is_sub,
-				"is_mod": is_mod,
-				"autostatus": autostatus,
-				"patreon_user_id": patreon_user_id,
-				"stream_delay": stream_delay,
-				"chat_timestamps": chat_timestamps,
-				"chat_timestamps_24hr": chat_timestamps_24hr,
-				"chat_timestamps_secs": chat_timestamps_secs,
+				"id": user.id,
+				"stream_delay": user.stream_delay,
+				"chat_timestamps": user.chat_timestamps,
+				"chat_timestamps_24hr": user.chat_timestamps_24hr,
+				"chat_timestamps_secs": user.chat_timestamps_secs,
 			}
-	else:
-		session['user'] = {
-			"id": None,
-			"name": None,
-			"display_name": None,
-			"twitch_oauth": None,
-			"is_sub": False,
-			"is_mod": False,
-			"autostatus": False,
-			"stream_delay": 10,
-			"chat_timestamps": 0,
-			"chat_timestamps_24hr": True,
-			"chat_timestamps_secs": False,
-		}
+
+			users_accounts = conn.execute(sqlalchemy.select(
+				accounts.c.id,
+				accounts.c.provider,
+				accounts.c.provider_user_id,
+				accounts.c.name,
+				sqlalchemy.func.coalesce(accounts.c.display_name, accounts.c.name).label('display_name'),
+				accounts.c.is_sub,
+				accounts.c.is_mod,
+				accounts.c.autostatus,
+			).where(accounts.c.user_id == user.id)).all()
+			session['accounts'] = [
+				{
+					"id": account.id,
+					"provider": account.provider,
+					"provider_user_id": account.provider_user_id,
+					"name": account.name,
+					"display_name": account.display_name,
+					"is_sub": account.is_sub,
+					"is_mod": account.is_mod,
+					"autostatus": account.autostatus,
+				}
+				for account in users_accounts
+			]
+			session['active_account'] = next((account for account in session['accounts'] if account['id'] == active_account_id), None)
+		if not user or not session.get('active_account'):
+			session['user'] = {
+				"id": None,
+				"stream_delay": 10,
+				"chat_timestamps": 0,
+				"chat_timestamps_24hr": True,
+				"chat_timestamps_secs": False,
+			}
+			session['accounts'] = []
+			session['active_account'] = {
+				"id": None,
+				"provider": None,
+				"provider_user_id": None,
+				"name": None,
+				"display_name": None,
+				"is_sub": False,
+				"is_mod": False,
+				"autostatus": False,
+			}
+
 	return session
 
 @blueprint.route('/login')
@@ -270,6 +300,11 @@ async def login(return_to=None):
 				raise Exception("No access token from Twitch: %s" % res_json)
 			access_token = res_object['access_token']
 			granted_scopes = res_object.get("scope", [])
+			refresh_token = res_object.get("refresh_token")
+			if expires_in := res_object.get("expires_in"):
+				expiry = datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=expires_in)
+			else:
+				expiry = None
 
 			# Use that access token to get basic information about the user
 			headers['Authorization'] = f"Bearer {access_token}"
@@ -292,28 +327,38 @@ async def login(return_to=None):
 						special_user=user_name, remember_me=remember_me)
 
 			# Store the user to the database
-			user = {
-				'id': user_id,
+			account = {
+				'provider': ACCOUNT_PROVIDER_TWITCH,
+				'provider_user_id': user_id,
 				'name': user_name,
-				'twitch_oauth': access_token,
 				'display_name': display_name,
+				'access_token': access_token,
+				'refresh_token': refresh_token,
+				'token_expires_at': expiry,
 			}
-			users = server.db.metadata.tables["users"]
+			users = server.db.metadata.tables['users']
+			accounts = server.db.metadata.tables["accounts"]
 			with server.db.engine.connect() as conn:
-				query = insert(users)
+				query = insert(accounts).returning(accounts.c.id, accounts.c.user_id)
 				query = query.on_conflict_do_update(
-					index_elements=[users.c.id],
+					index_elements=[accounts.c.provider, accounts.c.provider_user_id],
 					set_={
 						'name': query.excluded.name,
-						'twitch_oauth': query.excluded.twitch_oauth,
 						'display_name': query.excluded.display_name,
+						'access_token': query.excluded.access_token,
+						'refresh_token': query.excluded.refresh_token,
+						'token_expires_at': query.excluded.token_expires_at,
 					},
 				)
-				conn.execute(query, user)
+				account_id, user_id = conn.execute(query, account).one()
+				if user_id is None:
+					user_id = conn.execute(users.insert().returning(users.c.id)).scalar_one()
+					conn.execute(accounts.update().where(accounts.c.id == account_id), {'user_id': user_id})
 				conn.commit()
 
 			# Store the user ID into the session
-			flask.session['id'] = user_id
+			flask.session['user_id'] = user_id
+			flask.session['active_account_id'] = account_id
 			flask.session.permanent = remember_me
 
 			return_to = flask.session.pop('login_return_to', None)
@@ -326,7 +371,9 @@ async def login(return_to=None):
 
 @blueprint.route('/logout')
 async def logout():
-	if 'id' in flask.session:
-		del flask.session['id']
+	if 'user_id' in flask.session:
+		del flask.session['user_id']
+	if 'active_account_id' in flask.session:
+		del flask.session['active_account_id']
 	session = await load_session(include_url=False)
 	return flask.render_template("logout.html", return_to=flask.request.values.get('return_to'), session=session)

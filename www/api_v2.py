@@ -22,10 +22,10 @@ def require_mod(func):
 	async def wrapper(*args, **kwargs):
 		session = await login.load_session(include_url=False, include_header=False)
 		kwargs['session'] = session
-		if session['user']['is_mod']:
+		if session['active_account']['is_mod']:
 			return await utils.wrap_as_coroutine(func)(*args, **kwargs)
 		else:
-			return flask.jsonify(message="%s is not a mod" % (session['user']['display_name'], )), 403
+			return flask.jsonify(message="%s is not a mod" % (session['active_account']['display_name'], )), 403
 	return wrapper
 
 blueprint = flask.Blueprint("api_v2", __name__)

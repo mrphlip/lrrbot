@@ -99,6 +99,9 @@ config['whispers'] = str(config['whispers']).lower() != 'false'
 config.setdefault('slack_webhook_url', None)
 
 # Patreon:
+# patreon_user_id - Patreon creator user ID
+config.setdefault('patreon_creator_user_id', '295787')
+
 # patreon_clientid - Patreon API client ID
 config.setdefault('patreon_clientid', '')
 

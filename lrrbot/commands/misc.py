@@ -14,6 +14,7 @@ import common.storm
 import lrrbot.decorators
 from common import googlecalendar
 from common import utils
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 from common.config import config
 from common import twitch
 from lrrbot import storage
@@ -295,11 +296,14 @@ def autostatus_check(bot, conn, event, respond_to):
 	Check whether you are set to be automatically sent status messages when join join the channel.
 	"""
 	source = irc.client.NickMask(event.source)
-	users = bot.metadata.tables["users"]
+	accounts = bot.metadata.tables["accounts"]
 	with bot.engine.connect() as pg_conn:
-		res = pg_conn.execute(sqlalchemy.select(users.c.autostatus)
-			.where(users.c.id == int(event.tags["user-id"]))).first()
-	if res and res[0]:
+		enabled = pg_conn.execute(
+			sqlalchemy.select(accounts.c.autostatus)
+				.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+				.where(accounts.c.provider_user_id == event.tags["user-id"])
+		).scalar_one_or_none()
+	if enabled:
 		conn.privmsg(source.nick, "Auto-status is enabled. Disable it with: !autostatus off")
 	else:
 		conn.privmsg(source.nick, "Auto-status is disabled. Enable it with: !autostatus on")
@@ -315,9 +319,14 @@ def autostatus_set(bot, conn, event, respond_to, enable):
 	"""
 	source = irc.client.NickMask(event.source)
 	enable = enable.lower() == "on"
-	users = bot.metadata.tables["users"]
+	accounts = bot.metadata.tables["accounts"]
 	with bot.engine.connect() as pg_conn:
-		pg_conn.execute(users.update().where(users.c.id == int(event.tags["user-id"])), {"autostatus": enable})
+		pg_conn.execute(
+			accounts.update()
+				.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+				.where(accounts.c.provider_user_id == event.tags["user-id"]),
+			{"autostatus": enable}
+		)
 		pg_conn.commit()
 	if enable:
 		conn.privmsg(source.nick, "Auto-status enabled.")
@@ -328,11 +337,11 @@ def autostatus_set(bot, conn, event, respond_to, enable):
 def register_autostatus_on_join(bot):
 	def autostatus_on_join(conn, event):
 		source = irc.client.NickMask(event.source)
-		users = bot.metadata.tables["users"]
+		accounts = bot.metadata.tables["accounts"]
 		with bot.engine.connect() as pg_conn:
-			res = pg_conn.execute(sqlalchemy.select(users.c.autostatus)
-				.where(users.c.name == source.nick)).first()
-			if res is not None:
-				if res[0]:
-					asyncio.ensure_future(send_status(bot, conn, source.nick), loop=bot.loop)
+			enabled = pg_conn.execute(sqlalchemy.select(accounts.c.autostatus)
+				.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+				.where(accounts.c.name == source.nick)).scalar_one_or_none()
+			if enabled:
+				asyncio.ensure_future(send_status(bot, conn, source.nick), loop=bot.loop)
 	bot.reactor.add_global_handler('join', autostatus_on_join, 99)

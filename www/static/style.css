@@ -827,3 +827,10 @@ table.quote-search select {
 {
 	white-space: pre-wrap;
 }
+
+img.account-provider-icon {
+	height: 1lh;
+	vertical-align: middle;
+	margin-left: 0.25ex;
+	margin-right: 0.3ex;
+}

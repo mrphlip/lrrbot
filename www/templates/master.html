@@ -1,3 +1,10 @@
+{% macro username(provider, name) -%}
+	<span class="display-name">{%- if provider == 1 -%}
+		<img class="account-provider-icon" src="{{ static_url('account_providers/twitch.svg') }}" alt="Twitch" title="Twitch">
+	{%- elif provider == 2 -%}
+		<img class="account-provider-icon" src="{{ static_url('account_providers/patreon.svg') }}" alt="Patreon" title="Patreon">
+	{%- endif -%}{{ name }}</span>
+{%- endmacro %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,7 +24,7 @@
 	<h1><a href="{{url_for('index.index')|e}}"><img src="{{static_url('logo.png')|e}}" alt="LRRbot" width="98" height="100"></a> {%block header%}{%endblock%}</h1>
 	<div class="login">
 		{%if session['user']['id'] is not none%}
-			Logged in as: <span class="display-name">{{session['user']['display_name']|e}}</span>
+			Logged in as: {{ username(session['active_account']['provider'], session['active_account']['display_name']) }}
 			| <a href="{{url_for('prefs.prefs')|e}}">Preferences</a>
 			| <a href="{{url_for('login.logout')|e}}{%if session['url']%}?return_to={{session['url']|urlencode|e}}{%endif%}">Log out</a>
 		{%else%}
@@ -49,7 +56,7 @@
 	<li><a href="{{url_for('archive.archive', highlights="true")|e}}">Highlights</a></li>
 	<li><a href="{{url_for('quotes.quotes')|e}}">Quotes</a></li>
 	<li><a href="{{url_for('patreon.index')|e}}">Patreon</a></li>
-	{%if session['user']['is_mod']%}
+	{%if session['active_account']['is_mod']%}
 	<li><a href="{{url_for('commands.commands')|e}}">Responses</a></li>
 	<li><a href="{{url_for('spam.spam')|e}}">Spam</a></li>
 	<li><a href="{{url_for('history.history')|e}}">History</a></li>

@@ -17,7 +17,7 @@
 			{%if row['lastkey']%}(<a href="{{url_for('history.diff', fromkey=row['lastkey'], tokey=row['key'])|e}}">diff</a>){%endif%}
 			<a href="{{url_for('history.show', historykey=row['key'])|e}}">{{row['time']|timestamp}}</a>
 			{%if page == "all"%} &ndash; {{row['section']|e}} {%endif%}
-			&ndash; {{row['user']|e}} ({{"%+d"|format(row['lengthdiff'])|e}})
+			&ndash; {{ username(row['provider'], row['user']) }} ({{"%+d"|format(row['lengthdiff'])|e}})
 		</li>
 	{%endfor%}
 </ol>

@@ -16,7 +16,7 @@ $(modonly);
 {%endblock%}
 {%block content%}
 <h2>Commands</h2>
-<p><label><input type="checkbox" id="showmodonly" onclick="modonly()" {% if session['user']['is_mod'] %}checked{% endif %}> Show mod-only commands</label></p>
+<p><label><input type="checkbox" id="showmodonly" onclick="modonly()" {% if session['active_account']['is_mod'] %}checked{% endif %}> Show mod-only commands</label></p>
 {%for section in sections%}
 {%if commands[section]%}
 <h3 id="help-section-{{section}}"{%if commands[section] and commands[section]['mod-only']%} class="modonly"{%endif%}>{{sections[section]|e}}</h3>

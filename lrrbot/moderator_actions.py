@@ -3,13 +3,14 @@ import datetime
 import sqlalchemy
 import dateutil.parser
 import json
+import logging
 
 from common import pubsub
 from common import utils
 from common import time
 from common import slack
 from common.config import config
-import logging
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 
 log = logging.getLogger("moderator_actions")
 
@@ -20,10 +21,10 @@ class ModeratorActions:
 
 		self.last_ban = None
 
-		users = self.lrrbot.metadata.tables["users"]
+		accounts = self.lrrbot.metadata.tables["accounts"]
 		with self.lrrbot.engine.connect() as conn:
-			selfrow = conn.execute(sqlalchemy.select(users.c.id).where(users.c.name == config['username'])).first()
-			targetrow = conn.execute(sqlalchemy.select(users.c.id).where(users.c.name == config['channel'])).first()
+			selfrow = conn.execute(sqlalchemy.select(accounts.c.provider_user_id).where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH).where(accounts.c.name == config['username'])).first()
+			targetrow = conn.execute(sqlalchemy.select(accounts.c.provider_user_id).where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH).where(accounts.c.name == config['channel'])).first()
 		if selfrow is not None and targetrow is not None:
 			self_channel_id, = selfrow
 			target_channel_id, = targetrow

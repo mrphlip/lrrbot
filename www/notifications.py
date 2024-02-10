@@ -5,6 +5,7 @@ import flask.json
 import sqlalchemy
 
 import common.time
+from common.account_providers import ACCOUNT_PROVIDER_PATREON
 from common.config import config
 from www import server
 from www import login
@@ -58,15 +59,12 @@ def get_milestones():
 def notifications(session):
 	last_event_id, events = get_events()
 
-	patreon_users = server.db.metadata.tables['patreon_users']
-	users = server.db.metadata.tables['users']
+	accounts = server.db.metadata.tables['accounts']
 	with server.db.engine.connect() as conn:
-		name = conn.execute(sqlalchemy.select(patreon_users.c.full_name)
-			.select_from(users.join(patreon_users))
-			.where(users.c.name == config['channel'])
-		).first()
-	if name:
-		name = name[0]
+		name = conn.execute(sqlalchemy.select(accounts.c.name)
+			.where(accounts.c.provider == ACCOUNT_PROVIDER_PATREON)
+			.where(accounts.c.provider_user_id == config['patreon_creator_user_id'])
+		).scalar_one_or_none()
 
 	return flask.render_template('notifications.html', events=events, last_event_id=last_event_id, session=session, patreon_creator_name=name, milestones=get_milestones())
 

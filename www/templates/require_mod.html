@@ -2,5 +2,20 @@
 {%block title%}Moderators Only{%endblock%}
 {%block header%}Moderators Only{%endblock%}
 {%block content%}
-<p>Sorry, this page is only accessible by chat moderators. If you <em>are</em> a chat moderator, or are Lord Hosk, complain via the usual channels.</p>
+	<p>
+		Sorry, this page is only accessible by chat moderators. If you <em>are</em> a chat moderator, or are Lord Hosk,
+		complain via the usual channels.
+	</p>
+
+	{% if mod_accounts %}
+		<p>
+			Note: you are currently logged in as {{ username(session['active_account']['provider'], session['active_account']['display_name']) }}.
+			Consider logging in as
+			{% for account in mod_accounts -%}
+				{%- if loop.length > 1 and loop.last %} or {% endif -%}
+				{{- username(account['provider'], account['display_name']) -}}
+				{%- if loop.revindex > 2 %}, {% endif -%}
+			{%- endfor -%}.
+		</p>
+	{% endif %}
 {%endblock%}

@@ -57,5 +57,5 @@ async def submit(session):
 		if response_data['access'] not in ('any', 'sub', 'mod'):
 			raise ValueError("Invalid access level")
 	await common.rpc.bot.static.modify_commands(data)
-	history.store('responses', session['user']['id'], data)
+	history.store('responses', session['active_account']['id'], data)
 	return flask.json.jsonify(success='OK')
