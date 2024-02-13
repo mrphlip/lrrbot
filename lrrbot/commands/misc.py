@@ -43,14 +43,22 @@ def stormcount(bot, conn, event, respond_to):
 	twitch_follow = common.storm.get(bot.engine, bot.metadata, 'twitch-follow')
 	twitch_cheer = common.storm.get(bot.engine, bot.metadata, 'twitch-cheer')
 	patreon_pledge = common.storm.get(bot.engine, bot.metadata, 'patreon-pledge')
+	youtube_membership = common.storm.get(bot.engine, bot.metadata, 'youtube-membership')
+	youtube_membership_milestone = common.storm.get(bot.engine, bot.metadata, 'youtube-membership-milestone')
+	youtube_super_chat = common.storm.get(bot.engine, bot.metadata, 'youtube-super-chat')
+	youtube_super_sticker = common.storm.get(bot.engine, bot.metadata, 'youtube-super-sticker')
 	storm_count = common.storm.get_combined(bot.engine, bot.metadata)
-	conn.privmsg(respond_to, "Today's storm count: %d (new subscribers: %d, returning subscribers: %d, new patrons: %d), bits cheered: %d, new followers: %d" % (
+	conn.privmsg(respond_to, "Today's storm count: %d (new subscribers: %d, returning subscribers: %d, new patrons: %d, new YouTube members: %d, returning Youtube members: %d), bits cheered: %d, new followers: %d, YouTube super chats: %d, YouTube super stickers: %d" % (
 		storm_count,
 		twitch_subscription,
 		twitch_resubscription,
+		youtube_membership,
+		youtube_membership_milestone,
 		patreon_pledge,
 		twitch_cheer,
 		twitch_follow,
+		youtube_super_chat,
+		youtube_super_sticker,
 	))
 
 @blueprint.command("spam(?:count)?")

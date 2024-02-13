@@ -116,3 +116,19 @@ config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_modera
 
 # mods - extra users who should be treated as mods by the bot even if they're not +o
 config['mods'] = set(i.lower().strip() for i in config['mods'].split(',')) if config.get('mods') else set()
+
+# YouTube:
+# youtube_client_id - YouTube OAuth2 client ID
+config.setdefault('youtube_client_id', '')
+
+# youtube_client_secret - YouTube OAuth2 client secret
+config.setdefault('youtube_client_secret', '')
+
+# youtube_redirect_uri - Redirect URI for the YouTube login
+config.setdefault('youtube_redirect_uri', 'https://lrrbot.com/login/youtube')
+
+# youtube_channel_id - YouTube channel ID of the stream channel
+config.setdefault('youtube_channel_id', 'UCwjN2uVdL9A0i3gaIHKFzuA')
+
+# youtube_bot_id - YouTube channel ID of the bot account
+config.setdefault('youtube_bot_id', '')

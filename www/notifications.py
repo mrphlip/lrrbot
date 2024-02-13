@@ -25,12 +25,27 @@ MILESTONES = [
 	("LoadingReadyRun launch", config["timezone"].localize(datetime.datetime(2003, 10, 13))),
 ]
 
+VISIBLE_EVENTS = {
+	'twitch-subscription',
+	'twitch-resubscription',
+	'twitch-subscription-mysterygift',
+	'twitch-message',
+	'twitch-cheer',
+	'patreon-pledge',
+	'twitch-raid',
+	'youtube-membership',
+	'youtube-membership-milestone',
+	'youtube-membership-gift',
+	'youtube-super-chat',
+	'youtube-super-sticker',
+}
+
 def get_events():
 	events = server.db.metadata.tables['events']
 	recent_events = []
 	query = sqlalchemy.select(events.c.id, events.c.event, events.c.data, events.c.time, sqlalchemy.func.current_timestamp() - events.c.time) \
 		.where(events.c.time > sqlalchemy.func.current_timestamp() - datetime.timedelta(days=2)) \
-		.where(events.c.event.in_({'twitch-subscription', 'twitch-resubscription', 'twitch-subscription-mysterygift', 'twitch-message', 'twitch-cheer', 'patreon-pledge', 'twitch-raid'})) \
+		.where(events.c.event.in_(VISIBLE_EVENTS)) \
 		.order_by(events.c.time.desc())
 	with server.db.engine.connect() as conn:
 		for id, event, data, time, duration in conn.execute(query):

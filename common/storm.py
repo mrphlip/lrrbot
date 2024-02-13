@@ -31,7 +31,13 @@ def get(engine, metadata, counter):
 		return row[0]
 	return 0
 
-COMBINED_COUNTERS = ['twitch-subscription', 'twitch-resubscription', 'patreon-pledge']
+COMBINED_COUNTERS = [
+	'twitch-subscription',
+	'twitch-resubscription',
+	'patreon-pledge',
+	'youtube-membership',
+	'youtube-membership-milestone',
+]
 def get_combined(engine, metadata):
 	combined_count = 0
 	storm = metadata.tables['storm']

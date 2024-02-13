@@ -40,6 +40,7 @@ from lrrbot import twitchfollows
 from lrrbot import twitchnotify
 from lrrbot import video_playback
 from lrrbot import whisper
+from lrrbot import youtube_chat
 
 log = logging.getLogger('lrrbot')
 
@@ -149,6 +150,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.twitchcheer = twitchcheer.TwitchCheer(self, loop)
 		self.twitchfollows = twitchfollows.TwitchFollows(self, loop)
 		self.video_playback = video_playback.VideoPlayback(self, loop)
+
+		if config['youtube_bot_id']:
+			self.youtube_chat = youtube_chat.YoutubeChat(self, loop)
+		else:
+			self.youtube_chat = None
 
 	def reactor_class(self):
 		return asyncreactor.AsyncReactor(self.loop)

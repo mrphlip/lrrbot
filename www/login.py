@@ -1,5 +1,7 @@
 import datetime
 import functools
+import json
+import secrets
 import uuid
 
 import flask
@@ -9,20 +11,20 @@ import sqlalchemy
 from sqlalchemy.dialects.postgresql import insert
 
 import www.utils
-from common.account_providers import ACCOUNT_PROVIDER_TWITCH
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH, ACCOUNT_PROVIDER_YOUTUBE
 from www import server
 from common.config import config, from_apipass
-from common import utils
+from common import utils, youtube
 from common import http
 from common import googlecalendar
 import common.rpc
 
 # See https://dev.twitch.tv/docs/v5/guides/authentication/#scopes
 # We don't actually need, or want, any at present
-REQUEST_SCOPES = []
+TWITCH_REQUEST_SCOPES = []
 
-SPECIAL_USERS = {}
-SPECIAL_USERS.setdefault(config["username"], list(REQUEST_SCOPES)).extend([
+TWITCH_SPECIAL_USERS = {}
+TWITCH_SPECIAL_USERS.setdefault(config["username"], list(TWITCH_REQUEST_SCOPES)).extend([
 	'chat_login',
 	'user_read',
 	'user_follows_edit',
@@ -37,14 +39,29 @@ SPECIAL_USERS.setdefault(config["username"], list(REQUEST_SCOPES)).extend([
 	'whispers:edit',
 	'whispers:read',
 ])
-SPECIAL_USERS.setdefault(config["channel"], list(REQUEST_SCOPES)).extend([
+TWITCH_SPECIAL_USERS.setdefault(config["channel"], list(TWITCH_REQUEST_SCOPES)).extend([
 	'channel_subscriptions',
 	'channel:read:subscriptions',
 ])
 # hard-coded user for accessing Desert Bus mod actions
 # cf lrrbot.desertbus_moderator_actions
-SPECIAL_USERS.setdefault('mrphlip', list(REQUEST_SCOPES)).extend([
+TWITCH_SPECIAL_USERS.setdefault('mrphlip', list(TWITCH_REQUEST_SCOPES)).extend([
 	'channel:moderate',
+])
+
+# See https://developers.google.com/identity/protocols/oauth2/scopes#youtube
+YOUTUBE_DEFAULT_SCOPES = [
+	# 'View your YouTube account'
+	'https://www.googleapis.com/auth/youtube.readonly',
+]
+YOUTUBE_SPECIAL_USERS = {}
+YOUTUBE_SPECIAL_USERS.setdefault(config['youtube_bot_id'], list(YOUTUBE_DEFAULT_SCOPES)).extend([
+	# 'Manage your YouTube account'
+	'https://www.googleapis.com/auth/youtube',
+])
+YOUTUBE_SPECIAL_USERS.setdefault(config['youtube_channel_id'], list(YOUTUBE_DEFAULT_SCOPES)).extend([
+	# 'See a list of your current active channel members, their current level, and when they became a member'
+	'https://www.googleapis.com/auth/youtube.channel-memberships.creator',
 ])
 
 blueprint = flask.Blueprint('login', __name__)
@@ -252,11 +269,11 @@ async def login(return_to=None):
 		flask.session['login_return_to'] = return_to
 
 		if 'as' in flask.request.values:
-			if flask.request.values['as'] not in SPECIAL_USERS:
+			if flask.request.values['as'] not in TWITCH_SPECIAL_USERS:
 				return www.utils.error_page("Not a recognised user name: %s" % flask.request.values['as'])
-			scope = SPECIAL_USERS[flask.request.values['as']]
+			scope = TWITCH_SPECIAL_USERS[flask.request.values['as']]
 		else:
-			scope = REQUEST_SCOPES
+			scope = TWITCH_REQUEST_SCOPES
 
 		# Generate a random nonce so we can verify that the user who comes back is the same user we sent away
 		flask.session['login_nonce'] = uuid.uuid4().hex
@@ -318,13 +335,20 @@ async def login(return_to=None):
 			# Twitch *might* remember them and give us the same permissions anyway
 			# but if not, then we don't have the permissions we need to do our thing
 			# so bounce them back to the login page with the appropriate scopes.
-			if user_name in SPECIAL_USERS:
-				if any(i not in granted_scopes for i in SPECIAL_USERS[user_name]):
+			if user_name in TWITCH_SPECIAL_USERS:
+				if any(i not in granted_scopes for i in TWITCH_SPECIAL_USERS[user_name]):
 					server.app.logger.error("User %s has not granted us the required permissions" % user_name)
 					flask.session['login_nonce'] = uuid.uuid4().hex
-					return flask.render_template("login.html", clientid=config["twitch_clientid"], scope=' '.join(SPECIAL_USERS[user_name]),
-						redirect_uri=config['twitch_redirect_uri'], nonce=flask.session['login_nonce'], session=await load_session(include_url=False),
-						special_user=user_name, remember_me=remember_me)
+					return flask.render_template(
+						"login.html",
+						clientid=config["twitch_clientid"],
+						scope=' '.join(TWITCH_SPECIAL_USERS[user_name]),
+						redirect_uri=config['twitch_redirect_uri'],
+						nonce=flask.session['login_nonce'],
+						session=await load_session(include_url=False),
+						special_user=user_name,
+						remember_me=remember_me,
+					)
 
 			# Store the user to the database
 			account = {
@@ -377,3 +401,81 @@ async def logout():
 		del flask.session['active_account_id']
 	session = await load_session(include_url=False)
 	return flask.render_template("logout.html", return_to=flask.request.values.get('return_to'), session=session)
+
+@blueprint.route('/login/youtube')
+async def youtube_login():
+	if 'code' not in flask.request.args:
+		flask.session['youtube_state'] = secrets.token_urlsafe()
+
+		return flask.render_template(
+			"login_youtube.html",
+			session=await load_session(include_url=False),
+			client_id=config['youtube_client_id'],
+			redirect_uri=config['youtube_redirect_uri'],
+			scope=' '.join(YOUTUBE_DEFAULT_SCOPES),
+			nonce=flask.session['youtube_state'],
+		)
+	elif 'error' in flask.request.args:
+		return flask.render_template("login_response.html", success=False, session=await load_session(include_url=False))
+	else:
+		try:
+			expected_state = flask.session.pop('youtube_state', None)
+			if not expected_state:
+				raise Exception("Not expecting a login here")
+			actual_state = flask.request.args.get('state')
+
+			if expected_state != actual_state:
+				raise Exception("State mismatch: %s vs %s" % (expected_state, actual_state))
+
+			access_token, refresh_token, expiry = await youtube.request_token('authorization_code', code=flask.request.args['code'], redirect_uri=config['youtube_redirect_uri'])
+
+			channel = await youtube.get_my_channel(access_token)
+
+			granted_scopes = flask.request.args['scope'].split(' ')
+			if channel['id'] in YOUTUBE_SPECIAL_USERS:
+				required_scopes = YOUTUBE_SPECIAL_USERS[channel['id']]
+			else:
+				required_scopes = YOUTUBE_DEFAULT_SCOPES
+
+			if any([scope not in granted_scopes for scope in required_scopes]):
+				flask.session['youtube_state'] = secrets.token_urlsafe()
+
+				return flask.render_template(
+					"login_youtube.html",
+					session=await load_session(include_url=False),
+					client_id=config['youtube_client_id'],
+					redirect_uri=config['youtube_redirect_uri'],
+					scope=' '.join(required_scopes),
+					nonce=flask.session['youtube_state'],
+					special_user=channel['snippet']['title'],
+				)
+
+			account = {
+				'provider': ACCOUNT_PROVIDER_YOUTUBE,
+				'provider_user_id': channel['id'],
+				'name': channel['snippet']['title'],
+				'access_token': access_token,
+				'refresh_token': refresh_token,
+				'token_expires_at': expiry,
+			}
+			accounts = server.db.metadata.tables["accounts"]
+			with server.db.engine.connect() as conn:
+				query = insert(accounts)
+				query = query.on_conflict_do_update(
+					index_elements=[accounts.c.provider, accounts.c.provider_user_id],
+					set_={
+						'name': query.excluded.name,
+						'access_token': query.excluded.access_token,
+						'refresh_token': query.excluded.refresh_token,
+						'token_expires_at': query.excluded.token_expires_at,
+					},
+				)
+				conn.execute(query, account)
+				conn.commit()
+
+			return flask.render_template("login_response.html", success=True, session=await load_session(include_url=False))
+		except utils.PASSTHROUGH_EXCEPTIONS:
+			raise
+		except Exception:
+			server.app.logger.exception("Exception in login")
+			return flask.render_template("login_response.html", success=False, session=await load_session(include_url=False))
