@@ -31,6 +31,26 @@ window.addEventListener('DOMContentLoaded', function (event) {
 			patreon_pledge(JSON.parse(event.data));
 			update_title();
 		});
+		stream.addEventListener("youtube-membership", function (event) {
+			youtube_membership(JSON.parse(event.data));
+			update_title();
+		});
+		stream.addEventListener("youtube-membership-milestone", function (event) {
+			youtube_membership_milestone(JSON.parse(event.data));
+			update_title();
+		});
+		stream.addEventListener("youtube-membership-gift", function (event) {
+			youtube_membership_gift(JSON.parse(event.data));
+			update_title();
+		});
+		stream.addEventListener("youtube-super-chat", function (event) {
+			youtube_super_chat(JSON.parse(event.data));
+			update_title();
+		});
+		stream.addEventListener("youtube-super-sticker", function (event) {
+			youtube_super_sticker(JSON.parse(event.data));
+			update_title();
+		});
 	} else {
 		window.setInterval(ajax_poll, 60 * 1000);
 	}
@@ -68,6 +88,21 @@ function ajax_poll() {
 					break;
 				case 'patreon-pledge':
 					patreon_pledge(event.data);
+					break;
+				case "youtube-membership":
+					youtube_membership(event.data);
+					break;
+				case "youtube-membership-milestone":
+					youtube_membership_milestone(event.data);
+					break;
+				case "youtube-membership-gift":
+					youtube_membership_gift(event.data);
+					break;
+				case "youtube-super-chat":
+					youtube_super_chat(event.data);
+					break;
+				case "youtube-super-sticker":
+					youtube_super_sticker(event.data);
 					break;
 			}
 			if (event.id > window.last_event_id) {
@@ -358,5 +393,213 @@ function patreon_pledge(data) {
 		message.appendChild(nickname);
 		message.appendChild(document.createTextNode(" is now supporting " + window.PATREON_CREATOR_NAME + " on Patreon!"));
 		message_container.appendChild(message);
+	});
+}
+
+function youtube_membership(data) {
+	if (data.ismulti)
+		return;
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		if (data.avatar) {
+			var avatar = createElementWithClass("img", "avatar");
+			avatar.src = data.avatar;
+			user.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
+		message.appendChild(document.createTextNode(" became a channel member"));
+		if (data.benefactor)
+			message.appendChild(document.createTextNode(", thanks to " + data.benefactor));
+		message.appendChild(document.createTextNode("!"));
+		message_container.appendChild(message);
+
+		if (data.message) {
+			var user_message = createElementWithClass("p", "message");
+			message_container.appendChild(user_message);
+			var quote = document.createElement("q");
+			if (data.messagehtml) {
+				quote.innerHTML = data.messagehtml;
+			} else {
+				quote.appendChild(document.createTextNode(data.message));
+			}
+			user_message.appendChild(quote);
+		}
+	});
+}
+
+function youtube_membership_milestone(data) {
+	if (data.ismulti)
+		return;
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		if (data.avatar) {
+			var avatar = createElementWithClass("img", "avatar");
+			avatar.src = data.avatar;
+			user.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
+		message.appendChild(document.createTextNode(" has been a channel member for " + data.monthcount + " month" + (data.monthcount != 1 ? 's' : '')));
+		if (data.benefactor)
+			message.appendChild(document.createTextNode(", thanks to " + data.benefactor));
+		message.appendChild(document.createTextNode("!"));
+		message_container.appendChild(message);
+
+		if (data.message) {
+			var user_message = createElementWithClass("p", "message");
+			message_container.appendChild(user_message);
+			var quote = document.createElement("q");
+			if (data.messagehtml) {
+				quote.innerHTML = data.messagehtml;
+			} else {
+				quote.appendChild(document.createTextNode(data.message));
+			}
+			user_message.appendChild(quote);
+		}
+	});
+}
+
+function youtube_membership_gift(data) {
+	if (data.count == 1)
+		return;
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		if (data.avatar) {
+			var avatar = createElementWithClass("img", "avatar");
+			avatar.src = data.avatar;
+			user.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
+		message.appendChild(document.createTextNode(" has gifted " + data.count + " membership" + (data.count != 1 ? 's' : '') + " in the channel!"));
+		message_container.appendChild(message);
+
+		for (var i = 0; i < data.members.length; i++) {
+			var member = data.members[i];
+			var sublist = createElementWithClass("div", "sublist" + (member.avatar ? " with-avatar" : ""));
+
+			if (member.avatar) {
+				var avatar = createElementWithClass("img", "avatar");
+				avatar.src = member.avatar;
+				sublist.appendChild(avatar);
+			}
+
+			var sub_message = createElementWithClass("p", "message");
+			var nickname = createElementWithClass("span", "nickname");
+			nickname.appendChild(document.createTextNode(member.name));
+			sub_message.appendChild(nickname);
+			if (member.monthcount)
+				sub_message.appendChild(document.createTextNode(" for " + member.monthcount + " month" + (member.monthcount != 1 ? 's' : '') + "!"));
+			else
+				sub_message.appendChild(document.createTextNode(" is a new member!"));
+			sublist.append(sub_message);
+
+			message_container.appendChild(sublist);
+		}
+	});
+}
+
+function youtube_super_chat(data) {
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.avatar ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		if (data.avatar) {
+			var avatar = createElementWithClass("img", "avatar");
+			avatar.src = data.avatar;
+			user.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
+		message.appendChild(document.createTextNode(" has sent a Super Chat for "));
+		var amount = createElementWithClass("span", "super-chat level-" + data.level);
+		amount.appendChild(document.createTextNode(data.amount));
+		message.appendChild(amount);
+		message.appendChild(document.createTextNode("!"));
+		message_container.appendChild(message);
+
+		if (data.message) {
+			var user_message = createElementWithClass("p", "message");
+			message_container.appendChild(user_message);
+			var quote = document.createElement("q");
+			if (data.messagehtml) {
+				quote.innerHTML = data.messagehtml;
+			} else {
+				quote.appendChild(document.createTextNode(data.message));
+			}
+			user_message.appendChild(quote);
+		}
+	});
+}
+
+function youtube_super_sticker(data) {
+	create_row(data, function (container) {
+		var user = createElementWithClass("div", "user" + (data.sticker_url ? " with-avatar" : ""));
+		container.appendChild(user);
+
+		if (data.sticker_url) {
+			var avatar = createElementWithClass("img", "avatar");
+			avatar.src = data.sticker_url;
+			avatar.alt = data.alt_text;
+			avatar.title = data.alt_text;
+			user.appendChild(avatar);
+		}
+
+		var message_container = createElementWithClass("div", "message-container");
+		user.appendChild(message_container);
+
+		var message = createElementWithClass("p", "system-message");
+		var nickname = createElementWithClass("span", "nickname");
+		nickname.appendChild(document.createTextNode(data.name));
+		message.appendChild(nickname);
+		message.appendChild(document.createTextNode(" has sent a Super Sticker for "));
+		var amount = createElementWithClass("span", "super-chat level-" + data.level);
+		amount.appendChild(document.createTextNode(data.amount));
+		message.appendChild(amount);
+		message.appendChild(document.createTextNode("!"));
+		message_container.appendChild(message);
+
+		if (data.message) {
+			var user_message = createElementWithClass("p", "message");
+			message_container.appendChild(user_message);
+			var quote = document.createElement("q");
+			if (data.messagehtml) {
+				quote.innerHTML = data.messagehtml;
+			} else {
+				quote.appendChild(document.createTextNode(data.message));
+			}
+			user_message.appendChild(quote);
+		}
 	});
 }

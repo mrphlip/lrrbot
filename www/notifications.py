@@ -46,10 +46,10 @@ def get_events():
 	query = sqlalchemy.select(events.c.id, events.c.event, events.c.data, events.c.time, sqlalchemy.func.current_timestamp() - events.c.time) \
 		.where(events.c.time > sqlalchemy.func.current_timestamp() - datetime.timedelta(days=2)) \
 		.where(events.c.event.in_(VISIBLE_EVENTS)) \
-		.order_by(events.c.time.desc())
+		.order_by(events.c.id.desc())
 	with server.db.engine.connect() as conn:
 		for id, event, data, time, duration in conn.execute(query):
-			if not data.get('ismulti'):
+			if not data.get('ismulti') and not (event == 'youtube-membership-gift' and data['count'] == 1):
 				data['time'] = time
 				recent_events.append({
 					'id': id,

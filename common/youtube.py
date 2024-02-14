@@ -1,12 +1,15 @@
 import asyncio
+import csv
 import datetime
 import json
+from urllib.error import HTTPError
 
 import pytz
 import sqlalchemy
 
 from common import http
 from common import postgres
+from common import utils
 from common.account_providers import ACCOUNT_PROVIDER_YOUTUBE
 from common.config import config
 
@@ -129,3 +132,16 @@ async def send_chat_message(channel_id, chat_id, message):
 			},
 		},
 	}))
+
+@utils.cache(24 * 60 * 60)
+async def get_super_stickers():
+	"""
+	Get Super Sticker URLs.
+
+	Semi-documented in https://developers.google.com/youtube/v3/live/docs/liveChatMessages#snippet.superStickerDetails.superStickerMetadata.stickerId
+	"""
+	try:
+		data = await http.request('https://youtube.googleapis.com/super_stickers/sticker_ids_to_urls.csv')
+		return {row['id']: row['url'] for row in csv.DictReader(data, fieldnames=['id', 'url'])}
+	except HTTPError:
+		return {}

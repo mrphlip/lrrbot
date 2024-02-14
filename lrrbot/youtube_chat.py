@@ -164,7 +164,7 @@ class YoutubeChat:
 		storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
 		await youtube.send_chat_message(
 			config['youtube_bot_id'], chat_id,
-			f":_lrrSpot: Thanks for subscribing, {data['name']}! (Today's storm count: {storm_count})",
+			f":_lrrSpot: Thanks for becoming a channel member, {data['name']}! (Today's storm count: {storm_count})",
 		)
 
 	async def on_member_milestone(self, chat_id, message):
@@ -190,7 +190,7 @@ class YoutubeChat:
 		storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
 		await youtube.send_chat_message(
 			config['youtube_bot_id'], chat_id,
-			f":_lrrSpot: Thanks for subscribing, {data['name']}! (Today's storm count: {storm_count})",
+			f":_lrrSpot: Thanks for being a channel member, {data['name']}! (Today's storm count: {storm_count})",
 		)
 
 	async def on_member_gift_start(self, chat_id, message):
@@ -272,6 +272,7 @@ class YoutubeChat:
 			'amount': message['snippet']['superChatDetails']['amountDisplayString'],
 			'amount_micros': message['snippet']['superChatDetails']['amountMicros'],
 			'amount_currency': message['snippet']['superChatDetails']['currency'],
+			'level': message['snippet']['superChatDetails']['tier'],
 			'message': message['snippet']['superChatDetails']['userComment'],
 			'count': storm.increment(self.lrrbot.engine, self.lrrbot.metadata, 'youtube-super-chat'),
 		}
@@ -284,6 +285,7 @@ class YoutubeChat:
 
 		Docs: https://developers.google.com/youtube/v3/live/docs/liveChatMessages#snippet.superStickerDetails
 		"""
+		sticker_urls = await youtube.get_super_stickers()
 		time = datetime.datetime.fromisoformat(message['snippet']['publishedAt'])
 		data = {
 			'name': message['authorDetails']['displayName'],
@@ -294,6 +296,7 @@ class YoutubeChat:
 			'amount_currency': message['snippet']['superStickerDetails']['currency'],
 			'level': message['snippet']['superStickerDetails']['tier'],
 			'sticker_id': message['snippet']['superStickerDetails']['superStickerMetadata']['stickerId'],
+			'sticker_url': sticker_urls.get(message['snippet']['superStickerDetails']['superStickerMetadata']['stickerId']),
 			'alt_text': message['snippet']['superStickerDetails']['superStickerMetadata']['altText'],
 			'alt_text_language': message['snippet']['superStickerDetails']['superStickerMetadata']['language'],
 			'count': storm.increment(self.lrrbot.engine, self.lrrbot.metadata, 'youtube-super-sticker'),

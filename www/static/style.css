@@ -834,3 +834,26 @@ img.account-provider-icon {
 	margin-left: 0.25ex;
 	margin-right: 0.3ex;
 }
+
+.super-chat {
+	font-weight: bold;
+	/* tiers 6 and above have the same color */
+	color: #E62117;
+}
+.super-chat.level-1 {
+	color: #1E88E5;
+}
+.super-chat.level-2 {
+	/* supposed to be #00E5FF, lightness lowered from 84.42% to 64.42% */;
+	color: #009fb2;
+}
+.super-chat.level-3 {
+	/* supposed to be #1DE9B6, lightness lowered from 83.2% to 60% */
+	color: #009773;
+}
+.super-chat.level-4 {
+	color: #F57C00;
+}
+.super-chat.level-5 {
+	color: #E91E63;
+}
