@@ -49,8 +49,6 @@ async def request_token(grant_type, **data):
 	data = await http.request('https://oauth2.googleapis.com/token', method='POST', data=data)
 	data = json.loads(data)
 
-	print(data)
-
 	access_token = data['access_token']
 	refresh_token = data.get('refresh_token')
 	expiry = datetime.datetime.now(pytz.utc) + datetime.timedelta(seconds=data['expires_in'])

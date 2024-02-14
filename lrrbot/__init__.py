@@ -151,7 +151,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.twitchfollows = twitchfollows.TwitchFollows(self, loop)
 		self.video_playback = video_playback.VideoPlayback(self, loop)
 
-		if config['youtube_bot_id']:
+		if config['youtube_chat_enabled']:
 			self.youtube_chat = youtube_chat.YoutubeChat(self, loop)
 		else:
 			self.youtube_chat = None

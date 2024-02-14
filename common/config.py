@@ -118,6 +118,9 @@ config['log_desertbus_moderator_actions'] = str(config.get('log_desertbus_modera
 config['mods'] = set(i.lower().strip() for i in config['mods'].split(',')) if config.get('mods') else set()
 
 # YouTube:
+# youtube_chat_enabled - Whether the bot is allowed to connect to YouTube chats
+config['youtube_chat_enabled'] = str(config.get('youtube_chat_enabled', 'false')).lower() != 'false'
+
 # youtube_client_id - YouTube OAuth2 client ID
 config.setdefault('youtube_client_id', '')
 
@@ -131,4 +134,4 @@ config.setdefault('youtube_redirect_uri', 'https://lrrbot.com/login/youtube')
 config.setdefault('youtube_channel_id', 'UCwjN2uVdL9A0i3gaIHKFzuA')
 
 # youtube_bot_id - YouTube channel ID of the bot account
-config.setdefault('youtube_bot_id', '')
+config.setdefault('youtube_bot_id', 'UCskb2pkqoH_gLzOnLZqLtVg')
