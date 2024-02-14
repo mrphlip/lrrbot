@@ -316,7 +316,11 @@ class YoutubeChat:
 		for message in messages:
 			message_time = datetime.datetime.fromisoformat(message['snippet']['publishedAt'])
 			message_prefix = f"{message_time:%H:%M} ({time.nice_duration(now - message_time)} ago): "
-			if message['snippet']['type'] == 'textMessageEvent':
+			if display_message := message['snippet'].get('displayMessage'):
+				attachments.append({
+					'text': slack.escape(message_prefix + display_message)
+				})
+			elif message['snippet']['type'] == 'textMessageEvent':
 				attachments.append({
 					'text': slack.escape(message_prefix + message['snippet']['textMessageDetails']['messageText'])
 				})
