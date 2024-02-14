@@ -97,13 +97,13 @@ async def get_user_broadcasts(channel_id, parts=['snippet']):
 	async for broadcast in broadcasts:
 		yield broadcast
 
-async def get_chat_page(channel_id, live_chat_id, page_token=None, parts=['snippet', 'authorDetails']):
+async def get_chat_page(channel_id, live_chat_id, page_token=None, parts=['snippet', 'authorDetails'], language='en'):
 	"""
 	Get live chat messages for a specific chat.
 
 	Docs: https://developers.google.com/youtube/v3/live/docs/liveChatMessages/list
 	"""
-	data = {'liveChatId': live_chat_id, 'part': ','.join(parts), 'maxResults': '2000'}
+	data = {'liveChatId': live_chat_id, 'part': ','.join(parts), 'maxResults': '2000', 'hl': language}
 	if page_token:
 		data['pageToken'] = page_token
 	headers = {'Authorization': f'Bearer {await get_token(channel_id)}'}
