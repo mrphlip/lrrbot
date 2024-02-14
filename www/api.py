@@ -7,19 +7,21 @@ import pytz
 import flask
 import common.storm
 from common import googlecalendar
+from common.config import config
 
 blueprint = flask.Blueprint("api", __name__)
 
 @blueprint.route("/stormcount")
 def stormcount():
-	return flask.jsonify({
-		'twitch-subscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-subscription'),
-		'twitch-resubscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-resubscription'),
-		'twitch-follow': common.storm.get(server.db.engine, server.db.metadata, 'twitch-follow'),
-		'twitch-cheer': common.storm.get(server.db.engine, server.db.metadata, 'twitch-cheer'),
-		'twitch-raid': common.storm.get(server.db.engine, server.db.metadata, 'twitch-raid'),
-		'patreon-pledge': common.storm.get(server.db.engine, server.db.metadata, 'patreon-pledge'),
-	})
+	storm = server.db.metadata.tables['storm']
+	with server.db.engine.connect() as conn:
+		counts = conn.execute(sqlalchemy.select(*(storm.c[counter] for counter in common.storm.COUNTERS))
+							  .where(storm.c.date == datetime.datetime.now(config['timezone']).date())) \
+			.one_or_none()
+	if counts is not None:
+		return flask.jsonify(counts._asdict())
+	else:
+		return flask.jsonify({counter: 0 for counter in common.storm.COUNTERS})
 
 @blueprint.route("/next")
 async def nextstream():
