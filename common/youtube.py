@@ -69,17 +69,13 @@ async def get_my_channel(access_token, parts=['snippet']):
 		headers={'Authorization': f'Bearer {access_token}'})
 	return json.loads(data)['items'][0]
 
-async def get_paginated(url, data, channel_id):
+async def get_paginated(url, data, headers):
 	while True:
-		headers = {'Authorization': f'Bearer {await get_token(channel_id)}'}
 		response = json.loads(await http.request(url, data=data, headers=headers))
 		for item in response['items']:
 			yield item
 		if next_page_token := response.get('nextPageToken'):
 			data['pageToken'] = next_page_token
-			# Only present on `LiveChatMessages: list`
-			if (delay := response.get('pollingIntervalMillis', 0) / 1000) > 0:
-				await asyncio.sleep(delay)
 		else:
 			break
 
@@ -89,10 +85,11 @@ async def get_user_broadcasts(channel_id, parts=['snippet']):
 
 	Docs: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts/list
 	"""
+	headers = {'Authorization': f'Bearer {await get_token(channel_id)}'}
 	broadcasts = get_paginated(
 		'https://youtube.googleapis.com/youtube/v3/liveBroadcasts',
 		{'part': ','.join(parts), 'mine': 'true'},
-		channel_id,
+		headers,
 	)
 	async for broadcast in broadcasts:
 		yield broadcast
