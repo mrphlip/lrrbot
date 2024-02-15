@@ -11,6 +11,7 @@ from common import card
 import common.rpc
 import common.storm
 from common import utils
+from common.config import config
 from common.postgres import escape_like
 from www import login
 from www import server
@@ -22,10 +23,10 @@ def require_mod(func):
 	async def wrapper(*args, **kwargs):
 		session = await login.load_session(include_url=False, include_header=False)
 		kwargs['session'] = session
-		if session['user']['is_mod']:
+		if session['active_account']['is_mod']:
 			return await utils.wrap_as_coroutine(func)(*args, **kwargs)
 		else:
-			return flask.jsonify(message="%s is not a mod" % (session['user']['display_name'], )), 403
+			return flask.jsonify(message="%s is not a mod" % (session['active_account']['display_name'], )), 403
 	return wrapper
 
 blueprint = flask.Blueprint("api_v2", __name__)
@@ -52,44 +53,24 @@ async def docs(session):
 
 @blueprint.route("/stormcount")
 def stormcount():
-	return flask.jsonify({
-		'twitch-message': common.storm.get(server.db.engine, server.db.metadata, 'twitch-message'),
-		'twitch-subscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-subscription'),
-		'twitch-resubscription': common.storm.get(server.db.engine, server.db.metadata, 'twitch-resubscription'),
-		'twitch-follow': common.storm.get(server.db.engine, server.db.metadata, 'twitch-follow'),
-		'twitch-cheer': common.storm.get(server.db.engine, server.db.metadata, 'twitch-cheer'),
-		'twitch-raid': common.storm.get(server.db.engine, server.db.metadata, 'twitch-raid'),
-		'patreon-pledge': common.storm.get(server.db.engine, server.db.metadata, 'patreon-pledge'),
-	})
+	storm = server.db.metadata.tables['storm']
+	with server.db.engine.connect() as conn:
+		counts = conn.execute(sqlalchemy.select(*(storm.c[counter] for counter in common.storm.COUNTERS))
+			.where(storm.c.date == datetime.datetime.now(config['timezone']).date())) \
+			.one_or_none()
+	if counts is not None:
+		return flask.jsonify(counts._asdict())
+	else:
+		return flask.jsonify({counter: 0 for counter in common.storm.COUNTERS})
 
 @blueprint.route("/stormcount/all")
 def stormcount_all():
 	storm = server.db.metadata.tables["storm"]
 	with server.db.engine.connect() as conn:
-		res = conn.execute(sqlalchemy.select(
-			storm.c.date,
-			storm.c["twitch-subscription"],
-			storm.c["twitch-resubscription"],
-			storm.c["twitch-follow"],
-			storm.c["twitch-message"],
-			storm.c["patreon-pledge"],
-			storm.c["twitch-cheer"],
-			storm.c["twitch-raid"],
-		).order_by(storm.c.date.desc()))
-
-		return flask.jsonify([
-			{
-				"date": date.isoformat(),
-				"twitch-subscription": twitch_subscription,
-				"twitch-resubscription": twitch_resubscription,
-				"twitch-follow": twitch_follow,
-				"twitch-message": twitch_message,
-				"patreon-pledge": patreon_pledge,
-				"twitch-cheer": twitch_cheer,
-				"twitch-raid": twitch_raid,
-			}
-			for date, twitch_subscription, twitch_resubscription, twitch_follow, twitch_message, patreon_pledge, twitch_cheer, twitch_raid in res
-		])
+		columns = [storm.c.date]
+		columns.extend(storm.c[counter] for counter in common.storm.COUNTERS)
+		rows = conn.execute(sqlalchemy.select(*columns).order_by(storm.c.date.desc())).all()
+		return flask.jsonify([dict(row._asdict(), date=row.date.isoformat()) for row in rows])
 
 
 @blueprint.route("/show", methods=["PUT"])

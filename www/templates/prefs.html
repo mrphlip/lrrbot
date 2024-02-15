@@ -30,15 +30,17 @@ function showHideTimestamps() {
 <form action="{{url_for('prefs.save')|e}}" method="POST">
 <input name="_csrf_token" type="hidden" value="{{csrf_token()|e}}">
 <input type="submit" value="Save preferences">
-<h2>Chatbot options</h2>
-<div>
-	<label for="autostatus">Send automatic status whispers</label>
-	<select id="autostatus" name="autostatus">
-		<option value="0" {%if not session['user']['autostatus']%}selected{%endif%}>Off</option>
-		<option value="1" {%if session['user']['autostatus']%}selected{%endif%}>On</option>
-	</select>
-	<div class="icon help tooltip" title="If activated, LRRbot will automatically send you a whisper when it sees you join the chat, with information about the stream.&#xA;&#xA;If the stream is live, it will include the current show and game; if the stream is offline, the next scheduled show."></div>
-</div>
+{% for account in twitch_accounts %}
+	<h2>Chatbot options: {{ username(account['provider'], account['display_name']) }}</h2>
+	<div>
+		<label for="autostatus">Send automatic status whispers</label>
+		<select class="autostatus" name="autostatus[{{ account['id'] }}]">
+			<option value="0" {%if not account['autostatus']%}selected{%endif%}>Off</option>
+			<option value="1" {%if account['autostatus']%}selected{%endif%}>On</option>
+		</select>
+		<div class="icon help tooltip" title="If activated, LRRbot will automatically send you a whisper when it sees you join the chat, with information about the stream.&#xA;&#xA;If the stream is live, it will include the current show and game; if the stream is offline, the next scheduled show."></div>
+	</div>
+{% endfor %}
 <h2>VOD playback options</h2>
 <div>
 	<label for="stream_delay">Simulate stream delay</label>

@@ -7,6 +7,7 @@ import common.http
 from common import utils
 from common import postgres
 from common.config import config
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 
 GAME_CHECK_INTERVAL = 5*60
 
@@ -18,20 +19,21 @@ async def get_user(id=None, name=None, get_missing=True):
 	Returns a named tuple of (id, name, display_name, token)
 
 	If get_missing is true, get the details for this user from Twitch if the user
-	is not already in the database. Otherwise if the userisn't in the database,
+	is not already in the database. Otherwise, if the user isn't in the database,
 	this returns None.
 
 	https://dev.twitch.tv/docs/api/reference#get-users
 	"""
 	engine, metadata = postgres.get_engine_and_metadata()
-	users = metadata.tables["users"]
+	accounts = metadata.tables["accounts"]
 	with engine.connect() as conn:
-		query = sqlalchemy.select(users.c.id, users.c.name, users.c.display_name, users.c.twitch_oauth)
+		query = sqlalchemy.select(accounts.c.provider_user_id, accounts.c.name, accounts.c.display_name, accounts.c.access_token) \
+			.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
 		if id is not None:
-			query = query.where(users.c.id == id)
+			query = query.where(accounts.c.provider_user_id == id)
 			data = {'id': id}
 		elif name is not None:
-			query = query.where(users.c.name == name)
+			query = query.where(accounts.c.name == name)
 			data = {'login': name}
 		else:
 			raise ValueError("Pass at least one of name or id")
@@ -47,22 +49,23 @@ async def get_user(id=None, name=None, get_missing=True):
 			}
 			res = await common.http.request("https://api.twitch.tv/helix/users", data=data, headers=headers)
 			user = json.loads(res)['data'][0]
-			insert_query = insert(users)
+			insert_query = insert(accounts)
 			insert_query = insert_query.on_conflict_do_update(
-				index_elements=[users.c.id],
+				index_elements=[accounts.c.provider, accounts.c.provider_user_id],
 				set_={
 					'name': insert_query.excluded.name,
 					'display_name': insert_query.excluded.display_name,
 				},
 			)
 			conn.execute(insert_query, {
-				"id": user["id"],
+				"provider": ACCOUNT_PROVIDER_TWITCH,
+				"provider_user_id": user["id"],
 				"name": user["login"],
 				"display_name": user["display_name"],
 			})
 			conn.commit()
 
-			return User(int(user["id"]), user["login"], user['display_name'], None)
+			return User(user["id"], user["login"], user['display_name'], None)
 
 async def get_token(id=None, name=None):
 	"""

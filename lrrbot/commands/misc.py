@@ -14,6 +14,7 @@ import common.storm
 import lrrbot.decorators
 from common import googlecalendar
 from common import utils
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 from common.config import config
 from common import twitch
 from lrrbot import storage
@@ -42,14 +43,22 @@ def stormcount(bot, conn, event, respond_to):
 	twitch_follow = common.storm.get(bot.engine, bot.metadata, 'twitch-follow')
 	twitch_cheer = common.storm.get(bot.engine, bot.metadata, 'twitch-cheer')
 	patreon_pledge = common.storm.get(bot.engine, bot.metadata, 'patreon-pledge')
+	youtube_membership = common.storm.get(bot.engine, bot.metadata, 'youtube-membership')
+	youtube_membership_milestone = common.storm.get(bot.engine, bot.metadata, 'youtube-membership-milestone')
+	youtube_super_chat = common.storm.get(bot.engine, bot.metadata, 'youtube-super-chat')
+	youtube_super_sticker = common.storm.get(bot.engine, bot.metadata, 'youtube-super-sticker')
 	storm_count = common.storm.get_combined(bot.engine, bot.metadata)
-	conn.privmsg(respond_to, "Today's storm count: %d (new subscribers: %d, returning subscribers: %d, new patrons: %d), bits cheered: %d, new followers: %d" % (
+	conn.privmsg(respond_to, "Today's storm count: %d (new subscribers: %d, returning subscribers: %d, new patrons: %d, new YouTube members: %d, returning Youtube members: %d), bits cheered: %d, new followers: %d, YouTube super chats: %d, YouTube super stickers: %d" % (
 		storm_count,
 		twitch_subscription,
 		twitch_resubscription,
+		youtube_membership,
+		youtube_membership_milestone,
 		patreon_pledge,
 		twitch_cheer,
 		twitch_follow,
+		youtube_super_chat,
+		youtube_super_sticker,
 	))
 
 @blueprint.command("spam(?:count)?")
@@ -295,11 +304,14 @@ def autostatus_check(bot, conn, event, respond_to):
 	Check whether you are set to be automatically sent status messages when join join the channel.
 	"""
 	source = irc.client.NickMask(event.source)
-	users = bot.metadata.tables["users"]
+	accounts = bot.metadata.tables["accounts"]
 	with bot.engine.connect() as pg_conn:
-		res = pg_conn.execute(sqlalchemy.select(users.c.autostatus)
-			.where(users.c.id == int(event.tags["user-id"]))).first()
-	if res and res[0]:
+		enabled = pg_conn.execute(
+			sqlalchemy.select(accounts.c.autostatus)
+				.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+				.where(accounts.c.provider_user_id == event.tags["user-id"])
+		).scalar_one_or_none()
+	if enabled:
 		conn.privmsg(source.nick, "Auto-status is enabled. Disable it with: !autostatus off")
 	else:
 		conn.privmsg(source.nick, "Auto-status is disabled. Enable it with: !autostatus on")
@@ -315,9 +327,14 @@ def autostatus_set(bot, conn, event, respond_to, enable):
 	"""
 	source = irc.client.NickMask(event.source)
 	enable = enable.lower() == "on"
-	users = bot.metadata.tables["users"]
+	accounts = bot.metadata.tables["accounts"]
 	with bot.engine.connect() as pg_conn:
-		pg_conn.execute(users.update().where(users.c.id == int(event.tags["user-id"])), {"autostatus": enable})
+		pg_conn.execute(
+			accounts.update()
+				.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+				.where(accounts.c.provider_user_id == event.tags["user-id"]),
+			{"autostatus": enable}
+		)
 		pg_conn.commit()
 	if enable:
 		conn.privmsg(source.nick, "Auto-status enabled.")
@@ -328,11 +345,11 @@ def autostatus_set(bot, conn, event, respond_to, enable):
 def register_autostatus_on_join(bot):
 	def autostatus_on_join(conn, event):
 		source = irc.client.NickMask(event.source)
-		users = bot.metadata.tables["users"]
+		accounts = bot.metadata.tables["accounts"]
 		with bot.engine.connect() as pg_conn:
-			res = pg_conn.execute(sqlalchemy.select(users.c.autostatus)
-				.where(users.c.name == source.nick)).first()
-			if res is not None:
-				if res[0]:
-					asyncio.ensure_future(send_status(bot, conn, source.nick), loop=bot.loop)
+			enabled = pg_conn.execute(sqlalchemy.select(accounts.c.autostatus)
+				.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+				.where(accounts.c.name == source.nick)).scalar_one_or_none()
+			if enabled:
+				asyncio.ensure_future(send_status(bot, conn, source.nick), loop=bot.loop)
 	bot.reactor.add_global_handler('join', autostatus_on_join, 99)

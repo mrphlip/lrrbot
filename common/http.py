@@ -77,7 +77,7 @@ async def request(url, data=None, method='GET', maxtries=3, headers=None, timeou
 						return res
 					status_class = res.status // 100
 					if status_class != 2:
-						await res.read()
+						log.debug('%s %s failed, response body: %s', method, url, await res.read())
 						if status_class == 4:
 							maxtries = 1
 						raise urllib.error.HTTPError(res.url, res.status, res.reason, res.headers, None)

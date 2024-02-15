@@ -1,0 +1,33 @@
+{% extends "master.html" %}
+{% block title %}Log In &ndash; YouTube{% endblock %}
+{% block header %}Log In &ndash; YouTube{% endblock %}
+{% block headextra %}
+	{% if special_user %}
+        <script>
+            window.addEventListener('load', function() {
+                document.getElementById('login-form').submit();
+            });
+        </script>
+	{% endif %}
+{% endblock %}
+{% block content %}
+	{% if special_user %}
+	    <p class="error">
+			Trying to log in as a special user <code>{{ special_user }}</code>.
+			Attempting login again with extra permissions requested...
+		</p>
+	{% endif %}
+
+	<form id="login-form" action="https://accounts.google.com/o/oauth2/v2/auth" method="GET">
+        <input type="hidden" name="client_id" value="{{ client_id }}">
+        <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+		<input type="hidden" name="response_type" value="code">
+        <input type="hidden" name="scope" value="{{ scope }}">
+		<input type="hidden" name="access_type" value="offline">
+        <input type="hidden" name="state" value="{{ nonce }}">
+		<input type="hidden" name="prompt" value="consent select_account">
+		{% if not special_user %}
+            <input type="submit" value="Log in with YouTube">
+	    {% endif %}
+    </form>
+{% endblock %}

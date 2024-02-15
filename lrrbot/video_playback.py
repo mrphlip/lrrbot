@@ -27,6 +27,7 @@ from common import twitch
 from common import utils
 from common.config import config
 import logging
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 
 log = logging.getLogger(__name__)
 
@@ -35,9 +36,9 @@ class VideoPlayback:
 		self.lrrbot = lrrbot
 		self.loop = loop
 
-		users = self.lrrbot.metadata.tables["users"]
+		accounts = self.lrrbot.metadata.tables["accounts"]
 		with self.lrrbot.engine.connect() as conn:
-			row = conn.execute(sqlalchemy.select(users.c.id, users.c.name).where(users.c.name == config['channel'])).first()
+			row = conn.execute(sqlalchemy.select(accounts.c.provider_user_id, accounts.c.name).where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH).where(accounts.c.name == config['channel'])).first()
 		if row is not None:
 			channel_id, channel_name = row
 

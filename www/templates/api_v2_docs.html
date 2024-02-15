@@ -428,6 +428,107 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
   "count": 110
 }</pre>
 
+<h4><code>youtube-membership</code></h4>
+<p>New member on YouTube.</p>
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name</dd>
+	<dt><code>channel_id</code></dt>
+	<dd>Channel ID</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar.</dd>
+	<dt><code>benefactor</code></dt>
+	<dd>The name of the user who gifted this subscription. Might be <code>null</code> or missing.</dd>
+	<dt><code>tier</code></dt>
+	<dd>The name of the level at which the user is a member. Might be <code>null</code> or missing.</dd>
+	<dt><code>is_upgrade</code></dt>
+	<dd>Whether the member just upgraded from a lower level.</dd>
+	<dt><code>ismulti</code></dt>
+	<dd>Whether this subscription is part of a multi-gift drop. Might be <code>null</code> or missing.</dd>
+</dl>
+
+<h4><code>youtube-membership-gift</code></h4>
+<p>A user has gifted one or more memberships. Unlike <code>twitch-subscription-mysterygift</code> it gets sent even for a single gift membership.</p>
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name of the gifter.</dd>
+	<dt><code>channel_id</code></dt>
+	<dd>Channel ID of the gifter.</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar of the gifter.</dd>
+	<dt><code>count</code></dt>
+	<dd>Number of memberships gifted.</dd>
+	<dt><code>tier</code></dt>
+	<dd>The name of the level of the memberships gifted.</dd>
+	<dt><code>members</code></dt>
+	<dd>List of all the memberships gifted as <code>youtube-membership</code> payloads.</dd>
+</dl>
+
+<h4><code>youtube-membership-milestone</code></h4>
+<p>A YouTube member has sent a Membership Milestone Chat.</p>
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name.</dd>
+	<dt><code>channel_id</code></dt>
+	<dd>Channel ID.</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar.</dd>
+	<dt><code>monthcount</code></dt>
+	<dd>How many months this user has been subscribed.</dd>
+	<dt><code>tier</code></dt>
+	<dd>The name of the level at which the user is a member. Might be <code>null</code> or missing.</dd>
+	<dt><code>message</code></dt>
+	<dd>User's message as plaintext.</dd>
+</dl>
+
+<h4><code>youtube-super-chat</code></h4>
+<p>A user has sent a YouTube Super Chat.</p>
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name</dd>
+	<dt><code>channed_id</code></dt>
+	<dd>Channel ID</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar.</dd>
+	<dt><code>amount</code></dt>
+	<dd>Amount paid formatted as a string intended to be displayed to a user. (e.g "$1.00")</dd>
+	<dt><code>amount_micros</code></dt>
+	<dd>Amount paid in micros of the purchase currency. (e.g <code>1000000</code> for a 1 dollar Super Chat)</dd>
+	<dt><code>amount_currency</code></dt>
+	<dd><a href="https://en.wikipedia.org/wiki/ISO_4217">ISO 4217</a> code of the purchase currency.</dd>
+	<dt><code>level</code></dt>
+	<dd>Super Chat tier based on the money spent.</dd>
+	<dt><code>message</code></dt>
+	<dd>User's message as plaintext.</dd>
+</dl>
+
+<h4><code>youtube-super-sticker</code></h4>
+<p>A user has sent a YouTube Super Sticker.</p>
+<dl>
+	<dt><code>name</code></dt>
+	<dd>Name</dd>
+	<dt><code>channed_id</code></dt>
+	<dd>Channel ID</dd>
+	<dt><code>avatar</code></dt>
+	<dd>Avatar.</dd>
+	<dt><code>amount</code></dt>
+	<dd>Amount paid formatted as a string intended to be displayed to a user. (e.g "$1.00")</dd>
+	<dt><code>amount_micros</code></dt>
+	<dd>Amount paid in micros of the purchase currency. (e.g <code>1000000</code> for a 1 dollar Super Sticker)</dd>
+	<dt><code>amount_currency</code></dt>
+	<dd><a href="https://en.wikipedia.org/wiki/ISO_4217">ISO 4217</a> code of the purchase currency.</dd>
+	<dt><code>level</code></dt>
+	<dd>Super Sticker tier based on the money spent.</dd>
+	<dt><code>sticker_id</code></dt>
+	<dd>ID of the Super Sticker</dd>
+	<dt><code>sticker_url</code></dt>
+	<dd>URL of the Super Sticker image. Might be <code>null</code> or missing.</dd>
+	<dt><code>alt_text</code></dt>
+	<dd>Sticker's alt text.</dd>
+	<dt><code>alt_text_language</code></dt>
+	<dd><a href="https://en.wikipedia.org/wiki/BCP_47">BCP 47</a> tag for the language the alt text is in.</dd>
+</dl>
+
 <h3>Server-sent events mode (default)</h3>
 <h4>Example request</h4>
 <pre>curl -H "Accept: text/event-stream" {{ url_for("api_v2.events", _external=True) }}</pre>
@@ -513,6 +614,18 @@ data:{"time": "2018-03-27T20:59:04.621308+02:00"}
 
 	<dt><code>twitch-subscription</code></dt>
 	<dd>The number of new subscribers.</dd>
+
+	<dt><code>youtube-membership</code></dt>
+	<dd>The number of new YouTube members.</dd>
+
+	<dt><code>youtube-membership-milestone</code></dt>
+	<dd>The number of YouTube Member Milestone Chats.</dd>
+
+	<dt><code>youtube-super-chat</code></dt>
+	<dd>The number of YouTube Super Chats.</dd>
+
+	<dt><code>youtube-super-sticker</code></dt>
+	<dd>The number of YouTube Super Stickers.</dd>
 </dl>
 
 <h3>Example response</h3>
@@ -535,7 +648,11 @@ data:{"time": "2018-03-27T20:59:04.621308+02:00"}
     "twitch-message": 0, 
     "twitch-raid": 0,
     "twitch-resubscription": 23, 
-    "twitch-subscription": 8
+    "twitch-subscription": 8,
+    "youtube-membership": 0,
+    "youtube-membership-milestone": 0,
+    "youtube-super-chat": 0,
+    "youtube-super-sticker": 0
   }, 
   {
     "date": "2016-06-20", 
@@ -545,7 +662,11 @@ data:{"time": "2018-03-27T20:59:04.621308+02:00"}
     "twitch-message": 1, 
     "twitch-raid": 0,
     "twitch-resubscription": 21, 
-    "twitch-subscription": 4
+    "twitch-subscription": 4,
+    "youtube-membership": 0,
+    "youtube-membership-milestone": 0,
+    "youtube-super-chat": 0,
+    "youtube-super-sticker": 0
   }, 
   {
     "date": "2016-06-19", 
@@ -555,12 +676,16 @@ data:{"time": "2018-03-27T20:59:04.621308+02:00"}
     "twitch-message": 0, 
     "twitch-raid": 0,
     "twitch-resubscription": 0, 
-    "twitch-subscription": 16
+    "twitch-subscription": 16,
+    "youtube-membership": 0,
+    "youtube-membership-milestone": 0,
+    "youtube-super-chat": 0,
+    "youtube-super-sticker": 0
   }
 ]</pre>
 
 <h2 id="get_tweet"><code>GET {{ url_for("api_v2.get_tweet") }}</code></h2>
-<p>Get a random message to post on <a href="https://twitter.com/lrrbot">LRRbot's Twitter account</a>.</p>
+<p>Get a random message to post on <a href="https://kind.social/@lrrbot">LRRbot's Mastodon account</a>.</p>
 <h3>Example response</h3>
 <pre>{{ tweet }}</pre>
 

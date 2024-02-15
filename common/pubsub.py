@@ -3,11 +3,10 @@ import asyncio
 import blinker
 import uuid
 import logging
-import sqlalchemy
 import json
 import random
 
-from common import http
+from common import http, twitch
 from common import utils
 from common.config import config
 
@@ -33,14 +32,6 @@ class PubSub:
 		self.ping_task = None
 		self.disconnect_task = None
 
-	def _token_for(self, user):
-		users = self.metadata.tables["users"]
-		with self.engine.connect() as conn:
-			row = conn.execute(sqlalchemy.select(users.c.twitch_oauth).where(users.c.name == user)).first()
-			if row is not None:
-				return row[0]
-		raise Exception("User %r not found" % user)
-
 	async def _send(self, message):
 		log.debug("Sending: %r", message)
 		await self.stream.send_json(message)
@@ -53,7 +44,7 @@ class PubSub:
 			'nonce': message_id,
 			'data': {
 				'topics': topics,
-				'auth_token': self._token_for(user),
+				'auth_token': await twitch.get_token(name=user),
 			}
 		})
 

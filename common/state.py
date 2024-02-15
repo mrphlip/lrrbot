@@ -29,6 +29,11 @@ def set(engine, metadata, key, value):
 		})
 		conn.commit()
 
+def delete(engine, metadata, key):
+	state = metadata.tables['state']
+	with engine.connect() as conn:
+		conn.execute(state.delete().where(state.c.key == key))
+
 class Property:
 	"""
 	Higher level interface over `state.get` and `state.set` using the descriptor protocol.

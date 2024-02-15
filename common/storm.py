@@ -4,6 +4,30 @@ from sqlalchemy.dialects.postgresql import insert
 
 from common.config import config
 
+# All storm counters
+COUNTERS = [
+	'twitch-subscription',
+	'twitch-resubscription',
+	'twitch-follow',
+	'twitch-message',
+	'patreon-pledge',
+	'twitch-cheer',
+	'twitch-raid',
+	'youtube-membership',
+	'youtube-membership-milestone',
+	'youtube-super-chat',
+	'youtube-super-sticker',
+]
+
+# Counters that make up the combined storm counter
+COMBINED_COUNTERS = [
+	'twitch-subscription',
+	'twitch-resubscription',
+	'patreon-pledge',
+	'youtube-membership',
+	'youtube-membership-milestone',
+]
+
 def increment(engine, metadata, counter, by=1):
 	storm = metadata.tables['storm']
 	with engine.connect() as conn:
@@ -31,7 +55,6 @@ def get(engine, metadata, counter):
 		return row[0]
 	return 0
 
-COMBINED_COUNTERS = ['twitch-subscription', 'twitch-resubscription', 'patreon-pledge']
 def get_combined(engine, metadata):
 	combined_count = 0
 	storm = metadata.tables['storm']

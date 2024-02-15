@@ -103,7 +103,7 @@ def submit(session):
 		conn.execute(clips.update()
 			.values(
 				rating=bool(int(flask.request.values['vote'])),
-				rater=session['user']['id'],
+				rated_by=session['active_account']['id'],
 			)
 			.where(clips.c.slug == flask.request.values['slug'])
 		)

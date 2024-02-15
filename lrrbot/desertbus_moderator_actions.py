@@ -18,6 +18,8 @@ import logging
 import time
 import irc.client
 
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH
+
 log = logging.getLogger("desertbus_moderator_actions")
 
 SPREADSHEET = "1KEEcv-hGEIwkHARpK-X6TBWUT3x8HpgG0i4tk16_Ysw"
@@ -38,10 +40,10 @@ class ModeratorActions:
 			self.lrrbot.reactor.add_global_handler("welcome", self.on_connect, 2)
 			self.lrrbot.reactor.scheduler.execute_every(60, self.clear_chat)
 
-			users = self.lrrbot.metadata.tables["users"]
+			accounts = self.lrrbot.metadata.tables["accounts"]
 			with self.lrrbot.engine.connect() as conn:
-				selfrow = conn.execute(sqlalchemy.select(users.c.id).where(users.c.name == WATCHAS)).first()
-				targetrow = conn.execute(sqlalchemy.select(users.c.id).where(users.c.name == WATCHCHANNEL)).first()
+				selfrow = conn.execute(sqlalchemy.select(accounts.c.provider_user_id).where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH).where(accounts.c.name == WATCHAS)).first()
+				targetrow = conn.execute(sqlalchemy.select(accounts.c.provider_user_id).where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH).where(accounts.c.name == WATCHCHANNEL)).first()
 			if selfrow is not None and targetrow is not None:
 				self_channel_id, = selfrow
 				target_channel_id, = targetrow

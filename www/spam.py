@@ -58,7 +58,7 @@ async def submit(session):
 		await common.rpc.bot.link_spam.modify_link_spam_rules(data)
 	else:
 		await common.rpc.bot.spam.modify_spam_rules(data)
-	history.store("link_spam" if link_spam else "spam", session['user']['id'], data)
+	history.store("link_spam" if link_spam else "spam", session['active_account']['id'], data)
 	return flask.json.jsonify(success='OK')
 
 async def do_check(line, rules):

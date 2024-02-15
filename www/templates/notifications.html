@@ -1,6 +1,6 @@
 {%extends "master.html"%}
 {%block title%}Notifications{%endblock%}
-{%block header%}Twitch Notifications{%endblock%}
+{%block header%}Notifications{%endblock%}
 {%block headextra%}
 <script type="text/javascript" src="{{static_url('notifications.js')|e}}"></script>
 <script>
@@ -127,6 +127,101 @@
 						{% endif %}
 						<div class="message-container">
 							<p class="system-message"><span class="nickname">{{ event['data']['twitch']['name'] or event['data']['patreon']['full_name'] }}</span> is now supporting {{ patreon_creator_name }} on Patreon!</p>
+						</div>
+					</div>
+				{% elif event['event'] == 'youtube-membership' %}
+					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
+						{% if event['data']['avatar'] %}
+							<img class="avatar" src="{{ event['data']['avatar'] | https }}">
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message">
+								<span class="nickname">{{ event['data']['name'] }}</span> became a channel
+								member{% if event['data']['benefactor'] %}, thanks to {{ event['data']['benefactor'] | e }}{% endif %}!
+							</p>
+							{% if event['data']['messagehtml'] %}
+								<p class="message"><q>{{ event['data']['messagehtml'] | safe }}</q></p>
+							{% elif event['data']['message'] %}
+								<p class="message"><q>{{ event['data']['message'] }}</q></p>
+							{% endif %}
+						</div>
+					</div>
+				{% elif event['event'] == 'youtube-membership-milestone' %}
+					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
+						{% if event['data']['avatar'] %}
+							<img class="avatar" src="{{ event['data']['avatar'] | https }}">
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message">
+								<span class="nickname">{{ event['data']['name'] }}</span> has been a channel member for
+								{{ event['data']['monthcount'] }} month{% if event['data']['monthcount'] != 1%}s{% endif %}{% if event['data']['benefactor'] %}, thanks to {{ event['data']['benefactor'] | e }}{% endif %}!
+							</p>
+							{% if event['data']['messagehtml'] %}
+								<p class="message"><q>{{ event['data']['messagehtml'] | safe }}</q></p>
+							{% elif event['data']['message'] %}
+								<p class="message"><q>{{ event['data']['message'] }}</q></p>
+							{% endif %}
+						</div>
+					</div>
+				{% elif event['event'] == 'youtube-membership-gift' %}
+					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
+						{% if event['data']['avatar'] %}
+							<img class="avatar" src="{{ event['data']['avatar'] | https }}">
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message">
+								<span class="nickname">{{ event['data']['name'] }}</span> has gifted
+								{{ event['data']['count'] }} membership{% if event['data']['subcount'] != 1%}s{% endif %} in the channel!
+							</p>
+							{% for member in event['data']['members'] %}
+								<div class="sublist{% if member['avatar'] %} with-avatar{% endif %}">
+									{% if member['avatar'] %}
+										<img class="avatar" src="{{ member['avatar'] | https }}">
+									{% endif %}
+									<p class="message">
+										<span class="nickname">{{ member['name'] }}</span>
+										{% if member['monthcount'] %}
+											for {{ member['monthcount'] }} month{% if member['monthcount'] != 1%}s{% endif %}!
+										{% else %}
+											is a new member!
+										{% endif %}
+									</p>
+								</div>
+							{% endfor %}
+						</div>
+					</div>
+				{% elif event['event'] == 'youtube-super-chat' %}
+					<div class="user{% if event['data']['avatar'] %} with-avatar{% endif %}">
+						{% if event['data']['avatar'] %}
+							<img class="avatar" src="{{ event['data']['avatar'] | https }}">
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message">
+								<span class="nickname">{{ event['data']['name'] }}</span> has sent a Super Chat for
+								<span class="super-chat level-{{ event['data']['level'] }}">{{ event['data']['amount'] }}</span>!
+							</p>
+							{% if event['data']['messagehtml'] %}
+								<p class="message"><q>{{ event['data']['messagehtml'] | safe }}</q></p>
+							{% elif event['data']['message'] %}
+								<p class="message"><q>{{ event['data']['message'] }}</q></p>
+							{% endif %}
+						</div>
+					</div>
+				{% elif event['event'] == 'youtube-super-sticker' %}
+					<div class="user{% if event['data']['sticker_url'] %} with-avatar{% endif %}">
+						{% if event['data']['sticker_url'] %}
+							<img class="avatar" src="{{ event['data']['sticker_url'] | https }}" alt="{{ event['data']['alt_text'] }}" title="{{ event['data']['alt_text'] }}">
+						{% endif %}
+						<div class="message-container">
+							<p class="system-message">
+								<span class="nickname">{{ event['data']['name'] }}</span> has sent a Super Sticker for
+								<span class="super-chat level-{{ event['data']['level'] }}">{{ event['data']['amount'] }}</span>!
+							</p>
+							{% if event['data']['messagehtml'] %}
+								<p class="message"><q>{{ event['data']['messagehtml'] | safe }}</q></p>
+							{% elif event['data']['message'] %}
+								<p class="message"><q>{{ event['data']['message'] }}</q></p>
+							{% endif %}
 						</div>
 					</div>
 				{% endif %}

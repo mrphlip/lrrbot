@@ -17,18 +17,19 @@ def history(session):
 	page = flask.request.values.get('page', 'all')
 	assert page in ('responses', 'explanations', 'spam', 'link_spam', 'all')
 	history = server.db.metadata.tables["history"]
-	users = server.db.metadata.tables["users"]
+	accounts = server.db.metadata.tables["accounts"]
 	query = sqlalchemy.select(
-			history.c.id, history.c.section, history.c.changetime, users.c.display_name,
+			history.c.id, history.c.section, history.c.changetime, accounts.c.provider,
+			sqlalchemy.func.coalesce(accounts.c.display_name, accounts.c.name),
 			sqlalchemy.func.length(history.c.jsondata.cast(sqlalchemy.Text))
-		).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True)) \
+		).select_from(history.join(accounts, isouter=True)) \
 		.order_by(history.c.changetime)
 	if page != 'all':
 		query = query.where(history.c.section == page)
 	with server.db.engine.connect() as conn:
 		data = [
-			{'key': key, 'section': section, 'time': time, 'user': user, 'datalen': datalen}
-			for key, section, time, user, datalen in conn.execute(query).fetchall()
+			{'key': key, 'section': section, 'time': time, 'provider': provider, 'user': user, 'datalen': datalen}
+			for key, section, time, provider, user, datalen in conn.execute(query).fetchall()
 		]
 	lastlen = {}
 	lastkey = {}
@@ -45,11 +46,12 @@ def history(session):
 @login.require_mod
 def show(session, historykey):
 	history = server.db.metadata.tables["history"]
-	users = server.db.metadata.tables["users"]
+	accounts = server.db.metadata.tables["accounts"]
 	with server.db.engine.connect() as conn:
-		section, time, user, data = conn.execute(sqlalchemy.select(
-				history.c.section, history.c.changetime, users.c.display_name, history.c.jsondata
-			).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True))
+		section, time, provider, user, data = conn.execute(sqlalchemy.select(
+				history.c.section, history.c.changetime, accounts.c.provider,
+				sqlalchemy.func.coalesce(accounts.c.display_name, accounts.c.name), history.c.jsondata
+			).select_from(history.join(accounts, isouter=True))
 			.where(history.c.id == historykey)).first()
 	if section in ('responses', 'explanations'):
 		for row in data.values():
@@ -63,22 +65,23 @@ def show(session, historykey):
 	elif section in ('spam', 'link_spam'):
 		for row in data:
 			row['mode'] = "both nochange"
-	headdata = build_headdata(historykey, historykey, section, user, time)
+	headdata = build_headdata(historykey, historykey, section, provider, user, time)
 	return flask.render_template("historyshow.html", data=data, headdata=headdata, session=session)
 
 @blueprint.route('/<int:fromkey>/<int:tokey>')
 @login.require_mod
 def diff(session, fromkey, tokey):
 	history = server.db.metadata.tables["history"]
-	users = server.db.metadata.tables["users"]
+	accounts = server.db.metadata.tables["accounts"]
 	with server.db.engine.connect() as conn:
 		fromsection, fromdata = conn.execute(sqlalchemy.select(
 				history.c.section, history.c.jsondata
 			).where(history.c.id == fromkey)).first()
 
-		tosection, totime, touser, todata = conn.execute(sqlalchemy.select(
-				history.c.section, history.c.changetime, users.c.display_name, history.c.jsondata
-			).select_from(history.join(users, history.c.changeuser == users.c.id, isouter=True))
+		tosection, totime, toaccountprovider, touser, todata = conn.execute(sqlalchemy.select(
+				history.c.section, history.c.changetime, accounts.c.provider,
+				sqlalchemy.func.coalesce(accounts.c.display_name, accounts.c.name), history.c.jsondata
+			).select_from(history.join(accounts, isouter=True))
 			.where(history.c.id == tokey)).first()
 	assert fromsection == tosection
 
@@ -143,10 +146,10 @@ def diff(session, fromkey, tokey):
 					data.append({'pattern_type': fromdata[i][0], 're': fromdata[i][1], 'message': fromdata[i][2], 'mode': 'from'})
 				for i in range(i2, j2):
 					data.append({'pattern_type': todata[i][0], 're': todata[i][1], 'message': todata[i][2], 'mode': 'to'})
-	headdata = build_headdata(fromkey, tokey, tosection, touser, totime)
+	headdata = build_headdata(fromkey, tokey, tosection, toaccountprovider, touser, totime)
 	return flask.render_template("historyshow.html", data=data, headdata=headdata, session=session)
 
-def build_headdata(fromkey, tokey, section, user, time):
+def build_headdata(fromkey, tokey, section, provider, user, time):
 	history = server.db.metadata.tables["history"]
 	with server.db.engine.connect() as conn:
 		prevkey = conn.execute(sqlalchemy.select(sqlalchemy.func.max(history.c.id))
@@ -162,6 +165,7 @@ def build_headdata(fromkey, tokey, section, user, time):
 
 	return {
 		"page": section,
+		"provider": provider,
 		"user": user,
 		"time": time,
 		"fromkey": fromkey,
@@ -176,7 +180,7 @@ def store(section, user, jsondata):
 		conn.execute(server.db.metadata.tables["history"].insert(), {
 			"section": section,
 			"changetime": datetime.datetime.now(tz=pytz.utc),
-			"changeuser": user,
+			"changed_by": user,
 			"jsondata": jsondata,
 		})
 		conn.commit()
