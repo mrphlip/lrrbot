@@ -3,8 +3,6 @@ import datetime
 import functools
 import logging
 
-import pytz
-
 import common.rpc
 from common import utils, state, storm, slack, time
 from common import youtube
@@ -28,6 +26,9 @@ class YoutubeChat:
 		self.pending_gifts = {}
 		self.last_ban = {}
 
+		self.playlist_id = None
+		self.seen_videos = set()
+
 		self.schedule_check()
 
 	def schedule_check(self):
@@ -35,17 +36,44 @@ class YoutubeChat:
 		self.loop.call_later(BROADCAST_CHECK_DELAY, self.schedule_check)
 
 	async def check_broadcasts(self):
+		async for chat_id in self.get_new_chats():
+			task = self.loop.create_task(self.process_chat(chat_id))
+			task.add_done_callback(functools.partial(self.on_chat_done, chat_id))
+			self.chats[chat_id] = {
+				'task': task,
+				'messages': {},
+			}
+
+	async def get_new_chats(self):
+		try:
+			async for chat_id in self.get_new_chats_from_broadcasts():
+				yield chat_id
+		except youtube.TokenMissingError:
+			async for chat_id in self.get_new_chats_from_uploads():
+				yield chat_id
+
+	async def get_new_chats_from_broadcasts(self):
 		async for broadcast in youtube.get_user_broadcasts(config['youtube_channel_id'], parts=['snippet', 'status']):
 			chat_id = broadcast['snippet']['liveChatId']
 			if chat_id not in self.chats and broadcast['status']['lifeCycleStatus'] not in {'complete', 'revoked'}:
 				log.info('New YouTube chat %s for %r', chat_id, broadcast['snippet']['title'])
+				yield chat_id
 
-				task = self.loop.create_task(self.process_chat(chat_id))
-				task.add_done_callback(functools.partial(self.on_chat_done, chat_id))
-				self.chats[chat_id] = {
-					'task': task,
-					'messages': {},
-				}
+	async def get_new_chats_from_uploads(self):
+		if self.playlist_id is None:
+			channel = await youtube.get_channel(config['youtube_bot_id'], config['youtube_channel_id'], parts=['contentDetails'])
+			self.playlist_id = channel['contentDetails']['relatedPlaylists']['uploads']
+
+		playlist = await youtube.get_playlist_items_page(config['youtube_bot_id'], self.playlist_id)
+		video_ids = {video['snippet']['resourceId']['videoId'] for video in playlist}
+		new_videos = video_ids - self.seen_videos
+		self.seen_videos = video_ids
+
+		if new_videos:
+			for video in await youtube.get_videos(config['youtube_bot_id'], new_videos, parts=['snippet', 'liveStreamingDetails']):
+				if (chat_id := video.get('liveStreamingDetails', {}).get('activeLiveChatId')) and chat_id not in self.chats:
+					log.info('New YouTube chat %s for %r', chat_id, video['snippet']['title'])
+					yield chat_id
 
 	def on_chat_done(self, chat_id, task):
 		try:
