@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import functools
 import logging
+from urllib.error import HTTPError
 
 import common.rpc
 from common import utils, state, storm, slack, time
@@ -88,6 +89,7 @@ class YoutubeChat:
 			self.chats[chat_id]['task'] = task
 			return
 
+		log.info('Chat %s is finished.', chat_id)
 		del self.chats[chat_id]
 		state.delete(self.lrrbot.engine, self.lrrbot.metadata, PAGE_TOKEN_STATE_KEY % chat_id)
 
@@ -95,14 +97,19 @@ class YoutubeChat:
 		state_key = PAGE_TOKEN_STATE_KEY % chat_id
 		next_page_token = state.get(self.lrrbot.engine, self.lrrbot.metadata, state_key)
 		while True:
-			page = await youtube.get_chat_page(config['youtube_bot_id'], chat_id, page_token=next_page_token)
+			try:
+				page = await youtube.get_chat_page(config['youtube_bot_id'], chat_id, page_token=next_page_token)
+			except HTTPError as e:
+				if e.code == 403 or e.code == 404:
+					break
+				raise
+
 			for message in page['items']:
 				yield message
 
 			if next_page_token := page.get('nextPageToken'):
 				state.set(self.lrrbot.engine, self.lrrbot.metadata, state_key, next_page_token)
 			else:
-				state.delete(self.lrrbot.engine, self.lrrbot.metadata, state_key)
 				break
 
 			await asyncio.sleep(max(page.get('pollingIntervalMillis', 0) / 1000, MIN_POLL_DELAY * len(self.chats)))
@@ -176,6 +183,8 @@ class YoutubeChat:
 
 		Docs: https://developers.google.com/youtube/v3/live/docs/liveChatMessages#snippet.newSponsorDetails
 		"""
+		log.info('New member: %r at %s', message['authorDetails']['displayName'], message['snippet']['publishedAt'])
+
 		time = datetime.datetime.fromisoformat(message['snippet']['publishedAt'])
 
 		data = {
@@ -201,6 +210,8 @@ class YoutubeChat:
 
 		Docs: https://developers.google.com/youtube/v3/live/docs/liveChatMessages#snippet.memberMilestoneChatDetails
 		"""
+		log.info('New member milestone: %r at %s', message['authorDetails']['displayName'], message['snippet']['publishedAt'])
+
 		time = datetime.datetime.fromisoformat(message['snippet']['publishedAt'])
 
 		data = {
@@ -227,6 +238,8 @@ class YoutubeChat:
 
 		Docs: https://developers.google.com/youtube/v3/live/docs/liveChatMessages#snippet.membershipGiftingDetails
 		"""
+		log.info('New member gift %s: %r at %s', message['id'], message['authorDetails']['displayName'], message['snippet']['publishedAt'])
+
 		self.pending_gifts[message['id']] = {
 			'time': datetime.datetime.fromisoformat(message['snippet']['publishedAt']),
 			'name': message['authorDetails']['displayName'],
@@ -250,6 +263,8 @@ class YoutubeChat:
 
 		Docs: https://developers.google.com/youtube/v3/live/docs/liveChatMessages#snippet.giftMembershipReceivedDetails
 		"""
+		log.info('Member gift %s received: %r at %s', message['id'], message['authorDetails']['displayName'], message['snippet']['publishedAt'])
+
 		time = datetime.datetime.fromisoformat(message['snippet']['publishedAt'])
 		gift_id = message['snippet']['giftMembershipReceivedDetails']['associatedMembershipGiftingMessageId']
 
@@ -292,7 +307,10 @@ class YoutubeChat:
 
 		Docs: https://developers.google.com/youtube/v3/live/docs/liveChatMessages#snippet.superChatDetails
 		"""
+		log.info('New Super Chat: %r at %s', message['authorDetails']['displayName'], message['snippet']['publishedAt'])
+
 		time = datetime.datetime.fromisoformat(message['snippet']['publishedAt'])
+
 		data = {
 			'name': message['authorDetails']['displayName'],
 			'channel_id': message['authorDetails']['channelId'],
@@ -313,8 +331,12 @@ class YoutubeChat:
 
 		Docs: https://developers.google.com/youtube/v3/live/docs/liveChatMessages#snippet.superStickerDetails
 		"""
+		log.info('New Super Sticker: %r at %s', message['authorDetails']['displayName'], message['snippet']['publishedAt'])
+
 		sticker_urls = await youtube.get_super_stickers()
+
 		time = datetime.datetime.fromisoformat(message['snippet']['publishedAt'])
+
 		data = {
 			'name': message['authorDetails']['displayName'],
 			'channel_id': message['authorDetails']['channelId'],
