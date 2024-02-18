@@ -135,7 +135,7 @@ async def get_chat_page(requester, live_chat_id, page_token=None, parts=['snippe
 
 def check_message_length(message, max_len = 200):
 	# The limit is documented as '200 characters'.
-	length = message.encode('utf-16-le') // 2
+	length = len(message.encode('utf-16-le')) // 2
 	return length <= max_len
 
 async def send_chat_message(requester, chat_id, message):
