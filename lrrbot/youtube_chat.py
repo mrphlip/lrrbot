@@ -183,7 +183,7 @@ class YoutubeChat:
 			'channel_id': message['authorDetails']['channelId'],
 			'avatar': message['authorDetails']['profileImageUrl'],
 			'tier': message['snippet']['newSponsorDetails'].get('memberLevelName'),
-			'is_upgrade': message['snippet']['newSponsorDetails']['isUpgrade'],
+			'is_upgrade': message['snippet']['newSponsorDetails'].get('isUpgrade'),
 			'count': storm.increment(self.lrrbot.engine, self.lrrbot.metadata, 'youtube-membership'),
 		}
 
