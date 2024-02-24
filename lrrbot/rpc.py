@@ -11,6 +11,7 @@ from common.config import config
 from common import twitch
 from lrrbot import storage
 import lrrbot.docstring
+from lrrbot.commands.static import get_response, get_advice
 
 log = logging.getLogger('serverevents')
 
@@ -98,8 +99,7 @@ class Server(common.rpc.Server):
 				"is_override": self.lrrbot.show_override is not None,
 			}
 
-		if 'advice' in storage.data['responses']:
-			data['advice'] = random.choice(storage.data['responses']['advice']['response'])
+		data['advice'] = get_advice()
 
 		return data
 
@@ -126,19 +126,16 @@ class Server(common.rpc.Server):
 		SECRET = 3
 		SMASH = 4
 		options = [(QUOTE, 5)]
-		if 'advice' in storage.data['responses']:
-			options.append((ADVICE, 10))
-		if 'secret' in storage.data['responses']:
-			options.append((SECRET, 2))
-		#if 'smash' in storage.data['responses']:
-		#	options.append((SMASH, 2))
+		options.append((ADVICE, 10))
+		options.append((SECRET, 2))
+		#options.append((SMASH, 2))
 		mode = utils.weighted_choice(options)
 		if mode == ADVICE:
-			return random.choice(storage.data['responses']['advice']['response'])
+			return get_response(self.lrrbot, "advice")
 		elif mode == SECRET:
-			return random.choice(storage.data['responses']['secret']['response'])
+			return get_response(self.lrrbot, "secret")
 		elif mode == SMASH:
-			return random.choice(storage.data['responses']['smash']['response'])
+			return get_response(self.lrrbot, "smash")
 		elif mode == QUOTE:
 			quotes = self.lrrbot.metadata.tables["quotes"]
 			with self.lrrbot.engine.connect() as conn:
