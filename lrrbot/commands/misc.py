@@ -19,6 +19,7 @@ from common.config import config
 from common import twitch
 from lrrbot import storage
 from lrrbot.command_parser import Blueprint
+from lrrbot.commands.static import get_advice
 
 blueprint = Blueprint()
 log = logging.getLogger('misc')
@@ -275,8 +276,9 @@ async def get_status_msg(bot):
 	else:
 		message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
 		messages.append(message)
-	if 'advice' in storage.data['responses']:
-		messages.append(random.choice(storage.data['responses']['advice']['response']))
+	advice = get_advice(bot)
+	if advice:
+		messages.append(advice)
 	return ' '.join(messages)
 
 async def send_status(bot, conn, target):
