@@ -220,7 +220,7 @@ class YoutubeChat:
 			'avatar': message['authorDetails']['profileImageUrl'],
 			'tier': message['snippet']['memberMilestoneChatDetails'].get('memberLevelName'),
 			'monthcount': message['snippet']['memberMilestoneChatDetails']['memberMonth'],
-			'message': message['snippet']['memberMilestoneChatDetails']['userComment'],
+			'message': message['snippet']['memberMilestoneChatDetails'].get('userComment'),
 			'count': storm.increment(self.lrrbot.engine, self.lrrbot.metadata, 'youtube-membership-milestone'),
 		}
 
@@ -319,7 +319,7 @@ class YoutubeChat:
 			'amount_micros': message['snippet']['superChatDetails']['amountMicros'],
 			'amount_currency': message['snippet']['superChatDetails']['currency'],
 			'level': message['snippet']['superChatDetails']['tier'],
-			'message': message['snippet']['superChatDetails']['userComment'],
+			'message': message['snippet']['superChatDetails'].get('userComment'),
 			'count': storm.increment(self.lrrbot.engine, self.lrrbot.metadata, 'youtube-super-chat'),
 		}
 
