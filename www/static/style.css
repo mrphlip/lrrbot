@@ -469,24 +469,29 @@ table.commands td.access {
 table.commands td.button {
 	width: 4%;
 }
-table.commands input, table.commands select, table.commands button {
+table.commands .ui-button {
 	width: 100%;
+	font-size: 85%;
+	padding: 0.25em;
 }
-table.commands div.input {
-	height: 22px;
-	margin-left: 30px;
+table.commands ul, table.commands li {
+	list-style: none;
+	margin: 0;
+	padding: 0;
 }
-table.commands tr.undo {
-	background: #FCC;
+table.commands li.more {
+	font-style: italic;
 }
-table.commands td.undo {
-	white-space: nowrap;
+
+div.commands_list {
+	margin-bottom: 1em;
 }
-table.commands td.undo button {
-	width: auto;
+div.commands_list > div {
+	display: grid;
+	grid: auto / 32px 1fr;
 }
-table.commands td.undo span.close {
-	cursor: pointer;
+div.commands_list input {
+	width: 100%;
 }
 
 table.spam {
