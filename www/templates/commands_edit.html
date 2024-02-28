@@ -1,0 +1,55 @@
+{%extends "master.html"%}
+{%block title%}!{{aliases[0]|e}} &ndash; Responses{%endblock%}
+{%block header%}!{{aliases[0]|e}} &ndash; Responses{%endblock%}
+{%block headextra%}
+<script type="text/javascript">window.csrf_token = {{csrf_token()|tojson}}</script>
+<script type="text/javascript" src="{{static_url('commands.js')|e}}"></script>
+{%endblock%}
+{%block content%}
+<form action="{{url_for('commands.save')|e}}" method="post">
+<input type="hidden" name="_csrf_token" value="{{csrf_token()|e}}">
+<input type="hidden" name="command_id" value="{{command_id|e}}">
+
+<input type="submit" class="del ui-button ui-widget ui-corner-all" value="Save">
+
+<h2>Commands</h2>
+<div class="commands_list" id="aliases">
+	{%for a in aliases%}
+		<div>
+			<div class="button icon remove {%if len(aliases) <= 1%}disabled{%endif%}"></div>
+			<div class="input">
+				<input type="text" name="alias" value="{{a|e}}">
+			</div>
+		</div>
+	{%endfor%}
+	<div>
+		<div class="button icon add" data-name="alias"></div>
+	</div>
+</div>
+
+<h2>Access</h2>
+<select name="access" id="access">
+	<option value="0" {%if access == 0%}selected{%endif%}>Anyone</option>
+	<option value="1" {%if access == 1%}selected{%endif%}>Subscribers</option>
+	<option value="2" {%if access == 2%}selected{%endif%}>Moderators</option>
+</select>
+
+<h2>Responses</h2>
+<div class="commands_list" id="responses">
+	{%for r in responses%}
+		<div>
+			<div class="button icon remove {%if len(responses) <= 1%}disabled{%endif%}"></div>
+			<div class="input">
+				<input type="text" name="response" value="{{r|e}}">
+			</div>
+		</div>
+	{%endfor%}
+	<div>
+		<div class="button icon add" data-name="response"></div>
+	</div>
+</div>
+
+<input type="submit" class="del ui-button ui-widget ui-corner-all" value="Save">
+
+</form>
+{%endblock%}

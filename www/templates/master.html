@@ -59,7 +59,7 @@
 	<li><a href="{{url_for('quotes.quotes')|e}}">Quotes</a></li>
 	<li><a href="{{url_for('patreon.index')|e}}">Patreon</a></li>
 	{%if session['active_account']['is_mod']%}
-	<li><a href="{{url_for('commands.commands')|e}}">Responses</a></li>
+	<li><a href="{{url_for('commands.list')|e}}">Responses</a></li>
 	<li><a href="{{url_for('spam.spam')|e}}">Spam</a></li>
 	<li><a href="{{url_for('history.history')|e}}">History</a></li>
 	<li><a href="{{url_for('clips.vidlist')|e}}">Clips</a></li>

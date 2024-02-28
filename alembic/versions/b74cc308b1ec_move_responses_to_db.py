@@ -7,6 +7,7 @@ import alembic
 import sqlalchemy
 import json
 from collections import defaultdict
+from www.commands import build_response_dict
 
 def upgrade():
 	commands = alembic.op.create_table("commands",
@@ -67,24 +68,8 @@ def downgrade():
 	conn = alembic.context.get_context().bind
 	meta = sqlalchemy.MetaData()
 	meta.reflect(conn)
-	commands = meta.tables["commands"]
-	aliases = meta.tables["commands_aliases"]
-	responses = meta.tables["commands_responses"]
 
-	query = sqlalchemy.select(commands.c.access, aliases.c.alias, responses.c.response)
-	query = query.select_from(
-		commands.join(aliases, aliases.c.command_id == commands.c.id)
-			.join(responses, responses.c.command_id == commands.c.id)
-	)
-	query = query.order_by(responses.c.id.asc())
-	responses = {}
-	for access, alias, response in conn.execute(query):
-		if alias not in responses:
-			responses[alias] = {"access": ["any", "sub", "mod"][access], "response": []}
-		responses[alias]["response"].append(response)
-	for val in responses.values():
-		if len(val["response"]) == 1:
-			val["response"] = val["response"][0]
+	responses = build_response_dict(conn, meta)
 
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
 	with open(datafile) as f:

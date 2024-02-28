@@ -3,71 +3,64 @@
 {%block header%}Responses{%endblock%}
 {%block headextra%}
 <script type="text/javascript">window.csrf_token = {{csrf_token()|tojson}}</script>
-<script type="text/javascript" src="{{static_url('commands.js')|e}}"></script>
+<script type="text/javascript">
+$(function() {
+	$("input.del").click(function() {
+		var command = $(this).closest("tr").data("command");
+		return confirm(`Really delete !${command}?`);
+	});
+});
+</script>
 {%endblock%}
 {%block content%}
-<div style="text-align:right; margin: 1em">
-	<button class="save">Save</button>
-	<div class="loading" style="display: none; margin: 0 0 0 auto"></div>
-</div>
 <table class="nicetable commands">
 <thead>
 <tr>
-	<td class="command"></td>
-	<td class="response"></td>
-	<td class="access"></td>
-	<td class="button">
-		<button class="add">Add</button>
-	</td>
+	<th class="command">Command</th>
+	<th class="response">Response</th>
+	<th class="access">Access</th>
+	<th class="button">
+		<a href="{{url_for('commands.new')|e}}" class="add ui-button ui-widget ui-corner-all">Add</a>
+	</th>
 </tr>
 </thead>
 <tbody>
-{%for command, response, access in commands%}
-<tr class="{{loop.cycle('odd', 'even')}}">
+{%for command in commands%}
+<tr class="{{loop.cycle('odd', 'even')}}" data-command="{{command['aliases'][0]|e}}" id="{{command['command_id']}}">
 	<td class="command">
-		{%for c in command%}
-			<div>
-				<div class="button icon remove {%if len(command) <= 1%}disabled{%endif%}"></div>
-				<div class="input">
-					<input type="text" value="{{c|e}}">
-				</div>
-			</div>
-		{%endfor%}
-		<div>
-			<div class="button icon add"></div>
-		</div>
+		<ul>
+			{%for c in command["aliases"]%}
+				<li>!{{c|e}}</li>
+			{%endfor%}
+		</ul>
 	</td>
 	<td class="response">
-		{%for r in response%}
-			<div>
-				<div class="button icon remove {%if len(response) <= 1%}disabled{%endif%}"></div>
-				<div class="input">
-					<input type="text" value="{{r|e}}">
-				</div>
-			</div>
-		{%endfor%}
-		<div>
-			<div class="button icon add"></div>
-		</div>
+		<ul>
+			{%for r in command["responses"]%}
+				<li>{{r|e}}</li>
+			{%endfor%}
+			{%if command["response_more"]%}
+				<li class="more">&hellip; {{command["response_count"]}} total</li>
+			{%endif%}
+		</ul>
 	</td>
 	<td class="access">
-		<select>
-			<option value="any" {%if access=="any"%}selected{%endif%}>Anyone</option>
-			<option value="sub" {%if access=="sub"%}selected{%endif%}>Subscribers</option>
-			<option value="mod" {%if access=="mod"%}selected{%endif%}>Moderators</option>
-		</select>
+		{%if command["access"] == 0%}Anyone{%endif%}
+		{%if command["access"] == 1%}Subscribers{%endif%}
+		{%if command["access"] == 2%}Moderators{%endif%}
 	</td>
 	<td class="button">
-		<button class="del">Del</button>
+		<a href="{{url_for('commands.edit', command_id=command['command_id'])|e}}" class="edit ui-button ui-widget ui-corner-all">Edit</a>
+		{%if command['command_id'] != 1%}
+		<form action="{{url_for('commands.delete')|e}}" method="post">
+			<input type="hidden" name="_csrf_token" value="{{csrf_token()|e}}">
+			<input type="hidden" name="command_id" value="{{command['command_id']|e}}">
+			<input type="submit" class="del ui-button ui-widget ui-corner-all" value="Del">
+		</form>
+		{%endif%}
 	</td>
 </tr>
 {%endfor%}
-<tr class="undo" style="display: none">
-	<td colspan="3"><code>&nbsp;</code> deleted.</td>
-	<td class="undo">
-		<button class="undo">Undo</button> <span class="close">&#x2573;</span>
-	</td>
-</tr>
 </tbody>
 </table>
 {%endblock%}
