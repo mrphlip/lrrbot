@@ -28,8 +28,11 @@ def upgrade():
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
 	clientid = alembic.context.config.get_section_option("lrrbot", "twitch_clientid")
 	clientsecret = alembic.context.config.get_section_option("lrrbot", "twitch_clientsecret")
-	with open(datafile) as f:
-		data = json.load(f)
+	try:
+		with open(datafile) as f:
+			data = json.load(f)
+	except FileNotFoundError:
+		data = {}
 
 	names = set()
 	names.update(data.get("autostatus", []))
@@ -86,8 +89,11 @@ def downgrade():
 	users = meta.tables["users"]
 
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
-	with open(datafile) as f:
-		data = json.load(f)
+	try:
+		with open(datafile) as f:
+			data = json.load(f)
+	except FileNotFoundError:
+		data = {}
 	data["autostatus"] = [nick for nick, in conn.execute(sqlalchemy.select(users.c.name).where(users.c.autostatus))]
 	data["subs"] = [nick for nick, in conn.execute(sqlalchemy.select(users.c.name).where(users.c.is_sub))]
 	data["mods"] = [nick for nick, in conn.execute(sqlalchemy.select(users.c.name).where(users.c.is_mod))]

@@ -14,8 +14,6 @@ from lrrbot.command_parser import Blueprint
 blueprint = Blueprint()
 log = logging.getLogger(__name__)
 
-ADVICE = 1
-
 ACCESS_ANY = 0
 ACCESS_SUB = 1
 ACCESS_MOD = 2
@@ -26,11 +24,7 @@ def _get_command_id(bot, conn, command):
 	else:
 		aliases = bot.metadata.tables["commands_aliases"]
 		query = sqlalchemy.select(aliases.c.command_id).where(aliases.c.alias == command)
-		row = conn.execute(query).first()
-		if row is None:
-			return None
-		else:
-			return row[0]
+		return conn.execute(query).scalar()
 
 def get_response(bot, command):
 	responses = bot.metadata.tables["commands_responses"]
@@ -41,15 +35,7 @@ def get_response(bot, command):
 			return None
 
 		query = sqlalchemy.select(responses.c.response).where(responses.c.command_id == command_id)
-		row = common.utils.pick_random_elements(conn.execute(query), 1)[0]
-
-		if row is None:
-			return None
-		else:
-			return row[0]
-
-def get_advice(bot):
-	return get_response(bot, ADVICE)
+		return common.utils.pick_random_elements(conn.execute(query).scalars(), 1)[0]
 
 def generate_docstring(bot):
 	commands = bot.metadata.tables["commands"]
@@ -82,8 +68,7 @@ def generate_docstring(bot):
 
 				resp_query = sqlalchemy.select(responses.c.response).where(responses.c.command_id == command_id)
 				resp_query = resp_query.order_by(responses.c.id).limit(1)
-				response, = conn.execute(resp_query).first()
-				yield response
+				yield conn.execute(resp_query).scalar()
 
 	return "\n".join(generator())
 
@@ -91,8 +76,7 @@ def generate_expression(bot):
 	aliases = bot.metadata.tables["commands_aliases"]
 	with bot.engine.connect() as conn:
 		query = sqlalchemy.select(aliases.c.alias)
-		aliases = conn.execute(query)
-		aliases = [alias for alias, in aliases]
+		aliases = conn.execute(query).scalars().all()
 	return "(%s)" % "|".join(re.escape(c).replace("\\ ", " ") for c in aliases)
 
 @lrrbot.decorators.throttle(30, params=[4], count=2)
@@ -106,7 +90,7 @@ def static_response(bot, conn, event, respond_to, command):
 			return
 
 		query = sqlalchemy.select(commands.c.access).where(commands.c.id == command_id)
-		access, = dbconn.execute(query).first()
+		access = dbconn.execute(query).scalar()
 		source = irc.client.NickMask(event.source)
 		if access == ACCESS_SUB:
 			if not bot.is_sub(event) and not bot.is_mod(event):

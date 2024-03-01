@@ -82,8 +82,11 @@ def upgrade():
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
 	clientid = alembic.context.config.get_section_option("lrrbot", "twitch_clientid")
 	clientsecret = alembic.context.config.get_section_option("lrrbot", "twitch_clientsecret")
-	with open(datafile) as f:
-		data = json.load(f)
+	try:
+		with open(datafile) as f:
+			data = json.load(f)
+	except FileNotFoundError:
+		data = {}
 
 	# stats
 	alembic.op.bulk_insert(stats, [{
@@ -251,8 +254,11 @@ def downgrade():
 	meta.reflect()
 
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
-	with open(datafile) as f:
-		data = json.load(f)
+	try:
+		with open(datafile) as f:
+			data = json.load(f)
+	except FileNotFoundError:
+		data = {}
 
 	data["stats"] = {}
 	stats = meta.tables["stats"]
