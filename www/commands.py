@@ -40,11 +40,10 @@ async def list(session):
 
 			query = sqlalchemy.select(responses.c.response).where(responses.c.command_id == command_id)
 			query = query.order_by(responses.c.id).limit(RESPONSE_LIMIT)
-			for response, in conn.execute(query):
-				command_data["responses"].append(response)
+			command_data["responses"] = conn.execute(query).scalars().all()
 
 			query = sqlalchemy.select(sqlalchemy.func.count()).select_from(responses).where(responses.c.command_id == command_id)
-			count, = conn.execute(query).first()
+			count = conn.execute(query).scalar()
 			command_data["response_count"] = count
 			command_data["response_more"] = (count > RESPONSE_LIMIT)
 
@@ -68,11 +67,11 @@ async def edit(session, command_id):
 	command_id = int(command_id)
 	with server.db.engine.connect() as conn:
 		query = sqlalchemy.select(commands.c.access).where(commands.c.id == command_id)
-		access, = conn.execute(query).first()
+		access = conn.execute(query).scalar()
 		query = sqlalchemy.select(aliases.c.alias).where(aliases.c.command_id == command_id)
-		alias = [a for a, in conn.execute(query)]
+		alias = conn.execute(query).scalars().all()
 		query = sqlalchemy.select(responses.c.response).where(responses.c.command_id == command_id)
-		response = [r for r, in conn.execute(query)]
+		response = conn.execute(query).scalars().all()
 
 	return flask.render_template("commands_edit.html", command_id=command_id, access=access, aliases=alias, responses=response, session=session)
 
@@ -97,9 +96,9 @@ async def save(session):
 	responses = server.db.metadata.tables["commands_responses"]
 	with server.db.engine.connect() as conn:
 		if command_id < 0:
-			command_id, = conn.execute(
+			command_id = conn.execute(
 				commands.insert().returning(commands.c.id),
-				{"access": access}).first()
+				{"access": access}).scalar()
 		else:
 			conn.execute(commands.update().values(access=access).where(commands.c.id == command_id))
 
@@ -125,8 +124,6 @@ async def save(session):
 @login.require_mod
 async def delete(session):
 	command_id = int(flask.request.values['command_id'])
-	if command_id == 1:
-		return "Cannot delete !advice", 400
 
 	commands = server.db.metadata.tables["commands"]
 	with server.db.engine.connect() as conn:

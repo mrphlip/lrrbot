@@ -20,8 +20,11 @@ def upgrade():
 	)
 
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
-	with open(datafile) as f:
-		data = json.load(f)
+	try:
+		with open(datafile) as f:
+			data = json.load(f)
+	except FileNotFoundError:
+		data = {}
 	try:
 		alembic.op.bulk_insert(storm, [
 			{'date': datetime.date.fromordinal(data['storm']['date']), 'twitch-subscription': data['storm']['count']}
@@ -43,8 +46,11 @@ def downgrade():
 		date, count = row
 
 		datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
-		with open(datafile) as f:
-			data = json.load(f)
+		try:
+			with open(datafile) as f:
+				data = json.load(f)
+		except FileNotFoundError:
+			data = {}
 		data['storm'] = {
 			'date': date.toordinal(),
 			'count': count,

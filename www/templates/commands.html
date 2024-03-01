@@ -51,13 +51,11 @@ $(function() {
 	</td>
 	<td class="button">
 		<a href="{{url_for('commands.edit', command_id=command['command_id'])|e}}" class="edit ui-button ui-widget ui-corner-all">Edit</a>
-		{%if command['command_id'] != 1%}
 		<form action="{{url_for('commands.delete')|e}}" method="post">
 			<input type="hidden" name="_csrf_token" value="{{csrf_token()|e}}">
 			<input type="hidden" name="command_id" value="{{command['command_id']|e}}">
 			<input type="submit" class="del ui-button ui-widget ui-corner-all" value="Del">
 		</form>
-		{%endif%}
 	</td>
 </tr>
 {%endfor%}

@@ -11,7 +11,7 @@ from common.config import config
 from common import twitch
 from lrrbot import storage
 import lrrbot.docstring
-from lrrbot.commands.static import get_response, get_advice
+from lrrbot.commands.static import get_response
 
 log = logging.getLogger('serverevents')
 
@@ -99,7 +99,7 @@ class Server(common.rpc.Server):
 				"is_override": self.lrrbot.show_override is not None,
 			}
 
-		data['advice'] = get_advice()
+		data['advice'] = get_response(self.lrrbot, "advice")
 
 		return data
 
