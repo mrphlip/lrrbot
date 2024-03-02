@@ -138,6 +138,14 @@ def check_message_length(message, max_len = 200):
 	length = len(message.encode('utf-16-le')) // 2
 	return length <= max_len
 
+def trim_message(message, max_len = 200):
+	max_len_bytes = max_len * 2
+	encoded = message.encode('utf-16-le')
+	if len(encoded) > max_len_bytes:
+		return encoded[:max_len_bytes - 2].decode('utf-16-le') + "\u2026"
+	else:
+		return message
+
 async def send_chat_message(requester, chat_id, message):
 	"""
 	Send a text message to a live chat.
@@ -152,7 +160,7 @@ async def send_chat_message(requester, chat_id, message):
 			'liveChatId': chat_id,
 			'type': 'textMessageEvent',
 			'textMessageDetails': {
-				'messageText': message,
+				'messageText': trim_message(message),
 			},
 		},
 	}))
