@@ -36,5 +36,12 @@ class CardViewer:
 		log.info("Got a card from the API: [%d] %s", card_id, name)
 
 		if self.lrrbot.cardview:
-			asyncio.ensure_future(asyncio.sleep(ANNOUNCE_DELAY), loop=self.loop) \
-				.add_done_callback(lambda fut: self.lrrbot.connection.privmsg("#" + config['channel'], text))
+			asyncio.ensure_future(self.send_message(text), loop=self.loop).add_done_callback(utils.check_exception)
+
+	async def send_message(self, text):
+		await asyncio.sleep(ANNOUNCE_DELAY)
+
+		self.lrrbot.connection.privmsg("#" + config['channel'], text)
+
+		if self.lrrbot.youtube_chat:
+			await self.lrrbot.youtube_chat.broadcast_message(text)

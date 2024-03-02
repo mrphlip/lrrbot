@@ -32,6 +32,10 @@ class YoutubeChat:
 
 		self.schedule_check()
 
+	async def broadcast_message(self, message):
+		for chat_id in self.chats.keys():
+			await youtube.send_chat_message(config['youtube_bot_id'], chat_id, message)
+
 	def schedule_check(self):
 		asyncio.ensure_future(self.check_broadcasts(), loop=self.loop).add_done_callback(utils.check_exception)
 		self.loop.call_later(BROADCAST_CHECK_DELAY, self.schedule_check)
