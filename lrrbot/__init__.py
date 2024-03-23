@@ -17,8 +17,9 @@ from common import postgres
 from common import state
 from common import twitch
 from common import utils
+from common import youtube
 from common.config import config
-from common.account_providers import ACCOUNT_PROVIDER_TWITCH, ACCOUNT_PROVIDER_PATREON
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH, ACCOUNT_PROVIDER_PATREON, ACCOUNT_PROVIDER_YOUTUBE
 from common.pubsub import PubSub
 
 from lrrbot import asyncreactor
@@ -305,49 +306,67 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return
 
 		accounts = self.metadata.tables["accounts"]
-		with self.engine.connect() as conn:
-			if event.type == "pubmsg":
+		with self.engine.connect() as db_conn:
+			if isinstance(conn, irc.client.ServerConnection):
+				if event.type == "pubmsg":
+					query = insert(accounts).returning(accounts.c.user_id)
+					query = query.on_conflict_do_update(
+						index_elements=[accounts.c.provider, accounts.c.provider_user_id],
+						set_={
+							'name': query.excluded.name,
+							'display_name': query.excluded.display_name,
+							'is_sub': query.excluded.is_sub,
+							'is_mod': query.excluded.is_mod,
+						},
+					)
+					user_data = {
+						"provider": ACCOUNT_PROVIDER_TWITCH,
+						"provider_user_id": tags["user-id"],
+						"name": nick,
+						"display_name": tags.get("display-name"),
+						"is_sub": is_sub,
+						"is_mod": is_mod,
+					}
+					user_id = db_conn.execute(query, user_data).scalar_one()
+				else:
+					row = db_conn.execute(sqlalchemy.select(accounts.c.user_id, accounts.c.is_sub, accounts.c.is_mod)
+										 .where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
+										 .where(accounts.c.provider_user_id == event.tags['user-id'])).first()
+					if row is not None:
+						user_id, tags['subscriber'], tags['mod'] = row
+					else:
+						user_id = None
+						tags['subscriber'] = False
+						tags['mod'] = False
+			elif isinstance(conn, youtube_chat.YoutubeChatConnection):
 				query = insert(accounts).returning(accounts.c.user_id)
 				query = query.on_conflict_do_update(
 					index_elements=[accounts.c.provider, accounts.c.provider_user_id],
 					set_={
 						'name': query.excluded.name,
-						'display_name': query.excluded.display_name,
 						'is_sub': query.excluded.is_sub,
 						'is_mod': query.excluded.is_mod,
-					},
+					}
 				)
-				user_id = conn.execute(query, {
-					"provider": ACCOUNT_PROVIDER_TWITCH,
+				user_data = {
+					"provider": ACCOUNT_PROVIDER_YOUTUBE,
 					"provider_user_id": tags["user-id"],
-					"name": nick,
-					"display_name": tags.get("display-name"),
+					"name": tags['display-name'],
 					"is_sub": is_sub,
 					"is_mod": is_mod,
-				}).scalar_one()
+				}
+				user_id = db_conn.execute(query, user_data).scalar_one()
 			else:
-				row = conn.execute(sqlalchemy.select(accounts.c.user_id, accounts.c.is_sub, accounts.c.is_mod)
-					.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH)
-					.where(accounts.c.provider_user_id == event.tags['user-id'])).first()
-				if row is not None:
-					user_id, tags['subscriber'], tags['mod'] = row
-				else:
-					user_id = None
-					tags['subscriber'] = False
-					tags['mod'] = False
+				user_id = None
+
 			if user_id is not None:
-				is_patron = conn.execute(
-					sqlalchemy.select(sqlalchemy.func.bool_or(accounts.c.is_sub))
-					.where(accounts.c.provider == ACCOUNT_PROVIDER_PATREON)
+				accounts = db_conn.execute(
+					sqlalchemy.select(accounts.c.provider, accounts.c.is_sub)
 					.where(accounts.c.user_id == user_id)
-				).scalar_one()
-			else:
-				is_patron = None
-			if is_patron is not None:
-				tags['patron'] = is_patron
-			else:
-				tags['patron'] = False
-			conn.commit()
+				).all()
+				tags['subscriber_anywhere'] = any(account.is_sub for account in accounts)
+				tags['mod_anywhere'] = any(account.is_mod for account in accounts)
+			db_conn.commit()
 
 		tags["display-name"] = tags.get("display-name", nick)
 
@@ -466,17 +485,17 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""
-		return event.tags["mod"]
+		return event.tags["mod"] or event.tags.get("mod_anywhere")
 
 	def is_sub(self, event):
 		"""Check whether the source of the event is a known subscriber to the channel"""
-		return event.tags["subscriber"] or event.tags["patron"]
+		return event.tags["subscriber"] or event.tags.get("subscriber_anywhere")
 
 	async def ban(self, conn, event, reason, bantype):
 		source = irc.client.NickMask(event.source)
 		display_name = event.tags.get("display-name", source.nick)
 
-		if self.is_mod(event):
+		if event.tags["mod"]:
 			# Can't time out or ban other moderators, unfortunately.
 			log.info("%s is a moderator, not timing out" % display_name)
 			return
@@ -488,16 +507,25 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			level = self.spammers[source.nick.lower()]
 			if level <= 1:
 				log.info("First offence, flickering %s" % display_name)
-				await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 1)
-				conn.privmsg(source.nick, "Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				if isinstance(conn, irc.client.ServerConnection):
+					await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 1)
+					conn.privmsg(source.nick, "Message deleted (first warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				elif isinstance(conn, youtube_chat.YoutubeChatConnection):
+					await youtube.ban_user(config['youtube_bot_id'], event.tags['room-id'], event.tags['user-id'], 1)
 			elif level <= 2:
 				log.info("Second offence, timing out %s" % display_name)
-				await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 600)
-				conn.privmsg(source.nick, "Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				if isinstance(conn, irc.client.ServerConnection):
+					await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 600)
+					conn.privmsg(source.nick, "Timeout (second warning) for auto-detected spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				elif isinstance(conn, youtube_chat.YoutubeChatConnection):
+					await youtube.ban_user(config['youtube_bot_id'], event.tags['room-id'], event.tags['user-id'], 600)
 			else:
 				log.info("Third offence, banning %s" % display_name)
-				await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason)
-				conn.privmsg(source.nick, "Banned for persistent spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				if isinstance(conn, irc.client.ServerConnection):
+					await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason)
+					conn.privmsg(source.nick, "Banned for persistent spam (%s). Please contact mrphlip or any other channel moderator if this is incorrect." % reason)
+				elif isinstance(conn, youtube_chat.YoutubeChatConnection):
+					await youtube.ban_user(config['youtube_bot_id'], event.tags['room-id'], event.tags['user-id'])
 				level = 3
 			today = datetime.datetime.now(config['timezone']).date().toordinal()
 			if today != storage.data.get("spam", {}).get("date"):
@@ -510,8 +538,11 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		elif bantype == "censor":
 			# Only purges, no escalation
 			log.info("Censor hit, flickering %s" % display_name)
-			await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 1)
-			conn.privmsg(source.nick, "Your message was automatically deleted (%s). You have not been banned or timed out, and are welcome to continue participating in the chat. Please contact mrphlip or any other channel moderator if you feel this is incorrect." % reason)
+			if isinstance(conn, irc.client.ServerConnection):
+				await twitch.ban_user(event.tags['room-id'], event.tags['user-id'], reason, 1)
+				conn.privmsg(source.nick, "Your message was automatically deleted (%s). You have not been banned or timed out, and are welcome to continue participating in the chat. Please contact mrphlip or any other channel moderator if you feel this is incorrect." % reason)
+			elif isinstance(conn, youtube_chat.YoutubeChatConnection):
+				await youtube.ban_user(config['youtube_bot_id'], event.tags['room-id'], event.tags['user-id'], 1)
 
 	def check_privmsg_wrapper(self, conn, event):
 		"""
@@ -520,7 +551,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		* Turn private messages into Twitch whispers
 		* Log public messages in the chat log
 		"""
-		if hasattr(conn.privmsg, "is_wrapped"):
+		if hasattr(conn.privmsg, "is_wrapped") or isinstance(conn, youtube_chat.YoutubeChatConnection):
 			return
 		original_privmsg = decorators.twitch_throttle()(conn.privmsg)
 		@functools.wraps(original_privmsg)

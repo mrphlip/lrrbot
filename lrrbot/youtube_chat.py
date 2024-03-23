@@ -4,6 +4,8 @@ import functools
 import logging
 from urllib.error import HTTPError
 
+import irc.client
+
 import common.rpc
 from common import utils, state, storm, slack, time
 from common import youtube
@@ -18,6 +20,22 @@ BROADCAST_CHECK_DELAY = 5 * 60
 MIN_POLL_DELAY = 60.0
 GIFT_CLEANUP_INTERVAL = 240
 PAGE_TOKEN_STATE_KEY = 'lrrbot.youtube_chat.%s.next_page_token'
+CHANNEL_PREFIX = '&youtube:'
+
+class YoutubeChatConnection:
+	"""
+	A fake `irc.client.ServerConnection` for bridging to YouTube's chat system.
+	"""
+	def __init__(self, loop):
+		self.loop = loop
+
+	def privmsg(self, target, message):
+		if not target.startswith(CHANNEL_PREFIX):
+			log.debug('Not sending a private message to %s: %s', target, message)
+			return
+		chat_id = target.removeprefix(CHANNEL_PREFIX)
+		log.debug('Sending message to %s: %s', chat_id, message)
+		self.loop.create_task(youtube.send_chat_message(config['youtube_bot_id'], chat_id, message)).add_done_callback(utils.check_exception)
 
 class YoutubeChat:
 	def __init__(self, lrrbot, loop):
@@ -26,6 +44,7 @@ class YoutubeChat:
 		self.chats = {}
 		self.pending_gifts = {}
 		self.last_ban = {}
+		self.connection = YoutubeChatConnection(loop)
 
 		self.playlist_id = None
 		self.seen_videos = set()
@@ -171,13 +190,40 @@ class YoutubeChat:
 		self.chats[chat_id]['messages'].setdefault(author_id, []).append(message)
 		self.chats[chat_id]['messages'][author_id] = self.chats[chat_id]['messages'][author_id][-3:]
 
+	def message_tags(self, message):
+		badges = []
+		if message['authorDetails']['isChatOwner']:
+			badges.append('broadcaster/1')
+		if message['authorDetails']['isChatSponsor']:
+			badges.append('subscriber/1')
+		if message['authorDetails']['isChatModerator']:
+			badges.append('moderator/1')
+
+		return [
+			{'key': 'emotes', 'value': ''},
+			{'key': 'badges', 'value': ','.join(badges)},
+			{'key': 'display-name', 'value': message['authorDetails']['displayName']},
+			{'key': 'id', 'value': message['id']},
+			{'key': 'mod', 'value': '1' if message['authorDetails']['isChatModerator'] else '0'},
+			{'key': 'room-id', 'value': message['snippet']['liveChatId']},
+			{'key': 'mod', 'value': '1' if message['authorDetails']['isChatSponsor'] else '0'},
+			{'key': 'user-id', 'value': message['authorDetails']['channelId']},
+		]
+
 	async def on_chat_message(self, chat_id, message):
 		"""
 		A user has sent a text message.
 
 		Docs: https://developers.google.com/youtube/v3/live/docs/liveChatMessages#snippet.textMessageDetails
 		"""
-		# TODO(#1503): implement commands, spam filters, etc
+
+		self.lrrbot.reactor._handle_event(self.connection, irc.client.Event(
+			'pubmsg',
+			message['authorDetails']['channelId'],
+			CHANNEL_PREFIX + chat_id,
+			[message['snippet']['textMessageDetails']['messageText']],
+			self.message_tags(message),
+		))
 
 	async def on_new_member(self, chat_id, message):
 		"""
@@ -208,6 +254,14 @@ class YoutubeChat:
 			f":_lrrSpot: Thanks for becoming a channel member, {data['name']}! (Today's storm count: {storm_count})",
 		)
 
+		self.lrrbot.log_chat(self.connection, irc.client.Event(
+			'pubmsg',
+			config['notifyuser'],
+			CHANNEL_PREFIX + chat_id,
+			[message['snippet']['displayMessage']],
+			self.message_tags(message),
+		))
+
 	async def on_member_milestone(self, chat_id, message):
 		"""
 		A user has sent a Member Milestone Chat.
@@ -236,6 +290,22 @@ class YoutubeChat:
 			f":_lrrSpot: Thanks for being a channel member, {data['name']}! (Today's storm count: {storm_count})",
 		)
 
+		self.lrrbot.log_chat(self.connection, irc.client.Event(
+			'pubmsg',
+			config['notifyuser'],
+			CHANNEL_PREFIX + chat_id,
+			[message['snippet']['displayMessage']],
+			self.message_tags(message),
+		))
+		if data['message']:
+			self.lrrbot.log_chat(self.connection, irc.client.Event(
+				'pubmsg',
+				message['authorDetails']['channelId'],
+				CHANNEL_PREFIX + chat_id,
+				[data['message']],
+				self.message_tags(message),
+			))
+
 	async def on_member_gift_start(self, chat_id, message):
 		"""
 		A user has purchased memberships for other viewers.
@@ -256,6 +326,14 @@ class YoutubeChat:
 
 		# Eventually send out the notification even if we don't get all the `giftMembershipReceivedEvent`s.
 		self.loop.call_later(GIFT_CLEANUP_INTERVAL, self.clean_gift, chat_id, message['id'])
+
+		self.lrrbot.log_chat(self.connection, irc.client.Event(
+			'pubmsg',
+			config['notifyuser'],
+			CHANNEL_PREFIX + chat_id,
+			[message['snippet']['displayMessage']],
+			self.message_tags(message),
+		))
 
 	def clean_gift(self, chat_id, gift_id):
 		if gift_id in self.pending_gifts:
@@ -287,6 +365,14 @@ class YoutubeChat:
 		self.pending_gifts[gift_id]['members'].append(data)
 		if len(self.pending_gifts[gift_id]['members']) >= self.pending_gifts[gift_id]['count']:
 			await self.on_member_gift_end(chat_id, gift_id)
+
+		self.lrrbot.log_chat(self.connection, irc.client.Event(
+			'pubmsg',
+			config['notifyuser'],
+			CHANNEL_PREFIX + chat_id,
+			[message['snippet']['displayMessage']],
+			self.message_tags(message),
+		))
 
 	async def on_member_gift_end(self, chat_id, gift_id):
 		data = self.pending_gifts.pop(gift_id)
@@ -328,6 +414,14 @@ class YoutubeChat:
 		}
 
 		await common.rpc.eventserver.event('youtube-super-chat', data, time)
+
+		self.lrrbot.log_chat(self.connection, irc.client.Event(
+			'pubmsg',
+			config['notifyuser'],
+			CHANNEL_PREFIX + chat_id,
+			[message['snippet']['displayMessage']],
+			self.message_tags(message),
+		))
 
 	async def on_super_sticker(self, chat_id, message):
 		"""

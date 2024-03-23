@@ -1,4 +1,3 @@
-import asyncio
 import csv
 import datetime
 import json
@@ -203,3 +202,21 @@ async def get_videos(requester, ids, parts=['snippet']):
 		headers={'Authorization': f'Bearer {await get_token(requester)}'},
 	))
 	return data['items']
+
+async def ban_user(requester, chat_id, user_id, duration=None):
+	"""
+	Ban a user from a chat.
+
+	Docs: https://developers.google.com/youtube/v3/live/docs/liveChatBans/insert
+	"""
+	headers = {'Authorization': f'Bearer {await get_token(requester)}'}
+	await http.request('https://www.googleapis.com/youtube/v3/liveChat/bans?part=snippet', method='POST', asjson=True, headers=headers, data={
+		'snippet': {
+			'liveChatId': chat_id,
+			'bannedUserDetails': {
+				'channelId': user_id,
+			},
+			'type': 'permanent' if duration is None else 'temporary',
+			'banDurationSeconds': duration,
+		},
+	})

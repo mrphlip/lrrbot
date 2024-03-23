@@ -207,3 +207,32 @@ async def cardviewer_announce(session):
 		name=name,
 		text=text,
 	)
+
+@blueprint.route('/header')
+async def get_header():
+	header = await common.rpc.bot.get_header_info()
+	if 'current_game' in header:
+		games = server.db.metadata.tables["games"]
+		shows = server.db.metadata.tables["shows"]
+		game_per_show_data = server.db.metadata.tables["game_per_show_data"]
+		with server.db.engine.begin() as conn:
+			game_id = header['current_game']['id']
+			show_id = header['current_show']['id']
+			header['current_game']['display'], = conn.execute(sqlalchemy.select([
+				sqlalchemy.func.coalesce(game_per_show_data.c.display_name, games.c.name),
+			]).select_from(games
+				.outerjoin(game_per_show_data, (game_per_show_data.c.game_id == games.c.id) & (game_per_show_data.c.show_id == show_id))
+			).where(games.c.id == game_id)).first()
+
+			header['current_show']['name'], = conn.execute(sqlalchemy.select([
+				shows.c.name,
+			]).where(shows.c.id == show_id)).first()
+
+	if not header['is_live']:
+		header['next_stream'] = googlecalendar.get_next_event_text(googlecalendar.CALENDAR_LRL)
+
+	return flask.jsonify(header)
+
+@blueprint.route('/commands')
+async def get_commands():
+	return flask.jsonify(await common.rpc.bot.get_commands())

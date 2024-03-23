@@ -5,6 +5,8 @@ import irc.client
 
 from common import utils
 from common import command_parser
+from common.config import config
+from lrrbot.youtube_chat import YoutubeChatConnection
 
 log = logging.getLogger('command_parser')
 
@@ -23,6 +25,10 @@ class CommandParser(command_parser.CommandParser):
 			func(self.lrrbot)
 
 	def on_message(self, conn, event):
+		if isinstance(conn, YoutubeChatConnection) and event.tags['user-id'] == config['youtube_bot_id']:
+			# Ignore messages from ourselves.
+			return
+
 		source = irc.client.NickMask(event.source)
 		nick = source.nick.lower()
 

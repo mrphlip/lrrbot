@@ -95,13 +95,13 @@ gen_timestamp_funcs = {
 	TIMESTAMPS_LOCAL: gen_timestamp_local,
 }
 
-def chat_data(starttime, endtime, vidstart, timestamp_mode, twentyfour, secs, target="#loadingreadyrun"):
+def chat_data(starttime, endtime, vidstart, timestamp_mode, twentyfour, secs):
 	gen_timestamps = gen_timestamp_funcs[timestamp_mode]
 	fmt = ("%H" if twentyfour else "%I") + ":%M" + (":%S" if secs else "") + ("" if twentyfour else " %p")
 	log = server.db.metadata.tables["log"]
 	with server.db.engine.connect() as conn:
 		res = conn.execute(sqlalchemy.select(log.c.messagehtml, log.c.time)
-			.where((log.c.target == target) & log.c.time.between(starttime, endtime))
+			.where(log.c.time.between(starttime, endtime))
 			.order_by(log.c.time.asc()))
 		if gen_timestamps:
 			return [

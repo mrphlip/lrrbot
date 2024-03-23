@@ -26,6 +26,8 @@ data = {
 }
 """
 
+data = {}
+
 def load():
 	"""Read data from storage"""
 	global data
