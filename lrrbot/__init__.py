@@ -255,6 +255,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		log.debug("Message metadata: %r", metadata)
 		self.chatlog.log_chat(event, metadata)
 
+	@utils.swallow_errors
 	def check_message_tags(self, conn, event):
 		"""
 		Whenever a user says something, update database to have the latest version of user metadata.
@@ -361,7 +362,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 			if user_id is not None:
 				accounts = db_conn.execute(
-					sqlalchemy.select(accounts.c.provider, accounts.c.is_sub)
+					sqlalchemy.select(accounts.c.provider, accounts.c.is_sub, accounts.c.is_mod)
 					.where(accounts.c.user_id == user_id)
 				).all()
 				tags['subscriber_anywhere'] = any(account.is_sub for account in accounts)
