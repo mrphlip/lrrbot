@@ -515,7 +515,7 @@ class YoutubeChat:
 		mod = message['authorDetails']
 		same_user = self.last_ban.get(chat_id) == user['channelId']
 		if message['snippet']['userBannedDetails']['banType'] == 'temporary':
-			duration = datetime.timedelta(seconds=message['snippet']['userBannedDetails']['banDurationSeconds'])
+			duration = datetime.timedelta(seconds=int(message['snippet']['userBannedDetails']['banDurationSeconds']))
 			if not same_user:
 				message = f"[YT] {user['displayName']} was timed out for {time.nice_duration(duration, 0)} by {mod['displayName']}."
 			else:
