@@ -80,7 +80,7 @@ async def edit(session, command_id):
 async def save(session):
 	command_id = int(flask.request.values['command_id'])
 	access = int(flask.request.values["access"])
-	alias = [" ".join(i.split()) for i in flask.request.values.getlist("alias")]
+	alias = [" ".join(i.lower().split()) for i in flask.request.values.getlist("alias")]
 	alias = [i for i in alias if i]
 	response = [i for i in flask.request.values.getlist("response") if i.strip()]
 

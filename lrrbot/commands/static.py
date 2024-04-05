@@ -1,7 +1,6 @@
 import itertools
 import logging
 import aiomas
-import random
 import re
 import irc.client
 import sqlalchemy
@@ -22,6 +21,7 @@ def _get_command_id(bot, conn, command):
 	if isinstance(command, int):
 		return command
 	else:
+		command = " ".join(command.lower().split())
 		aliases = bot.metadata.tables["commands_aliases"]
 		query = sqlalchemy.select(aliases.c.command_id).where(aliases.c.alias == command)
 		return conn.execute(query).scalar()
@@ -84,7 +84,6 @@ def static_response(bot, conn, event, respond_to, command):
 	commands = bot.metadata.tables["commands"]
 
 	with bot.engine.connect() as dbconn:
-		command = " ".join(command.split())
 		command_id = _get_command_id(bot, dbconn, command)
 		if command_id is None:
 			return
