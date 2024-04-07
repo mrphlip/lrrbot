@@ -5,6 +5,7 @@ import datetime
 import logging
 import functools
 import asyncio
+import re
 
 import irc.bot
 import irc.client
@@ -449,6 +450,33 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			return self.show_id
 		return self.show_override
 
+	def find_show(self, twitch_title):
+		"""
+			Twitch's title has been updated, find the current show
+		"""
+		shows = self.metadata.tables["shows"]
+		with self.engine.connect() as conn:
+			show_list = conn.execute(sqlalchemy.select(shows.c.id, shows.c.rule))
+			if show_list is None:
+				# Couldn't get the show list for some reason. Not critical, bail early.
+				return False
+			foundmatch = 0
+			foundshow = ""
+			for show in show_list:
+				# might want to pre-cache these, like we do with the spam list.
+				if show.rule:
+					matches = re.compile(show.rule).search(twitch_title)
+					if matches:
+						foundmatch += 1
+						foundshow = show.id
+			# Update if there's only one match. Less means we didn't find it, more means there's some confusion
+			if foundmatch == 1:
+				self.set_show(self, foundshow)
+				return True
+			else:
+				return False
+	
+	
 	def set_show(self, string_id):
 		"""
 			Set current show.

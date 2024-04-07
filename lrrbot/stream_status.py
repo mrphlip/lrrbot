@@ -14,6 +14,7 @@ class StreamStatus:
 
 		self.handle = None
 		self.was_live = None
+		self.old_title = ""
 		self.schedule()
 
 	def reschedule(self):
@@ -33,6 +34,12 @@ class StreamStatus:
 	async def check_stream(self):
 		log.debug("Checking stream")
 		data = await twitch.get_info(use_fallback=False)
+		if self.old_title != data['title']:
+			log.debug("Title changed, parsing for show information")
+			self.old_title = data['title']
+			if self.find_show(self, data['title']):
+				self.show_override = None
+		
 		is_live = bool(data and data['live'])
 		if self.was_live is None:
 			self.was_live = is_live
