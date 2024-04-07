@@ -38,7 +38,7 @@ class StreamStatus:
 			log.debug("Title changed, parsing for show information")
 			self.old_title = data['title']
 			if self.lrrbot.find_show(data['title']):
-				self.show_override = None
+				self.lrrbot.override_show(None)
 		
 		is_live = bool(data and data['live'])
 		if self.was_live is None:
