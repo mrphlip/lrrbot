@@ -456,24 +456,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		"""
 		shows = self.metadata.tables["shows"]
 		with self.engine.connect() as conn:
-			show_list = conn.execute(sqlalchemy.select(shows.c.id, shows.c.rule))
-			if show_list is None:
-				# Couldn't get the show list for some reason. Not critical, bail early.
-				return False
-			foundmatch = 0
-			foundshow = ""
-			for show in show_list:
-				# might want to pre-cache these, like we do with the spam list.
-				if show.rule:
-					matches = re.compile(show.rule).search(twitch_title)
-					if matches:
-						foundmatch += 1
-						foundshow = show.id
-			# Update if there's only one match. Less means we didn't find it, more means there's some confusion
-			if foundmatch == 1:
-				self.set_show(self, foundshow)
+			try:
+				self.show_id = conn.execute(sqlalchemy.select(shows.c.id).where(sqlalchemy.func.regexp_match(twitch_title, shows.c.rule) != None)).scalar_one()
 				return True
-			else:
+			except (sqlalchemy.exc.NoResultFound, sqlalchemy.exc.MultipleResultsFound):
 				return False
 	
 	
