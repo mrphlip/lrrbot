@@ -17,8 +17,8 @@ def upgrade():
 	)
 
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	notification = meta.tables['notification']
 
 	notifications = conn.execute(sqlalchemy.select(
@@ -73,8 +73,8 @@ def downgrade():
 	alembic.op.create_index("notification_idx1", "notification", ["eventtime"])
 
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	events = meta.tables['events']
 
 	all_events = conn.execute(sqlalchemy.select(events.c.event, events.c.data, events.c.time).where(events.c.event.in_({'notification', 'twitch-subscriber'})))

@@ -8,8 +8,8 @@ import sqlalchemy
 
 def upgrade():
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	game_stats = meta.tables["game_stats"]
 	shows = meta.tables["shows"]
 
@@ -26,8 +26,8 @@ def upgrade():
 
 def downgrade():
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	game_stats = meta.tables["game_stats"]
 	stats = meta.tables["stats"]
 

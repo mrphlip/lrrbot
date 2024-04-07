@@ -37,8 +37,8 @@ def upgrade():
 
 def downgrade():
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 
 	storm = meta.tables['storm']
 	row = conn.execute(sqlalchemy.select(storm.c.date, storm.c['twitch-subscription'])).first()

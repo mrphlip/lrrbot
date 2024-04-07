@@ -10,8 +10,8 @@ from sqlalchemy.schema import Sequence, CreateSequence, DropSequence
 def upgrade():
 	# Create an auto-increment sequence for cards.id
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	cards = meta.tables['cards']
 	# This table already has a (not-previously-used) auto-increment sequence in
 	# the production DB, but new DBs created from scratch via the alembic setup

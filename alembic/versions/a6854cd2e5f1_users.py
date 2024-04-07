@@ -42,7 +42,7 @@ def upgrade():
 	names = list(names)
 	users = []
 	with requests.Session() as session:
-		req = session.post('https://id.twitch.tv/oauth/token', params={
+		req = session.post('https://id.twitch.tv/oauth2/token', params={
 			'client_id': clientid,
 			'client_secret': clientsecret,
 			'grant_type': 'client_credentials',
@@ -84,8 +84,8 @@ def upgrade():
 
 def downgrade():
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	users = meta.tables["users"]
 
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")

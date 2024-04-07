@@ -22,13 +22,16 @@ CHUNK_SIZE = 100
 def upgrade():
 	conn = alembic.op.get_bind()
 	for old, new in RENAMES.items():
-		conn.execute("UPDATE history SET changeuser = %s WHERE changeuser = %s", new, old)
+		conn.execute(sqlalchemy.text("UPDATE history SET changeuser = :new WHERE changeuser = :old"), {
+			'new': new,
+			'old': old,
+		})
 
 	clientid = alembic.context.config.get_section_option("lrrbot", "twitch_clientid")
 	clientsecret = alembic.context.config.get_section_option("lrrbot", "twitch_clientsecret")
 
 	# Find missing users
-	names = [nick for nick, in conn.execute("""
+	names = [nick for nick, in conn.execute(sqlalchemy.text("""
 		(
 			SELECT nick as name FROM highlights
 			UNION
@@ -36,10 +39,10 @@ def upgrade():
 		)
 		EXCEPT
 		SELECT name FROM users
-	""")]
+	"""))]
 	users = []
 	with requests.Session() as session:
-		req = session.post('https://id.twitch.tv/oauth/token', params={
+		req = session.post('https://id.twitch.tv/oauth2/token', params={
 			'client_id': clientid,
 			'client_secret': clientsecret,
 			'grant_type': 'client_credentials',
@@ -56,7 +59,7 @@ def upgrade():
 					headers={'Client-ID': clientid, 'Authentication': f'Bearer {token}'})
 				req.raise_for_status()
 				for user in req.json()['data']:
-					alembic.op.execute("INSERT INTO users (id, name, display_name) VALUES (%(id)s, %(login)s, %(display_name)s)", user)
+					conn.execute(sqlalchemy.text("INSERT INTO users (id, name, display_name) VALUES (:id, :login, :display_name)"), user)
 			except:
 				log.exception("Failed to fetch data for %r", chunk)
 				raise

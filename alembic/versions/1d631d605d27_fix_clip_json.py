@@ -9,8 +9,8 @@ import json
 
 def upgrade():
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	clips = meta.tables["clips"]
 
 	for clipid, clipjson in conn.execute(sqlalchemy.select(clips.c.id, clips.c.data)):
@@ -21,8 +21,8 @@ def upgrade():
 
 def downgrade():
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	clips = meta.tables["clips"]
 
 	for clipid, clipjson in conn.execute(sqlalchemy.select(clips.c.id, clips.c.data)):

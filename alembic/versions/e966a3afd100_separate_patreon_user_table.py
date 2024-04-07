@@ -33,8 +33,8 @@ def upgrade():
 
 	# TODO: migrate
 	conn = alembic.op.get_bind()
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	users = meta.tables["users"]
 	existing_accounts = conn.execute(sqlalchemy.select(users.c.id, users.c.patreon_access_token, users.c.patreon_refresh_token, users.c.patreon_token_expires)
 		.where(users.c.patreon_access_token.isnot(None)))
@@ -94,8 +94,8 @@ def downgrade():
 	alembic.op.add_column("users", sqlalchemy.Column("patreon_token_expires", sqlalchemy.DateTime(timezone=True)))
 
 	conn = alembic.op.get_bind()
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	users = meta.tables["users"]
 	patreon_users = meta.tables["patreon_users"]
 	alembic.op.execute(users.update().where(users.c.patreon_id == patreon_users.c.id)).values({

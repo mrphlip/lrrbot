@@ -15,8 +15,8 @@ log = logging.getLogger("affc03cb46f5_game_data")
 
 def upgrade():
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 	users = meta.tables["users"]
 	all_users = dict(conn.execute(sqlalchemy.select(users.c.name, users.c.id)).fetchall())
 
@@ -116,9 +116,9 @@ def upgrade():
 		for game_id, game in show.get("games", {}).items():
 			game_id = parse_id(game_id) or parse_id(game.get("id"))
 			if game_id is None:
-				conn.execute("INSERT INTO games (name) VALUES (%(name)s) ON CONFLICT (name) DO NOTHING", {"name": game["name"]})
+				conn.execute(sqlalchemy.text("INSERT INTO games (name) VALUES (:name) ON CONFLICT (name) DO NOTHING"), {"name": game["name"]})
 			else:
-				conn.execute("""
+				conn.execute(sqlalchemy.text("""
 					INSERT INTO games (
 						id,
 						name
@@ -127,7 +127,7 @@ def upgrade():
 						%(name)s
 					) ON CONFLICT (name) DO UPDATE SET
 						id = EXCLUDED.id
-				""", {"id": game_id, "name": game["name"]})
+				"""), {"id": game_id, "name": game["name"]})
 	all_games = dict(conn.execute(sqlalchemy.select(games.c.name, games.c.id)).fetchall())
 
 	# game_per_show_data
@@ -159,7 +159,7 @@ def upgrade():
 	# game_votes
 	all_votes = []
 	with requests.Session() as session:
-		req = session.post('https://id.twitch.tv/oauth/token', params={
+		req = session.post('https://id.twitch.tv/oauth2/token', params={
 			'client_id': clientid,
 			'client_secret': clientsecret,
 			'grant_type': 'client_credentials',
@@ -250,8 +250,8 @@ def upgrade():
 
 def downgrade():
 	conn = alembic.context.get_context().bind
-	meta = sqlalchemy.MetaData(bind=conn)
-	meta.reflect()
+	meta = sqlalchemy.MetaData()
+	meta.reflect(conn)
 
 	datafile = alembic.context.config.get_section_option("lrrbot", "datafile", "data.json")
 	try:
