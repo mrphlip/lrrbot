@@ -1,6 +1,5 @@
 import datetime
 import functools
-import json
 import secrets
 import uuid
 
@@ -12,42 +11,13 @@ from sqlalchemy.dialects.postgresql import insert
 
 import www.utils
 from common.account_providers import ACCOUNT_PROVIDER_TWITCH, ACCOUNT_PROVIDER_YOUTUBE
+from common.twitch import REQUEST_SCOPES as TWITCH_REQUEST_SCOPES, SPECIAL_USERS as TWITCH_SPECIAL_USERS
 from www import server
 from common.config import config, from_apipass
 from common import utils, youtube
 from common import http
 from common import googlecalendar
 import common.rpc
-
-# See https://dev.twitch.tv/docs/v5/guides/authentication/#scopes
-# We don't actually need, or want, any at present
-TWITCH_REQUEST_SCOPES = []
-
-TWITCH_SPECIAL_USERS = {}
-TWITCH_SPECIAL_USERS.setdefault(config["username"], list(TWITCH_REQUEST_SCOPES)).extend([
-	'chat_login',
-	'user_read',
-	'user_follows_edit',
-	'channel:moderate',
-	'chat:edit',
-	'chat:read',
-	'moderator:manage:banned_users',
-	'moderator:read:chatters',
-	'moderator:read:followers',
-	'user:read:follows',
-	'user:manage:whispers',
-	'whispers:edit',
-	'whispers:read',
-])
-TWITCH_SPECIAL_USERS.setdefault(config["channel"], list(TWITCH_REQUEST_SCOPES)).extend([
-	'channel_subscriptions',
-	'channel:read:subscriptions',
-])
-# hard-coded user for accessing Desert Bus mod actions
-# cf lrrbot.desertbus_moderator_actions
-TWITCH_SPECIAL_USERS.setdefault('mrphlip', list(TWITCH_REQUEST_SCOPES)).extend([
-	'channel:moderate',
-])
 
 # See https://developers.google.com/identity/protocols/oauth2/scopes#youtube
 YOUTUBE_DEFAULT_SCOPES = [

@@ -10,7 +10,9 @@ import irc.bot
 import irc.client
 import irc.connection
 import sqlalchemy
+from blinker import Signal
 from sqlalchemy.dialects.postgresql import insert
+from twitchAPI.eventsub.websocket import EventSubWebsocket
 
 from common import game_data
 from common import postgres
@@ -19,8 +21,8 @@ from common import twitch
 from common import utils
 from common import youtube
 from common.config import config
-from common.account_providers import ACCOUNT_PROVIDER_TWITCH, ACCOUNT_PROVIDER_PATREON, ACCOUNT_PROVIDER_YOUTUBE
 from common.pubsub import PubSub
+from common.account_providers import ACCOUNT_PROVIDER_TWITCH, ACCOUNT_PROVIDER_YOUTUBE
 
 from lrrbot import asyncreactor
 from lrrbot import cardviewer
@@ -39,7 +41,6 @@ from lrrbot import systemd
 from lrrbot import twitchcheer
 from lrrbot import twitchfollows
 from lrrbot import twitchnotify
-from lrrbot import video_playback
 from lrrbot import whisper
 from lrrbot import youtube_chat
 
@@ -102,6 +103,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.reactor.add_global_handler('reconnect', self.disconnect)
 
+		self.started_signal = Signal()
+
 		self.service = systemd.Service(loop)
 
 		if config['whispers']:
@@ -141,6 +144,9 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.pubsub = PubSub(self.engine, self.metadata, loop)
 
+		self.twitch = loop.run_until_complete(twitch.get_twitchapi_instance(config['username']))
+		self.eventsub = EventSubWebsocket(self.twitch)
+
 		self.desertbus_moderator_actions = desertbus_moderator_actions.ModeratorActions(self, loop)
 		self.join_filter = join_filter.JoinFilter(self, loop)
 		self.link_spam = linkspam.LinkSpam(self, loop)
@@ -150,7 +156,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.twitchnotify = twitchnotify.TwitchNotify(self, loop)
 		self.twitchcheer = twitchcheer.TwitchCheer(self, loop)
 		self.twitchfollows = twitchfollows.TwitchFollows(self, loop)
-		self.video_playback = video_playback.VideoPlayback(self, loop)
 
 		if config['youtube_chat_enabled']:
 			self.youtube_chat = youtube_chat.YoutubeChat(self, loop)
@@ -169,6 +174,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		# Start background tasks
 		chatlogtask = asyncio.ensure_future(self.chatlog.run_task(), loop=self.loop)
+		self.eventsub.start()
 
 		self._connect()
 
@@ -176,10 +182,13 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.connection.buffer.errors = "replace"
 
 		try:
+			self.loop.run_until_complete(self.started_signal.send_async(self))
+
 			self.loop.run_forever()
 		finally:
 			log.info("Bot shutting down...")
 			self.pubsub.close()
+			self.loop.run_until_complete(self.eventsub.stop())
 			self.loop.run_until_complete(self.rpc_server.close())
 			self.chatlog.stop_task()
 			tasks_waiting = [chatlogtask]

@@ -2,6 +2,8 @@ import json
 import sqlalchemy
 from sqlalchemy.dialects.postgresql import insert
 import collections
+from twitchAPI.twitch import Twitch
+from twitchAPI.type import AuthScope
 
 import common.http
 from common import utils
@@ -10,6 +12,37 @@ from common.config import config
 from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 
 GAME_CHECK_INTERVAL = 5*60
+
+# See https://dev.twitch.tv/docs/v5/guides/authentication/#scopes
+# We don't actually need, or want, any at present
+REQUEST_SCOPES = []
+
+SPECIAL_USERS = {}
+SPECIAL_USERS.setdefault(config["username"], list(REQUEST_SCOPES)).extend([
+	'chat_login',
+	'user_read',
+	'user_follows_edit',
+	'channel:moderate',
+	'chat:edit',
+	'chat:read',
+	'moderator:manage:banned_users',
+	'moderator:read:chatters',
+	'moderator:read:followers',
+	'user:read:follows',
+	'user:manage:whispers',
+	'whispers:edit',
+	'whispers:read',
+])
+SPECIAL_USERS.setdefault(config["channel"], list(REQUEST_SCOPES)).extend([
+	'channel_subscriptions',
+	'channel:read:subscriptions',
+])
+# hard-coded user for accessing Desert Bus mod actions
+# cf lrrbot.desertbus_moderator_actions
+SPECIAL_USERS.setdefault('mrphlip', list(REQUEST_SCOPES)).extend([
+	'channel:moderate',
+])
+
 
 User = collections.namedtuple('User', ['id', 'name', 'display_name', 'token'])
 async def get_user(id=None, name=None, get_missing=True):
@@ -384,3 +417,36 @@ async def get_number_of_chatters(channel=None, user=None):
 	data = await common.http.request(url, data=data, headers=headers)
 
 	return json.loads(data)["total"]
+
+async def get_twitchapi_instance(username: str) -> Twitch:
+	engine, metadata = postgres.get_engine_and_metadata()
+	accounts = metadata.tables["accounts"]
+	with engine.connect() as conn:
+		query = sqlalchemy.select(accounts.c.access_token, accounts.c.refresh_token) \
+			.where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH) \
+			.where(accounts.c.name == username)
+		row = conn.execute(query).one()
+
+	if row.access_token is None:
+		raise ValueError("Twitch account is not logged in")
+
+	async def refresh_callback(token, refresh_token):
+		with engine.connect() as conn:
+			conn.execute(accounts.update().where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH).where(accounts.c.name == username), {
+				"access_token": token,
+				"refresh_token": refresh_token,
+			})
+
+	scopes = []
+	for scope in SPECIAL_USERS.get(username, REQUEST_SCOPES):
+		try:
+			scopes.append(AuthScope[scope])
+		except KeyError:
+			pass
+
+	twitch = Twitch(config['twitch_clientid'], config['twitch_clientsecret'])
+	twitch.auto_refresh_auth = bool(row.refresh_token)
+	twitch.refresh_callback = refresh_callback
+	await twitch.set_user_authentication(row.access_token, scopes, row.refresh_token)
+
+	return twitch
