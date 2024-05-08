@@ -1,9 +1,8 @@
-import asyncio
 import logging
 
+from common.config import config
 from common import twitch
 from common import rpc
-from common import utils
 
 log = logging.getLogger(__name__)
 
@@ -12,38 +11,22 @@ class StreamStatus:
 		self.lrrbot = lrrbot
 		self.loop = loop
 
-		self.handle = None
-		self.was_live = None
-		self.schedule()
+		self.lrrbot.started_signal.connect(self.subscribe)
 
-	def reschedule(self):
-		if self.handle is not None:
-			self.handle.cancel()
-			self.handle = None
-		self.start_check_stream()
+	async def subscribe(self, sender):
+		channel = await twitch.get_user(name=config['channel'])
+		await self.lrrbot.eventsub.listen_stream_online(channel.id, self.stream_online)
+		await self.lrrbot.eventsub.listen_stream_offline(channel.id, self.stream_offline)
 
-	def schedule(self):
-		if self.handle is None:
-			self.handle = self.loop.call_later(twitch.GAME_CHECK_INTERVAL, self.start_check_stream)
+	async def stream_online(self, event):
+		log.debug("Stream is now live")
 
-	def start_check_stream(self):
-		self.handle = None
-		asyncio.ensure_future(self.check_stream(), loop=self.loop).add_done_callback(utils.check_exception)
+		twitch.get_info.reset_throttle()
+		self.lrrbot.get_game_id.reset_throttle()
 
-	async def check_stream(self):
-		log.debug("Checking stream")
-		data = await twitch.get_info(use_fallback=False)
-		is_live = bool(data and data['live'])
-		if self.was_live is None:
-			self.was_live = is_live
-		elif is_live and not self.was_live:
-			log.debug("Stream is now live")
-			self.was_live = True
-			await rpc.eventserver.event('stream-up', {}, None)
-			await rpc.eris.announcements.stream_up(data)
-		elif not is_live and self.was_live:
-			log.debug("Stream is now offline")
-			self.was_live = False
-			await rpc.eventserver.event('stream-down', {}, None)
+		await rpc.eventserver.event('stream-up', {}, None)
+		await rpc.eris.announcements.stream_up()
 
-		self.schedule()
+	async def stream_offline(self, event):
+		log.debug("Stream is now offline")
+		await rpc.eventserver.event('stream-down', {}, None)

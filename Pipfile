@@ -27,6 +27,7 @@ Jinja2 = "*"
 SQLAlchemy = {extras = ["postgresql"], version = "*"}
 confusables = "*"
 html2text = "*"
+twitchapi = "*"
 
 [requires]
 python_version = "3.11"
