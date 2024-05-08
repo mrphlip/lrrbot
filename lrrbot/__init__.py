@@ -16,6 +16,7 @@ from twitchAPI.eventsub.websocket import EventSubWebsocket
 
 from common import game_data
 from common import postgres
+from common import slack
 from common import state
 from common import twitch
 from common import utils
@@ -492,6 +493,36 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 				if show_id is None:
 					raise KeyError(string_id)
 				self.show_override, = show_id
+
+	async def on_stream_online(self):
+		twitch.get_info.reset_throttle()
+		self.get_game_id.reset_throttle()
+
+		slack_message = None
+
+		data = await twitch.get_info()
+
+		shows = self.metadata.tables["shows"]
+		with self.engine.connect() as conn:
+			string_id = conn.execute(sqlalchemy.select(shows.c.string_id).where(shows.c.id == self.show_id)).scalar_one_or_none()
+			if string_id != "":
+				# Show has been set so something already, assume it's correct.
+				return
+
+			try:
+				self.show_id = conn.execute(sqlalchemy.select(shows.c.id).where(sqlalchemy.func.regexp_like(data["title"], shows.c.pattern, 'i'))).scalar_one()
+			except sqlalchemy.exc.NoResultFound:
+				slack_message = "Failed to determine the show from stream title: no results found"
+			except sqlalchemy.exc.MultipleResultsFound:
+				slack_message = "Failed to determine the show from stream title: multiple results found"
+
+		if slack_message is not None:
+			await slack.send_message(slack_message, attachments=[{"text": slack.escape(data["title"])}])
+
+	async def on_stream_offline(self):
+		self.override_game(None)
+		self.override_show(None)
+		self.set_show("")
 
 	def is_mod(self, event):
 		"""Check whether the source of the event has mod privileges for the bot, or for the channel"""

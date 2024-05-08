@@ -21,12 +21,14 @@ class StreamStatus:
 	async def stream_online(self, event):
 		log.debug("Stream is now live")
 
-		twitch.get_info.reset_throttle()
-		self.lrrbot.get_game_id.reset_throttle()
+		await self.lrrbot.on_stream_online()
 
 		await rpc.eventserver.event('stream-up', {}, None)
 		await rpc.eris.announcements.stream_up()
 
 	async def stream_offline(self, event):
 		log.debug("Stream is now offline")
+
+		await self.lrrbot.on_stream_offline()
+
 		await rpc.eventserver.event('stream-down', {}, None)
