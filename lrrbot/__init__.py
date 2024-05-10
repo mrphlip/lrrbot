@@ -12,7 +12,6 @@ import irc.connection
 import sqlalchemy
 from blinker import Signal
 from sqlalchemy.dialects.postgresql import insert
-from twitchAPI.eventsub.websocket import EventSubWebsocket
 
 from common import game_data
 from common import postgres
@@ -22,6 +21,7 @@ from common import twitch
 from common import utils
 from common import youtube
 from common.config import config
+from common.eventsub import EventSub
 from common.pubsub import PubSub
 from common.account_providers import ACCOUNT_PROVIDER_TWITCH, ACCOUNT_PROVIDER_YOUTUBE
 
@@ -145,8 +145,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.pubsub = PubSub(self.engine, self.metadata, loop)
 
-		self.twitch = loop.run_until_complete(twitch.get_twitchapi_instance(config['username']))
-		self.eventsub = EventSubWebsocket(self.twitch, callback_loop=loop)
+		self.eventsub = EventSub(loop)
 
 		self.desertbus_moderator_actions = desertbus_moderator_actions.ModeratorActions(self, loop)
 		self.join_filter = join_filter.JoinFilter(self, loop)

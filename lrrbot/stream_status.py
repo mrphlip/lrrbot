@@ -1,8 +1,9 @@
 import logging
 
 from common.config import config
-from common import twitch
+from common import eventsub
 from common import rpc
+from common import twitch
 
 log = logging.getLogger(__name__)
 
@@ -11,12 +12,13 @@ class StreamStatus:
 		self.lrrbot = lrrbot
 		self.loop = loop
 
-		self.lrrbot.started_signal.connect(self.subscribe)
+		self.lrrbot.eventsub.connected.connect(self.subscribe)
 
-	async def subscribe(self, sender):
+	async def subscribe(self, session: eventsub.Session):
 		channel = await twitch.get_user(name=config['channel'])
-		await self.lrrbot.eventsub.listen_stream_online(channel.id, self.stream_online)
-		await self.lrrbot.eventsub.listen_stream_offline(channel.id, self.stream_offline)
+		condition = {"broadcaster_user_id": channel.id}
+		await session.listen("stream.online", "1", condition, channel.id, self.stream_online)
+		await session.listen("stream.offline", "1", condition, channel.id, self.stream_offline)
 
 	async def stream_online(self, event):
 		log.debug("Stream is now live")
