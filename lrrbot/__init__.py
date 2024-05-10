@@ -146,7 +146,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.pubsub = PubSub(self.engine, self.metadata, loop)
 
 		self.twitch = loop.run_until_complete(twitch.get_twitchapi_instance(config['username']))
-		self.eventsub = EventSubWebsocket(self.twitch)
+		self.eventsub = EventSubWebsocket(self.twitch, callback_loop=loop)
 
 		self.desertbus_moderator_actions = desertbus_moderator_actions.ModeratorActions(self, loop)
 		self.join_filter = join_filter.JoinFilter(self, loop)
