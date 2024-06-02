@@ -81,7 +81,8 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		)
 		if config['secure']:
 			import ssl
-			connect_factory = irc.connection.Factory(wrapper=ssl.wrap_socket)
+			context = ssl.create_default_context()
+			connect_factory = irc.connection.Factory(wrapper=lambda socket: context.wrap_socket(socket, server_hostname=config['hostname']))
 		else:
 			connect_factory = irc.connection.Factory()
 		super(LRRBot, self).__init__(
