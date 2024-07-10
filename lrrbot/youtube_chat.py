@@ -210,6 +210,10 @@ class YoutubeChat:
 			{'key': 'user-id', 'value': message['authorDetails']['channelId']},
 		]
 
+	def log_chat(self, event):
+		self.lrrbot.check_message_tags(self.connection, event)
+		self.lrrbot.log_chat(self.connection, event)
+
 	async def on_chat_message(self, chat_id, message):
 		"""
 		A user has sent a text message.
@@ -254,7 +258,7 @@ class YoutubeChat:
 			f"Thanks for becoming a channel member, {data['name']}! (Today's storm count: {storm_count})",
 		)
 
-		self.lrrbot.log_chat(self.connection, irc.client.Event(
+		self.log_chat(irc.client.Event(
 			'pubmsg',
 			config['notifyuser'],
 			CHANNEL_PREFIX + chat_id,
@@ -290,7 +294,7 @@ class YoutubeChat:
 			f"Thanks for being a channel member, {data['name']}! (Today's storm count: {storm_count})",
 		)
 
-		self.lrrbot.log_chat(self.connection, irc.client.Event(
+		self.log_chat(irc.client.Event(
 			'pubmsg',
 			config['notifyuser'],
 			CHANNEL_PREFIX + chat_id,
@@ -298,7 +302,7 @@ class YoutubeChat:
 			self.message_tags(message),
 		))
 		if data['message']:
-			self.lrrbot.log_chat(self.connection, irc.client.Event(
+			self.log_chat(irc.client.Event(
 				'pubmsg',
 				message['authorDetails']['channelId'],
 				CHANNEL_PREFIX + chat_id,
@@ -327,7 +331,7 @@ class YoutubeChat:
 		# Eventually send out the notification even if we don't get all the `giftMembershipReceivedEvent`s.
 		self.loop.call_later(GIFT_CLEANUP_INTERVAL, self.clean_gift, chat_id, message['id'])
 
-		self.lrrbot.log_chat(self.connection, irc.client.Event(
+		self.log_chat(irc.client.Event(
 			'pubmsg',
 			config['notifyuser'],
 			CHANNEL_PREFIX + chat_id,
@@ -366,7 +370,7 @@ class YoutubeChat:
 		if len(self.pending_gifts[gift_id]['members']) >= self.pending_gifts[gift_id]['count']:
 			await self.on_member_gift_end(chat_id, gift_id)
 
-		self.lrrbot.log_chat(self.connection, irc.client.Event(
+		self.log_chat(irc.client.Event(
 			'pubmsg',
 			config['notifyuser'],
 			CHANNEL_PREFIX + chat_id,
@@ -415,7 +419,7 @@ class YoutubeChat:
 
 		await common.rpc.eventserver.event('youtube-super-chat', data, time)
 
-		self.lrrbot.log_chat(self.connection, irc.client.Event(
+		self.log_chat(irc.client.Event(
 			'pubmsg',
 			config['notifyuser'],
 			CHANNEL_PREFIX + chat_id,
