@@ -251,7 +251,7 @@ class YoutubeChat:
 		storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
 		await youtube.send_chat_message(
 			config['youtube_bot_id'], chat_id,
-			f":_lrrSpot: Thanks for becoming a channel member, {data['name']}! (Today's storm count: {storm_count})",
+			f"Thanks for becoming a channel member, {data['name']}! (Today's storm count: {storm_count})",
 		)
 
 		self.lrrbot.log_chat(self.connection, irc.client.Event(
@@ -287,7 +287,7 @@ class YoutubeChat:
 		storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
 		await youtube.send_chat_message(
 			config['youtube_bot_id'], chat_id,
-			f":_lrrSpot: Thanks for being a channel member, {data['name']}! (Today's storm count: {storm_count})",
+			f"Thanks for being a channel member, {data['name']}! (Today's storm count: {storm_count})",
 		)
 
 		self.lrrbot.log_chat(self.connection, irc.client.Event(
@@ -382,11 +382,11 @@ class YoutubeChat:
 		storm_count = common.storm.get_combined(self.lrrbot.engine, self.lrrbot.metadata)
 
 		if len(data['members']) == 1:
-			message = f":_lrrSpot: Thanks for the gift, {data['name']}! Welcome to {data['members'][0]['name']}! (Today's storm count: {storm_count})",
+			message = f"Thanks for the gift, {data['name']}! Welcome to {data['members'][0]['name']}! (Today's storm count: {storm_count})",
 		else:
-			message = f":_lrrSpot: Thanks for the gift, {data['name']}! Welcome to {', '.join(member['name'] for member in data['members'])}! (Today's storm count: {storm_count})"
+			message = f"Thanks for the gift, {data['name']}! Welcome to {', '.join(member['name'] for member in data['members'])}! (Today's storm count: {storm_count})"
 			if not youtube.check_message_length(message):
-				message = f":_lrrSpot: Thanks for the gift, {data['name']}! Welcome to all {len(data['members'])} recipients! (Today's storm count: {storm_count})"
+				message = f"Thanks for the gift, {data['name']}! Welcome to all {len(data['members'])} recipients! (Today's storm count: {storm_count})"
 
 		await youtube.send_chat_message(config['youtube_bot_id'], chat_id, message)
 
