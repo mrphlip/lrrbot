@@ -18,6 +18,8 @@ BROADCAST_CHECK_DELAY = 5 * 60
 # So the limit is 10_000 / 5 / 24 / 60 ≈ 1.4 requests/minute. Further limit it to one per minute because we have other
 # users of the API.
 MIN_POLL_DELAY = 60.0
+# The card viewer spams the chat with a lot of messages that eat up most of the quota.
+CARD_VIEWER_POLL_DELAY_MULTIPLIER = 5.0
 GIFT_CLEANUP_INTERVAL = 240
 PAGE_TOKEN_STATE_KEY = 'lrrbot.youtube_chat.%s.next_page_token'
 CHANNEL_PREFIX = '&youtube:'
@@ -135,7 +137,11 @@ class YoutubeChat:
 			else:
 				break
 
-			await asyncio.sleep(max(page.get('pollingIntervalMillis', 0) / 1000, MIN_POLL_DELAY * len(self.chats)))
+			poll_delay = MIN_POLL_DELAY * len(self.chats)
+			if self.lrrbot.cardview:
+				poll_delay *= CARD_VIEWER_POLL_DELAY_MULTIPLIER
+
+			await asyncio.sleep(max(page.get('pollingIntervalMillis', 0) / 1000, poll_delay))
 
 	async def process_chat(self, chat_id):
 		async for message in self.read_chat(chat_id):
