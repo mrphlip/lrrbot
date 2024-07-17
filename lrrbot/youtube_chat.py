@@ -15,9 +15,9 @@ log = logging.getLogger(__name__)
 
 BROADCAST_CHECK_DELAY = 5 * 60
 # The daily quota for the YouTube Data API is 10,000 units. Each `LiveChatMessages: list` is 5 units.
-# So the limit is 10_000 / 5 / 24 / 60 ≈ 1.4 requests/minute. Further limit it to one per minute because we have other
-# users of the API.
-MIN_POLL_DELAY = 60.0
+# So the limit is 10_000 / 5 / 24 / 60 ≈ 1.4 requests/minute. Further limit it to once every 75 seconds
+# so we stay under the 80% alert threshold.
+MIN_POLL_DELAY = 75.0
 # The card viewer spams the chat with a lot of messages that eat up most of the quota.
 CARD_VIEWER_POLL_DELAY_MULTIPLIER = 5.0
 GIFT_CLEANUP_INTERVAL = 240
