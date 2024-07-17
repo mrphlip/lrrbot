@@ -250,7 +250,9 @@ class TwitchNotify:
 			'remaining': subcount,
 			'subscribers': [],
 			'eventtime': eventtime,
+			'avatar': None,
 		}
+		self.multi_gifts[login] = data
 
 		if logo is None:
 			try:
@@ -264,8 +266,6 @@ class TwitchNotify:
 					data['avatar'] = channel_info['profile_image_url']
 		else:
 			data['avatar'] = logo
-
-		self.multi_gifts[login] = data
 
 	async def on_multi_gift_end(self, conn, channel, multi_gift):
 		event = "twitch-subscription-mysterygift"
