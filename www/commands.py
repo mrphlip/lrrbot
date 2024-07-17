@@ -68,9 +68,9 @@ async def edit(session, command_id):
 	with server.db.engine.connect() as conn:
 		query = sqlalchemy.select(commands.c.access).where(commands.c.id == command_id)
 		access = conn.execute(query).scalar()
-		query = sqlalchemy.select(aliases.c.alias).where(aliases.c.command_id == command_id)
+		query = sqlalchemy.select(aliases.c.alias).where(aliases.c.command_id == command_id).order_by(aliases.c.id)
 		alias = conn.execute(query).scalars().all()
-		query = sqlalchemy.select(responses.c.response).where(responses.c.command_id == command_id)
+		query = sqlalchemy.select(responses.c.response).where(responses.c.command_id == command_id).order_by(responses.c.id)
 		response = conn.execute(query).scalars().all()
 
 	return flask.render_template("commands_edit.html", command_id=command_id, access=access, aliases=alias, responses=response, session=session)
