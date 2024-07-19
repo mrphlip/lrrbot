@@ -43,5 +43,5 @@ class CardViewer:
 
 		self.lrrbot.connection.privmsg("#" + config['channel'], text)
 
-		if self.lrrbot.youtube_chat:
+		if self.lrrbot.youtube_chat and self.lrrbot.cardview_yt:
 			await self.lrrbot.youtube_chat.broadcast_message(text)

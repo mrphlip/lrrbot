@@ -55,6 +55,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 	access = state.Property("lrrbot.main.access", "all")
 	show_id = state.Property("lrrbot.main.show_id")
 	cardview = state.Property("lrrbot.main.cardview", False)
+	cardview_yt = state.Property("lrrbot.main.cardview_yt", False)
 
 	def __init__(self, loop):
 		self.engine, self.metadata = postgres.get_engine_and_metadata()

@@ -138,7 +138,7 @@ class YoutubeChat:
 				break
 
 			poll_delay = MIN_POLL_DELAY * len(self.chats)
-			if self.lrrbot.cardview:
+			if self.lrrbot.cardview_yt:
 				poll_delay *= CARD_VIEWER_POLL_DELAY_MULTIPLIER
 
 			await asyncio.sleep(max(page.get('pollingIntervalMillis', 0) / 1000, poll_delay))

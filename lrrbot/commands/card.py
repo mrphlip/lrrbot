@@ -8,17 +8,22 @@ from common.card import clean_text, CARD_GAME_MTG, CARD_GAME_KEYFORGE, CARD_GAME
 
 blueprint = Blueprint()
 
-@blueprint.command("cardview (on|off)")
+@blueprint.command("cardview (yt )?(on|off)")
 @lrrbot.decorators.mod_only
-def set_cardview(bot, conn, event, respond_to, setting):
+def set_cardview(bot, conn, event, respond_to, youtube, setting):
 	"""
 	Command: !cardview on
 	Command: !cardview off
+	Command: !cardview yt on
+	Command: !cardview yt off
 	Section: misc
 
 	Toggle showing details of Magic cards in the chat when they are scanned by the card recogniser (for AFK Magic streams).
 	"""
-	bot.cardview = (setting == "on")
+	if not youtube:
+		bot.cardview = (setting == "on")
+	bot.cardview_yt = (setting == "on")
+
 	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if bot.cardview else "disabled"))
 
 @blueprint.command("(?:card|mtg) (.+)")
