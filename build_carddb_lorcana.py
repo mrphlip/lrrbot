@@ -36,15 +36,16 @@ def main():
 		cur.execute("DELETE FROM cards WHERE game = %s", (CARD_GAME_LORCANA, ))
 		processed_cards = set()
 		for card in carddata['cards']:
-			if card['fullName'] not in processed_cards:
+			cleanedFullName = clean_text(card['fullName'])
+			if cleanedFullName not in processed_cards:
 				cur.execute("INSERT INTO cards (game, filteredname, name, text, hidden) VALUES (%s, %s, %s, %s, %s)", (
 					CARD_GAME_LORCANA,
-					clean_text(card['fullName']),
+					cleanedFullName,
 					card['fullName'],
 					get_card_description(card),
 					False,
 				))
-				processed_cards.add(card['fullName'])
+				processed_cards.add(cleanedFullName)
 	print("Finished updating Lorcana cards")
 
 def get_card_description(card):
