@@ -58,14 +58,8 @@ def get_card_description(card):
 		parts.append(card['type'])
 	if 'subtypes' in card:
 		parts.append(", ".join(card['subtypes']))
-	abilities_and_effects_parts = []
-	if 'abilities' in card:
-		abilities_and_effects_parts.extend(card['abilities'])
-	if 'effects' in card:
-		for effect in card['effects']:
-			abilities_and_effects_parts.append(f"{effect['name']} {effect['text']}")
-	if abilities_and_effects_parts:
-		parts.append(" / ".join(abilities_and_effects_parts))
+	if card['fullTextSections']:
+		parts.append(' / '.join(card['fullTextSections']).replace("\n", " "))
 
 	return " | ".join(parts)
 
