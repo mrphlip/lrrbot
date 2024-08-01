@@ -405,27 +405,12 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 			games = self.metadata.tables["games"]
 			with self.engine.connect() as conn:
-				game_data.lock_tables(conn, self.metadata)
-				old_id = conn.execute(sqlalchemy.select(games.c.id).where(games.c.name == game_name)).first()
-				if old_id is None:
-					query = insert(games)
-					query = query.on_conflict_do_update(index_elements=[games.c.id], set_={
-						"name": query.excluded.name,
-					})
-					conn.execute(query, {
-						"id": game_id,
-						"name": game_name
-					})
-				else:
-					old_id, = old_id
-					conn.execute(insert(games).on_conflict_do_nothing(index_elements=[games.c.id]), {
-						"id": game_id,
-						"name": "__LRRBOT_TEMP_GAME_%s__" % game_name,
-					})
-					game_data.merge_games(conn, self.metadata, old_id, game_id, game_id)
-					conn.execute(games.update().where(games.c.id == game_id), {
-						"name": game_name,
-					})
+				query = insert(games)
+				query = query.on_conflict_do_update(index_elements=[games.c.id], set_={"name": query.excluded.name})
+				conn.execute(query, {
+					"id": game_id,
+					"name": game_name
+				})
 				conn.commit()
 			return game_id
 		return self.game_override
@@ -441,17 +426,10 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		else:
 			games = self.metadata.tables["games"]
 			with self.engine.connect() as conn:
-				query = insert(games).returning(games.c.id)
-				# need to update to get the `id`
-				query = query.on_conflict_do_update(
-					index_elements=[games.c.name],
-					set_={
-						'name': query.excluded.name,
-					}
-				)
-				self.game_override, = conn.execute(query, {
-					"name": name,
-				}).first()
+				row = conn.execute(sqlalchemy.select(games.c.id).where(games.c.name == name)).first()
+				if not row:
+					row = conn.execute(sqlalchemy.insert(games).returning(games.c.id), {"name": name}).first()
+				self.game_override, = row
 				conn.commit()
 		self.get_game_id.reset_throttle()
 
