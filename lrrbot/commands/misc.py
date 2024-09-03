@@ -83,7 +83,7 @@ def spamcount(bot, conn, event, respond_to):
 		storage.data["spam"]["count"]))
 
 # When Desert Bus starts
-DESERTBUS_START = config["timezone"].localize(datetime.datetime(2023, 11, 11, 14, 0))
+DESERTBUS_START = config["timezone"].localize(datetime.datetime(2024, 11, 8, 15, 0))
 # When !desertbus should stop claiming the run is still active
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
