@@ -40,7 +40,7 @@ def format_quote(tag, qid, quote, name, date, context):
 		quote_msg += " [{date!s}]".format(date=date)
 	return quote_msg
 
-@blueprint.command("quote(?: (?:(game|show) (.+)|(?:(\d+)|(.+))))?")
+@blueprint.command(r"quote(?: (?:(game|show) (.+)|(?:(\d+)|(.+))))?")
 @lrrbot.decorators.sub_only
 @lrrbot.decorators.throttle(60, count=2)
 def quote(bot, conn, event, respond_to, meta_param, meta_value, qid, attrib):
@@ -84,7 +84,7 @@ def quote(bot, conn, event, respond_to, meta_param, meta_value, qid, attrib):
 	qid, quote, name, date, context = row
 	conn.privmsg(respond_to, format_quote("Quote", qid, quote, name, date, context))
 
-@blueprint.command("addquote(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+?)(?: ?\| ?([^\|]*))?")
+@blueprint.command(r"addquote(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+?)(?: ?\| ?([^\|]*))?")
 @lrrbot.decorators.mod_only
 async def addquote(bot, conn, event, respond_to, name, date, quote, context):
 	"""
@@ -118,7 +118,7 @@ async def addquote(bot, conn, event, respond_to, name, date, quote, context):
 
 	conn.privmsg(respond_to, format_quote("New quote", qid, quote, name, date, context))
 
-@blueprint.command("modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+?)(?: ?\| ?([^\|]*))?")
+@blueprint.command(r"modquote (\d+)(?: \((.+?)\))?(?: \[(.+?)\])? ([^\|]+?)(?: ?\| ?([^\|]*))?")
 @lrrbot.decorators.mod_only
 def modquote(bot, conn, event, respond_to, qid, name, date, quote, context):
 	"""
@@ -151,7 +151,7 @@ def modquote(bot, conn, event, respond_to, qid, name, date, quote, context):
 	else:
 		conn.privmsg(respond_to, "Could not modify quote.")
 
-@blueprint.command("delquote (\d+)")
+@blueprint.command(r"delquote (\d+)")
 @lrrbot.decorators.mod_only
 def delquote(bot, conn, event, respond_to, qid):
 	"""
@@ -170,7 +170,7 @@ def delquote(bot, conn, event, respond_to, qid):
 	else:
 		conn.privmsg(respond_to, "Could not find quote #{qid}.".format(qid=qid))
 
-@blueprint.command("findquote (.*)")
+@blueprint.command(r"findquote (.*)")
 @lrrbot.decorators.sub_only
 @lrrbot.decorators.throttle(60, count=2)
 def findquote(bot, conn, event, respond_to, query):

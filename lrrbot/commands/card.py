@@ -8,7 +8,7 @@ from common.card import clean_text, CARD_GAME_MTG, CARD_GAME_KEYFORGE, CARD_GAME
 
 blueprint = Blueprint()
 
-@blueprint.command("cardview (yt )?(on|off)")
+@blueprint.command(r"cardview (yt )?(on|off)")
 @lrrbot.decorators.mod_only
 def set_cardview(bot, conn, event, respond_to, youtube, setting):
 	"""
@@ -26,7 +26,7 @@ def set_cardview(bot, conn, event, respond_to, youtube, setting):
 
 	conn.privmsg(respond_to, "Card viewer %s" % ("enabled" if bot.cardview else "disabled"))
 
-@blueprint.command("(?:card|mtg) (.+)")
+@blueprint.command(r"(?:card|mtg) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
 def mtg_card_lookup(bot, conn, event, respond_to, search):
 	"""
@@ -38,7 +38,7 @@ def mtg_card_lookup(bot, conn, event, respond_to, search):
 	"""
 	real_card_lookup(bot, conn, event, respond_to, search, game=CARD_GAME_MTG)
 
-@blueprint.command("(?:kf|keyforge) (.+)")
+@blueprint.command(r"(?:kf|keyforge) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
 def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
@@ -50,7 +50,7 @@ def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_KEYFORGE)
 
-@blueprint.command("(?:pok[eé]mon|pok[eé]|pkmn|ptcg) (.+)")
+@blueprint.command(r"(?:pok[eé]mon|pok[eé]|pkmn|ptcg) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
 def pokemon_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
@@ -62,7 +62,7 @@ def pokemon_card_lookup(lrrbot, conn, event, respond_to, search):
 	"""
 	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_PTCG)
 
-@blueprint.command("(?:lorcana) (.+)")
+@blueprint.command(r"(?:lorcana) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
 def lorcana_card_lookup(bot, conn, event, respond_to, search):
 	"""

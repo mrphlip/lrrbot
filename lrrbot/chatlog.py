@@ -307,7 +307,7 @@ async def get_display_name(nick):
 	except Exception:
 		return nick
 
-re_just_words = re.compile("^\w+$")
+re_just_words = re.compile(r"^\w+$")
 @utils.cache(CACHE_EXPIRY)
 async def get_twitch_emotes():
 	"""

@@ -24,12 +24,12 @@ from lrrbot.commands.static import get_response
 blueprint = Blueprint()
 log = logging.getLogger('misc')
 
-@blueprint.command("test")
+@blueprint.command(r"test")
 @lrrbot.decorators.mod_only
 def test(bot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Test")
 
-@blueprint.command("storm(?:counts?)?")
+@blueprint.command(r"storm(?:counts?)?")
 @lrrbot.decorators.throttle()
 def stormcount(bot, conn, event, respond_to):
 	"""
@@ -62,7 +62,7 @@ def stormcount(bot, conn, event, respond_to):
 		youtube_super_sticker,
 	))
 
-@blueprint.command("spam(?:count)?")
+@blueprint.command(r"spam(?:count)?")
 @lrrbot.decorators.throttle()
 def spamcount(bot, conn, event, respond_to):
 	"""
@@ -87,7 +87,7 @@ DESERTBUS_START = config["timezone"].localize(datetime.datetime(2024, 11, 8, 15,
 # When !desertbus should stop claiming the run is still active
 DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
 
-@blueprint.command("next( .*)?")
+@blueprint.command(r"next( .*)?")
 @lrrbot.decorators.throttle()
 async def next(bot, conn, event, respond_to, timezone):
 	"""
@@ -107,7 +107,7 @@ async def next(bot, conn, event, respond_to, timezone):
 	else:
 		conn.privmsg(respond_to, message)
 
-@blueprint.command("(?:db ?count(?: |-)?down|db ?next|next ?db)( .*)?")
+@blueprint.command(r"(?:db ?count(?: |-)?down|db ?next|next ?db)( .*)?")
 @lrrbot.decorators.throttle()
 def desertbus(bot, conn, event, respond_to, timezone):
 	"""
@@ -138,7 +138,7 @@ def desertbus(bot, conn, event, respond_to, timezone):
 	else:
 		conn.privmsg(respond_to, "Desert Bus for Hope will return next year, start saving your donation money now!")
 
-@blueprint.command("nextfan( .*)?")
+@blueprint.command(r"nextfan( .*)?")
 @lrrbot.decorators.throttle()
 @lrrbot.decorators.private_reply_when_live
 async def nextfan(bot, conn, event, respond_to, timezone):
@@ -151,7 +151,7 @@ async def nextfan(bot, conn, event, respond_to, timezone):
 	message, _ = await googlecalendar.get_next_event_text(googlecalendar.CALENDAR_FAN, tz=timezone, include_current=True)
 	conn.privmsg(respond_to, message)
 
-@blueprint.command("time")
+@blueprint.command(r"time")
 @lrrbot.decorators.throttle()
 def time(bot, conn, event, respond_to):
 	"""
@@ -163,7 +163,7 @@ def time(bot, conn, event, respond_to):
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%l:%M %p"))
 
-@blueprint.command("time 24")
+@blueprint.command(r"time 24")
 @lrrbot.decorators.throttle()
 def time24(bot, conn, event, respond_to):
 	"""
@@ -175,7 +175,7 @@ def time24(bot, conn, event, respond_to):
 	now = datetime.datetime.now(config["timezone"])
 	conn.privmsg(respond_to, "Current moonbase time: %s" % now.strftime("%H:%M"))
 
-@blueprint.command("viewers")
+@blueprint.command(r"viewers")
 @lrrbot.decorators.throttle()
 async def viewers(bot, conn, event, respond_to):
 	"""
@@ -220,7 +220,7 @@ async def uptime_msg(stream_info=None, factor=1):
 		else:
 			return "The stream is not live."
 
-@blueprint.command("uptime")
+@blueprint.command(r"uptime")
 @lrrbot.decorators.throttle()
 async def uptime(bot, conn, event, respond_to):
 	"""
@@ -231,7 +231,7 @@ async def uptime(bot, conn, event, respond_to):
 	"""
 	conn.privmsg(respond_to, await uptime_msg())
 
-@blueprint.command("updog")
+@blueprint.command(r"updog")
 @lrrbot.decorators.throttle()
 async def updog(bot, conn, event, respond_to):
 	# intentionally not in help
@@ -284,7 +284,7 @@ async def get_status_msg(bot):
 async def send_status(bot, conn, target):
 	conn.privmsg(target, await get_status_msg(bot))
 
-@blueprint.command("status")
+@blueprint.command(r"status")
 async def status(bot, conn, event, respond_to):
 	"""
 	Command: !status
@@ -297,7 +297,7 @@ async def status(bot, conn, event, respond_to):
 	source = irc.client.NickMask(event.source)
 	await send_status(bot, conn, source.nick)
 
-@blueprint.command("auto(?: |-)?status")
+@blueprint.command(r"auto(?: |-)?status")
 def autostatus_check(bot, conn, event, respond_to):
 	"""
 	Command: !autostatus
@@ -318,7 +318,7 @@ def autostatus_check(bot, conn, event, respond_to):
 	else:
 		conn.privmsg(source.nick, "Auto-status is disabled. Enable it with: !autostatus on")
 
-@blueprint.command("auto(?: |-)?status (on|off)")
+@blueprint.command(r"auto(?: |-)?status (on|off)")
 def autostatus_set(bot, conn, event, respond_to, enable):
 	"""
 	Command: !autostatus on

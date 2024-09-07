@@ -110,8 +110,8 @@ async def test(session):
 
 	check = do_check_links if link_spam else do_check
 
-	re_twitchchat = re.compile("^\w*:\s*(.*)$")
-	re_irc = re.compile("<[^<>]*>\s*(.*)$")
+	re_twitchchat = re.compile(r"^\w*:\s*(.*)$")
+	re_irc = re.compile(r"<[^<>]*>\s*(.*)$")
 	lines = message.split('\n')
 	for line in lines:
 		res = await check(line, rules)

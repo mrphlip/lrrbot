@@ -3,7 +3,7 @@ from lrrbot.command_parser import Blueprint
 
 blueprint = Blueprint()
 
-@blueprint.command("(mod|sub)only")
+@blueprint.command(r"(mod|sub)only")
 @lrrbot.decorators.mod_only
 def mod_only(bot, conn, event, respond_to, level):
 	"""
@@ -16,7 +16,7 @@ def mod_only(bot, conn, event, respond_to, level):
 	bot.access = level
 	conn.privmsg(respond_to, "Commands from non-%ss are now ignored." % level)
 
-@blueprint.command("(?:mod|sub)only off")
+@blueprint.command(r"(?:mod|sub)only off")
 @lrrbot.decorators.mod_only
 def mod_only_off(bot, conn, event, respond_to):
 	"""

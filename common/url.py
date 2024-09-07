@@ -47,8 +47,8 @@ async def url_regex():
 	# For example: if 'co' is before 'com', 'example.com/path' is matched as 'example.co'.
 	tlds = sorted((await get_tlds()), key=lambda e: len(e), reverse=True)
 	re_tld = "(?:" + "|".join(map(re.escape, tlds)) + ")"
-	re_hostname = "(?:(?:(?:[\w-]+\.)+" + re_tld + "\.?)|(?:\d{,3}(?:\.\d{,3}){3})|(?:\[[0-9a-fA-F:.]+\]))"
-	re_url = "((?:https?://)?" + re_hostname + "(?::\d+)?(?:/[\x5E\s\u200b]*)?)"
+	re_hostname = r"(?:(?:(?:[\w-]+\.)+%s\.?)|(?:\d{,3}(?:\.\d{,3}){3})|(?:\[[0-9a-fA-F:.]+\]))" % re_tld
+	re_url = r"((?:https?://)?%s(?::\d+)?(?:/[\x5E\s\u200b]*)?)" % re_hostname
 	re_url = re_url + "|" + "|".join(map(lambda parens: re.escape(parens[0]) + re_url + re.escape(parens[1]), parens))
 	return re.compile(re_url, re.IGNORECASE)
 

@@ -5,7 +5,7 @@ from lrrbot.command_parser import Blueprint
 
 blueprint = Blueprint()
 
-@blueprint.command("live")
+@blueprint.command(r"live")
 @lrrbot.decorators.throttle()
 @lrrbot.decorators.private_reply_when_live
 async def live(bot, conn, event, respond_to):
@@ -55,7 +55,7 @@ async def live(bot, conn, event, respond_to):
 	])
 	return conn.privmsg(respond_to, utils.trim_length(message))
 
-@blueprint.command("live register")
+@blueprint.command(r"live register")
 async def register_self(bot, conn, event, respond_to):
 	"""
 	Command: !live register
@@ -64,7 +64,7 @@ async def register_self(bot, conn, event, respond_to):
 	"""
 	conn.privmsg(respond_to, "Currently the fanlist cannot be edited. Contact mrphlip if you want to be added.")
 
-@blueprint.command("live unregister")
+@blueprint.command(r"live unregister")
 async def unregister_self(bot, conn, event, respond_to):
 	"""
 	Command: !live unregister
@@ -73,7 +73,7 @@ async def unregister_self(bot, conn, event, respond_to):
 	"""
 	conn.privmsg(respond_to, "Currently the fanlist cannot be edited. Contact mrphlip if you want to be removed.")
 
-@blueprint.command("live register (.*)")
+@blueprint.command(r"live register (.*)")
 @lrrbot.decorators.mod_only
 async def register(bot, conn, event, respond_to, channel):
 	"""
@@ -83,7 +83,7 @@ async def register(bot, conn, event, respond_to, channel):
 	"""
 	conn.privmsg(respond_to, "Currently the fanlist cannot be edited.")
 
-@blueprint.command("live unregister (.*)")
+@blueprint.command(r"live unregister (.*)")
 @lrrbot.decorators.mod_only
 async def unregister(bot, conn, event, respond_to, channel):
 	"""

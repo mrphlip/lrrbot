@@ -7,7 +7,7 @@ from lrrbot.command_parser import Blueprint
 
 blueprint = Blueprint()
 
-@blueprint.command("game")
+@blueprint.command(r"game")
 @lrrbot.decorators.throttle()
 async def current_game(bot, conn, event, respond_to):
 	"""
@@ -39,7 +39,7 @@ async def current_game(bot, conn, event, respond_to):
 			" (overridden)" if bot.game_override is not None else ""
 		))
 
-@blueprint.command("game display (.*?)")
+@blueprint.command(r"game display (.*?)")
 @lrrbot.decorators.mod_only
 async def set_game_name(bot, conn, event, respond_to, name):
 	"""
@@ -78,7 +78,7 @@ async def set_game_name(bot, conn, event, respond_to, name):
 
 		conn.privmsg(respond_to, "OK, I'll start calling %s \"%s\"" % (real_name, name))
 
-@blueprint.command("game override (.*?)")
+@blueprint.command(r"game override (.*?)")
 @lrrbot.decorators.mod_only
 async def override_game(bot, conn, event, respond_to, game):
 	"""
@@ -123,7 +123,7 @@ async def override_game(bot, conn, event, respond_to, game):
 		message += "Currently playing: %s" % name
 	conn.privmsg(respond_to, message)
 
-@blueprint.command("game refresh")
+@blueprint.command(r"game refresh")
 @lrrbot.decorators.mod_only
 async def refresh(bot, conn, event, respond_to):
 	"""

@@ -91,7 +91,7 @@ def main():
 					processed_cards.add(filteredname)
 		conn.commit()
 
-re_429_detail = re.compile("This endpoint is currently disabled due to too many requests\\. Please, try again in (\d+) seconds\\.")
+re_429_detail = re.compile(r"This endpoint is currently disabled due to too many requests\. Please, try again in (\d+) seconds\.")
 def getpage(page):
 	fn = f"{CACHE_DIR}/{page}.json"
 	if os.path.exists(fn):

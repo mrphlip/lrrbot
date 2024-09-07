@@ -9,7 +9,7 @@ def set_show(bot, show):
 	bot.set_show(show.lower())
 	bot.get_game_id.reset_throttle()
 
-@blueprint.command("show")
+@blueprint.command(r"show")
 @lrrbot.decorators.throttle()
 def get_show(bot, conn, event, respond_to):
 	"""
@@ -32,7 +32,7 @@ def print_show(bot, conn, respond_to):
 	conn.privmsg(respond_to, "Currently live: %s%s" % (name, " (overriden)" if bot.show_override is not None else ""))
 
 
-@blueprint.command("show override (.*?)")
+@blueprint.command(r"show override (.*?)")
 @lrrbot.decorators.mod_only
 def show_override(bot, conn, event, respond_to, show):
 	"""
