@@ -7,7 +7,7 @@ CARD_GAME_KEYFORGE = 2
 CARD_GAME_PTCG = 3
 CARD_GAME_LORCANA = 4
 
-re_specialchars = re.compile(r"[ \-+'\",:!?.()\u00ae&/\u2019\u201c\u201d\[\]~\u2026\u25b9#\u2014\uA789]")
+re_specialchars = re.compile(r"[ \-+'\",:;!?.()\u00ae&/\u2019\u201c\u201d\[\]~\u2026\u25b9#\u2014\uA789]")
 LETTERS_MAP = {
 	'\u00e0': 'a',
 	'\u00e1': 'a',

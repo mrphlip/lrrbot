@@ -377,7 +377,7 @@ def process_set_unstable(expansion):
 		for host in hosts:
 			yield gen_augment(augment, host, expansion)
 
-HOST_PREFIX = "When this creature enters the battlefield,"
+HOST_PREFIX = "When this creature enters,"
 def gen_augment(augment, host, expansion):
 	combined = {
 		'layout': 'normal',
