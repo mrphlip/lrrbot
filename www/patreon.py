@@ -121,11 +121,12 @@ async def login(session):
 		query = query.on_conflict_do_update(
 			index_elements=[accounts.c.provider, accounts.c.provider_user_id],
 			set_={
-				'full_name': query.excluded.full_name,
-				'access_token': query.excluded.access_token,
-				'refresh_token': query.excluded.refresh_token,
-				'token_expires_at': query.excluded.token_expires_at,
-				'is_sub': query.excluded.is_sub,
+				"user_id": query.excluded.user_id,
+				"name": query.excluded.name,
+				"access_token": query.excluded.access_token,
+				"refresh_token": query.excluded.refresh_token,
+				"token_expires_at": query.excluded.token_expires_at,
+				"is_sub": query.excluded.is_sub,
 			}
 		)
 		conn.execute(query, {
