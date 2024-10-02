@@ -130,8 +130,8 @@ config.setdefault('youtube_client_secret', '')
 # youtube_redirect_uri - Redirect URI for the YouTube login
 config.setdefault('youtube_redirect_uri', 'https://lrrbot.com/login/youtube')
 
-# youtube_channel_id - YouTube channel ID of the stream channel
-config.setdefault('youtube_channel_id', 'UCwjN2uVdL9A0i3gaIHKFzuA')
+# youtube_channels - YouTube channel IDs of the stream channels
+config['youtube_channels'] = [channel.strip() for channel in config.get('youtube_channels', 'UCwjN2uVdL9A0i3gaIHKFzuA').split(',')] if config.get('youtube_channels') else []
 
 # youtube_bot_id - YouTube channel ID of the bot account
 config.setdefault('youtube_bot_id', 'UCskb2pkqoH_gLzOnLZqLtVg')

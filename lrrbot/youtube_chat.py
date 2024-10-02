@@ -48,7 +48,7 @@ class YoutubeChat:
 		self.last_ban = {}
 		self.connection = YoutubeChatConnection(loop)
 
-		self.playlist_id = None
+		self.uploads_playlists = {}
 		self.seen_videos = set()
 
 		self.schedule_check()
@@ -71,26 +71,27 @@ class YoutubeChat:
 			}
 
 	async def get_new_chats(self):
-		try:
-			async for chat_id in self.get_new_chats_from_broadcasts():
-				yield chat_id
-		except youtube.TokenMissingError:
-			async for chat_id in self.get_new_chats_from_uploads():
-				yield chat_id
+		for channel_id in config['youtube_channels']:
+			try:
+				async for chat_id in self.get_new_chats_from_broadcasts(channel_id):
+					yield chat_id
+			except youtube.TokenMissingError:
+				async for chat_id in self.get_new_chats_from_uploads(channel_id):
+					yield chat_id
 
-	async def get_new_chats_from_broadcasts(self):
-		async for broadcast in youtube.get_user_broadcasts(config['youtube_channel_id'], parts=['snippet', 'status']):
+	async def get_new_chats_from_broadcasts(self, channel_id):
+		async for broadcast in youtube.get_user_broadcasts(channel_id, parts=['snippet', 'status']):
 			chat_id = broadcast['snippet']['liveChatId']
 			if chat_id not in self.chats and broadcast['status']['lifeCycleStatus'] not in {'complete', 'revoked'}:
 				log.info('New YouTube chat %s for %r', chat_id, broadcast['snippet']['title'])
 				yield chat_id
 
-	async def get_new_chats_from_uploads(self):
-		if self.playlist_id is None:
-			channel = await youtube.get_channel(config['youtube_bot_id'], config['youtube_channel_id'], parts=['contentDetails'])
-			self.playlist_id = channel['contentDetails']['relatedPlaylists']['uploads']
+	async def get_new_chats_from_uploads(self, channel_id):
+		if self.uploads_playlists.get(channel_id) is None:
+			channel = await youtube.get_channel(config['youtube_bot_id'], channel_id, parts=['contentDetails'])
+			self.uploads_playlists[channel_id] = channel['contentDetails']['relatedPlaylists']['uploads']
 
-		playlist = await youtube.get_playlist_items_page(config['youtube_bot_id'], self.playlist_id)
+		playlist = await youtube.get_playlist_items_page(config['youtube_bot_id'], self.uploads_playlists[channel_id])
 		video_ids = {video['snippet']['resourceId']['videoId'] for video in playlist}
 		new_videos = video_ids - self.seen_videos
 		self.seen_videos = video_ids

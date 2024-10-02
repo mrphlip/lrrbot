@@ -58,10 +58,11 @@ YOUTUBE_SPECIAL_USERS.setdefault(config['youtube_bot_id'], list(YOUTUBE_DEFAULT_
 	# 'Manage your YouTube account'
 	'https://www.googleapis.com/auth/youtube',
 ])
-YOUTUBE_SPECIAL_USERS.setdefault(config['youtube_channel_id'], list(YOUTUBE_DEFAULT_SCOPES)).extend([
-	# 'See a list of your current active channel members, their current level, and when they became a member'
-	'https://www.googleapis.com/auth/youtube.channel-memberships.creator',
-])
+for channel_id in config['youtube_channels']:
+	YOUTUBE_SPECIAL_USERS.setdefault(channel_id, list(YOUTUBE_DEFAULT_SCOPES)).extend([
+		# 'See a list of your current active channel members, their current level, and when they became a member'
+		'https://www.googleapis.com/auth/youtube.channel-memberships.creator',
+	])
 
 blueprint = flask.Blueprint('login', __name__)
 
