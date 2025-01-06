@@ -4,7 +4,7 @@ import lrrbot.decorators
 from lrrbot.command_parser import Blueprint
 import common.postgres
 import common.time
-from common.card import clean_text, CARD_GAME_MTG, CARD_GAME_KEYFORGE, CARD_GAME_PTCG, CARD_GAME_LORCANA
+from common.card import clean_text, CARD_GAME_MTG, CARD_GAME_KEYFORGE, CARD_GAME_PTCG, CARD_GAME_LORCANA, CARD_GAME_ALTERED
 
 blueprint = Blueprint()
 
@@ -73,6 +73,17 @@ def lorcana_card_lookup(bot, conn, event, respond_to, search):
 	"""
 	real_card_lookup(bot, conn, event, respond_to, search, game=CARD_GAME_LORCANA)
 
+@blueprint.command(r"altered(?:tcg)? (.+)")
+@lrrbot.decorators.throttle(60, count=3)
+def altered_card_lookup(bot, conn, event, respond_to, search):
+	"""
+	Command: !altered card-name
+	Command: !alteredtcg card-name
+	Section: misc
+
+	Show the details of a given Altered TCG card.
+	"""
+	real_card_lookup(bot, conn, event, respond_to, search, game=CARD_GAME_ALTERED)
 
 def real_card_lookup(bot, conn, event, respond_to, search, noerror=False, includehidden=False, game=CARD_GAME_MTG):
 	cards = find_card(bot, search, includehidden, game)

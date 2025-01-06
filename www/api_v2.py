@@ -145,6 +145,7 @@ CARD_GAME_CODE_MAPPING = {
 	'keyforge': 2,
 	'ptcg': 3,
 	'lorcana': 4,
+	'altered': 5,
 }
 @blueprint.route("/cardviewer", methods=["POST"])
 @server.csrf.exempt
