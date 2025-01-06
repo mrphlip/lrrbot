@@ -22,13 +22,16 @@
 	Announce an MTG card in chat. If multiple modes would match the query the first one is used. For example
 	the query <code>{"multiverseid": 1, "name": "Lighning Bolt"}</code> would announce the card Ankh of Mishra.
 </p>
-<h3>By multiverse ID</h3>
+<h3>By card code</h3>
 <dl>
-	<dt><code>multiverseid</code></dt>
-	<dd>The ID of the card on Gatherer.</dd>
+	<dt><code>code</code> or <code>multiverseid</code></dt>
+	<dd>For MTG: the ID of the card on Gatherer.</dd>
+	<dd>For Altered: the card reference code.</dd>
 </dl>
 <h4>Example</h4>
 <pre>{"multiverseid": 435173}</pre>
+<pre>{"code": 435173, "game": "mtg"}</pre>
+<pre>{"code": ALT_CORE_B_BR_21_C, "game": "altered"}</pre>
 <h3>By name</h3>
 <dl>
 	<dt><code>name</code></dt>

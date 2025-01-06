@@ -106,8 +106,8 @@ def main():
 
 				multiverseids = set(multiverseids) - processed_multiverseids
 				if multiverseids:
-					cur.executemany("INSERT INTO card_multiverse (id, cardid) VALUES (%s, %s)", [
-						(id, card_id)
+					cur.executemany("INSERT INTO card_codes (code, cardid, game) VALUES (%s, %s, %s)", [
+						(id, card_id, CARD_GAME_MTG)
 						for id in multiverseids
 					])
 					processed_multiverseids.update(multiverseids)

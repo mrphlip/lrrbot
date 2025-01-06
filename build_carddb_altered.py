@@ -87,6 +87,7 @@ if __name__ == '__main__':
 		cards = json.load(f)
 
 	processed = {}
+	codes = {}
 
 	print("Processing cards...")
 
@@ -98,6 +99,7 @@ if __name__ == '__main__':
 		name = build_card_name(card)
 		filtered_name = clean_text(name)
 		release_date = sets[card['cardSet']['reference']]['release_date']
+		codes.setdefault(filtered_name, []).append(card['reference'])
 		if filtered_name not in processed or processed[filtered_name]['release_date'] < release_date:
 			processed[filtered_name] = {
 				'name': name,
@@ -109,14 +111,25 @@ if __name__ == '__main__':
 
 	with psycopg2.connect(config['postgres']) as conn, conn.cursor() as cur:
 		cur.execute("DELETE FROM cards WHERE game = %s", (CARD_GAME_ALTERED, ))
-		cur.executemany("INSERT INTO cards (game, filteredname, name, text) VALUES (%s, %s, %s, %s)", [
-			(
-				CARD_GAME_ALTERED,
-				filtered_name,
-				card['name'],
-				card['text'],
+		for filtered_name, card in processed.items():
+			cur.execute(
+				"INSERT INTO cards (game, filteredname, name, text) VALUES (%s, %s, %s, %s) RETURNING id",
+				(
+					CARD_GAME_ALTERED,
+					filtered_name,
+					card['name'],
+					card['text'],
+				)
 			)
-			for filtered_name, card in processed.items()
-		])
+			card_id, = cur.fetchone()
+			for code in codes.get(filtered_name, []):
+				cur.execute(
+					"INSERT INTO card_codes (code, cardid, game) VALUES (%s, %s, %s)",
+					(
+						code,
+						card_id,
+						CARD_GAME_ALTERED,
+					)
+				)
 
 	print("Done.")

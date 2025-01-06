@@ -158,7 +158,7 @@ async def cardviewer_announce(session):
 	log.debug("Received cardviewer: %r", req)
 
 	cards = server.db.metadata.tables['cards']
-	card_multiverse = server.db.metadata.tables['card_multiverse']
+	card_codes = server.db.metadata.tables['card_codes']
 
 	try:
 		game = CARD_GAME_CODE_MAPPING[req.get('game', 'mtg')]
@@ -167,7 +167,13 @@ async def cardviewer_announce(session):
 	query = sqlalchemy.select(cards.c.id, cards.c.name, cards.c.text).where(cards.c.game == game)
 
 	if 'multiverseid' in req:
-		query = query.select_from(cards.join(card_multiverse)).where(card_multiverse.c.id == req['multiverseid'])
+		query = query.select_from(cards.join(card_codes)) \
+			.where(card_codes.c.game == game) \
+			.where(card_codes.c.code == req['multiverseid'])
+	elif 'code' in req:
+		query = query.select_from(cards.join(card_codes)) \
+			.where(card_codes.c.game == game) \
+			.where(card_codes.c.code == req['code'])
 	elif 'name' in req:
 		name = card.to_query(req['name'])
 		exact = card.clean_text(req['name'])
