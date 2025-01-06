@@ -169,7 +169,7 @@ async def cardviewer_announce(session):
 	if 'multiverseid' in req:
 		query = query.select_from(cards.join(card_codes)) \
 			.where(card_codes.c.game == game) \
-			.where(card_codes.c.code == req['multiverseid'])
+			.where(card_codes.c.code == str(req['multiverseid']))
 	elif 'code' in req:
 		query = query.select_from(cards.join(card_codes)) \
 			.where(card_codes.c.game == game) \
