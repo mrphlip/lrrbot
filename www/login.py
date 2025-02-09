@@ -31,8 +31,15 @@ TWITCH_SPECIAL_USERS.setdefault(config["username"], list(TWITCH_REQUEST_SCOPES))
 	'chat:edit',
 	'chat:read',
 	'moderator:manage:banned_users',
+	'moderator:manage:blocked_terms',
+	'moderator:manage:chat_messages',
+	'moderator:manage:chat_settings',
+	'moderator:manage:unban_requests',
+	'moderator:manage:warnings',
 	'moderator:read:chatters',
 	'moderator:read:followers',
+	'moderator:read:moderators',
+	'moderator:read:vips',
 	'user:read:follows',
 	'user:manage:whispers',
 	'whispers:edit',
@@ -45,7 +52,14 @@ TWITCH_SPECIAL_USERS.setdefault(config["channel"], list(TWITCH_REQUEST_SCOPES)).
 # hard-coded user for accessing Desert Bus mod actions
 # cf lrrbot.desertbus_moderator_actions
 TWITCH_SPECIAL_USERS.setdefault('mrphlip', list(TWITCH_REQUEST_SCOPES)).extend([
-	'channel:moderate',
+	'moderator:read:blocked_terms',
+	'moderator:read:chat_settings',
+	'moderator:read:unban_requests',
+	'moderator:read:banned_users',
+	'moderator:read:chat_messages',
+	'moderator:read:warnings',
+	'moderator:read:moderators',
+	'moderator:read:vips',
 ])
 
 # See https://developers.google.com/identity/protocols/oauth2/scopes#youtube

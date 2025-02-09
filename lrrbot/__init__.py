@@ -22,7 +22,6 @@ from common import utils
 from common import youtube
 from common.config import config
 from common.eventsub import EventSub
-from common.pubsub import PubSub
 from common.account_providers import ACCOUNT_PROVIDER_TWITCH, ACCOUNT_PROVIDER_YOUTUBE
 
 from lrrbot import asyncreactor
@@ -145,8 +144,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 
 		self.commands = command_parser.CommandParser(self, loop)
 
-		self.pubsub = PubSub(self.engine, self.metadata, loop)
-
 		self.eventsub = EventSub(loop)
 
 		self.desertbus_moderator_actions = desertbus_moderator_actions.ModeratorActions(self, loop)
@@ -189,7 +186,6 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 			self.loop.run_forever()
 		finally:
 			log.info("Bot shutting down...")
-			self.pubsub.close()
 			self.loop.run_until_complete(self.eventsub.stop())
 			self.loop.run_until_complete(self.rpc_server.close())
 			self.chatlog.stop_task()

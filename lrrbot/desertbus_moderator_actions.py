@@ -7,9 +7,9 @@ Because that's easier than making this a separate process.
 
 import asyncio
 import datetime
-import sqlalchemy
+import dateutil.parser
 
-from common import pubsub
+from common import twitch
 from common import utils
 from common import time as ctime
 from common import gdata
@@ -17,8 +17,6 @@ from common.config import config
 import logging
 import time
 import irc.client
-
-from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 
 log = logging.getLogger("desertbus_moderator_actions")
 
@@ -40,51 +38,53 @@ class ModeratorActions:
 			self.lrrbot.reactor.add_global_handler("welcome", self.on_connect, 2)
 			self.lrrbot.reactor.scheduler.execute_every(60, self.clear_chat)
 
-			accounts = self.lrrbot.metadata.tables["accounts"]
-			with self.lrrbot.engine.connect() as conn:
-				selfrow = conn.execute(sqlalchemy.select(accounts.c.provider_user_id).where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH).where(accounts.c.name == WATCHAS)).first()
-				targetrow = conn.execute(sqlalchemy.select(accounts.c.provider_user_id).where(accounts.c.provider == ACCOUNT_PROVIDER_TWITCH).where(accounts.c.name == WATCHCHANNEL)).first()
-			if selfrow is not None and targetrow is not None:
-				self_channel_id, = selfrow
-				target_channel_id, = targetrow
-				topic = "chat_moderator_actions.%s.%s" % (self_channel_id, target_channel_id)
+			self.lrrbot.eventsub.connected.connect(self.subscribe)
 
-				self.lrrbot.pubsub.subscribe([topic], WATCHAS)
-				pubsub.signals.signal(topic).connect(self.on_message)
+	async def subscribe(self, session):
+		moderator = await twitch.get_user(name=WATCHAS)
+		broadcaster = await twitch.get_user(name=WATCHCHANNEL)
+
+		condition = {
+			'broadcaster_user_id': broadcaster.id,
+			'moderator_user_id': moderator.id,
+		}
+		await session.listen("channel.moderate", "2", condition, moderator.id, self.on_message)
 
 	@utils.swallow_errors
-	def on_message(self, sender, message):
-		log.info("Got message: %r", message['data'])
+	def on_message(self, message):
+		log.info("Got message: %r", message)
 
-		action = message['data']['moderation_action']
-		args = message['data']['args']
-		mod = message['data']['created_by']
+		action = message['action']
+		args = message[action]
+		mod = message['moderator_user_name']
 
 		if action == 'timeout':
-			user = args[0]
-			action = "Timeout: %s" % ctime.nice_duration(int(args[1]))
-			reason = args[2] if len(args) >= 3 else ''
-			last = self.last_chat.get(user.lower(), [''])[0]
+			user = args['user_name']
+			expires_at = dateutil.parser.parse(args['expires_at']).astimezone(config['timezone'])
+			now = datetime.datetime.now(tz=config['timezone'])
+			action = "Timeout: %s" % ctime.nice_duration(expires_at - now)
+			reason = args['reason'] or ''
+			last = self.last_chat.get(args['user_login'].lower(), [''])[0]
 		elif action == 'ban':
-			user = args[0]
+			user = args['user_name']
 			action = "Ban"
-			reason = args[1] if len(args) >= 2 else ''
-			last = self.last_chat.get(user.lower(), [''])[0]
+			reason = args['reason'] or ''
+			last = self.last_chat.get(args['user_login'].lower(), [''])[0]
 		elif action == 'unban':
-			user = args[0]
+			user = args['user_name']
 			action = "Unban"
 			reason = ''
 			last = ''
 		elif action == 'untimeout':
-			user = args[0]
+			user = args['user_name']
 			action = "Untimeout"
 			reason = ''
 			last = ''
 		elif action == 'delete':
-			user = args[0]
+			user = args['user_name']
 			action = "Delete message"
 			reason = ''
-			last = args[1]
+			last = args['message_body']
 		else:
 			user = ''
 			reason = repr(args)
