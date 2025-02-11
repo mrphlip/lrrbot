@@ -26,18 +26,21 @@ CLOSE_CODES = {
 }
 
 class Session:
-	def __init__(self, session_id: str) -> None:
+	def __init__(self, session_id: str, user: twitch.User) -> None:
 		self.session_id = session_id
+		self.user = user
 		self.subscriptions: Dict[str, Callable[[dict], Awaitable[None]]] = {}
 
-	async def listen(self, topic: str, version: str, condition: Dict[str, str], user_id: str, callback: Callable[[dict], Awaitable[None]]) -> None:
-		subscription = await twitch.create_eventsub_subscription(topic, version, condition, {"method": "websocket", "session_id": self.session_id}, user_id)
-		log.debug("Subscribed to %s version %s with condition %r as %s, received ID %s", topic, version, condition, user_id, subscription["id"])
+	async def listen(self, topic: str, version: str, condition: Dict[str, str], callback: Callable[[dict], Awaitable[None]]) -> None:
+		subscription = await twitch.create_eventsub_subscription(topic, version, condition, {"method": "websocket", "session_id": self.session_id}, self.user.token)
+		log.debug("Subscribed to %s version %s with condition %r as %s, received ID %s", topic, version, condition, self.user.name, subscription["id"])
 		self.subscriptions[subscription["id"]] = callback
 
-class EventSub:
-	def __init__(self, loop: asyncio.AbstractEventLoop):
+class Connection:
+	def __init__(self, loop: asyncio.AbstractEventLoop, user: str):
 		self.loop = loop
+
+		self.user = user
 
 		self.connected = Signal()
 
@@ -50,6 +53,7 @@ class EventSub:
 
 	def start(self) -> None:
 		self.spawn_connect(DEFAULT_ENDPOINT, session=None)
+
 	async def stop(self) -> None:
 		if self.timeout_handle:
 			self.timeout_handle.cancel()
@@ -117,7 +121,7 @@ class EventSub:
 							self.previous_task = None
 
 						if not session:
-							session = Session(data["payload"]["session"]["id"])
+							session = Session(data["payload"]["session"]["id"], await twitch.get_user(name=self.user))
 							await self.connected.send_async(session)
 
 						# Add some slack to the keepalive timeout because otherwise we reconnect immediately before a
@@ -147,3 +151,23 @@ class EventSub:
 					log.error("Error reading message, reconnecting...", exc_info=conn.exception())
 					self.spawn_connect(DEFAULT_ENDPOINT, None)
 					break
+
+class EventSub:
+	def __init__(self, loop: asyncio.AbstractEventLoop):
+		self.loop = loop
+
+		self.connections: Dict[str, Connection] = {}
+
+	def start(self) -> None:
+		for connection in self.connections.values():
+			connection.start()
+
+	async def stop(self) -> None:
+		await asyncio.gather(connection.stop() for connection in self.connections.values())
+
+	def __getitem__(self, user: str) -> Connection:
+		try:
+			return self.connections[user]
+		except KeyError:
+			connection = self.connections[user] = Connection(self.loop, user)
+			return connection

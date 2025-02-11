@@ -19,17 +19,16 @@ class ModeratorActions:
 
 		self.last_ban = None
 
-		self.lrrbot.eventsub.connected.connect(self.subscribe)
+		self.lrrbot.eventsub[config['username']].connected.connect(self.subscribe)
 
 	async def subscribe(self, session: eventsub.Session):
-		moderator = await twitch.get_user(name=config['username'])
 		broadcaster = await twitch.get_user(name=config['channel'])
 
 		condition = {
 			'broadcaster_user_id': broadcaster.id,
-			'moderator_user_id': moderator.id,
+			'moderator_user_id': session.user.id,
 		}
-		await session.listen("channel.moderate", "2", condition, moderator.id, self._on_message)
+		await session.listen("channel.moderate", "2", condition, self._on_message)
 
 	async def _on_message(self, event):
 		log.info("Got a message: %r", event)

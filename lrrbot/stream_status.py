@@ -12,13 +12,12 @@ class StreamStatus:
 		self.lrrbot = lrrbot
 		self.loop = loop
 
-		self.lrrbot.eventsub.connected.connect(self.subscribe)
+		self.lrrbot.eventsub[config['channel']].connected.connect(self.subscribe)
 
 	async def subscribe(self, session: eventsub.Session):
-		channel = await twitch.get_user(name=config['channel'])
-		condition = {"broadcaster_user_id": channel.id}
-		await session.listen("stream.online", "1", condition, channel.id, self.stream_online)
-		await session.listen("stream.offline", "1", condition, channel.id, self.stream_offline)
+		condition = {"broadcaster_user_id": session.user.id}
+		await session.listen("stream.online", "1", condition, self.stream_online)
+		await session.listen("stream.offline", "1", condition, self.stream_offline)
 
 	async def stream_online(self, event):
 		log.debug("Stream is now live")

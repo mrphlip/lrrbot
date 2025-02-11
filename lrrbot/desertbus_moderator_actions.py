@@ -9,6 +9,7 @@ import asyncio
 import datetime
 import dateutil.parser
 
+from common import eventsub
 from common import twitch
 from common import utils
 from common import time as ctime
@@ -38,17 +39,16 @@ class ModeratorActions:
 			self.lrrbot.reactor.add_global_handler("welcome", self.on_connect, 2)
 			self.lrrbot.reactor.scheduler.execute_every(60, self.clear_chat)
 
-			self.lrrbot.eventsub.connected.connect(self.subscribe)
+			self.lrrbot.eventsub[WATCHAS].connected.connect(self.subscribe)
 
-	async def subscribe(self, session):
-		moderator = await twitch.get_user(name=WATCHAS)
+	async def subscribe(self, session: eventsub.Session):
 		broadcaster = await twitch.get_user(name=WATCHCHANNEL)
 
 		condition = {
 			'broadcaster_user_id': broadcaster.id,
-			'moderator_user_id': moderator.id,
+			'moderator_user_id': session.user.id,
 		}
-		await session.listen("channel.moderate", "2", condition, moderator.id, self.on_message)
+		await session.listen("channel.moderate", "2", condition, self.on_message)
 
 	@utils.swallow_errors
 	def on_message(self, message):
