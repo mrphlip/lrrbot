@@ -386,7 +386,7 @@ async def get_number_of_chatters(channel=None, user=None):
 	return json.loads(data)["total"]
 
 
-async def create_eventsub_subscription(topic, version, condition, transport, user_id):
+async def create_eventsub_subscription(topic, version, condition, transport, token):
 	"""
 	Create an EventSub subscription.
 
@@ -396,7 +396,7 @@ async def create_eventsub_subscription(topic, version, condition, transport, use
 	url = "https://api.twitch.tv/helix/eventsub/subscriptions"
 	headers = {
 		'Client-ID': config['twitch_clientid'],
-		'Authorization': f"Bearer {await get_token(id=user_id)}",
+		'Authorization': f"Bearer {token}",
 	}
 	data = await common.http.request(url, method="POST", headers=headers, asjson=True, data={
 		"type": topic,
