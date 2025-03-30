@@ -54,37 +54,46 @@ class YoutubeChat:
 		self.schedule_check()
 
 	async def broadcast_message(self, message):
-		for chat_id in self.chats.keys():
-			await youtube.send_chat_message(config['youtube_bot_id'], chat_id, message)
+		for chat_id, chat in self.chats.items():
+			if await self.is_stream_live(chat['video_id']):
+				await youtube.send_chat_message(config['youtube_bot_id'], chat_id, message)
+
+	@utils.cache(period=5 * 60, params=['video_id'])
+	async def is_stream_live(self, video_id):
+		videos = await youtube.get_videos(config['youtube_bot_id'], [video_id], parts=['snippet'])
+		if videos:
+			return videos[0].get('snippet', {}).get('liveBroadcastContent', 'none') == 'live'
+		return False
 
 	def schedule_check(self):
 		asyncio.ensure_future(self.check_broadcasts(), loop=self.loop).add_done_callback(utils.check_exception)
 		self.loop.call_later(BROADCAST_CHECK_DELAY, self.schedule_check)
 
 	async def check_broadcasts(self):
-		async for chat_id in self.get_new_chats():
+		async for video_id, chat_id in self.get_new_chats():
 			task = self.loop.create_task(self.process_chat(chat_id))
 			task.add_done_callback(functools.partial(self.on_chat_done, chat_id))
 			self.chats[chat_id] = {
 				'task': task,
+				'video_id': video_id,
 				'messages': {},
 			}
 
 	async def get_new_chats(self):
 		for channel_id in config['youtube_channels']:
 			try:
-				async for chat_id in self.get_new_chats_from_broadcasts(channel_id):
-					yield chat_id
+				async for video_id, chat_id in self.get_new_chats_from_broadcasts(channel_id):
+					yield video_id, chat_id
 			except youtube.TokenMissingError:
-				async for chat_id in self.get_new_chats_from_uploads(channel_id):
-					yield chat_id
+				async for video_id, chat_id in self.get_new_chats_from_uploads(channel_id):
+					yield video_id, chat_id
 
 	async def get_new_chats_from_broadcasts(self, channel_id):
 		async for broadcast in youtube.get_user_broadcasts(channel_id, parts=['snippet', 'status']):
 			chat_id = broadcast['snippet']['liveChatId']
 			if chat_id not in self.chats and broadcast['status']['lifeCycleStatus'] not in {'complete', 'revoked'}:
 				log.info('New YouTube chat %s for %r', chat_id, broadcast['snippet']['title'])
-				yield chat_id
+				yield broadcast['id'], chat_id
 
 	async def get_new_chats_from_uploads(self, channel_id):
 		if self.uploads_playlists.get(channel_id) is None:
@@ -100,7 +109,7 @@ class YoutubeChat:
 			for video in await youtube.get_videos(config['youtube_bot_id'], new_videos, parts=['snippet', 'liveStreamingDetails']):
 				if (chat_id := video.get('liveStreamingDetails', {}).get('activeLiveChatId')) and chat_id not in self.chats:
 					log.info('New YouTube chat %s for %r', chat_id, video['snippet']['title'])
-					yield chat_id
+					yield video['id'], chat_id
 
 	def on_chat_done(self, chat_id, task):
 		try:
