@@ -38,6 +38,7 @@ from lrrbot import spam
 from lrrbot import storage
 from lrrbot import stream_status
 from lrrbot import systemd
+from lrrbot import timers
 from lrrbot import twitchcheer
 from lrrbot import twitchfollows
 from lrrbot import twitchnotify
@@ -152,6 +153,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		self.moderator_actions = moderator_actions.ModeratorActions(self, loop)
 		self.spam = spam.Spam(self, loop)
 		self.stream_status = stream_status.StreamStatus(self, loop)
+		self.timers = timers.Timers(self, loop)
 		self.twitchnotify = twitchnotify.TwitchNotify(self, loop)
 		self.twitchcheer = twitchcheer.TwitchCheer(self, loop)
 		self.twitchfollows = twitchfollows.TwitchFollows(self, loop)

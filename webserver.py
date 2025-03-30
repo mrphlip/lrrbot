@@ -23,6 +23,7 @@ import www.quotes
 import www.patreon
 import www.clips
 import www.prefs
+import www.timers
 
 app.secret_key = config["session_secret"]
 app.config["PREFERRED_URL_SCHEME"] = config["preferred_url_scheme"],
@@ -50,6 +51,7 @@ app.register_blueprint(www.patreon.blueprint, url_prefix="/patreon")
 app.register_blueprint(www.prefs.blueprint)
 app.register_blueprint(www.quotes.blueprint, url_prefix="/quotes")
 app.register_blueprint(www.spam.blueprint, url_prefix="/spam")
+app.register_blueprint(www.timers.blueprint, url_prefix="/timers")
 
 __all__ = ['app']
 

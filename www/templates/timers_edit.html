@@ -1,0 +1,40 @@
+{% extends "master.html"%}
+{% block title %}{{ timer['name'] | default('New timer', true) }} &ndash; Timers{% endblock %}
+{% block header %}{{ timer['name'] | default('New timer', true) }} &ndash; Timers{% endblock %}
+{% block headextra %}
+	<script type="text/javascript">
+		document.addEventListener('DOMContentLoaded', function () {
+			document.querySelector('#timer-form select[name="mode"]').addEventListener('change', function (event) {
+				var label = event.target.value === 'command' ? 'Command:' : 'Message:';
+				document.querySelector('#timer-form label[for="message"]').textContent = label;
+			});
+		});
+	</script>
+{% endblock %}
+{% block content %}
+	<form id="timer-form" action="{{ url_for('timers.save') }}" method="post">
+		<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+		{% if timer['id'] %}
+			<input type="hidden" name="id" value="{{ timer['id'] }}">
+		{% endif %}
+
+		<p><label for="name">Name:</label></p>
+		<p><input type="text" name="name" value="{{ timer['name'] }}" required></p>
+
+		<p><label for="interval">Interval (minutes):</label></p>
+		<p><input type="number" name="interval" min="1" value="{{ (timer['interval'].total_seconds() / 60) | int }}" required></p>
+
+		<p><label for="mode">Mode:</label></p>
+		<p>
+			<select name="mode">
+				<option value="message">Message</option>
+				<option value="command">Command</option>
+			</select>
+		</p>
+
+		<p><label for="message">{% if timer['mode'] == 'command' %}Command:{% else %}Message:{% endif %}</label></p>
+		<p><input type="text" name="message" value="{{ timer['message'] }}" required></p>
+
+		<p><button type="submit">Save</button></p>
+	</form>
+{% endblock %}
