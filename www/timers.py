@@ -1,6 +1,7 @@
 import datetime
 
 import flask
+import pytz
 import sqlalchemy
 from www import login, server
 
@@ -20,9 +21,17 @@ def index(session):
 				"interval": interval,
 				"mode": mode,
 				"message": message,
+				"next_run": next_run,
+				"next_run_in": next_run_in,
 			}
-			for id, name, interval, mode, message in conn.execute(sqlalchemy.select(
-				timers.c.id, timers.c.name, timers.c.interval, timers.c.mode, timers.c.message
+			for id, name, interval, mode, message, next_run, next_run_in in conn.execute(sqlalchemy.select(
+				timers.c.id,
+				timers.c.name,
+				timers.c.interval,
+				timers.c.mode,
+				timers.c.message,
+				timers.c.last_run + timers.c.interval,
+				timers.c.last_run + timers.c.interval - sqlalchemy.func.current_timestamp(),
 			).order_by(timers.c.name))
 		]
 

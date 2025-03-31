@@ -28,6 +28,7 @@
 				<th class="interval">Interval</th>
 				<th class="mode">Mode</th>
 				<th class="message">Message</th>
+				<th class="next-run">Next</th>
 				<th class="button">
 					<form action="{{ url_for('timers.new') }}">
 						<button type="submit">Add</button>
@@ -42,6 +43,11 @@
 					<td class="interval">{{ timer['interval'] | nice_duration }}</td>
 					<td class="mode">{{ timer['mode'] }}</td>
 					<td class="message">{{ timer['message'] }}</td>
+					<td class="next-run">
+						{% if timer['next_run'] %}
+							{{ timer['next_run'] | timestamp }} (in {{ timer['next_run_in'] | nice_duration }})
+						{% endif %}
+					</td>
 					<td class="button">
 						<form action="{{ url_for('timers.edit', id=timer['id']) }}">
 							<button type="submit">Edit</button>
