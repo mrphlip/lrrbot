@@ -83,9 +83,10 @@ def spamcount(bot, conn, event, respond_to):
 		storage.data["spam"]["count"]))
 
 # When Desert Bus starts
-DESERTBUS_START = config["timezone"].localize(datetime.datetime(2024, 11, 8, 15, 0))
+DESERTBUS_START = config["timezone"].localize(datetime.datetime(2025, 5, 23, 16, 0))
 # When !desertbus should stop claiming the run is still active
-DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
+#DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
+DESERTBUS_END = DESERTBUS_START + datetime.timedelta(hours=24)
 
 @blueprint.command(r"next( .*)?")
 @lrrbot.decorators.throttle()
@@ -136,7 +137,11 @@ def desertbus(bot, conn, event, respond_to, timezone):
 	elif now < DESERTBUS_END:
 		conn.privmsg(respond_to, "Desert Bus for Hope is currently live! Go watch it now at https://desertbus.org/ or https://twitch.tv/desertbus")
 	else:
-		conn.privmsg(respond_to, "Desert Bus for Hope will return next year, start saving your donation money now!")
+		if now.month < 11:
+			when = "in November"
+		else:
+			when = "next year"
+		conn.privmsg(respond_to, f"Desert Bus for Hope will return {when}, start saving your donation money now!")
 
 @blueprint.command(r"nextfan( .*)?")
 @lrrbot.decorators.throttle()
