@@ -16,6 +16,7 @@ from common import googlecalendar
 from common import utils
 from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 from common.config import config
+from common.desertbus import DESERTBUS_START, DESERTBUS_END, DESERTBUS_EXPRESS
 from common import twitch
 from lrrbot import storage
 from lrrbot.command_parser import Blueprint
@@ -82,12 +83,6 @@ def spamcount(bot, conn, event, respond_to):
 	conn.privmsg(respond_to, "Today's spam counts: %d hits, %d repeat offenders, %d bannings" % tuple(
 		storage.data["spam"]["count"]))
 
-# When Desert Bus starts
-DESERTBUS_START = config["timezone"].localize(datetime.datetime(2025, 5, 23, 16, 0))
-# When !desertbus should stop claiming the run is still active
-#DESERTBUS_END = DESERTBUS_START + datetime.timedelta(days=6)  # Six days of plugs should be long enough
-DESERTBUS_END = DESERTBUS_START + datetime.timedelta(hours=24)
-
 @blueprint.command(r"next( .*)?")
 @lrrbot.decorators.throttle()
 async def next(bot, conn, event, respond_to, timezone):
@@ -130,12 +125,13 @@ def desertbus(bot, conn, event, respond_to, timezone):
 
 	now = datetime.datetime.now(datetime.timezone.utc)
 
+	event_name = "Desert Bus Express" if DESERTBUS_EXPRESS else "Desert Bus for Hope"
 	if now < DESERTBUS_START:
 		nice_duration = common.time.nice_duration(DESERTBUS_START - now, 1) + " from now"
-		conn.privmsg(respond_to, "Desert Bus for Hope will begin at %s (%s)" % (DESERTBUS_START.astimezone(timezone).strftime(
+		conn.privmsg(respond_to, "%s will begin at %s (%s)" % (event_name, DESERTBUS_START.astimezone(timezone).strftime(
 			googlecalendar.DISPLAY_FORMAT_WITH_DATE), nice_duration))
 	elif now < DESERTBUS_END:
-		conn.privmsg(respond_to, "Desert Bus for Hope is currently live! Go watch it now at https://desertbus.org/ or https://twitch.tv/desertbus")
+		conn.privmsg(respond_to, f"{event_name} is currently live! Go watch it now at https://desertbus.org/ or https://twitch.tv/desertbus")
 	else:
 		if now.month < 11:
 			when = "in November"
