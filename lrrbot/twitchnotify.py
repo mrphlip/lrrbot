@@ -193,19 +193,8 @@ class TwitchNotify:
 			'name': user,
 			'benefactor': benefactor,
 			'streak': streak,
+			'avatar': logo
 		}
-		if logo is None:
-			try:
-				channel_info = await twitch.get_info_uncached(login)
-			except utils.PASSTHROUGH_EXCEPTIONS:
-				raise
-			except Exception:
-				pass
-			else:
-				if channel_info.get('profile_image_url'):
-					data['avatar'] = channel_info['profile_image_url']
-		else:
-			data['avatar'] = logo
 
 		accounts = self.lrrbot.metadata.tables["accounts"]
 		with self.lrrbot.engine.connect() as pg_conn:
