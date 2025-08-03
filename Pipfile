@@ -19,7 +19,6 @@ python-mimeparse = "*"
 regex = "*"
 requests = "*"
 timelib = "*"
-async_timeout = "*"
 # Flask-SeaSurf does not work with Flask 3.
 Flask = {extras = ["async"], version = "<3.0.0"}
 Flask-SQLAlchemy = "*"

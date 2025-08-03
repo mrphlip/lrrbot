@@ -11,7 +11,6 @@ import urllib.parse
 import urllib.request
 
 import aiohttp
-import async_timeout
 import dateutil.parser
 
 from common import utils
@@ -69,7 +68,7 @@ async def request(url, data=None, method='GET', maxtries=3, headers=None, timeou
 	firstex = None
 	while True:
 		try:
-			with async_timeout.timeout(timeout):
+			async with asyncio.timeout(timeout):
 				log.debug("%s %r%s...", method, url, repr(params) if params else '')
 				session = await get_http_request_session()
 				async with session.request(method, url, params=params, data=data, headers=headers, allow_redirects=allow_redirects) as res:
