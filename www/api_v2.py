@@ -79,6 +79,8 @@ async def set_show(session):
 	if not flask.request.is_json or 'code' not in flask.request.get_json():
 		return flask.jsonify(message="Request not JSON"), 400
 	show = flask.request.get_json()['code']
+	if '-' in show:
+		show = show.split('-', 1)[0]
 	await common.rpc.bot.set_show(show)
 	show_id = await common.rpc.bot.get_show_id()
 
