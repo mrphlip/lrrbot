@@ -47,19 +47,27 @@ def main():
 	with psycopg2.connect(config['postgres']) as conn, conn.cursor() as cur:
 		cur.execute("DELETE FROM cards WHERE game = %s", (CARD_GAME_PTCG, ))
 
-		for cardname, filteredname, description, hidden, card in iter_cards():
-			cardname, filteredname, skip = get_hacks(cardname, filteredname, card)
+		for cardname, filteredname, description, hidden, card, code in iter_cards():
+			cardname, filteredname, code, skip = get_hacks(cardname, filteredname, code, card)
 			if skip:
 				continue
 
 			#print(cardname, filteredname)
-			cur.execute("INSERT INTO cards (game, filteredname, name, text, hidden) VALUES (%s, %s, %s, %s, %s)", (
+			cur.execute("INSERT INTO cards (game, filteredname, name, text, hidden) VALUES (%s, %s, %s, %s, %s) RETURNING id", (
 				CARD_GAME_PTCG,
 				filteredname,
 				cardname,
 				description,
 				hidden,
 			))
+			cardid, = cur.fetchone()
+
+			if code and not hidden:
+				cur.execute("INSERT INTO card_codes (game, code, cardid) VALUES (%s, %s, %s)", (
+					CARD_GAME_PTCG,
+					code,
+					cardid
+				))
 
 def download_data():
 	if os.path.isdir(CACHE_DIR):
@@ -148,9 +156,10 @@ def process_group(group):
 		unique = all(equiv(c) for c in group)
 		setunique = all(equiv(c) for c in group if setcode(c) == setcode(card))
 		description = f"{card['fullname']} | {card['description']}"
+		code = f"{setcode(card).lower()}_{card['number']}"
 		for cardname, hidden in gen_cardnames(card, unique, setunique):
 			filteredname = clean_text(cardname)
-			yield cardname, filteredname, description, hidden, card
+			yield cardname, filteredname, description, hidden, card, code
 
 def gen_cardnames(card, unique, setunique):
 	"""
@@ -278,7 +287,10 @@ EX_NAMES = {
 	'Alakazam-EX',
 	'Pidgeot-EX',
 }
-def get_hacks(cardname, filteredname, card):
+CODE_FIXES = {
+	("blk_60", "Antique Cover Fossil"): "blk_80",
+}
+def get_hacks(cardname, filteredname, code, card):
 	skip = False
 
 	# Diddle with the Unowns so that these don't have the same filtered name
@@ -292,7 +304,13 @@ def get_hacks(cardname, filteredname, card):
 	if card['name'] in EX_NAMES and cardname == card['name']:
 		skip = True
 
-	return cardname, filteredname, skip
+	# This set has a bunch of duplicate collector numbers... not worth the effort
+	if card["set"]["id"] == "cel25c":
+		code = None
+	# Fix cards that have typos in the source data
+	code = CODE_FIXES.get((code, cardname), code)
+
+	return cardname, filteredname, code, skip
 
 if __name__ == '__main__':
 	main()
