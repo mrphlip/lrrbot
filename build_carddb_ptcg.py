@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import psycopg2
+import re
 from collections import defaultdict
 
 from common.config import config
@@ -31,6 +32,34 @@ TYPEABBR = {
 	"Water": "W",
 }
 
+COMMON_RULES = [
+	r"TAG TEAM rule: When your TAG TEAM is Knocked Out, your opponent takes 3 Prize cards\.",
+	r"How to play a Pokémon V-UNION: Once per game during your turn, combine 4 different .* V-UNION from your discard pile and put them onto your Bench\.",
+	r"V-UNION rule: When your Pokémon V-UNION is Knocked Out, your opponent takes 3 Prize cards\.",
+	r"Put this card onto your Active .*\. .* LV.X can use any attack, Poké-Power, or Poké-Body from its previous level\.",
+	r"Pokémon ex rule: When your Pokémon ex is Knocked Out, your opponent takes 2 Prize cards\.",
+	r"Pokémon-EX rule: When a Pokémon-EX has been Knocked Out, your opponent takes 2 Prize cards\.",
+	r"When Pokémon-ex has been Knocked Out, your opponent takes 2 Prize cards\.",
+	r"Tera: As long as this Pokémon is on your Bench, prevent all damage done to this Pokémon by attacks \(both yours and your opponent's\)\.",
+	r"As long as this Pokémon is on your Bench, prevent all damage done to this Pokémon by attacks \(both yours and your opponent's\)\.",
+	r"Pokémon-GX rule: When your Pokémon-GX is Knocked Out, your opponent takes 2 Prize cards\.",
+	r"VSTAR rule: When your Pokémon VSTAR is Knocked Out, your opponent takes 2 Prize cards\.",
+	r"VMAX rule: When your Pokémon VMAX is Knocked Out, your opponent takes 3 Prize cards\.",
+	r"V rule: When your Pokémon V is Knocked Out, your opponent takes 2 Prize cards\.",
+	r"◇ \(Prism Star\) Rule: You can't have more than 1 ◇ card with the same name in your deck\. If a ◇ card would go to the discard pile, put it in the Lost Zone instead\.",
+	r"Attach a Pokémon Tool to 1 of your Pokémon that doesn't already have a Pokémon Tool attached\.",
+	r"Attach a Pokémon Tool to 1 of your Pokémon that doesn't already have a Pokémon Tool attached to it\.",
+	r"You may attach any number of Pokémon Tools to your Pokémon during your turn\. You may attach only 1 Pokémon Tool to each Pokémon, and it stays attached\.",
+	r"Attach this card to 1 of your .*Pokémon.* in play\. That Pokémon may use this card's attack instead of its own\. At the end of your turn, discard .*\.",
+	r"Attach this card to 1 of your Pokémon SP in play\. That Pokémon may use this card's attack instead of its own\. When the Pokémon this card is attached to is no longer Pokémon SP, discard this card\.",
+	r"The Pokémon this card is attached to can use the attack on this card. \(You still need the necessary Energy to use this attack.\) If this card is attached to 1 of your Pokémon, discard it at the end of your turn.",
+	r"You may play as many Item cards as you like during your turn \(before your attack\)\.",
+	r"You may play any number of Item cards during your turn\.",
+	r"This Pokémon is both .* type.",
+	r"Put this card from your hand onto your Bench only with the other half of .* LEGEND\.",
+]
+COMMON_RULES = re.compile(f"^(?:{'|'.join(COMMON_RULES)})$")
+
 REPO = "https://github.com/PokemonTCG/pokemon-tcg-data"
 CACHE_DIR = ".ptcgcache"
 
@@ -47,8 +76,8 @@ def main():
 	with psycopg2.connect(config['postgres']) as conn, conn.cursor() as cur:
 		cur.execute("DELETE FROM cards WHERE game = %s", (CARD_GAME_PTCG, ))
 
-		for cardname, filteredname, description, hidden, card, code in iter_cards():
-			cardname, filteredname, code, skip = get_hacks(cardname, filteredname, code, card)
+		for cardname, filteredname, description, hidden, card, codes in iter_cards():
+			cardname, filteredname, codes, skip = get_hacks(cardname, filteredname, codes, card)
 			if skip:
 				continue
 
@@ -62,12 +91,13 @@ def main():
 			))
 			cardid, = cur.fetchone()
 
-			if code and not hidden:
-				cur.execute("INSERT INTO card_codes (game, code, cardid) VALUES (%s, %s, %s)", (
-					CARD_GAME_PTCG,
-					code,
-					cardid
-				))
+			if not hidden:
+				for code in codes:
+					cur.execute("INSERT INTO card_codes (game, code, cardid) VALUES (%s, %s, %s)", (
+						CARD_GAME_PTCG,
+						code,
+						cardid
+					))
 
 def download_data():
 	if os.path.isdir(CACHE_DIR):
@@ -127,10 +157,10 @@ def group_other_cards(cards):
 	names = defaultdict(list)
 	for card in cards:
 		names[clean_text(card['name'])].append(card)
-	return [
-		[max(group, key=lambda card:card['set']['releaseDate'])]
-		for group in names.values()
-	]
+	for group in names.values():
+		latest = max(group, key=lambda card:card['set']['releaseDate'])
+		latest["reprints"] = group
+		yield [latest]
 
 def process_group(group):
 	for card in group:
@@ -156,10 +186,13 @@ def process_group(group):
 		unique = all(equiv(c) for c in group)
 		setunique = all(equiv(c) for c in group if setcode(c) == setcode(card))
 		description = f"{card['fullname']} | {card['description']}"
-		code = f"{setcode(card).lower()}_{card['number']}"
+		if "reprints" in card:
+			codes = {gen_code(c) for c in card["reprints"]}
+		else:
+			codes = [gen_code(card)]
 		for cardname, hidden in gen_cardnames(card, unique, setunique):
 			filteredname = clean_text(cardname)
-			yield cardname, filteredname, description, hidden, card, code
+			yield cardname, filteredname, description, hidden, card, codes
 
 def gen_cardnames(card, unique, setunique):
 	"""
@@ -207,9 +240,10 @@ def gen_text(card):
 		yield ' [evolves from: '
 		yield card['evolvesFrom']
 		yield ']'
-	if card.get('rules'):
+	rules = [rule for rule in card.get('rules', ()) if not COMMON_RULES.match(rule)]
+	if rules:
 		yield ' | '
-		for i, rule in enumerate(card['rules']):
+		for i, rule in enumerate(rules):
 			if i:
 				yield ' / '
 			yield rule
@@ -276,6 +310,9 @@ def cost(costs, colorlesscount=True):
 		res.append(TYPEABBR[cost])
 	return ''.join(res)
 
+def gen_code(card):
+	return f"{setcode(card).lower()}_{card['number']}"
+
 EX_NAMES = {
 	'Arbok ex',
 	'Chansey ex',
@@ -290,7 +327,7 @@ EX_NAMES = {
 CODE_FIXES = {
 	("blk_60", "Antique Cover Fossil"): "blk_80",
 }
-def get_hacks(cardname, filteredname, code, card):
+def get_hacks(cardname, filteredname, codes, card):
 	skip = False
 
 	# Diddle with the Unowns so that these don't have the same filtered name
@@ -305,12 +342,11 @@ def get_hacks(cardname, filteredname, code, card):
 		skip = True
 
 	# This set has a bunch of duplicate collector numbers... not worth the effort
-	if card["set"]["id"] == "cel25c":
-		code = None
+	codes = [c for c in codes if not c.startswith("cel_")]
 	# Fix cards that have typos in the source data
-	code = CODE_FIXES.get((code, cardname), code)
+	codes = [CODE_FIXES.get((c, cardname), c) for c in codes]
 
-	return cardname, filteredname, code, skip
+	return cardname, filteredname, codes, skip
 
 if __name__ == '__main__':
 	main()
