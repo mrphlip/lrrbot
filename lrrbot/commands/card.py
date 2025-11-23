@@ -3,8 +3,7 @@ import sqlalchemy
 import lrrbot.decorators
 from lrrbot.command_parser import Blueprint
 import common.postgres
-import common.time
-from common.card import clean_text, CARD_GAME_MTG, CARD_GAME_KEYFORGE, CARD_GAME_PTCG, CARD_GAME_LORCANA, CARD_GAME_ALTERED
+import common.card
 
 blueprint = Blueprint()
 
@@ -36,7 +35,7 @@ def mtg_card_lookup(bot, conn, event, respond_to, search):
 
 	Show the details of a given Magic: The Gathering card.
 	"""
-	real_card_lookup(bot, conn, event, respond_to, search, game=CARD_GAME_MTG)
+	real_card_lookup(bot, conn, event, respond_to, search, game=common.card.CARD_GAME_MTG)
 
 @blueprint.command(r"(?:kf|keyforge) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
@@ -48,7 +47,7 @@ def keyforge_card_lookup(lrrbot, conn, event, respond_to, search):
 
 	Show the details of a given KeyForge card.
 	"""
-	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_KEYFORGE)
+	real_card_lookup(lrrbot, conn, event, respond_to, search, game=common.card.CARD_GAME_KEYFORGE)
 
 @blueprint.command(r"(?:pok[eé]mon|pok[eé]|pkmn|ptcg) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
@@ -60,7 +59,7 @@ def pokemon_card_lookup(lrrbot, conn, event, respond_to, search):
 
 	Show the details of a given Pokémon TCG card.
 	"""
-	real_card_lookup(lrrbot, conn, event, respond_to, search, game=CARD_GAME_PTCG)
+	real_card_lookup(lrrbot, conn, event, respond_to, search, game=common.card.CARD_GAME_PTCG)
 
 @blueprint.command(r"(?:lorcana) (.+)")
 @lrrbot.decorators.throttle(60, count=3)
@@ -71,7 +70,7 @@ def lorcana_card_lookup(bot, conn, event, respond_to, search):
 
 	Show the details of a given Disney Lorcana TCG card.
 	"""
-	real_card_lookup(bot, conn, event, respond_to, search, game=CARD_GAME_LORCANA)
+	real_card_lookup(bot, conn, event, respond_to, search, game=common.card.CARD_GAME_LORCANA)
 
 @blueprint.command(r"altered(?:tcg)? (.+)")
 @lrrbot.decorators.throttle(60, count=3)
@@ -83,9 +82,20 @@ def altered_card_lookup(bot, conn, event, respond_to, search):
 
 	Show the details of a given Altered TCG card.
 	"""
-	real_card_lookup(bot, conn, event, respond_to, search, game=CARD_GAME_ALTERED)
+	real_card_lookup(bot, conn, event, respond_to, search, game=common.card.CARD_GAME_ALTERED)
 
-def real_card_lookup(bot, conn, event, respond_to, search, noerror=False, includehidden=False, game=CARD_GAME_MTG):
+@blueprint.command(r"riftbound (.+)")
+@lrrbot.decorators.throttle(60, count=3)
+def riftbound_card_lookup(bot, conn, event, respond_to, search):
+	"""
+	Command: !riftbound card-name
+	Section: misc
+
+	Show the details of a given Riftbound card.
+	"""
+	real_card_lookup(bot, conn, event, respond_to, search, game=common.card.CARD_GAME_RIFTBOUND)
+
+def real_card_lookup(bot, conn, event, respond_to, search, noerror=False, includehidden=False, game=common.card.CARD_GAME_MTG):
 	cards = find_card(bot, search, includehidden, game)
 
 	if noerror and len(cards) != 1:
@@ -100,10 +110,10 @@ def real_card_lookup(bot, conn, event, respond_to, search, noerror=False, includ
 	else:
 		conn.privmsg(respond_to, "Found %d cards you could be referring to - please enter more of the name" % len(cards))
 
-def find_card(bot, search, includehidden=False, game=CARD_GAME_MTG):
+def find_card(bot, search, includehidden=False, game=common.card.CARD_GAME_MTG):
 	cards = bot.metadata.tables["cards"]
 
-	cleansearch = clean_text(search)
+	cleansearch = common.card.clean_text(search)
 	with bot.engine.connect() as conn:
 		query = (sqlalchemy.select(cards.c.name, cards.c.text)
 						.where(cards.c.filteredname == cleansearch))
@@ -114,7 +124,7 @@ def find_card(bot, search, includehidden=False, game=CARD_GAME_MTG):
 			return rows
 
 		searchwords = search.split()
-		searchwords = [clean_text(i) for i in searchwords]
+		searchwords = [common.card.clean_text(i) for i in searchwords]
 		searchlike = "%" + "%".join(common.postgres.escape_like(i) for i in searchwords) + "%"
 		query = (sqlalchemy.select(cards.c.name, cards.c.text)
 						.where(cards.c.filteredname.like(searchlike)))

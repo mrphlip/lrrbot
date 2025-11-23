@@ -143,11 +143,12 @@ async def get_clips(session):
 			return flask.wrappers.Response(clipdata, mimetype="text/plain")
 
 CARD_GAME_CODE_MAPPING = {
-	'mtg': 1,
-	'keyforge': 2,
-	'ptcg': 3,
-	'lorcana': 4,
-	'altered': 5,
+	'mtg': card.CARD_GAME_MTG,
+	'keyforge': card.CARD_GAME_KEYFORGE,
+	'ptcg': card.CARD_GAME_PTCG,
+	'lorcana': card.CARD_GAME_LORCANA,
+	'altered': card.CARD_GAME_ALTERED,
+	'riftbound': card.CARD_GAME_RIFTBOUND,
 }
 @blueprint.route("/cardviewer", methods=["POST"])
 @server.csrf.exempt
