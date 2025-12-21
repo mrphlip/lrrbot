@@ -301,7 +301,7 @@ class LRRBot(irc.bot.SingleServerIRCBot):
 		#  * Is some sort of Twitchsm'n (another deprecated tag)
 		is_mod = is_mod or tags.get('user-type', '') in {'mod', 'global_mod', 'admin', 'staff'}
 		#  * Has one of the relevant badges
-		is_mod = is_mod or bool(badges & {'moderator', 'global_mod', 'admin', 'staff', 'broadcaster'})
+		is_mod = is_mod or bool(badges & {'moderator', 'lead_moderator', 'global_mod', 'admin', 'staff', 'broadcaster'})
 		#  * Is broadcaster
 		is_mod = is_mod or nick.lower() == config['channel']
 		#  * Is in list of extra mods
