@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+Usage: scrape_scryfall.py <SCRYFALL QUERY>
+
+Scrape Scryfall for cards.
+
+Example: scrape_scryfall.py set:ECL
+"""
 import sys
 import json
 import requests
