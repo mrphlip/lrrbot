@@ -145,6 +145,36 @@ def process_card(card: Card):
 
 SETS = ['OGN', 'OGS', 'SFD']
 
+TAGS_OVERRIDE = {
+	# Vayne, Hunter: Sentinel tag added in Spiritforged
+	'OGN-035/298': ['Vayne', 'Demacia', 'Sentinel'],
+	# Karma, Channeler: card image says Karma Ionia, card data says Vi Ionia???
+	'OGN-235/298': ['Karma', 'Ionia'],
+	# Ahri, Inquisitive: Ionia tag on card image but not in card data
+	'SFD-227/221': ['Ahri', 'Ionia'],
+	'SFD-227*/221': ['Ahri', 'Ionia'],
+	# Teemo, Strategist: Bandle City tag on card image but not in card data
+	'SFD-230/221': ['Yordle', 'Teemo', 'Bandle City'],
+	'SFD-230*/221': ['Yordle', 'Teemo', 'Bandle City'],
+	# Sett, Brawler: Ionia tag on card image but not in card data
+	'SFD-232/221': ['Sett', 'Ionia'],
+	'SFD-232*/221': ['Sett', 'Ionia'],
+	# Yasou, Windrider: Ionia tag on card image but not in card data
+	'SFD-235/221': ['Yasuo', 'Ionia'],
+	'SFD-235*/221': ['Yasuo', 'Ionia'],
+	# Darius, Executioner: Noxus tag on card image but not in card data
+	'SFD-236/221': ['Trifarian', 'Darius', 'Noxus'],
+	'SFD-236*/221': ['Trifarian', 'Darius', 'Noxus'],
+	# Karma, Channeler: Ionia tag on card image but not in card data
+	'SFD-237/221': ['Karma', 'Ionia'],
+	'SFD-237*/221': ['Karma', 'Ionia'],
+}
+
+TEXT_OVERRIDE = {
+	# Emperor of the Sands: use the wording on the card image and on SFD-197/221
+	'SFD-247/221': "<p>Your Sand Soldiers have [Weaponmaster].<br />:rb_energy_1:, :rb_exhaust:: Play a 2 :rb_might: Sand Soldier unit token to your base. Use only if you've played an Equipment this turn.</p>",
+}
+
 async def main() -> None:
 	parser = CardGalleryParser()
 
@@ -163,12 +193,18 @@ async def main() -> None:
 	codes: dict[str, str] = {}
 
 	for card in cards:
-		if card['publicCode'] == "SFD-227/221" or card['publicCode'] == "SFD-227*/221":
-			# Ahri, Inquisitive: tags on card say Ahri and Ionia, card data says only Ahri.
-			# Also previously printed with both.
+		if tags := TAGS_OVERRIDE.get(card['publicCode']):
 			card['tags'] = {
 				'label': 'Tags',
-				'tags': ['Ahri', 'Ionia'],
+				'tags': tags
+			}
+		if text := TEXT_OVERRIDE.get(card['publicCode']):
+			card['text'] = {
+				'label': 'Ability',
+				'richText': {
+					'type': 'html',
+					'body': text,
+				}
 			}
 
 		clean_name = common.card.clean_text(card['name'])
@@ -176,7 +212,7 @@ async def main() -> None:
 
 		if clean_name in processed and processed[clean_name] != (card['name'], text):
 			print('ERROR: card conflict:')
-			print(f'\tOLD: {processed[clean_name]}')
+			print(f'\tOLD: {processed[clean_name][1]}')
 			print(f'\tNEW: {text}')
 			print(json.dumps(card, indent=2))
 			exit(1)
