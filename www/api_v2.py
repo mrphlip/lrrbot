@@ -246,3 +246,44 @@ async def get_header():
 @blueprint.route('/commands')
 async def get_commands():
 	return flask.jsonify(await common.rpc.bot.get_commands())
+
+@blueprint.route('/quote', methods=["GET", "POST"])
+@server.csrf.exempt
+async def get_quote():
+	quotes = server.db.metadata.tables["quotes"]
+	games = server.db.metadata.tables["games"]
+	shows = server.db.metadata.tables["shows"]
+	with server.db.engine.connect() as conn:
+		qry = sqlalchemy.select(
+			quotes.c.id, quotes.c.quote, quotes.c.attrib_name, quotes.c.attrib_date, quotes.c.context, games.c.name, shows.c.name
+		).select_from(
+			quotes.outerjoin(games, games.c.id == quotes.c.game_id).outerjoin(shows, shows.c.id == quotes.c.show_id)
+		).where(~quotes.c.deleted)
+
+		if flask.request.is_json:
+			req = flask.request.get_json()
+			if req.get("id"):
+				qry = qry.where(quotes.c.id == int(req["id"]))
+			if req.get("name"):
+				qry = qry.where(quotes.c.attrib_name.ilike("%" + common.postgres.escape_like(str(req["name"]).lower()) + "%"))
+			if req.get("find"):
+				fts_column = sqlalchemy.func.to_tsvector('english', quotes.c.quote)
+				qry = qry.where(
+					(fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', str(req["find"]))))
+				)
+
+		row = utils.pick_random_elements(conn.execute(qry), 1)[0]
+		if row is None:
+			return "null"
+
+		qid, quote, name, date, context, game, show = row
+		res = {
+			"id": qid,
+			"quote": quote,
+			"name": name,
+			"date": date and date.isoformat(),
+			"context": context,
+			"game": game,
+			"show": show,
+		}
+		return flask.jsonify(res)

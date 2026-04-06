@@ -15,6 +15,7 @@
 	<li><a href="#stormcount"><code>GET {{ url_for("api_v2.stormcount") }}</code></a></li>
 	<li><a href="#stormcount_all"><code>GET {{ url_for("api_v2.stormcount_all") }}</code></a></li>
 	<li><a href="#get_tweet"><code>GET {{ url_for("api_v2.get_tweet") }}</code></a></li>
+	<li><a href="#get_quote"><code>GET {{ url_for("api_v2.get_quote") }}</code><br><code>POST {{ url_for("api_v2.get_quote") }}</code></a></li>
 </ul>
 
 <h2 id="cardviewer_announce"><code>POST {{ url_for("api_v2.cardviewer_announce") }}</code></h2>
@@ -693,5 +694,27 @@ data:{"time": "2018-03-27T20:59:04.621308+02:00"}
 <p>Get a random message to post on <a href="https://kind.social/@lrrbot">LRRbot's Mastodon account</a>.</p>
 <h3>Example response</h3>
 <pre>{{ tweet }}</pre>
+
+<h2 id="get_quote"><code>GET {{ url_for("api_v2.get_quote") }}</code><br><code>POST {{ url_for("api_v2.get_quote") }}</code></h2>
+<p>Get a random quote from the <a href="{{ url_for('quotes.quotes') }}">quotes database</a>.</p>
+<p>When accessed as a <code>GET</code>, this will return a random quote from the entire database.</p>
+<p>When accessed as a <code>POST</code>, you can specify search terms to find specific quotes.</p>
+
+<h3>Example requests</h3>
+<pre>curl -X GET {{ url_for("api_v2.get_quote", _external=True) }}</pre>
+<pre>curl -X POST {{ url_for("api_v2.get_quote", _external=True) }} -H "Content-Type: application/json" -d '{"id": 801}'</pre>
+<pre>curl -X POST {{ url_for("api_v2.get_quote", _external=True) }} -H "Content-Type: application/json" -d '{"from": "Paul"}'</pre>
+<pre>curl -X POST {{ url_for("api_v2.get_quote", _external=True) }} -H "Content-Type: application/json" -d '{"find": "lrrbot"}'</pre>
+
+<h3>Example response</h3>
+<pre>{
+  "id": 4039,
+  "quote": "You can't just say \"go left\" to every problem and then take credit if you're right",
+  "name": "Graham",
+  "date": "2017-02-22",
+  "context": "to chat",
+  "game": "Games + Demos",
+  "show": "Watch and Play"
+}</pre>
 
 {% endblock %}
