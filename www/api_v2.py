@@ -271,6 +271,9 @@ async def get_quote():
 				qry = qry.where(
 					(fts_column.op("@@")(sqlalchemy.func.plainto_tsquery('english', str(req["find"]))))
 				)
+			if req.get("complete"):
+				qry = qry.where(quotes.c.quote != None).where(quotes.c.attrib_name != None).where(quotes.c.attrib_date != None)
+				qry = qry.where(games.c.name != None).where(shows.c.name != None)
 
 		row = utils.pick_random_elements(conn.execute(qry), 1)[0]
 		if row is None:

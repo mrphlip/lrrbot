@@ -698,13 +698,20 @@ data:{"time": "2018-03-27T20:59:04.621308+02:00"}
 <h2 id="get_quote"><code>GET {{ url_for("api_v2.get_quote") }}</code><br><code>POST {{ url_for("api_v2.get_quote") }}</code></h2>
 <p>Get a random quote from the <a href="{{ url_for('quotes.quotes') }}">quotes database</a>.</p>
 <p>When accessed as a <code>GET</code>, this will return a random quote from the entire database.</p>
-<p>When accessed as a <code>POST</code>, you can specify search terms to find specific quotes.</p>
+<p>When accessed as a <code>POST</code>, you can specify search terms to find specific quotes:</p>
+<ul>
+	<li><code>id</code> to search for a specific quote ID</li>
+	<li><code>from</code> to search for quotes by a specific person</li>
+	<li><code>find</code> to search for quotes that contain specific words</li>
+	<li><code>complete</code> to search for quotes that include non-<code>null</code> values for <code>name</code>, <code>date</code>, <code>game</code> and <code>show</code>. Note that <code>context</code> may still be <code>null</code>.</li>
+</ul>
 
 <h3>Example requests</h3>
 <pre>curl -X GET {{ url_for("api_v2.get_quote", _external=True) }}</pre>
 <pre>curl -X POST {{ url_for("api_v2.get_quote", _external=True) }} -H "Content-Type: application/json" -d '{"id": 801}'</pre>
 <pre>curl -X POST {{ url_for("api_v2.get_quote", _external=True) }} -H "Content-Type: application/json" -d '{"from": "Paul"}'</pre>
 <pre>curl -X POST {{ url_for("api_v2.get_quote", _external=True) }} -H "Content-Type: application/json" -d '{"find": "lrrbot"}'</pre>
+<pre>curl -X POST {{ url_for("api_v2.get_quote", _external=True) }} -H "Content-Type: application/json" -d '{"complete": true}'</pre>
 
 <h3>Example response</h3>
 <pre>{
