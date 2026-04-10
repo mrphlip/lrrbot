@@ -60,7 +60,7 @@ def main(query: str) -> None:
 				'types': subtypes + supertypes,
 				'uuid': card['id'],
 			})
-		elif card['layout'] == 'transform':
+		elif card['layout'] in ('transform', 'prepare'):
 			for i, face in enumerate(card['card_faces']):
 				supertypes, subtypes = extract_types(face['type_line'])
 
@@ -70,7 +70,7 @@ def main(query: str) -> None:
 					'hand': card.get('hand_modifier'),
 					'identifiers': {},
 					'keywords': card['keywords'],
-					'layout': 'transform',
+					'layout': card['layout'],
 					'life': card.get('life_modifier'),
 					'loyalty': face.get('loyalty'),
 					'manaCost': face['mana_cost'],
