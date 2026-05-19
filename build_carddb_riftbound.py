@@ -6,6 +6,7 @@ common.FRAMEWORK_ONLY = True
 
 import asyncio
 import json
+import re
 from html.parser import HTMLParser
 from typing import NotRequired, TypedDict
 
@@ -53,6 +54,8 @@ class CardTextParser(HTML2Text):
 
 		for n in range(0, 10):
 			text = text.replace(f':rb_energy_{n}:', f'[{n}]')
+
+		text = text.replace('[>] ', ' \u2014 ')
 		
 		return ' / '.join(line.strip() for line in text.splitlines())
 
@@ -94,6 +97,8 @@ class Card(TypedDict):
 	tags: NotRequired[LabelledTags]
 	orientation: str
 	publicCode: str
+
+re_remindertext = re.compile(r"( *)\([^()]*\)( *)")
 
 def process_card(card: Card):
 	yield card['name']
@@ -141,9 +146,8 @@ def process_card(card: Card):
 	text = CardTextParser().handle(card['text']['richText']['body'])
 	if text:
 		yield ' | '
-		yield text
-
-SETS = ['OGN', 'OGS', 'SFD']
+		# Strip reminder text.
+		yield re_remindertext.sub(lambda match: ' ' if match.group(1) and match.group(2) else '', text)
 
 TAGS_OVERRIDE = {
 	# Vayne, Hunter: Sentinel tag added in Spiritforged
@@ -168,11 +172,30 @@ TAGS_OVERRIDE = {
 	# Karma, Channeler: Ionia tag on card image but not in card data
 	'SFD-237/221': ['Karma', 'Ionia'],
 	'SFD-237*/221': ['Karma', 'Ionia'],
+	# Red Brambleback: Ionia tag missing in card data
+	'UNL-029a/219': ['Ionia'],
+	# Blue Sentinel: Mount Targon tag missing in card data
+	'UNL-087a/219': ['Mount Targon'],
+	# Elder Dragon: Demacia tag missing
+	'UNL-118a/219': ['Dragon', 'Demacia'],
 }
 
 TEXT_OVERRIDE = {
+	# Teemo, Strategist: use wording on the card image
+	'OGN-121/298': "<p>[Hidden] (Hide now for :rb_rune_rainbow: to react with later for :rb_energy_0:.)<br />When I defend or I'm played from [Hidden], reveal the top 5 cards of your Main Deck. Deal 1 to an enemy unit here for each card with [Hidden], then recycle them.</p>",
+	'OGN-121a/298': "<p>[Hidden] (Hide now for :rb_rune_rainbow: to react with later for :rb_energy_0:.)<br />When I defend or I'm played from [Hidden], reveal the top 5 cards of your Main Deck. Deal 1 to an enemy unit here for each card with [Hidden], then recycle them.</p>",
+	# Karma, Channeler: use wording on the card image
+	'OGN-235/298': "<p>[Vision] (When you play me, look at the top card of your Main Deck. You may recycle it.)<br />When you recycle one or more cards, buff a friendly unit. (If it doesn't have a buff, it gets a +1 :rb_might: buff. Runes aren't cards.)</p>",
+	# The Boss: use wording on the card image
+	'OGN-269/298': "<p>When a buffed unit you control would die, you may pay :rb_rune_rainbow: and exhaust me to spend its buff and recall it exhausted instead. (Send it to base. This isn't a move.)<br />When you conquer, ready me.</p>",
+	# Yone, Blademaster: use wording on the card image
+	'SFD-116/221': "<p>[Weaponmaster] (When you play me, you may [Equip] one of your Equipment to me for :rb_rune_rainbow: less, even if it's already attached.)<br />When I conquer an open battlefield, deal damage equal to my Might to an enemy unit in a base.</p>",
+	# Void Burrower: use wording on the card image
+	'SFD-187/221': "<p>When you conquer, you may exhaust me to reveal the top 2 cards of your Main Deck. You may play one. Then recycle the rest.</p>",
 	# Emperor of the Sands: use the wording on the card image and on SFD-197/221
 	'SFD-247/221': "<p>Your Sand Soldiers have [Weaponmaster].<br />:rb_energy_1:, :rb_exhaust:: Play a 2 :rb_might: Sand Soldier unit token to your base. Use only if you've played an Equipment this turn.</p>",
+	# Gold token: use new text
+	'SFD-T03': "<p>[Reaction][&gt;] Kill this, :rb_exhaust:: [Add] :rb_rune_rainbow:. (Abilities that add resources can't be reacted to.)</p>",
 }
 
 async def main() -> None:
@@ -183,11 +206,12 @@ async def main() -> None:
 
 	blades = parser.app_state['props']['pageProps']['page']['blades']
 	gallery = next(blade for blade in blades if blade['type'] == 'riftboundCardGallery')
+	sets = [s['id'] for s in gallery['sets']['items']]
 	cards: list[Card] = gallery['cards']['items']
 	print(f'Found {len(cards)} cards out of {gallery['cards']['async']['metadata']['totalItems']}')
 
 	print('Processing cards...')
-	cards.sort(key=lambda card: (SETS.index(card['set']['value']['id']), card['publicCode']))
+	cards.sort(key=lambda card: (sets.index(card['set']['value']['id']), card['publicCode']))
 
 	processed: dict[str, tuple[str, str]] = {}
 	codes: dict[str, str] = {}
