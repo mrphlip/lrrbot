@@ -23,8 +23,9 @@ def index(session):
 				"message": message,
 				"next_run": next_run,
 				"next_run_in": next_run_in,
+				"enabled": enabled,
 			}
-			for id, name, interval, mode, message, next_run, next_run_in in conn.execute(sqlalchemy.select(
+			for id, name, interval, mode, message, next_run, next_run_in, enabled in conn.execute(sqlalchemy.select(
 				timers.c.id,
 				timers.c.name,
 				timers.c.interval,
@@ -32,6 +33,7 @@ def index(session):
 				timers.c.message,
 				timers.c.last_run + timers.c.interval,
 				timers.c.last_run + timers.c.interval - sqlalchemy.func.current_timestamp(),
+				timers.c.enabled,
 			).order_by(timers.c.name))
 		]
 
@@ -46,6 +48,7 @@ def new(session):
 		"interval": datetime.timedelta(minutes=15),
 		"mode": "message",
 		"message": "",
+		"enabled": True,
 	}
 	return flask.render_template("timers_edit.html", timer=timer, session=session)
 
@@ -55,9 +58,10 @@ def edit(session, id):
 	timers = server.db.metadata.tables["timers"]
 
 	with server.db.engine.connect() as conn:
-		id, name, interval, mode, message = conn.execute(
+		id, name, interval, mode, message, enabled = conn.execute(
 			sqlalchemy.select(
-				timers.c.id, timers.c.name, timers.c.interval, timers.c.mode, timers.c.message
+				timers.c.id, timers.c.name, timers.c.interval, timers.c.mode, timers.c.message,
+				timers.c.enabled,
 			).where(timers.c.id == id)
 		).one()
 
@@ -67,6 +71,7 @@ def edit(session, id):
 			"interval": interval,
 			"mode": mode,
 			"message": message,
+			"enabled": enabled,
 		}
 
 	return flask.render_template("timers_edit.html", timer=timer, session=session)
@@ -82,6 +87,7 @@ def save(session):
 		"interval": datetime.timedelta(minutes=float(flask.request.form["interval"].strip())),
 		"mode": flask.request.form["mode"].strip(),
 		"message": flask.request.form["message"].strip(),
+		"enabled": bool(int(flask.request.form["enabled"].strip())),
 	}
 
 	if not timer['name']:

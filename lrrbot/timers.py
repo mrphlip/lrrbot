@@ -48,6 +48,7 @@ class Timers:
 						(timers.c.last_run == None) |
 						(timers.c.last_run + timers.c.interval < sqlalchemy.func.current_timestamp())
 					)
+					.where(timers.c.enabled)
 					.returning(timers.c.mode, timers.c.message)
 			).all()
 			conn.commit()

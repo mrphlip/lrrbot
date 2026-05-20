@@ -34,6 +34,10 @@
 
 		<p><label for="message">{% if timer['mode'] == 'command' %}Command:{% else %}Message:{% endif %}</label></p>
 		<p><input type="text" name="message" value="{{ timer['message'] }}" required></p>
+		<p><select name="enabled">
+			<option value="0" {%if not timer['enabled']%}selected{%endif%}>Disabled</option>
+			<option value="1" {%if timer['enabled']%}selected{%endif%}>Enabled</option>
+		</select></p>
 
 		<p><button type="submit">Save</button></p>
 	</form>

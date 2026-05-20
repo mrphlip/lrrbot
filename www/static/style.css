@@ -372,6 +372,10 @@ ul.pagination li :visited {
 .nicetable th {
 	background: #CCC;
 }
+.timers tr.disabled {
+	font-style: italic;
+	color: #666;
+}
 
 .alias {
 	border-bottom: 1px dotted black;

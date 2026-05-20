@@ -29,6 +29,7 @@
 				<th class="mode">Mode</th>
 				<th class="message">Message</th>
 				<th class="next-run">Next</th>
+				<th class="enabled">Enabled</th>
 				<th class="button">
 					<form action="{{ url_for('timers.new') }}">
 						<button type="submit">Add</button>
@@ -38,7 +39,7 @@
 		</thead>
 		<tbody>
 			{% for timer in timers %}
-				<tr class="{{ loop.cycle('odd', 'even') }}">
+				<tr class="{{ loop.cycle('odd', 'even') }}{%if not timer['enabled']%} disabled{%endif%}">
 					<td class="name">{{ timer['name'] }}</td>
 					<td class="interval">{{ timer['interval'] | nice_duration }}</td>
 					<td class="mode">{{ timer['mode'] }}</td>
@@ -48,6 +49,7 @@
 							{{ timer['next_run'] | timestamp }} (in {{ timer['next_run_in'] | nice_duration }})
 						{% endif %}
 					</td>
+					<td class="enabled">{%if timer['enabled']%}Enabled{%else%}Disabled{%endif%}</td>
 					<td class="button">
 						<form action="{{ url_for('timers.edit', id=timer['id']) }}">
 							<button type="submit">Edit</button>
