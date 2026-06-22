@@ -16,7 +16,7 @@ from common import googlecalendar
 from common import utils
 from common.account_providers import ACCOUNT_PROVIDER_TWITCH
 from common.config import config
-from common.desertbus import DESERTBUS_START, DESERTBUS_END, DESERTBUS_EXPRESS
+from common.desertbus import DESERTBUS_START, DESERTBUS_END, DESERTBUS_EXPRESS, DESERTBUS_HASTIME
 from common import twitch
 from lrrbot import storage
 from lrrbot.command_parser import Blueprint
@@ -126,10 +126,15 @@ def desertbus(bot, conn, event, respond_to, timezone):
 	now = datetime.datetime.now(datetime.timezone.utc)
 
 	event_name = "Desert Bus Express" if DESERTBUS_EXPRESS else "Desert Bus for Hope"
-	if now < DESERTBUS_START:
+	if now < DESERTBUS_START and DESERTBUS_HASTIME:
 		nice_duration = common.time.nice_duration(DESERTBUS_START - now, 1) + " from now"
 		conn.privmsg(respond_to, "%s will begin at %s (%s)" % (event_name, DESERTBUS_START.astimezone(timezone).strftime(
 			googlecalendar.DISPLAY_FORMAT_WITH_DATE), nice_duration))
+	elif now < DESERTBUS_START:
+		days_duration = round((DESERTBUS_START - now).total_seconds() / 86400)
+		days_duration = f"{days_duration} days from now"
+		conn.privmsg(respond_to, "%s will begin on %s (%s)" % (event_name, DESERTBUS_START.astimezone(timezone).strftime(
+			googlecalendar.DISPLAY_FORMAT_DATE_ONLY), days_duration))
 	elif now < DESERTBUS_END:
 		conn.privmsg(respond_to, f"{event_name} is currently live! Go watch it now at https://desertbus.org/ or https://twitch.tv/desertbus")
 	else:
