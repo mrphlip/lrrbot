@@ -75,7 +75,7 @@ async def vid(session, videoid):
 			"endtime": time - video['start'] + datetime.timedelta(seconds=clip['duration']),
 			"start": nice_duration(time - video['start'], 0),
 			"duration": nice_duration(clip['duration'], 0),
-			"game": (await get_game(id=clip['game_id'])).name if clip.get('game_id') else clip.get('game'),
+			"game": (await get_game(id=clip['game_id'])).name if (game_id := clip.get('game_id')) and game_id != '0' else clip.get('game'),
 			"thumbnail": clip.get('thumbnail_url') or clip.get('thumbnails', {}).get('small'),
 			"rating": rating,
 			"overlap": False,
