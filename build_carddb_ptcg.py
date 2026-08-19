@@ -323,6 +323,7 @@ EX_NAMES = {
 	'Vileplume ex',
 	'Alakazam-EX',
 	'Pidgeot-EX',
+	'Meowth ex',
 }
 CODE_FIXES = {
 	("blk_60", "Antique Cover Fossil"): "blk_80",
