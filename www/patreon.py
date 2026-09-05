@@ -17,10 +17,10 @@ blueprint = flask.Blueprint('patreon', __name__)
 PATREON_BASE_URL = "https://www.patreon.com/"
 
 # Space separated list of scopes.
-#  `users` - profile information
-#  `pledges-to-me` - pledge amount
-#  `my-campaign` - campaign information
-SCOPE = "users pledges-to-me"
+#  `identity` - profile information
+#  `identity.memberships` - pledge amount
+#  `campaigns` - campaign information
+SCOPE = "identity identity.memberships campaigns"
 
 @blueprint.route('/')
 @login.require_login
@@ -43,14 +43,7 @@ async def index(session):
 
 		token = await patreon.get_token(server.db.engine, server.db.metadata, patreon_account['provider_user_id'])
 		user = await patreon.current_user(token)
-		for pledge in user['data'].get('relationships', {}).get('pledges', {}).get('data', []):
-			for obj in user['included']:
-				if obj['type'] == pledge['type'] and obj['id'] == pledge['id'] and obj['attributes']['amount_cents'] > 0:
-					is_patron = True
-					break
-			else:
-				continue
-			break
+		is_patron = _is_pledged(user)
 
 		with server.db.engine.connect() as conn:
 			conn.execute(
@@ -63,9 +56,8 @@ async def index(session):
 			conn.commit()
 
 		if not is_patron:
-			token = await patreon.get_token(server.db.engine, server.db.metadata, config['patreon_creator_user_id'])
-			campaigns = await patreon.get_campaigns(token, ["creator"])
-			pledge_url = urllib.parse.urljoin(PATREON_BASE_URL, campaigns['data'][0]['attributes']['pledge_url'])
+			campaigns = await patreon.get_campaigns(token, config["patreon_creator_campaign_id"])
+			pledge_url = urllib.parse.urljoin(PATREON_BASE_URL, campaigns['data']['attributes']['pledge_url'])
 			pledge_url = urllib.parse.urlsplit(pledge_url)
 			query_string = urllib.parse.parse_qs(pledge_url.query)
 			query_string['patAmt'] = ["5.0"] # Set the default pledge amount to $5. Defaults to $1.
@@ -84,6 +76,21 @@ async def index(session):
 		scope=SCOPE,
 		pledge_url=pledge_url,
 	)
+
+def _is_pledged(user):
+	includes = {
+		(inc["type"], inc["id"]): inc
+		for inc in user.get("included", [])
+	}
+	for membership in user["data"].get("relationships", {}).get("memberships", {}).get("data", []):
+		member = includes.get((membership["type"], membership["id"]))
+		if not member:
+			continue
+		if member.get("relationships", {}).get("campaign", {}).get("data", {}).get("id") != config["patreon_creator_campaign_id"]:
+			continue
+		if member.get("attributes", {}).get("will_pay_amount_cents", 0) > 0:
+			return True
+	return False
 
 @blueprint.route('/login')
 @login.require_login
@@ -107,15 +114,6 @@ async def login(session):
 	user = await patreon.current_user(access_token)
 
 	accounts = server.db.metadata.tables['accounts']
-	is_sub = None
-	for pledge in user['data'].get('relationships', {}).get('pledges', {}).get('data', []):
-		for obj in user['included']:
-			if obj['type'] == pledge['type'] and obj['id'] == pledge['id'] and obj['attributes']['amount_cents'] > 0:
-				is_sub = True
-				break
-		else:
-			continue
-		break
 	with server.db.engine.connect() as conn:
 		query = insert(accounts)
 		query = query.on_conflict_do_update(
@@ -137,7 +135,7 @@ async def login(session):
 			"access_token": access_token,
 			"refresh_token": refresh_token,
 			"token_expires_at": expiry,
-			"is_sub": is_sub,
+			"is_sub": _is_pledged(user),
 		}).first()
 		conn.commit()
 
