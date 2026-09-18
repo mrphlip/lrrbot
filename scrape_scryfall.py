@@ -10,6 +10,10 @@ import sys
 import json
 import requests
 
+import common
+common.FRAMEWORK_ONLY = True
+from common.http import USER_AGENT
+
 def extract_types(typeline: str) -> tuple[list[str], list[str]]:
 	if '\u2014' in typeline:
 		supertypes, subtypes = typeline.split(' \u2014 ')
@@ -20,7 +24,7 @@ def main(query: str) -> None:
 	cards = []
 	page = 1
 	while True:
-		r = requests.get("https://api.scryfall.com/cards/search", params={"q": query, "page": str(page)})
+		r = requests.get("https://api.scryfall.com/cards/search", params={"q": query, "page": str(page)}, headers={"User-Agent": USER_AGENT})
 		r.raise_for_status()
 		data = r.json()
 		cards.extend(data['data'])
@@ -36,7 +40,7 @@ def main(query: str) -> None:
 			'cards': [],
 			'releaseDate': card['released_at'],
 		})['cards']
-			
+
 		if card['layout'] == 'normal':
 			supertypes, subtypes = extract_types(card['type_line'])
 
@@ -89,7 +93,7 @@ def main(query: str) -> None:
 		else:
 			print(json.dumps(card, indent=2))
 			raise NotImplementedError(f'layout: {card['layout']}')
-	
+
 	for expansion in expansions.values():
 		for card in expansion['cards']:
 			if card['manaCost'] == '':
