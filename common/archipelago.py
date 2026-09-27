@@ -2,7 +2,8 @@ import asyncio
 import aiohttp
 import json
 import logging
-from common import http, utils
+from common import http, rpc, utils
+from common.config import config
 
 log = logging.getLogger("archipelago")
 
@@ -13,12 +14,15 @@ UUID = "a6f5066f-2965-40b6-af04-c29c334ae9a7"
 # See https://github.com/ArchipelagoMW/Archipelago/blob/main/docs/network%20protocol.md
 
 class ArchipelagoClient:
-	def __init__(self, loop, host, port, password, name):
-		self.loop = loop
+	def __init__(self, lrrbot, host, port, password, name, respconn, respond_to):
+		self.lrrbot = lrrbot
+		self.loop = lrrbot.loop
 		self.host = host
 		self.port = port
 		self.password = password
 		self.name = name
+		self.respconn = respconn
+		self.respond_to = respond_to
 
 		self.connected = False
 		self.closed = False
@@ -33,10 +37,12 @@ class ArchipelagoClient:
 		self.connected_event = asyncio.Event()
 
 	def start(self):
-		self.task = loop.create_task(self.connect())
+		log.debug("Starting Archipelago")
+		self.task = self.loop.create_task(self.connect())
 		self.task.add_done_callback(utils.check_exception)
 
 	def stop(self):
+		log.debug("Stop Archipelago")
 		self.connected = False
 		self.closed = True
 		if self.task:
@@ -59,8 +65,14 @@ class ArchipelagoClient:
 		async with http_session.ws_connect(endpoint, heartbeat=30, compress=15) as conn:
 			self.conn = conn
 
-			message_loop = loop.create_task(self.message_loop())
-			await self.handshake()
+			message_loop = self.loop.create_task(self.message_loop())
+			try:
+				await self.handshake()
+			except Exception:
+				self.respconn.privmsg(self.respond_to, "Archipelago connection failed")
+				raise
+			else:
+				self.respconn.privmsg(self.respond_to, "Archipelago connection successful")
 			await message_loop
 
 	def reset(self):
@@ -176,6 +188,8 @@ class ArchipelagoClient:
 		try:
 			sender = self.slots[packet["item"]["player"]]
 			recipient = self.slots[packet["receiving"]]
+			sender_name = sender["name"]
+			recip_name = recipient["name"]
 			item = self.datapackage["games"][recipient["game"]]["item_id_to_name"][packet["item"]["item"]]
 			location = self.datapackage["games"][sender["game"]]["location_id_to_name"][packet["item"]["location"]]
 			flags = []
@@ -191,6 +205,21 @@ class ArchipelagoClient:
 			log.exception("Couldn't find something with %r", packet)
 		else:
 			log.info("ItemSend: from=%r to=%r item=%r loc=%r flags=%r", sender["name"], recipient["name"], item, location, flags)
+			if sender_name == recip_name:
+				message = f"{sender_name} found their own {item} ({location})"
+			else:
+				message = f"{sender_name} sent {item} to {recip_name} ({location})"
+			self.lrrbot.connection.privmsg("#" + config['channel'], message)
+
+			data = {
+				"sender": sender_name,
+				"recipient": recip_name,
+				"item": item,
+				"location": location,
+				"flags": flags,
+			}
+			await rpc.eventserver.event("archipelago-itemsend", data)
+
 
 	HANDLERS = {
 		"RoomInfo": handle_roominfo,
@@ -199,12 +228,3 @@ class ArchipelagoClient:
 		"ConnectionRefused": handle_connrefused,
 		"PrintJSON": handle_print,
 	}
-
-if __name__ == "__main__":
-	logging.basicConfig(level=logging.INFO)
-	log.setLevel(logging.DEBUG)
-
-	loop = asyncio.new_event_loop()
-	client = ArchipelagoClient(loop, "localhost", 38281, "", "test")
-	client.start()
-	loop.run_until_complete(client.task)
