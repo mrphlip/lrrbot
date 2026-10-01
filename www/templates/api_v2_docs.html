@@ -556,6 +556,8 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
 		</ul>
 		Note that, in the usual Archipelago client, <code>progression</code> items are coloured <span style="color:#AF99EF">plum (#AF99EF)</span>, <code>useful</code> items are coloured <span style="color:#6D8BE8">slateblue (#6D8BE8)</span>, filler items are coloured <span style="color:#00EEEE">cyan (#00EEEE)</span>, and <code>trap</code> items are coloured <span style="color:#FA8072">salmon (#FA8072)</span>.
 	</dd>
+	<dt><code>checks</code></dt>
+	<dd>An updated count of the total number of checks found by each player.</dd>
 </dl>
 
 <h5>Example payload</h5>
@@ -565,6 +567,12 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
   "item": "Storm Ruler",
   "location": "Charm_Notch-Grimm",
   "flags": ["useful"],
+  "checks": {
+    "Graham": {"checks": 10, "total": 120},
+    "WheeLRR": {"checks": 1000, "total": 1000000},
+    "Heather": {"checks": 123, "total": 124},
+    ...
+  },
   "time": "2026-08-27T20:05:03+02:00"
 }</pre>
 

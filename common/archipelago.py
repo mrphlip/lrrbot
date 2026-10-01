@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 import json
 import logging
+import re
 from common import http, rpc, utils
 from common.config import config
 
@@ -32,6 +33,7 @@ class ArchipelagoClient:
 		self.roominfo = None
 		self.datapackage = None
 		self.slots = None
+		self.checks = {}
 		self.roominfo_event = asyncio.Event()
 		self.datapackage_event = asyncio.Event()
 		self.connected_event = asyncio.Event()
@@ -125,6 +127,11 @@ class ArchipelagoClient:
 		except TimeoutError:
 			raise Exception("Timed out waiting for Connected packet")
 
+		await self.send_packet({
+			"cmd": "Say",
+			"text": "!status",
+		})
+
 	async def message_loop(self):
 		while True:
 			packets = await self.conn.receive_json()
@@ -183,6 +190,8 @@ class ArchipelagoClient:
 	async def handle_print(self, packet):
 		if packet.get("type") == "ItemSend":
 			await self.handle_itemsend(packet)
+		elif packet.get("type") == "CommandResult":
+			await self.handle_commandresult(packet)
 
 	async def handle_itemsend(self, packet):
 		try:
@@ -204,7 +213,6 @@ class ArchipelagoClient:
 			# this will be enough
 			log.exception("Couldn't find something with %r", packet)
 		else:
-			log.info("ItemSend: from=%r to=%r item=%r loc=%r flags=%r", sender["name"], recipient["name"], item, location, flags)
 			if sender_name == recip_name:
 				message = f"{sender_name} found their own {item} ({location})"
 			else:
@@ -218,7 +226,40 @@ class ArchipelagoClient:
 				"location": location,
 				"flags": flags,
 			}
+			if sender_name in self.checks:
+				self.checks[sender_name]["checks"] += 1
+				data["checks"] = self.checks
+
 			await rpc.eventserver.event("archipelago-itemsend", data)
+
+	async def handle_commandresult(self, packet):
+		if not packet.get("data") or len(packet["data"]) != 1 or not packet["data"][0].get("text"):
+			return
+		text = packet["data"][0]["text"]
+
+		status = self._parse_status(text)
+		if status:
+			self.checks = status
+			log.debug("Status: %r", status)
+
+	RE_STATUS = re.compile(r"\n([^\n]+) has \d+ connection[^\n]*\((\d+)/(\d+)\)", re.IGNORECASE)
+	def _parse_status(self, text):
+		# Unfortunately there is no structured response here, so have to parse the human-readable text
+		# Test message (I think this covers everything that the server can send, as of 0.6.7)
+		# text = """\
+		# Player Status on team 0:
+		# test1 has 0 connections. (10/100)
+		# alias (test2) has 1 connection. (20/100)
+		# test3 has 2 connections 1 of which are tagged AP. (30/100)
+		# test4 has 0 connections and has finished. (100/100)
+		# test5 has 1 connection and is ready. (50/100)\
+		# """
+		# though this doesn't currently handle the "alias" variant (it is too ambiguous)
+		return {
+			user: {"checks": int(checks), "total": int(total)}
+			for user, checks, total
+			in self.RE_STATUS.findall(text)
+		}
 
 
 	HANDLERS = {
