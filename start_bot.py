@@ -15,6 +15,7 @@ try:
 	log.info("Bot startup")
 	bot = LRRBot(asyncio.new_event_loop())
 
+	bot.commands.register_blueprint(lrrbot.commands.archipelago.blueprint)
 	bot.commands.register_blueprint(lrrbot.commands.card.blueprint)
 	bot.commands.register_blueprint(lrrbot.commands.game.blueprint)
 	bot.commands.register_blueprint(lrrbot.commands.live.blueprint)
