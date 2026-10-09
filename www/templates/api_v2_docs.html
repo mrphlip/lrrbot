@@ -535,6 +535,47 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
 	<dd><a href="https://en.wikipedia.org/wiki/BCP_47">BCP 47</a> tag for the language the alt text is in.</dd>
 </dl>
 
+<h4><code>archipelago-itemsend</code></h4>
+<p>An item has been sent on the connected Archipelago server (using the <code>!archipelago</code> command).</p>
+<dl>
+	<dt><code>sender</code></dt>
+	<dd>The name of the player sending the item</dd>
+	<dt><code>recipient</code></dt>
+	<dd>The name of the player receiving the item</dd>
+	<dt><code>item</code></dt>
+	<dd>The name of the item being sent</dd>
+	<dt><code>location</code></dt>
+	<dd>Where the item was found in the sender's game</dd>
+	<dt><code>flags</code></dt>
+	<dd>A list of flags describing the item. Can include:
+		<ul>
+			<li><code>"progression"</code> &ndash; This is an important item required for progress</li>
+			<li><code>"useful"</code> &ndash; This is an important item that will be helpful for the player</li>
+			<li><code>"trap"</code> &ndash; This is a detrimental item</li>
+			<li>No flags &ndash; This is a minor filler item that is useless, or provides only a small benefit</li>
+		</ul>
+		Note that, in the usual Archipelago client, <code>progression</code> items are coloured <span style="color:#AF99EF">plum (#AF99EF)</span>, <code>useful</code> items are coloured <span style="color:#6D8BE8">slateblue (#6D8BE8)</span>, filler items are coloured <span style="color:#00EEEE">cyan (#00EEEE)</span>, and <code>trap</code> items are coloured <span style="color:#FA8072">salmon (#FA8072)</span>.
+	</dd>
+	<dt><code>checks</code></dt>
+	<dd>An updated count of the total number of checks found by each player.</dd>
+</dl>
+
+<h5>Example payload</h5>
+<pre>{
+  "sender": "Heather"
+  "recipient": "WheeLRR",
+  "item": "Storm Ruler",
+  "location": "Charm_Notch-Grimm",
+  "flags": ["useful"],
+  "checks": {
+    "Graham": {"checks": 10, "total": 120},
+    "WheeLRR": {"checks": 1000, "total": 1000000},
+    "Heather": {"checks": 123, "total": 124},
+    ...
+  },
+  "time": "2026-08-27T20:05:03+02:00"
+}</pre>
+
 <h3>Server-sent events mode (default)</h3>
 <h4>Example request</h4>
 <pre>curl -H "Accept: text/event-stream" {{ url_for("api_v2.events", _external=True) }}</pre>
