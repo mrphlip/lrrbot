@@ -28,4 +28,4 @@ confusables = "*"
 html2text = "*"
 
 [requires]
-python_version = "3.13"
+python_version = "3.14"
