@@ -6,3 +6,4 @@ import lrrbot.commands.show
 import lrrbot.commands.static
 import lrrbot.commands.quote
 import lrrbot.commands.live
+import lrrbot.commands.archipelago
