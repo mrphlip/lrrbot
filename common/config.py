@@ -1,8 +1,7 @@
 import configparser
 
-import pytz
-
 from common.commandline import argv
+from common.time import get_timezone
 
 CONFIG_SECTION = 'lrrbot'
 
@@ -57,7 +56,7 @@ config.setdefault('siteurl', 'https://lrrbot.com/')
 config.setdefault('datafile', 'data.json')
 
 # timezone - timezone to use for display purposes - default to Pacific Time
-config['timezone'] = pytz.timezone(config.get('timezone', 'America/Vancouver'))
+config['timezone'] = get_timezone(config.get('timezone', 'America/Vancouver'))
 
 # socket_filename - Filename for the UDS channel that the webserver uses to communicate with the bot
 config.setdefault('socket_filename', 'lrrbot.sock')

@@ -1,6 +1,7 @@
 import datetime
 import re
 import timelib
+import io
 
 import pytz
 
@@ -30,19 +31,51 @@ def nice_duration(s, detail=1):
 	d, h = divmod(h, 24)
 	return ["%(d)dd, %(h)d:%(m)02d:%(s)02d", "%(d)dd, %(h)d:%(m)02d", "%(d)dd, %(h)dh"][detail] % {'s': s, 'm': m, 'h': h, 'd': d}
 
+_BC_TIMEZONE = None
+_BC_TZNAMES = frozenset(
+	i.casefold() for i in [
+		"America/Vancouver",
+		"PCT",
+		"Moonbase",
+		"America/Moonbase",
+		"Moon/Moonbase",
+		"Moon/Base",
+		"MBT",
+	]
+)
+
 def get_timezone(tz):
 	"""
 	Look up a timezone by name, case-insensitively
 	"""
+	if tz.casefold() in _BC_TZNAMES:
+		global _BC_TIMEZONE
+		if _BC_TIMEZONE is None:
+			_BC_TIMEZONE = _build_bc_timezone()
+		return _BC_TIMEZONE
+
 	try:
 		return pytz.timezone(tz)
 	except pytz.exceptions.UnknownTimeZoneError:
-		tznames = {i.lower(): i for i in pytz.all_timezones}
-		tz = tz.lower()
+		tznames = {i.casefold(): i for i in pytz.all_timezones}
+		tz = tz.casefold()
 		if tz in tznames:
 			return pytz.timezone(tznames[tz])
 		else:
 			raise
+
+def _build_bc_timezone():
+	"""
+	IANA have decided in their infinite wisdom to say that BC's new
+	always-daylight-savings timezone should be called "MST" instead of "PCT".
+
+	We munge the data to fix that.
+	"""
+	with pytz.open_resource("America/Vancouver") as fp:
+		tzdata = fp.read()
+	tzdata = tzdata.replace(b"\0MST\0", b"\0PCT\0")
+	tzdata = io.BytesIO(tzdata)
+	return pytz.build_tzinfo("America/Vancouver", tzdata)
 
 re_timefmt1 = re.compile(r"^\s*(?:\s*(\d*)\s*d)?(?:\s*(\d*)\s*h)?(?:\s*(\d*)\s*m)?(?:\s*(\d*)\s*s?)?\s*$")
 re_timefmt2 = re.compile(r"^(?:(?:(?:\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*:)?\s*(\d*)\s*$")

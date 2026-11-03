@@ -6,7 +6,6 @@ import string
 import re
 
 import dateutil.parser
-import pytz
 import pytz.exceptions
 from html2text import html2text
 
@@ -15,6 +14,7 @@ import common.time
 from common import gdata
 from common import utils
 from common.config import config
+from common.time import get_timezone
 
 CACHE_EXPIRY = 15*60
 CALENDAR_LRL = "loadingreadyrun.com_72jmf1fn564cbbr84l048pv1go@group.calendar.google.com"
@@ -36,7 +36,7 @@ def parse_time(time, tz):
 	if 'date' in time:
 		date = datetime.date.fromisoformat(time['date'])
 		if 'timeZone' in time:
-			tz = pytz.timezone(time['timeZone'])
+			tz = get_timezone(time['timeZone'])
 		return tz.localize(datetime.datetime.combine(date, datetime.time()))
 	raise Exception("no 'dateTime' and no 'date'")
 
@@ -70,7 +70,7 @@ async def get_upcoming_events(calendar, after=None):
 	res = json.loads(res)
 	if 'error' in res:
 		raise Exception(res['error']['message'])
-	tz = pytz.timezone(res['timeZone'])
+	tz = get_timezone(res['timeZone'])
 	formatted_items = []
 	for item in res['items']:
 		formatted_items.append({
