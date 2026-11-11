@@ -118,7 +118,7 @@ class ArchipelagoClient:
 			"uuid": UUID,
 			"version": {"class": "Version", "major": 0, "minor": 6, "build": 7},
 			"items_handling": 0,
-			"tags": ["TextOnly"],
+			"tags": ["TextOnly", "DeathLink"],
 			"slot_data": False,
 		})
 
@@ -194,6 +194,26 @@ class ArchipelagoClient:
 			await self.handle_commandresult(packet)
 
 	async def handle_itemsend(self, packet):
+		#{
+		#	"cmd": "PrintJSON",
+		#	"data": [
+		#		{"text": "1", "type": "player_id"},
+		#		{"text": " found their "},
+		#		{"text": "509342404", "player": 1, "flags": 0, "type": "item_id"},
+		#		{"text": " ("},
+		#		{"text": "509342512", "player": 1, "type": "location_id"},
+		#		{"text": ")"}
+		#	],
+		#	"type": "ItemSend",
+		#	"receiving": 1,
+		#	"item": {
+		#		"item": 509342404,
+		#		"location": 509342512,
+		#		"player": 1,
+		#		"flags": 0,
+		#		"class": "NetworkItem"
+		#	}
+		#}
 		try:
 			sender = self.slots[packet["item"]["player"]]
 			recipient = self.slots[packet["receiving"]]
@@ -261,6 +281,39 @@ class ArchipelagoClient:
 			in self.RE_STATUS.findall(text)
 		}
 
+	async def handle_bounce(self, packet):
+		if "DeathLink" in packet.get("tags", ()):
+			await self.handle_deathlink(packet)
+
+	async def handle_deathlink(self, packet):
+		#{
+		#	"cmd": "Bounced",
+		#	"games": [],
+		#	"slots": [],
+		#	"tags": ["DeathLink"],
+		#	"data": {
+		#		"time": 1794382080.5978584,
+		#		"source": "phlip",
+		#		"cause": "phlip died to a rudeling."
+		#	}
+		#}
+		try:
+			sender = packet["data"]["source"]
+			cause = packet["data"].get("cause")
+		except KeyError:
+			log.exception("Couldn't find something with %r", packet)
+
+		if cause:
+			message = cause.rstrip(".")
+		else:
+			message = f"{sender} sent a death link"
+		self.lrrbot.connection.privmsg("#" + config['channel'], message)
+
+		data = {
+			"sender": sender,
+			"cause": cause,
+		}
+		await rpc.eventserver.event("archipelago-deathlink", data)
 
 	HANDLERS = {
 		"RoomInfo": handle_roominfo,
@@ -268,4 +321,5 @@ class ArchipelagoClient:
 		"Connected": handle_connected,
 		"ConnectionRefused": handle_connrefused,
 		"PrintJSON": handle_print,
+		"Bounced": handle_bounce,
 	}

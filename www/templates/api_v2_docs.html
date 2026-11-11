@@ -576,6 +576,22 @@ https://clips.twitch.tv/DeadEnergeticWeaselBCWarrior</pre>
   "time": "2026-08-27T20:05:03+02:00"
 }</pre>
 
+<h4><code>archipelago-deathlink</code></h4>
+<p>A player has died with DeathLink enabled in the connected Archipelago server.</p>
+<dl>
+	<dt><code>sender</code></dt>
+	<dd>The name of the player who died</dd>
+	<dt><code>cause</code></dt>
+	<dd>The cause of death (may be blank, depending on the game)</dd>
+</dl>
+
+<h5>Example payload</h5>
+<pre>{
+	"sender": "phlip",
+	"cause": "phlip was defeated by a blob.",
+	"time": "2026-11-11T09:40:33+02:00"
+}</pre>
+
 <h3>Server-sent events mode (default)</h3>
 <h4>Example request</h4>
 <pre>curl -H "Accept: text/event-stream" {{ url_for("api_v2.events", _external=True) }}</pre>
